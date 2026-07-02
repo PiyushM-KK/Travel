@@ -166,24 +166,24 @@ class Component extends DCLogic {
     ];
     const collections = [
       { key: 'north', region: 'North India', accent: '#0A84D6', note: 'Rajasthan · Himachal · Kashmir · Uttar Pradesh', packages: [
-        { id: 't-raj', slug: 'rajasthan', img: 'images/t-raj.png', name: 'Royal Rajasthan', route: 'Jaipur · Jodhpur · Udaipur · Jaisalmer', duration: '7N / 8D', tag: 'Heritage', price: '₹24,900' },
-        { id: 't-him', slug: 'himachal', img: 'images/t-him.png', name: 'Himachal Hills', route: 'Shimla · Manali · Dharamshala', duration: '6N / 7D', tag: 'Family', price: '₹21,500' },
-        { id: 't-kash', slug: 'kashmir', img: 'images/t-kash.png', name: 'Kashmir Valley', route: 'Srinagar · Gulmarg · Pahalgam · Sonamarg', duration: '5N / 6D', tag: 'Honeymoon', price: '₹27,800' },
+        { id: 't-raj', slug: 'rajasthan', img: 'images/dest-rajasthan.jpg', name: 'Royal Rajasthan', route: 'Jaipur · Jodhpur · Udaipur · Jaisalmer', duration: '7N / 8D', tag: 'Heritage', price: '₹24,900' },
+        { id: 't-him', slug: 'himachal', img: 'images/dest-himachal.avif', name: 'Himachal Hills', route: 'Shimla · Manali · Dharamshala', duration: '6N / 7D', tag: 'Family', price: '₹21,500' },
+        { id: 't-kash', slug: 'kashmir', img: 'images/dest-kashmir.webp', name: 'Kashmir Valley', route: 'Srinagar · Gulmarg · Pahalgam · Sonamarg', duration: '5N / 6D', tag: 'Honeymoon', price: '₹27,800' },
       ]},
       { key: 'west', region: 'Western India', accent: '#FF6A3D', note: 'Gujarat · Goa', packages: [
-        { id: 't-guj', slug: 'gujarat', img: 'images/t-guj.png', name: 'Gujarat Darshan', route: 'Dwarka · Somnath · Statue of Unity · Kutch', duration: '6N / 7D', tag: 'Religious', price: '₹22,400' },
-        { id: 't-goa', slug: 'goa', img: 'images/t-goa.png', name: 'Goa Getaway', route: 'North Goa · South Goa · Beaches', duration: '4N / 5D', tag: 'Couples', price: '₹16,900' },
-        { id: 't-up', slug: 'agra', img: 'images/t-up.png', name: 'Braj & Agra Yatra', route: 'Mathura · Vrindavan · Gokul · Agra', duration: '3N / 4D', tag: 'Spiritual', price: '₹12,500' },
+        { id: 't-guj', slug: 'gujarat', img: 'images/dest-rajasthan.jpg', name: 'Gujarat Darshan', route: 'Dwarka · Somnath · Statue of Unity · Kutch', duration: '6N / 7D', tag: 'Religious', price: '₹22,400' },
+        { id: 't-goa', slug: 'goa', img: 'images/dest-goa.jpg', name: 'Goa Getaway', route: 'North Goa · South Goa · Beaches', duration: '4N / 5D', tag: 'Couples', price: '₹16,900' },
+        { id: 't-up', slug: 'agra', img: 'images/dest-agra.jpg', name: 'Braj & Agra Yatra', route: 'Mathura · Vrindavan · Gokul · Agra', duration: '3N / 4D', tag: 'Spiritual', price: '₹12,500' },
       ]},
       { key: 'east', region: 'East & Northeast', accent: '#1DA66B', note: 'Sikkim & the Himalayas', packages: [
-        { id: 't-sik', slug: 'sikkim', img: 'images/t-sik.png', name: 'Sikkim Discovery', route: 'Gangtok · Pelling · Lachung · North Sikkim', duration: '6N / 7D', tag: 'Mountains', price: '₹25,600' },
-        { id: 't-sikh', slug: 'sikkim', img: 'images/t-sikh.png', name: 'Sikkim Honeymoon', route: 'Gangtok · Tsomgo Lake · Pelling', duration: '5N / 6D', tag: 'Honeymoon', price: '₹23,200' },
-        { id: 't-darj', slug: 'sikkim', img: 'images/t-darj.png', name: 'Gangtok & Darjeeling', route: 'Darjeeling · Gangtok · Tea gardens', duration: '6N / 7D', tag: 'Scenic', price: '₹24,100' },
+        { id: 't-sik', slug: 'sikkim', img: 'images/uttarakhand-ridge.jpg', name: 'Sikkim Discovery', route: 'Gangtok · Pelling · Lachung · North Sikkim', duration: '6N / 7D', tag: 'Mountains', price: '₹25,600' },
+        { id: 't-sikh', slug: 'sikkim', img: 'images/uttarakhand-pine.jpg', name: 'Sikkim Honeymoon', route: 'Gangtok · Tsomgo Lake · Pelling', duration: '5N / 6D', tag: 'Honeymoon', price: '₹23,200' },
+        { id: 't-darj', slug: 'sikkim', img: 'images/uttarakhand-waterfall.jpg', name: 'Gangtok & Darjeeling', route: 'Darjeeling · Gangtok · Tea gardens', duration: '6N / 7D', tag: 'Scenic', price: '₹24,100' },
       ]},
       { key: 'south', region: 'South India', accent: '#7C5CFF', note: 'Kerala · Karnataka & the Nilgiris · Tamil Nadu', packages: [
-        { id: 't-ker', slug: 'kerala', img: 'images/t-ker.png', name: 'Kerala Backwaters', route: 'Kochi · Munnar · Thekkady · Alappuzha', duration: '6N / 7D', tag: 'Family', price: '₹23,900' },
-        { id: 't-mys', slug: 'mysuru', img: 'images/t-mys.png', name: 'Mysuru–Coorg–Ooty', route: 'Bengaluru · Mysuru · Coorg · Ooty', duration: '6N / 7D', tag: 'Hill stations', price: '₹20,800' },
-        { id: 't-temple', slug: 'south-temple', img: 'images/t-temple.png', name: 'South Temple Trail', route: 'Madurai · Rameswaram · Kanyakumari', duration: '5N / 6D', tag: 'Religious', price: '₹19,400' },
+        { id: 't-ker', slug: 'kerala', img: 'images/dest-kerala.webp', name: 'Kerala Backwaters', route: 'Kochi · Munnar · Thekkady · Alappuzha', duration: '6N / 7D', tag: 'Family', price: '₹23,900' },
+        { id: 't-mys', slug: 'mysuru', img: 'images/dest-mysuru.jpg', name: 'Mysuru–Coorg–Ooty', route: 'Bengaluru · Mysuru · Coorg · Ooty', duration: '6N / 7D', tag: 'Hill stations', price: '₹20,800' },
+        { id: 't-temple', slug: 'south-temple', img: 'images/dest-ooty.webp', name: 'South Temple Trail', route: 'Madurai · Rameswaram · Kanyakumari', duration: '5N / 6D', tag: 'Religious', price: '₹19,400' },
       ]},
     ];
     collections.forEach((c) => { c.setRef = (el) => { if (el) this.colRefs[c.key] = el; }; });

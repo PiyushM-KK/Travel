@@ -50,7 +50,7 @@ export default {
     // Health check: GET reports which version is deployed and whether the key secret is present.
     if (request.method === 'GET') {
       return new Response(
-        JSON.stringify({ ok: true, version: 'anthropic-3', model: MODEL, hasKey: !!(env && env.ANTHROPIC_API_KEY) }),
+        JSON.stringify({ ok: true, version: 'anthropic-4', model: MODEL, hasKey: !!(env && env.ANTHROPIC_API_KEY) }),
         { headers: { 'Content-Type': 'application/json', ...cors } }
       );
     }
@@ -109,10 +109,17 @@ export default {
       }
 
       const textBlock = Array.isArray(data.content) ? data.content.find((b) => b.type === 'text') : null;
-      const reply = textBlock ? String(textBlock.text || '').trim() : '';
+      let reply = textBlock ? String(textBlock.text || '').trim() : '';
+      if (!reply) reply = 'Sorry, could you please rephrase that? 🙏';
+
+      // Guarantee the price disclaimer whenever the reply quotes any prices (₹ / Rs / INR),
+      // even if the model forgot to add it. Skipped if a similar note is already present.
+      if (/[₹]|\bRs\.?\b|\bINR\b/i.test(reply) && !/indicative|subject to change|can change with/i.test(reply)) {
+        reply += '\n\nNote: Prices are indicative starting-from estimates and can change with season, hotel availability and current rates.';
+      }
 
       return new Response(
-        JSON.stringify({ reply: reply || 'Sorry, could you please rephrase that? 🙏' }),
+        JSON.stringify({ reply }),
         { headers: { 'Content-Type': 'application/json', ...cors } }
       );
     } catch (err) {

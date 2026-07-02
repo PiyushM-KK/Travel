@@ -39,6 +39,7 @@ Implication: the site is client-rendered. That's why SEO/social tags were added 
 | `index.html` | Homepage (renamed from `Home.dc.html` for GitHub Pages). Hero slideshow, categories, destinations, responsive nav + mobile hamburger, footer, cookie banner |
 | `Domestic.dc.html` | Domestic tours (renamed from `Domestic Tours.dc.html` — space removed) |
 | `International.dc.html` | International tours — **created this project** (Thailand, Bali, Maldives) |
+| `Destination.dc.html` | **Created this project** — per-destination detail page. Reads `?dest=<slug>`; homepage cards link here. Content data for all 12 destinations lives in its `data()` method (top places, best time, duration, "from ₹X", highlights, hotel tiers, CTA) |
 | `Customize.dc.html` | Customized-package enquiry form — **main lead capture** (Formspree + WhatsApp) |
 | `Flights / Trains / Buses / Hotels.dc.html` | Referral pages linking to official providers |
 | `Package.dc.html` | Individual package template |

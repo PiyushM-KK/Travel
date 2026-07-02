@@ -24,6 +24,7 @@ _Running record of state, decisions, and pending work. See `HANDOVER.md` for ful
     - Budget is **optional** (assistant never pushes for money).
     - A **price-disclaimer note** is auto-appended whenever a reply quotes ₹/Rs/INR ("Prices are indicative starting-from estimates and can change with season, hotel availability and current rates").
 11. **Deployed** to GitHub Pages (renamed Home→index, added `.nojekyll`, committed, pushed, enabled Pages).
+12. **Clickable destination cards + detail pages** — homepage destination cards (domestic, Uttarakhand, international) are now `<a>` links to **`Destination.dc.html?dest=<slug>`** with a hover-zoom + card-lift. New `Destination.dc.html` renders a rich per-destination page (hero, top places, best time, ideal duration, indicative "from ₹X", highlights, hotel tiers, price-disclaimer note, big Customize/WhatsApp CTA, related links) for all 12 destinations. Based on web research (see chat/sources).
 
 ## Key decisions
 - Host = GitHub Pages (free, public repo). Domain not bought yet.
@@ -35,7 +36,7 @@ _Running record of state, decisions, and pending work. See `HANDOVER.md` for ful
 - **AI (model/prompt):** edit `server/anthropic-chat-worker.js` → Cloudflare dashboard → Worker → Edit code → paste → Deploy (manual, not git).
 
 ## Pending / next
-- **Tomorrow:** update images / background of the website (see `HANDOVER.md` §5).
+- **Tomorrow:** update images / background of the website (see `HANDOVER.md` §5). Also planned: **"live" cycling photos per destination card** (generalize the Uttarakhand multi-image card to all cards) — needs the extra photos the user is bringing (~2-4 per destination). Mechanism to add: per-destination `imgs[]` + `spots[]` with a JS crossfade timer + sub-place label chip, like the existing Uttarakhand card.
 - Buy custom domain `skylinetravelplanner.com` (Hostinger) + DNS to GitHub Pages.
 - Housekeeping: revoke old GitHub tokens; delete unused `OPENAI_API_KEY` Cloudflare secret + `server/openai-chat-worker.js`; add real Domestic package photos; optional `sitemap.xml`/`robots.txt`.
 

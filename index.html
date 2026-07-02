@@ -39,6 +39,13 @@
     .sky-burger { display: none; align-items: center; justify-content: center; width: 44px; height: 40px; background: rgba(255,255,255,.72); border: 1px solid #e5ecf5; border-radius: 10px; cursor: pointer; flex-shrink: 0 }
     @media (min-width: 860px) { .sky-nav { display: flex } }
     @media (max-width: 859px) { .sky-burger { display: flex } .sky-hide-mobile { display: none !important } }
+    /* Clickable destination cards with hover zoom + lift */
+    .destcard { transition: transform .3s ease, box-shadow .3s ease }
+    .destcard:hover { transform: translateY(-6px); box-shadow: 0 22px 44px -22px rgba(10,95,215,.45) }
+    .destimg { transition: transform .7s ease }
+    .destcard:hover .destimg { transform: scale(1.08) }
+    .destcard:hover .destview { background: rgba(255,255,255,.30) !important; border-color: rgba(255,255,255,.5) !important }
+    @media (prefers-reduced-motion: reduce) { .destcard, .destimg { transition: none } }
   </style>
   <meta name="ext-resource-dependency" content="images/dest-rajasthan.jpg">
   <meta name="ext-resource-dependency" content="images/dest-himachal.avif">
@@ -172,16 +179,19 @@
   
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; width: 100%">
     <sc-for list="{{ destinations }}" as="d" hint-placeholder-count="0">
-      <div style="position: relative; aspect-ratio: 4/3; border-radius: 16px; overflow: hidden; display: flex; align-items: flex-end">
-        <div style="{{ d.bg }}"></div>
+      <a href="{{ d.href }}" class="destcard" style="position: relative; aspect-ratio: 4/3; border-radius: 16px; overflow: hidden; display: flex; align-items: flex-end; text-decoration: none">
+        <div class="destimg" style="{{ d.bg }}"></div>
         <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 45%, rgba(26,35,50,.85))"></div>
-        <div style="position: relative; z-index: 2; padding: 20px; width: 100%">
-          <div style="font-weight: 700; font-size: 16px; color: #fff">{{ d.name }}</div>
-          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px">{{ d.duration }}</div>
+        <div style="position: relative; z-index: 2; padding: 20px; width: 100%; display: flex; align-items: flex-end; justify-content: space-between; gap: 10px">
+          <div>
+            <div style="font-weight: 700; font-size: 16px; color: #fff">{{ d.name }}</div>
+            <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px">{{ d.duration }}</div>
+          </div>
+          <span class="destview" style="flex-shrink: 0; background: rgba(255,255,255,.16); backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,.3); color: #fff; font-weight: 700; font-size: 12px; padding: 7px 12px; border-radius: 999px; transition: background .3s, border-color .3s">Explore →</span>
         </div>
-      </div>
+      </a>
     </sc-for>
-    <div style="position: relative; aspect-ratio: 4/3; border-radius: 16px; overflow: hidden; display: flex; align-items: flex-end">
+    <a href="Destination.dc.html?dest=uttarakhand" class="destcard" style="position: relative; aspect-ratio: 4/3; border-radius: 16px; overflow: hidden; display: flex; align-items: flex-end; text-decoration: none">
       <div class="sky-uk-layer" style="position: absolute; inset: 0; z-index: 0; background-color: #0a3a78; background-image: url('images/dest-uttarakhand.jpg'); background-size: cover; background-position: center; opacity: 1; transition: opacity 2.8s ease"></div>
       <div class="sky-uk-layer" style="position: absolute; inset: 0; z-index: 0; background-color: #0a3a78; background-image: url('images/uttarakhand-pine.jpg'); background-size: cover; background-position: center; opacity: 0; transition: opacity 2.8s ease"></div>
       <div class="sky-uk-layer" style="position: absolute; inset: 0; z-index: 0; background-color: #0a3a78; background-image: url('images/uttarakhand-ridge.jpg'); background-size: cover; background-position: center; opacity: 0; transition: opacity 2.8s ease"></div>
@@ -194,7 +204,7 @@
           <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px">5-7 days · Off-beat Kumaon</div>
         </div>
       </div>
-    </div>
+    </a>
   </div>
 </section>
 
@@ -207,14 +217,17 @@
   
   <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; max-width: 680px">
     <sc-for list="{{ international }}" as="i" hint-placeholder-count="0">
-      <div style="position: relative; aspect-ratio: 4/3; border-radius: 16px; overflow: hidden; display: flex; align-items: flex-end">
-        <div style="{{ i.bg }}"></div>
+      <a href="{{ i.href }}" class="destcard" style="position: relative; aspect-ratio: 4/3; border-radius: 16px; overflow: hidden; display: flex; align-items: flex-end; text-decoration: none">
+        <div class="destimg" style="{{ i.bg }}"></div>
         <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 45%, rgba(26,35,50,.85))"></div>
-        <div style="position: relative; z-index: 2; padding: 20px; width: 100%">
-          <div style="font-weight: 700; font-size: 16px; color: #fff">{{ i.name }}</div>
-          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px">{{ i.duration }}</div>
+        <div style="position: relative; z-index: 2; padding: 20px; width: 100%; display: flex; align-items: flex-end; justify-content: space-between; gap: 10px">
+          <div>
+            <div style="font-weight: 700; font-size: 16px; color: #fff">{{ i.name }}</div>
+            <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px">{{ i.duration }}</div>
+          </div>
+          <span class="destview" style="flex-shrink: 0; background: rgba(255,255,255,.16); backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,.3); color: #fff; font-weight: 700; font-size: 12px; padding: 7px 12px; border-radius: 999px; transition: background .3s, border-color .3s">Explore →</span>
         </div>
-      </div>
+      </a>
     </sc-for>
   </div>
 </section>
@@ -607,8 +620,8 @@ class Component extends DCLogic {
           transition: 'opacity 1.4s ease, transform 5.5s ease'
         }
       })),
-      destinations: this.state.destinations.map((d) => ({ ...d, bg: { position: 'absolute', inset: 0, zIndex: 0, backgroundColor: '#dce6f2', backgroundImage: 'url("' + d.img + '")', backgroundSize: 'cover', backgroundPosition: 'center' } })),
-      international: this.state.international.map((i) => ({ ...i, bg: { position: 'absolute', inset: 0, zIndex: 0, backgroundColor: '#dce6f2', backgroundImage: 'url("' + i.img + '")', backgroundSize: 'cover', backgroundPosition: 'center' } })),
+      destinations: this.state.destinations.map((d) => ({ ...d, href: 'Destination.dc.html?dest=' + d.slug, bg: { position: 'absolute', inset: 0, zIndex: 0, backgroundColor: '#dce6f2', backgroundImage: 'url("' + d.img + '")', backgroundSize: 'cover', backgroundPosition: 'center' } })),
+      international: this.state.international.map((i) => ({ ...i, href: 'Destination.dc.html?dest=' + i.slug, bg: { position: 'absolute', inset: 0, zIndex: 0, backgroundColor: '#dce6f2', backgroundImage: 'url("' + i.img + '")', backgroundSize: 'cover', backgroundPosition: 'center' } })),
       styles: this.state.styles,
       steps: this.state.steps,
       reasons: this.state.reasons,

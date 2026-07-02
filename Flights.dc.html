@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Flight Booking - Skyline Travel Planner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box }
+    body { margin: 0; background: linear-gradient(180deg, #e9f2fb 0%, #f5efe6 45%, #f3ede3 100%); background-attachment: fixed; color: #1a2332; font-family: 'Plus Jakarta Sans', sans-serif }
+    a { text-decoration: none; color: inherit }
+  </style>
+</helmet>
+
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <rect width="120" height="120" fill="#0A5FD7"/>
+    <path d="M30 50 L60 30 L90 50 L85 85 Q60 95 35 85 Z" fill="#fff" opacity=".9"/>
+    <circle cx="60" cy="40" r="4" fill="#FFD000"/>
+  </svg>
+</template>
+
+<!-- Header -->
+<header style="position: sticky; top: 0; z-index: 1000; background: rgba(255,255,255,.95); backdrop-filter: blur(10px); border-bottom: 1px solid #e5ecf5">
+  <div style="max-width: 1280px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between">
+    <a href="index.html" style="display: flex; align-items: center"><img src="images/logo.jpeg" alt="Skyline Travel Planner" style="height: 48px; width: auto; display: block" /></a>
+    <a href="index.html" style="background: #0a5fd7; color: #fff; font-weight: 700; padding: 10px 16px; border-radius: 8px">← Back Home</a>
+  </div>
+</header>
+
+<!-- Main Content -->
+<div style="max-width: 1280px; margin: 0 auto; padding: 48px 24px">
+  <div style="margin-bottom: 48px">
+    <h1 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 44px; margin: 0 0 12px">Flight Search</h1>
+    <p style="font-size: 16px; color: #5c6f80; margin: 0">Find and book flights with official airline partners</p>
+  </div>
+
+  <!-- Search Form -->
+  <div style="background: #fff; border-radius: 16px; padding: 32px; box-shadow: 0 4px 16px rgba(10,95,215,.08); margin-bottom: 48px">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px">
+      <div>
+        <label style="display: block; font-weight: 700; font-size: 13px; color: #5c6f80; margin-bottom: 8px">Departure City</label>
+        <input type="text" placeholder="Delhi, Mumbai, Bangalore..." style="width: 100%; padding: 12px; border: 1px solid #e5ecf5; border-radius: 8px; font-family: inherit; font-size: 14px">
+      </div>
+      <div>
+        <label style="display: block; font-weight: 700; font-size: 13px; color: #5c6f80; margin-bottom: 8px">Destination</label>
+        <input type="text" placeholder="Goa, Kerala, Maldives..." style="width: 100%; padding: 12px; border: 1px solid #e5ecf5; border-radius: 8px; font-family: inherit; font-size: 14px">
+      </div>
+      <div>
+        <label style="display: block; font-weight: 700; font-size: 13px; color: #5c6f80; margin-bottom: 8px">Departure</label>
+        <input type="date" style="width: 100%; padding: 12px; border: 1px solid #e5ecf5; border-radius: 8px; font-family: inherit; font-size: 14px">
+      </div>
+      <div>
+        <label style="display: block; font-weight: 700; font-size: 13px; color: #5c6f80; margin-bottom: 8px">Return</label>
+        <input type="date" style="width: 100%; padding: 12px; border: 1px solid #e5ecf5; border-radius: 8px; font-family: inherit; font-size: 14px">
+      </div>
+      <div>
+        <label style="display: block; font-weight: 700; font-size: 13px; color: #5c6f80; margin-bottom: 8px">Passengers</label>
+        <input type="number" placeholder="1" min="1" style="width: 100%; padding: 12px; border: 1px solid #e5ecf5; border-radius: 8px; font-family: inherit; font-size: 14px">
+      </div>
+    </div>
+    <button style="background: linear-gradient(135deg, #0a5fd7, #0d7ae8); color: #fff; font-weight: 700; padding: 14px 28px; border: none; border-radius: 8px; cursor: pointer; font-size: 15px">Search Flights</button>
+  </div>
+
+  <!-- Airlines -->
+  <div style="margin-bottom: 48px">
+    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 32px; margin: 0 0 24px">Official Airline Partners</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px">
+      <sc-for list="{{ airlines }}" as="a" hint-placeholder-count="6">
+        <div style="background: #fff; padding: 24px; border-radius: 14px; border: 1.5px solid #e5ecf5; text-align: center">
+          <div style="font-weight: 700; font-size: 16px; margin-bottom: 8px">{{ a.name }}</div>
+          <div style="font-size: 13px; color: #5c6f80; margin-bottom: 16px">{{ a.coverage }}</div>
+          <a href="{{ a.link }}" target="_blank" style="display: inline-block; background: #0a5fd7; color: #fff; font-weight: 700; font-size: 13px; padding: 10px 16px; border-radius: 6px">Check Flights</a>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      airlines: [
+        { name: 'Air India', coverage: 'Domestic & International', link: 'https://www.airindia.in' },
+        { name: 'IndiGo', coverage: 'Domestic & International', link: 'https://www.goindigo.in' },
+        { name: 'Air India Express', coverage: 'Domestic', link: 'https://www.airindiaexpress.com' },
+        { name: 'SpiceJet', coverage: 'Domestic', link: 'https://www.spicejet.com' },
+        { name: 'Akasa Air', coverage: 'Domestic', link: 'https://www.akasaair.com' },
+        { name: 'Star Air', coverage: 'Regional', link: 'https://www.staraviations.in' }
+      ]
+    };
+  }
+}
+
+</script>
+</body>
+</html>

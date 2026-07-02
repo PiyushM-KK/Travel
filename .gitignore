@@ -1,3 +1,6 @@
 uploads/
 .image-slots.state.json
 .thumbnail
+
+# Local secrets — never commit
+.env

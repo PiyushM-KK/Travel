@@ -49,6 +49,14 @@ export default {
     const cors = corsHeaders(origin);
 
     if (request.method === 'OPTIONS') return new Response(null, { headers: cors });
+    // Health check: GET returns which version is deployed and whether the key secret is present
+    // (returns only true/false, never the key itself).
+    if (request.method === 'GET') {
+      return new Response(
+        JSON.stringify({ ok: true, version: 'diag-3', hasKey: !!(env && env.OPENAI_API_KEY) }),
+        { headers: { 'Content-Type': 'application/json', ...cors } }
+      );
+    }
     if (request.method !== 'POST') {
       return new Response('Method Not Allowed', { status: 405, headers: cors });
     }
@@ -78,6 +86,21 @@ export default {
       });
 
       const data = await oai.json();
+
+      // Surface OpenAI's real error (bad key, no credits, model access, etc.) for debugging.
+      // The widget only reads `reply`, so the extra fields are harmless to visitors.
+      if (!oai.ok || data.error) {
+        const msg = data.error && data.error.message ? data.error.message : 'OpenAI HTTP ' + oai.status;
+        return new Response(
+          JSON.stringify({
+            reply: "I'm having trouble right now. For quick help, please message us on WhatsApp at +91 88660 50291. 🙏",
+            error: msg,
+            status: oai.status,
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json', ...cors } }
+        );
+      }
+
       const reply =
         data.choices && data.choices[0] && data.choices[0].message
           ? String(data.choices[0].message.content || '').trim()

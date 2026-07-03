@@ -476,6 +476,12 @@ class Component extends DCLogic {
     this.setState({ calY: y, calM: m });
   };
   pickDate(field, ds) {
+    // Hard guard: never accept a date before the allowed minimum (today for
+    // departure; the departure date for return). Defends against any UI edge case.
+    const n = new Date();
+    const todayStr = n.getFullYear() + '-' + this.pad2(n.getMonth() + 1) + '-' + this.pad2(n.getDate());
+    const minStr = field === 'retDate' ? (this.state.data.depDate || todayStr) : todayStr;
+    if (ds < minStr) { this.setState({ calOpen: null }); return; }
     const patch = { [field]: ds };
     // Keep return ≥ departure: clear an invalid return if departure jumps past it.
     if (field === 'depDate' && this.state.data.retDate && this.state.data.retDate < ds) patch.retDate = '';

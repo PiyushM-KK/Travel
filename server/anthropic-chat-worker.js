@@ -31,8 +31,13 @@ const ALLOWED_ORIGINS = [
   'https://www.skylinetravelplanner.com',
 ];
 
+// Allow localhost / 127.0.0.1 on any port too, so the chat works in local dev
+// previews (VS Code, Live Server, the Ruby server, etc.). Production stays locked.
+const LOCAL_ORIGIN_RE = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
+
 function corsHeaders(origin) {
-  const allow = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  const allowed = ALLOWED_ORIGINS.includes(origin) || LOCAL_ORIGIN_RE.test(origin);
+  const allow = allowed ? origin : ALLOWED_ORIGINS[0];
   return {
     'Access-Control-Allow-Origin': allow,
     'Access-Control-Allow-Methods': 'POST, OPTIONS',

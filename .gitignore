@@ -1,4 +1,5 @@
 uploads/
+.venv/
 .image-slots.state.json
 .thumbnail
 

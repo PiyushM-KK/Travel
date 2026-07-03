@@ -537,6 +537,7 @@ class Component extends DCLogic {
           headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
           body: JSON.stringify({
             _subject: 'New trip enquiry — Skyline Travel Planner',
+            _replyto: d.email || undefined,
             name: d.name, phone: d.phone, email: d.email, preferredContact: d.contactPref,
             tripType: d.journey, destinations: d.dests.join(', '),
             departureCity: d.depCity, departureDate: d.depDate, returnDate: d.retDate, flexibleDates: d.flexible,
@@ -547,6 +548,9 @@ class Component extends DCLogic {
         }).catch(() => {});
       }
     } catch (e) {}
+    // Notify the owner instantly: open WhatsApp pre-filled to our number so a single
+    // tap delivers the full enquiry to the owner's phone. (The email above is automatic.)
+    try { window.open('https://wa.me/918866050291?text=' + encodeURIComponent(this.waMessage()), '_blank'); } catch (e) {}
     this.setState({ submitted: true });
     window.scrollTo({ top: 0 });
   };

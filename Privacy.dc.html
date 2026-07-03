@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Privacy & Cookie Policy | Skyline Travel Planner</title>
-<meta name="description" content="How Skyline Travel Planner handles your data and cookies. We only collect enquiry contact details and never ask for card, bank, Aadhaar or passport information.">
+<meta name="description" content="How Skyline Travel Planner handles your data and cookies. We only collect enquiry contact details and never ask for card, bank, Aadhaar or passport information. Available in English, Hindi and Gujarati.">
 <link rel="canonical" href="https://piyushm-kk.github.io/Travel/Privacy.dc.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Skyline Travel Planner">
@@ -26,11 +26,12 @@
   <title>Privacy & Cookie Policy - Skyline Travel Planner</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@400;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@400;700;800&family=Noto+Sans+Devanagari:wght@500;600;700;800&family=Noto+Sans+Gujarati:wght@500;600;700;800&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box }
     body { margin: 0; background: linear-gradient(180deg, #e9f2fb 0%, #f5efe6 45%, #f3ede3 100%); background-attachment: fixed; color: #1a2332; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: antialiased }
     a { text-decoration: none; color: inherit }
+    .pp-lang:hover { background: #f5f9ff !important; border-color: #0a5fd7 !important }
   </style>
 </helmet>
 
@@ -42,20 +43,25 @@
   </svg>
 </template>
 
+<div ref="{{ root }}">
+
 <!-- Header -->
 <header style="position: sticky; top: 0; z-index: 1000; background: rgba(255,255,255,.95); backdrop-filter: blur(10px); border-bottom: 1px solid #e5ecf5">
   <div style="max-width: 1280px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between">
     <a href="index.html" style="display: flex; align-items: center"><img src="images/logo.jpeg" alt="Skyline Travel Planner" style="height: 48px; width: auto; display: block" /></a>
-    <a href="index.html" style="background: #0a5fd7; color: #fff; font-weight: 700; padding: 10px 16px; border-radius: 8px">← Back Home</a>
+    <div style="display: flex; align-items: center; gap: 12px">
+      <button class="pp-lang" onClick="{{ toggleLang }}" style="border: 1px solid #e5ecf5; background: #fff; cursor: pointer; font-family: inherit; font-weight: 700; font-size: 13px; color: #1a2332; padding: 9px 14px; border-radius: 8px; transition: all .2s">{{ langLabel }}</button>
+      <a href="index.html" style="background: #0a5fd7; color: #fff; font-weight: 700; padding: 10px 16px; border-radius: 8px" data-en="← Back Home" data-hi="← होम पर वापस" data-gu="← હોમ પર પાછા">← Back Home</a>
+    </div>
   </div>
 </header>
 
 <!-- Hero -->
 <section style="background: linear-gradient(135deg, #0a5fd7, #0d7ae8); color: #fff; padding: 56px 24px">
   <div style="max-width: 900px; margin: 0 auto">
-    <div style="font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.75); margin-bottom: 10px">Legal</div>
-    <h1 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 44px; letter-spacing: -.02em; margin: 0 0 12px">Privacy &amp; Cookie Policy</h1>
-    <p style="font-size: 16px; line-height: 1.6; color: rgba(255,255,255,.85); margin: 0">Last updated: January 2025. This policy explains how Skyline Travel Planner collects, uses and protects your information.</p>
+    <div style="font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.75); margin-bottom: 10px" data-en="Legal" data-hi="कानूनी" data-gu="કાયદાકીય">Legal</div>
+    <h1 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 44px; letter-spacing: -.02em; margin: 0 0 12px" data-en="Privacy & Cookie Policy" data-hi="गोपनीयता और कुकी नीति" data-gu="ગોપનીયતા અને કૂકી નીતિ">Privacy &amp; Cookie Policy</h1>
+    <p style="font-size: 16px; line-height: 1.6; color: rgba(255,255,255,.85); margin: 0" data-en="Last updated: July 2026. This policy explains how Skyline Travel Planner collects, uses and protects your information." data-hi="अंतिम अद्यतन: जुलाई 2026। यह नीति बताती है कि Skyline Travel Planner आपकी जानकारी को कैसे एकत्र, उपयोग और सुरक्षित करता है।" data-gu="છેલ્લે અપડેટ: જુલાઈ 2026. આ નીતિ સમજાવે છે કે Skyline Travel Planner તમારી માહિતી કેવી રીતે એકત્ર કરે, વાપરે અને સુરક્ષિત રાખે છે.">Last updated: July 2026. This policy explains how Skyline Travel Planner collects, uses and protects your information.</p>
   </div>
 </section>
 
@@ -63,50 +69,50 @@
 <main style="max-width: 900px; margin: 0 auto; padding: 48px 24px 80px">
 
   <div style="background: #fff; border: 1px solid #e5ecf5; border-radius: 16px; padding: 32px; margin-bottom: 24px">
-    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 24px; margin: 0 0 12px; color: #0a5fd7">1. Information We Collect</h2>
-    <p style="font-size: 15px; line-height: 1.7; color: #3a4a5c; margin: 0 0 12px">We only collect the information you choose to share with us when you request a customized travel quote or contact us. This may include your name, phone number, email address, travel dates, destination preferences and budget.</p>
-    <p style="font-size: 15px; line-height: 1.7; color: #3a4a5c; margin: 0">We do not process any payments on this website, so we never collect card, bank or other financial details.</p>
+    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 24px; margin: 0 0 12px; color: #0a5fd7" data-en="1. Information We Collect" data-hi="1. जानकारी जो हम एकत्र करते हैं" data-gu="1. અમે કઈ માહિતી એકત્ર કરીએ છીએ">1. Information We Collect</h2>
+    <p style="font-size: 15px; line-height: 1.7; color: #3a4a5c; margin: 0 0 12px" data-en="We only collect the information you choose to share with us when you request a customized travel quote or contact us. This may include your name, phone number, email address, travel dates and destination preferences." data-hi="हम केवल वही जानकारी एकत्र करते हैं जिसे आप कस्टमाइज़्ड ट्रैवल कोटेशन का अनुरोध करते समय या हमसे संपर्क करते समय साझा करना चुनते हैं। इसमें आपका नाम, फ़ोन नंबर, ईमेल पता, यात्रा तिथियां और गंतव्य प्राथमिकताएं शामिल हो सकती हैं।" data-gu="તમે કસ્ટમાઇઝ્ડ ટ્રાવેલ ભાવપત્રકની વિનંતી કરો કે અમારો સંપર્ક કરો ત્યારે તમે જે માહિતી શેર કરવાનું પસંદ કરો છો તે જ અમે એકત્ર કરીએ છીએ. તેમાં તમારું નામ, ફોન નંબર, ઇમેઇલ સરનામું, પ્રવાસ તારીખો અને સ્થળ પસંદગીઓ શામેલ હોઈ શકે છે.">We only collect the information you choose to share with us when you request a customized travel quote or contact us. This may include your name, phone number, email address, travel dates and destination preferences.</p>
+    <p style="font-size: 15px; line-height: 1.7; color: #3a4a5c; margin: 0" data-en="We do not process any payments on this website, so we never collect card, bank or other financial details." data-hi="हम इस वेबसाइट पर कोई भुगतान संसाधित नहीं करते, इसलिए हम कभी भी कार्ड, बैंक या अन्य वित्तीय विवरण एकत्र नहीं करते।" data-gu="અમે આ વેબસાઇટ પર કોઈ ચુકવણી પ્રોસેસ કરતા નથી, તેથી અમે ક્યારેય કાર્ડ, બેંક કે અન્ય નાણાકીય વિગતો એકત્ર કરતા નથી.">We do not process any payments on this website, so we never collect card, bank or other financial details.</p>
   </div>
 
   <div style="background: #fff; border: 1px solid #e5ecf5; border-radius: 16px; padding: 32px; margin-bottom: 24px">
-    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 24px; margin: 0 0 12px; color: #0a5fd7">2. How We Use Your Information</h2>
+    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 24px; margin: 0 0 12px; color: #0a5fd7" data-en="2. How We Use Your Information" data-hi="2. हम आपकी जानकारी का उपयोग कैसे करते हैं" data-gu="2. અમે તમારી માહિતીનો ઉપયોગ કેવી રીતે કરીએ છીએ">2. How We Use Your Information</h2>
     <ul style="font-size: 15px; line-height: 1.8; color: #3a4a5c; margin: 0; padding-left: 20px">
-      <li>To prepare and share a customized travel itinerary and quotation.</li>
-      <li>To respond to your enquiries over WhatsApp, phone or email.</li>
-      <li>To remember your language preference for a smoother browsing experience.</li>
-      <li>To improve our website and the packages we offer.</li>
+      <li data-en="To prepare and share a customized travel itinerary and quotation." data-hi="एक कस्टमाइज़्ड यात्रा-योजना और कोटेशन तैयार करने और साझा करने के लिए।" data-gu="કસ્ટમાઇઝ્ડ પ્રવાસ યોજના અને ભાવપત્રક તૈયાર કરવા અને શેર કરવા માટે.">To prepare and share a customized travel itinerary and quotation.</li>
+      <li data-en="To respond to your enquiries over WhatsApp, phone or email." data-hi="WhatsApp, फ़ोन या ईमेल के माध्यम से आपकी पूछताछ का उत्तर देने के लिए।" data-gu="WhatsApp, ફોન અથવા ઇમેઇલ દ્વારા તમારી પૂછપરછનો જવાબ આપવા માટે.">To respond to your enquiries over WhatsApp, phone or email.</li>
+      <li data-en="To remember your language preference for a smoother browsing experience." data-hi="बेहतर ब्राउज़िंग अनुभव के लिए आपकी भाषा प्राथमिकता को याद रखने के लिए।" data-gu="સરળ બ્રાઉઝિંગ અનુભવ માટે તમારી ભાષા પસંદગી યાદ રાખવા માટે.">To remember your language preference for a smoother browsing experience.</li>
+      <li data-en="To improve our website and the packages we offer." data-hi="हमारी वेबसाइट और हमारे द्वारा प्रदान किए जाने वाले पैकेजों को बेहतर बनाने के लिए।" data-gu="અમારી વેબસાઇટ અને અમે ઓફર કરતા પેકેજોને સુધારવા માટે.">To improve our website and the packages we offer.</li>
     </ul>
   </div>
 
   <div id="cookies" style="background: #fff; border: 1px solid #e5ecf5; border-radius: 16px; padding: 32px; margin-bottom: 24px; scroll-margin-top: 96px">
-    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 24px; margin: 0 0 12px; color: #0a5fd7">3. Cookie Policy</h2>
-    <p style="font-size: 15px; line-height: 1.7; color: #3a4a5c; margin: 0 0 16px">Cookies are small text files stored on your device. We use a minimal set of cookies to make the website work well for you:</p>
+    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 24px; margin: 0 0 12px; color: #0a5fd7" data-en="3. Cookie Policy" data-hi="3. कुकी नीति" data-gu="3. કૂકી નીતિ">3. Cookie Policy</h2>
+    <p style="font-size: 15px; line-height: 1.7; color: #3a4a5c; margin: 0 0 16px" data-en="Cookies are small text files stored on your device. We use a minimal set of cookies to make the website work well for you:" data-hi="कुकीज़ आपके डिवाइस पर संग्रहीत छोटी टेक्स्ट फ़ाइलें हैं। हम वेबसाइट को आपके लिए अच्छी तरह से काम करने के लिए कुकीज़ के न्यूनतम सेट का उपयोग करते हैं:" data-gu="કૂકીઝ એ તમારા ડિવાઇસ પર સંગ્રહિત નાની ટેક્સ્ટ ફાઇલો છે. વેબસાઇટ તમારા માટે સારી રીતે કામ કરે તે માટે અમે કૂકીઝનો ન્યૂનતમ સેટ વાપરીએ છીએ:">Cookies are small text files stored on your device. We use a minimal set of cookies to make the website work well for you:</p>
     <div style="display: grid; gap: 12px">
       <div style="display: flex; gap: 14px; align-items: flex-start; padding: 16px; background: #f5f9ff; border-radius: 12px">
-        <span style="font-weight: 700; color: #0a5fd7; font-size: 14px; min-width: 120px">Essential</span>
-        <span style="font-size: 14px; line-height: 1.6; color: #3a4a5c">Required for the website to function, including remembering your cookie consent choice.</span>
+        <span style="font-weight: 700; color: #0a5fd7; font-size: 14px; min-width: 120px" data-en="Essential" data-hi="आवश्यक" data-gu="આવશ્યક">Essential</span>
+        <span style="font-size: 14px; line-height: 1.6; color: #3a4a5c" data-en="Required for the website to function, including remembering your cookie consent choice." data-hi="वेबसाइट के कार्य करने के लिए आवश्यक, जिसमें आपकी कुकी सहमति पसंद को याद रखना शामिल है।" data-gu="વેબસાઇટ કાર્ય કરે તે માટે જરૂરી, જેમાં તમારી કૂકી સંમતિ પસંદગી યાદ રાખવાનો સમાવેશ થાય છે.">Required for the website to function, including remembering your cookie consent choice.</span>
       </div>
       <div style="display: flex; gap: 14px; align-items: flex-start; padding: 16px; background: #f5f9ff; border-radius: 12px">
-        <span style="font-weight: 700; color: #0a5fd7; font-size: 14px; min-width: 120px">Preferences</span>
-        <span style="font-size: 14px; line-height: 1.6; color: #3a4a5c">Remember your selected language (English, Hindi or Gujarati) so you don't have to re-select it.</span>
+        <span style="font-weight: 700; color: #0a5fd7; font-size: 14px; min-width: 120px" data-en="Preferences" data-hi="प्राथमिकताएं" data-gu="પસંદગીઓ">Preferences</span>
+        <span style="font-size: 14px; line-height: 1.6; color: #3a4a5c" data-en="Remember your selected language (English, Hindi or Gujarati) so you don't have to re-select it." data-hi="आपकी चुनी हुई भाषा (अंग्रेज़ी, हिंदी या गुजराती) को याद रखते हैं ताकि आपको इसे दोबारा चुनना न पड़े।" data-gu="તમે પસંદ કરેલી ભાષા (અંગ્રેજી, હિન્દી કે ગુજરાતી) યાદ રાખે છે જેથી તમારે તે ફરીથી પસંદ કરવી ન પડે.">Remember your selected language (English, Hindi or Gujarati) so you don't have to re-select it.</span>
       </div>
     </div>
-    <p style="font-size: 15px; line-height: 1.7; color: #3a4a5c; margin: 16px 0 0">You can accept or decline non-essential cookies using the banner shown on your first visit. You may also clear cookies at any time through your browser settings.</p>
+    <p style="font-size: 15px; line-height: 1.7; color: #3a4a5c; margin: 16px 0 0" data-en="You can accept or decline non-essential cookies using the banner shown on your first visit. You may also clear cookies at any time through your browser settings." data-hi="आप अपनी पहली विज़िट पर दिखाए गए बैनर का उपयोग करके गैर-आवश्यक कुकीज़ को स्वीकार या अस्वीकार कर सकते हैं। आप अपने ब्राउज़र सेटिंग्स के माध्यम से किसी भी समय कुकीज़ को साफ़ भी कर सकते हैं।" data-gu="તમે તમારી પ્રથમ મુલાકાત વખતે બતાવેલા બેનરનો ઉપયોગ કરીને બિન-આવશ્યક કૂકીઝ સ્વીકારી કે નકારી શકો છો. તમે તમારા બ્રાઉઝર સેટિંગ્સ દ્વારા કોઈપણ સમયે કૂકીઝ સાફ પણ કરી શકો છો.">You can accept or decline non-essential cookies using the banner shown on your first visit. You may also clear cookies at any time through your browser settings.</p>
   </div>
 
   <div style="background: #fff; border: 1px solid #e5ecf5; border-radius: 16px; padding: 32px; margin-bottom: 24px">
-    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 24px; margin: 0 0 12px; color: #0a5fd7">4. Sharing Your Information</h2>
-    <p style="font-size: 15px; line-height: 1.7; color: #3a4a5c; margin: 0">We never sell your personal information. We only share details with trusted travel providers (airlines, hotels, transport partners) when it is necessary to arrange the services you have requested.</p>
+    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 24px; margin: 0 0 12px; color: #0a5fd7" data-en="4. Sharing Your Information" data-hi="4. आपकी जानकारी साझा करना" data-gu="4. તમારી માહિતી શેર કરવી">4. Sharing Your Information</h2>
+    <p style="font-size: 15px; line-height: 1.7; color: #3a4a5c; margin: 0" data-en="We never sell your personal information. We only share details with trusted travel providers (airlines, hotels, transport partners) when it is necessary to arrange the services you have requested." data-hi="हम कभी भी आपकी व्यक्तिगत जानकारी नहीं बेचते। हम केवल विश्वसनीय ट्रैवल प्रदाताओं (एयरलाइंस, होटल, परिवहन भागीदार) के साथ विवरण साझा करते हैं जब आपके द्वारा अनुरोधित सेवाओं की व्यवस्था के लिए यह आवश्यक हो।" data-gu="અમે ક્યારેય તમારી વ્યક્તિગત માહિતી વેચતા નથી. તમે વિનંતી કરેલી સેવાઓ ગોઠવવા માટે જરૂરી હોય ત્યારે જ અમે વિશ્વસનીય ટ્રાવેલ પ્રદાતાઓ (એરલાઇન્સ, હોટેલ, પરિવહન ભાગીદારો) સાથે વિગતો શેર કરીએ છીએ.">We never sell your personal information. We only share details with trusted travel providers (airlines, hotels, transport partners) when it is necessary to arrange the services you have requested.</p>
   </div>
 
   <div style="background: #fff; border: 1px solid #e5ecf5; border-radius: 16px; padding: 32px; margin-bottom: 24px">
-    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 24px; margin: 0 0 12px; color: #0a5fd7">5. Your Rights</h2>
-    <p style="font-size: 15px; line-height: 1.7; color: #3a4a5c; margin: 0">You can ask us to access, correct or delete the personal information we hold about you at any time. Simply contact us using the details below and we will respond promptly.</p>
+    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 24px; margin: 0 0 12px; color: #0a5fd7" data-en="5. Your Rights" data-hi="5. आपके अधिकार" data-gu="5. તમારા અધિકારો">5. Your Rights</h2>
+    <p style="font-size: 15px; line-height: 1.7; color: #3a4a5c; margin: 0" data-en="You can ask us to access, correct or delete the personal information we hold about you at any time. Simply contact us using the details below and we will respond promptly." data-hi="आप किसी भी समय हमसे अपने बारे में रखी गई व्यक्तिगत जानकारी तक पहुंचने, उसे सुधारने या हटाने के लिए कह सकते हैं। बस नीचे दिए गए विवरण का उपयोग करके हमसे संपर्क करें और हम शीघ्र उत्तर देंगे।" data-gu="તમે કોઈપણ સમયે અમને તમારા વિશે રાખેલી વ્યક્તિગત માહિતી ઍક્સેસ કરવા, સુધારવા કે કાઢી નાખવા માટે કહી શકો છો. ફક્ત નીચે આપેલી વિગતોનો ઉપયોગ કરીને અમારો સંપર્ક કરો અને અમે તરત જ જવાબ આપીશું.">You can ask us to access, correct or delete the personal information we hold about you at any time. Simply contact us using the details below and we will respond promptly.</p>
   </div>
 
   <div style="background: #1a2332; color: #fff; border-radius: 16px; padding: 32px">
-    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 24px; margin: 0 0 12px; color: #5fc2f0">6. Contact Us</h2>
-    <p style="font-size: 15px; line-height: 1.7; color: rgba(255,255,255,.85); margin: 0 0 16px">If you have any questions about this Privacy &amp; Cookie Policy, please reach out:</p>
+    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 24px; margin: 0 0 12px; color: #5fc2f0" data-en="6. Contact Us" data-hi="6. हमसे संपर्क करें" data-gu="6. અમારો સંપર્ક કરો">6. Contact Us</h2>
+    <p style="font-size: 15px; line-height: 1.7; color: rgba(255,255,255,.85); margin: 0 0 16px" data-en="If you have any questions about this Privacy & Cookie Policy, please reach out:" data-hi="यदि इस गोपनीयता और कुकी नीति के बारे में आपके कोई प्रश्न हैं, तो कृपया संपर्क करें:" data-gu="જો આ ગોપનીયતા અને કૂકી નીતિ વિશે તમને કોઈ પ્રશ્નો હોય, તો કૃપા કરીને સંપર્ક કરો:">If you have any questions about this Privacy &amp; Cookie Policy, please reach out:</p>
     <div style="display: flex; flex-direction: column; gap: 10px; font-size: 15px">
       <div style="display: flex; align-items: center; gap: 10px; color: rgba(255,255,255,.9)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
@@ -122,8 +128,44 @@
 </main>
 
 <footer style="background: #1a2332; color: rgba(255,255,255,.6); padding: 28px 24px; text-align: center; font-size: 13px">
-  <p style="margin: 0">© 2024 Skyline Travel Planner. No payments are processed on this website. We connect you with official travel providers.</p>
+  <p style="margin: 0" data-en="© 2026 Skyline Travel Planner. No payments are processed on this website. We connect you with official travel providers." data-hi="© 2026 Skyline Travel Planner। इस वेबसाइट पर कोई भुगतान संसाधित नहीं किया जाता। हम आपको आधिकारिक ट्रैवल प्रदाताओं से जोड़ते हैं।" data-gu="© 2026 Skyline Travel Planner. આ વેબસાઇટ પર કોઈ ચુકવણી પ્રોસેસ થતી નથી. અમે તમને અધિકૃત ટ્રાવેલ પ્રદાતાઓ સાથે જોડીએ છીએ.">© 2026 Skyline Travel Planner. No payments are processed on this website. We connect you with official travel providers.</p>
 </footer>
+
+</div>
 </x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { lang: 'en' };
+
+  setRoot = (el) => { if (el) { this.rootEl = el; this.applyLang(); } };
+
+  // Swap every element tagged with data-en / data-hi / data-gu to the active
+  // language, and set the correct Indic script font on the whole page.
+  applyLang() {
+    if (!this.rootEl) return;
+    const L = this.state.lang;
+    const font = L === 'hi' ? "'Noto Sans Devanagari','Plus Jakarta Sans',sans-serif"
+               : L === 'gu' ? "'Noto Sans Gujarati','Plus Jakarta Sans',sans-serif" : '';
+    this.rootEl.style.fontFamily = font;
+    this.rootEl.querySelectorAll('[data-en]').forEach((n) => {
+      n.textContent = n.getAttribute('data-' + L) || n.getAttribute('data-en');
+    });
+  }
+  componentDidUpdate() { this.applyLang(); }
+
+  renderVals() {
+    return {
+      root: this.setRoot,
+      // Button shows the CURRENT language; each click cycles EN → हिन्दी → ગુજરાતી → EN.
+      langLabel: this.state.lang === 'en' ? 'EN' : this.state.lang === 'hi' ? 'हिन्दी' : 'ગુજરાતી',
+      toggleLang: () => {
+        const langs = ['en', 'hi', 'gu'];
+        const idx = langs.indexOf(this.state.lang);
+        this.setState({ lang: langs[(idx + 1) % langs.length] });
+      },
+    };
+  }
+}
+</script>
 </body>
 </html>

@@ -4,3 +4,5 @@ uploads/
 
 # Local secrets — never commit
 .env
+.claude/
+.DS_Store

@@ -132,7 +132,7 @@
                   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
                     <button type="button" onClick="{{ cal.prev }}" style="width:30px;height:30px;border-radius:8px;border:1.5px solid #E4ECF3;background:#fff;cursor:{{ cal.prevCursor }};color:{{ cal.prevColor }};font-size:16px;font-weight:800">‹</button>
                     <span style="font-weight:800;font-size:14px;color:#0B2440">{{ cal.label }}</span>
-                    <button type="button" onClick="{{ cal.next }}" style="width:30px;height:30px;border-radius:8px;border:1.5px solid #E4ECF3;background:#fff;cursor:pointer;color:#0A84D6;font-size:16px;font-weight:800">›</button>
+                    <button type="button" onClick="{{ cal.next }}" style="width:30px;height:30px;border-radius:8px;border:1.5px solid #E4ECF3;background:#fff;cursor:{{ cal.nextCursor }};color:{{ cal.nextColor }};font-size:16px;font-weight:800">›</button>
                   </div>
                   <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px">
                     <sc-for list="{{ cal.dows }}" as="w" hint-placeholder-count="7"><span style="text-align:center;font-size:10.5px;font-weight:800;color:#9AB3C7">{{ w }}</span></sc-for>
@@ -149,7 +149,7 @@
                   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
                     <button type="button" onClick="{{ cal.prev }}" style="width:30px;height:30px;border-radius:8px;border:1.5px solid #E4ECF3;background:#fff;cursor:{{ cal.prevCursor }};color:{{ cal.prevColor }};font-size:16px;font-weight:800">‹</button>
                     <span style="font-weight:800;font-size:14px;color:#0B2440">{{ cal.label }}</span>
-                    <button type="button" onClick="{{ cal.next }}" style="width:30px;height:30px;border-radius:8px;border:1.5px solid #E4ECF3;background:#fff;cursor:pointer;color:#0A84D6;font-size:16px;font-weight:800">›</button>
+                    <button type="button" onClick="{{ cal.next }}" style="width:30px;height:30px;border-radius:8px;border:1.5px solid #E4ECF3;background:#fff;cursor:{{ cal.nextCursor }};color:{{ cal.nextColor }};font-size:16px;font-weight:800">›</button>
                   </div>
                   <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px">
                     <sc-for list="{{ cal.dows }}" as="w" hint-placeholder-count="7"><span style="text-align:center;font-size:10.5px;font-weight:800;color:#9AB3C7">{{ w }}</span></sc-for>
@@ -480,8 +480,10 @@ class Component extends DCLogic {
     // departure; the departure date for return). Defends against any UI edge case.
     const n = new Date();
     const todayStr = n.getFullYear() + '-' + this.pad2(n.getMonth() + 1) + '-' + this.pad2(n.getDate());
+    const maxD = new Date(n.getFullYear() + 1, n.getMonth(), n.getDate());
+    const maxStr = maxD.getFullYear() + '-' + this.pad2(maxD.getMonth() + 1) + '-' + this.pad2(maxD.getDate());
     const minStr = field === 'retDate' ? (this.state.data.depDate || todayStr) : todayStr;
-    if (ds < minStr) { this.setState({ calOpen: null }); return; }
+    if (ds < minStr || ds > maxStr) { this.setState({ calOpen: null }); return; }
     const patch = { [field]: ds };
     // Keep return ≥ departure: clear an invalid return if departure jumps past it.
     if (field === 'depDate' && this.state.data.retDate && this.state.data.retDate < ds) patch.retDate = '';
@@ -640,6 +642,9 @@ class Component extends DCLogic {
     // Custom date-picker calendar (block past departures; return ≥ departure).
     const nowD = new Date();
     const todayStr = nowD.getFullYear() + '-' + this.pad2(nowD.getMonth() + 1) + '-' + this.pad2(nowD.getDate());
+    // Bookings can be made up to 1 year ahead.
+    const maxD = new Date(nowD.getFullYear() + 1, nowD.getMonth(), nowD.getDate());
+    const maxStr = maxD.getFullYear() + '-' + this.pad2(maxD.getMonth() + 1) + '-' + this.pad2(maxD.getDate());
     const MON = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     const fmtDate = (ds) => { if (!ds) return ''; const p = ds.split('-'); return (+p[2]) + ' ' + MON[+p[1] - 1].slice(0, 3) + ' ' + p[0]; };
     let cal = null;
@@ -652,7 +657,7 @@ class Component extends DCLogic {
       for (let b = 0; b < startDow; b++) cells.push({ label: '', bg: 'transparent', color: 'transparent', cursor: 'default', pick: () => {} });
       for (let day = 1; day <= dim; day++) {
         const ds = y + '-' + this.pad2(m + 1) + '-' + this.pad2(day);
-        const disabled = ds < minStr, selected = d[field] === ds;
+        const disabled = ds < minStr || ds > maxStr, selected = d[field] === ds;
         cells.push({ label: String(day),
           bg: selected ? 'linear-gradient(135deg,#0A84D6,#34C3F0)' : 'transparent',
           color: selected ? '#fff' : (disabled ? '#CBD6E0' : '#1B2F40'),
@@ -660,11 +665,14 @@ class Component extends DCLogic {
           pick: disabled ? (() => {}) : (() => this.pickDate(field, ds)) });
       }
       const minY = +minStr.split('-')[0], minM = +minStr.split('-')[1] - 1;
+      const maxY = +maxStr.split('-')[0], maxM = +maxStr.split('-')[1] - 1;
       const prevOff = (y < minY) || (y === minY && m <= minM);
+      const nextOff = (y > maxY) || (y === maxY && m >= maxM);
       cal = { label: MON[m] + ' ' + y, cells, dows: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
         prev: prevOff ? (() => {}) : (() => this.calShift(-1)),
         prevCursor: prevOff ? 'default' : 'pointer', prevColor: prevOff ? '#CBD6E0' : '#0A84D6',
-        next: () => this.calShift(1) };
+        next: nextOff ? (() => {}) : (() => this.calShift(1)),
+        nextCursor: nextOff ? 'default' : 'pointer', nextColor: nextOff ? '#CBD6E0' : '#0A84D6' };
     }
 
     const nav = steps.map((s, idx) => {

@@ -30,7 +30,7 @@
     .hero-anim{background:linear-gradient(120deg,#0a5fd7,#0d7ae8,#0a6be0,#0956c4)!important;background-size:280% 280%!important;animation:gshift 16s ease infinite;position:relative;overflow:hidden}
     .fu{animation:fadeUp .7s ease-out backwards}
     .fu1{animation-delay:.08s}.fu2{animation-delay:.18s}.fu3{animation-delay:.28s}.fu4{animation-delay:.36s}.fu5{animation-delay:.44s}.fu6{animation-delay:.52s}.fu7{animation-delay:.6s}
-    .hero-photo{position:absolute;inset:-3%;background:url('images/hero-a380.jpg') center 46%/cover no-repeat;z-index:0;animation:kb 34s ease-in-out infinite alternate;will-change:transform}
+    .hero-photo{position:absolute;inset:-3%;background:url('images/hero-a380.jpg') center 46%/cover no-repeat;z-index:0;animation:kb 34s ease-in-out infinite alternate}
     @keyframes kb { from{transform:scale(1.02) translate(0,0)} to{transform:scale(1.13) translate(-1.6%,1.8%)} }
     .hp{opacity:0;animation:hsfade 90s linear infinite, kb 18s ease-in-out infinite alternate}
     .hp1{animation-delay:0s,0s}
@@ -69,6 +69,29 @@
     .statv{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:31px;color:#fff;line-height:1}
     .rv{transition:opacity .65s ease-out,transform .65s ease-out}
     .rv-pre{opacity:0;transform:translateY(20px)}
+    @media (max-width: 768px){
+      /* compact mobile header: logo+controls on row 1, scrollable nav on row 2 */
+      header > div{flex-wrap:wrap!important;gap:8px 10px!important;padding:10px 14px!important}
+      header > div > a:first-child{padding:4px 10px!important}
+      header img{height:34px!important}
+      header nav{order:3!important;flex:0 0 100%!important;width:100%!important;flex-wrap:nowrap!important;overflow-x:auto!important;gap:16px!important;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+      header nav::-webkit-scrollbar{display:none}
+      header nav a{white-space:nowrap!important;font-size:13px!important}
+      header > div > div{margin-left:auto!important;gap:8px!important}
+      header > div > div a, header > div > div button{font-size:12px!important;padding:8px 10px!important}
+      .hero-anim{animation:none!important;background:#0a5fd7!important}
+      .hero-photo{animation:none!important;inset:0;background-image:url('images/hero-a380-mobile.jpg')!important;background-position:center 40%!important}
+      .hp{display:none!important}
+      .xplane{display:none!important}
+      .hero-anim h1{font-size:30px!important;line-height:1.15!important}
+      .hero-anim p{font-size:15px!important}
+      .cat{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:rgba(10,34,72,.55)!important}
+      .statv{font-size:24px!important}
+      .marq span{font-size:12px!important}
+      .hero-grid{margin-top:120px!important}
+      .dcard:hover{transform:none}
+      .dcard:hover .dbg{transform:none}
+    }
     @media (prefers-reduced-motion: reduce){ .hero-photo{animation:none} .xplane{display:none} .hero-anim,.marq,.fu,.dbg{animation:none !important;transition:none !important} .rv,.rv-pre{transition:none !important;opacity:1 !important;transform:none !important} }
   </style>
   <meta name="ext-resource-dependency" content="images/dest-rajasthan.jpg">
@@ -148,7 +171,7 @@
     </div>
     
     <!-- Search Categories Grid -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; max-width: 1000px; margin: 230px auto 0">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; max-width: 1000px; margin: 230px auto 0" class="hero-grid">
       <a href="Flights.dc.html" class="cat fu fu3" style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px 16px; background: rgba(255,255,255,.12); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,.2); border-radius: 14px; transition: all .3s; cursor: pointer" style-hover="background: rgba(255,255,255,.18); border-color: rgba(255,255,255,.4); transform: translateY(-4px)">
         <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M21 16l-7-4V6a2 2 0 10-4 0v6l-7 4v2l7-2v3l-2 1.5V22l4-1 4 1v-1.5L14 19v-3l7 2v-2z" fill="#fff"/></svg>
         <span style="font-weight: 700; font-size: 15px">{{ t_flights }}</span>

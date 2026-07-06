@@ -51,8 +51,11 @@
     <h1 class="fh-h1">Find your flight</h1>
     <p class="fh-hsub">Live fares to anywhere &mdash; domestic &amp; international</p>
     <div class="fh-tt">
-      <button type="button" class="fh-ttb active" data-trip="round">Round trip</button>
-      <button type="button" class="fh-ttb" data-trip="oneway">One way</button>
+      <button type="button" class="fh-ttb" data-mode="oneway">One Way</button>
+      <button type="button" class="fh-ttb active" data-mode="round">Round Trip</button>
+      <button type="button" class="fh-ttb" data-mode="multi">Multi City</button>
+      <button type="button" class="fh-ttb" data-mode="calendar">Calendar Fare</button>
+      <button type="button" class="fh-ttb" data-mode="group">Group Booking<span class="fh-new">New</span></button>
       <select id="cabinSel" class="fh-cabin"><option value="Economy">Economy</option><option value="Premium Economy">Premium Economy</option><option value="Business">Business</option><option value="First">First</option></select>
     </div>
     <div class="fh-bar">
@@ -73,11 +76,22 @@
         <label>Returning</label>
         <input id="retDate" type="text" readonly autocomplete="off" placeholder="Add date">
       </div>
-      <div class="fh-cell fh-px">
+      <div class="fh-cell fh-px" id="paxWrap">
         <label>Passengers</label>
         <select id="paxSel"><option>1 Adult</option><option>2 Adults</option><option>3 Adults</option><option>4 Adults</option></select>
       </div>
       <button type="button" id="searchFlightsBtn" class="fh-go">Search</button>
+    </div>
+    <div id="multiLegs" style="display:none"></div>
+    <div id="groupPanel" style="display:none;background:#fff;border-radius:16px;padding:16px 18px;margin-top:10px;box-shadow:0 24px 55px -22px rgba(0,0,0,.55)">
+      <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+        <div>
+          <label style="display:block;font-size:11px;font-weight:700;color:#8094a4;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px">Group size</label>
+          <select id="groupSize" style="border:none;outline:none;font-family:inherit;font-size:15px;font-weight:600;color:#0b2440;background:transparent"><option>10-15 travellers</option><option>16-25 travellers</option><option>26-40 travellers</option><option>40+ travellers</option></select>
+        </div>
+        <button type="button" id="groupGo" style="background:#25D366;color:#fff;border:none;font-family:inherit;font-weight:800;font-size:14px;padding:12px 22px;border-radius:12px;cursor:pointer">Get Group Quote on WhatsApp</button>
+        <span style="font-size:12px;color:#5c6f80;flex:1;min-width:200px">Groups of 10+ get special fares — our team replies with a custom group quote, usually within the hour.</span>
+      </div>
     </div>
     <div id="flightStatus" class="fh-status"></div>
   </div>
@@ -284,13 +298,14 @@ class Component extends DCLogic {
     {code:'MRU',name:"Mauritius",i:1},
     {code:'SEZ',name:"Seychelles",i:1}
   ];
-  var TRIP='round', LAST=null, TAB='best', CABIN='Economy';
+  var MODE='round', LAST=null, TAB='best', CABIN='Economy';
+  var LEGS=[{},{}];
   var FILT={stopsExcl:new Set(),airExcl:new Set(),tod:new Set()};
   var PMAX=null, PRANGE={min:0,max:0}, AIR_EXPANDED=false, _lastAirCodes=[];
   var COLLAPSE={stops:false,times:true,price:false,airlines:false};
   var _mp=1,_md=1;
 
-  if(!document.getElementById('fh-css')){ var st=document.createElement('style'); st.id='fh-css'; st.textContent=`.fh-hero{background:linear-gradient(135deg,#0ea5a4 0%,#1481c6 55%,#1170c9 100%);color:#fff;padding:30px 24px 30px;position:relative;overflow:hidden}.fhp-base{position:absolute;inset:-3%;background:url('images/hero-a380.jpg') center 46%/cover no-repeat;z-index:0;animation:fkb 26s ease-in-out infinite alternate;will-change:transform}@keyframes fkb{from{transform:scale(1.02)} to{transform:scale(1.12) translate(-1.4%,1.4%)}}.fhp{opacity:0;animation:fhfade 54s linear infinite, fkb 26s ease-in-out infinite alternate}.fhp2{background-image:url('images/hero-a380-2.jpg');background-position:center 40%;animation-delay:9s,-5s}.fhp3{background-image:url('images/hero-a380-3.jpg');background-position:center 26%;animation-delay:18s,-9s}.fhp4{background-image:url('images/hero-a380-4.jpg');background-position:center 42%;animation-delay:27s,-13s}.fhp5{background-image:url('images/hero-a380-5.jpg');background-position:center 45%;animation-delay:36s,-7s}.fhp6{background-image:url('images/hero-a380-6.jpg');background-position:center 62%;animation-delay:45s,-17s}@keyframes fhfade{0%{opacity:0} 4%{opacity:1} 17%{opacity:1} 21%{opacity:0} 100%{opacity:0}}.fh-htint{position:absolute;inset:0;z-index:0;background:linear-gradient(180deg,rgba(8,22,48,.62),rgba(10,30,66,.42))}@media (prefers-reduced-motion: reduce){.fhp-base{animation:none}.fhp{display:none}}@media (max-width: 768px){.fhp-base{animation:none!important}.fhp{display:none!important}}.fh-hero-in{max-width:1240px;margin:0 auto;position:relative;z-index:1}.fh-h1{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:40px;margin:0 0 6px}.fh-hsub{font-size:16px;color:rgba(255,255,255,.75);margin:0 0 20px}.fh-tt{display:flex;align-items:center;gap:6px;margin-bottom:14px;flex-wrap:wrap}.fh-ttb{border:none;background:rgba(255,255,255,.14);color:#fff;font-family:inherit;font-weight:700;font-size:14px;padding:9px 20px;border-radius:999px;cursor:pointer}.fh-ttb.active{background:#fff;color:#0b2440}.fh-tt-cab{margin-left:6px;color:rgba(255,255,255,.7);font-weight:600;font-size:14px}.fh-bar{display:flex;align-items:stretch;background:#fff;border-radius:16px;padding:6px;box-shadow:0 24px 55px -22px rgba(0,0,0,.55);flex-wrap:wrap}.fh-cell{position:relative;padding:9px 16px;flex:1;min-width:140px;border-right:1px solid #eef2f7}.fh-cell label{display:block;font-size:11px;font-weight:700;color:#8094a4;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px}.fh-cell input,.fh-cell select{width:100%;border:none;outline:none;font-family:inherit;font-size:15px;font-weight:600;color:#0b2440;background:transparent}.fh-ac{flex:1.4}.fh-dt{flex:.9;min-width:118px}.fh-px{flex:.9;min-width:120px;border-right:none}.fh-swap{align-self:center;border:1px solid #e5ecf5;background:#fff;color:#0a5fd7;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:16px;flex-shrink:0}.fh-go{background:#0a5fd7;color:#fff;border:none;font-family:inherit;font-weight:800;font-size:16px;padding:0 34px;border-radius:12px;cursor:pointer;margin:4px}.fh-go:hover{background:#0954bd}.fh-status{color:rgba(255,255,255,.85);font-size:13px;font-weight:600;margin-top:12px;min-height:18px}.fh-wrap{max-width:1240px;margin:0 auto;padding:22px 24px 40px}.fh-res{display:grid;grid-template-columns:248px 1fr;gap:22px;align-items:start}.fh-side{background:#fff;border:1px solid #e8edf3;border-radius:14px;padding:16px 18px 6px;position:sticky;top:16px}.fh-sgrp{border-bottom:1px solid #eef2f7;padding-bottom:14px;margin-bottom:14px}.fh-sgrp:last-child{border-bottom:none}.fh-sh{font-weight:800;font-size:14px;margin:0 0 11px}.fh-chk{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13.5px;font-weight:600;color:#3a4d5e;cursor:pointer;padding:5px 0}.fh-chk input{width:16px;height:16px;accent-color:#0a5fd7;margin-right:8px;vertical-align:middle}.fh-chk .pc{color:#0b2440;font-weight:700;font-size:12.5px;white-space:nowrap}.fh-chips{display:flex;flex-wrap:wrap;gap:7px}.fh-chip{border:1px solid #dbe4ee;background:#fff;border-radius:8px;font-family:inherit;font-size:12px;font-weight:700;color:#3a4d5e;padding:7px 10px;cursor:pointer}.fh-chip.on{border-color:#0a5fd7;background:#eaf3ff;color:#0a5fd7}.fh-fare{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}.fh-ft{background:#fff;border:1px solid #e8edf3;border-radius:12px;padding:11px 15px;cursor:pointer;text-align:left}.fh-ft.active{border-color:#0a5fd7;box-shadow:inset 0 -3px 0 #0a5fd7}.fh-ft .k{font-size:13px;font-weight:700;color:#5c6f80}.fh-ft.active .k{color:#0a5fd7}.fh-ft .v{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:18px;color:#0b2440;margin-top:3px}.fh-row{display:flex;align-items:center;gap:18px;background:#fff;border:1px solid #e8edf3;border-radius:14px;padding:15px 20px;margin-bottom:12px}.fh-row:hover{box-shadow:0 12px 26px -16px rgba(10,95,215,.3)}.fh-logo{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:12px;font-family:'Bricolage Grotesque',sans-serif;flex-shrink:0}.fh-mid{flex:1;min-width:210px}.fh-times{display:flex;align-items:center;gap:12px;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:19px;color:#0b2440}.fh-times .seg{flex:1;height:2px;background:#cdd9e6;position:relative;min-width:46px;max-width:130px}.fh-times .seg .d{position:absolute;top:-3px;width:7px;height:7px;border-radius:50%;background:#8aa0b6;left:50%;margin-left:-3px}.fh-plus{font-size:11px;color:#c0392b;font-weight:800;vertical-align:top}.fh-meta{display:flex;gap:8px;align-items:baseline;font-size:12.5px;color:#5c6f80;font-weight:600;margin-top:5px;flex-wrap:wrap}.fh-air{font-size:12.5px;color:#5c6f80;font-weight:700;margin-top:2px}.fh-stops{font-weight:700}.fh-stops.direct{color:#0a7d3b}.fh-stops.one{color:#b26a00}.fh-stops.multi{color:#c0392b}.fh-buy{text-align:right;min-width:132px;padding-left:16px;border-left:1px solid #eef2f7}.fh-amt{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:22px;color:#0b2440}.fh-tax{font-size:11px;color:#8094a4;font-weight:600;margin:2px 0 8px}.fh-book{display:inline-block;background:linear-gradient(135deg,#0a5fd7,#0d7ae8);color:#fff;font-weight:700;font-size:13px;padding:8px 16px;border-radius:9px}.fh-badge{display:inline-block;font-size:10px;font-weight:800;border-radius:6px;padding:3px 8px;margin-bottom:7px}.fh-badge.cheap{background:#e9f9ee;color:#0a7d3b}.fh-badge.fast{background:#eef1ff;color:#3b46c4}.fh-note{font-size:12px;color:#8094a4;margin:0 0 10px;line-height:1.5}.sky-drop{position:fixed;z-index:99999;background:#fff;border:1px solid #e5ecf5;border-radius:10px;max-height:320px;overflow-y:auto;box-shadow:0 14px 34px rgba(10,36,64,.2)}.sky-opt{padding:11px 14px;cursor:pointer;font-size:14px;display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid #f2f6fb;color:#0b2440}.sky-opt:last-child{border-bottom:none}.sky-opt:hover,.sky-opt.sky-active{background:#f0f7ff}.sky-opt .nm{display:flex;align-items:center;gap:7px}.sky-tag{font-size:10px;font-weight:700;border-radius:5px;padding:2px 6px}.sky-in{background:#eaf6ec;color:#0a7d3b}.sky-int{background:#eef2ff;color:#3b46c4}.sky-code{color:#0a5fd7;font-weight:700;font-size:12px;white-space:nowrap}@media(max-width:820px){.fh-res{grid-template-columns:1fr}.fh-side{position:static}}@media(max-width:640px){.fh-bar{flex-direction:column}.fh-cell{border-right:none;border-bottom:1px solid #eef2f7}.fh-h1{font-size:30px}.fh-buy{border-left:none;text-align:left;padding-left:0}}.fh-sh{display:flex;align-items:center;justify-content:space-between;cursor:pointer}.fh-sh .cv{color:#8094a4;font-size:11px;transition:transform .2s}.fh-sh.collapsed .cv{transform:rotate(-90deg)}.fh-sb{margin-top:2px}.fh-sel{display:flex;gap:12px;font-size:12px;font-weight:700;margin:2px 0 8px}.fh-sel a{color:#0a5fd7;cursor:pointer}.fh-sel .mut{color:#8094a4;cursor:pointer}.fh-showall{color:#0a5fd7;font-weight:700;font-size:13px;cursor:pointer;padding:6px 0;display:inline-block}.fh-price .lbl{font-size:13px;color:#0a5fd7;font-weight:700;margin-bottom:8px}.fh-price input[type=range]{width:100%;accent-color:#0a5fd7}.fh-price .ends{display:flex;justify-content:space-between;font-size:11.5px;color:#8094a4;font-weight:600;margin-top:4px}.cal-pop{position:fixed;z-index:100000;background:#fff;border-radius:16px;box-shadow:0 26px 64px -18px rgba(10,36,64,.45);padding:18px}.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.cal-title{font-weight:800;font-size:16px;color:#0b2440}.cal-nav{border:1px solid #e5ecf5;background:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:17px;color:#0a5fd7;line-height:1}.cal-months{display:flex;gap:22px;flex-wrap:wrap}.cal-m{flex:1;min-width:240px}.cal-mh{text-align:center;font-weight:700;font-size:14px;margin-bottom:8px;color:#0b2440}.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}.cal-dow{font-size:10px;color:#8094a4;text-align:center;font-weight:700;padding:2px 0}.cal-d{aspect-ratio:1;border:none;background:#f4f7fb;border-radius:8px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:700;color:#0b2440;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;padding:2px}.cal-d small{font-size:8.5px;font-weight:700;margin-top:2px}.cal-d:disabled{opacity:.35;cursor:default;background:transparent}.cal-d.sel{background:#0a5fd7;color:#fff}.cal-d.sel small{color:#fff}.cal-d.low{background:#e7f8ec}.cal-d.low small{color:#0a7d3b}.cal-d.med{background:#fef3e2}.cal-d.med small{color:#b26a00}.cal-d.high{background:#fde9ea}.cal-d.high small{color:#c0392b}.cal-legend{display:flex;gap:14px;align-items:center;margin-top:12px;font-size:12px;color:#5c6f80}.cal-leg{display:inline-flex;align-items:center;gap:5px}.cal-sw{width:12px;height:12px;border-radius:3px;display:inline-block}.fh-cabin{background:rgba(255,255,255,.16);color:#fff;border:none;font-family:inherit;font-weight:700;font-size:14px;padding:9px 32px 9px 16px;border-radius:999px;cursor:pointer;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center}.fh-cabin option{color:#0b2440}`; document.head.appendChild(st); }
+  if(!document.getElementById('fh-css')){ var st=document.createElement('style'); st.id='fh-css'; st.textContent=`.fh-hero{background:linear-gradient(135deg,#0ea5a4 0%,#1481c6 55%,#1170c9 100%);color:#fff;padding:30px 24px 30px;position:relative;overflow:hidden}.fhp-base{position:absolute;inset:-3%;background:url('images/hero-a380.jpg') center 46%/cover no-repeat;z-index:0;animation:fkb 26s ease-in-out infinite alternate;will-change:transform}@keyframes fkb{from{transform:scale(1.02)} to{transform:scale(1.12) translate(-1.4%,1.4%)}}.fhp{opacity:0;animation:fhfade 54s linear infinite, fkb 26s ease-in-out infinite alternate}.fhp2{background-image:url('images/hero-a380-2.jpg');background-position:center 40%;animation-delay:9s,-5s}.fhp3{background-image:url('images/hero-a380-3.jpg');background-position:center 26%;animation-delay:18s,-9s}.fhp4{background-image:url('images/hero-a380-4.jpg');background-position:center 42%;animation-delay:27s,-13s}.fhp5{background-image:url('images/hero-a380-5.jpg');background-position:center 45%;animation-delay:36s,-7s}.fhp6{background-image:url('images/hero-a380-6.jpg');background-position:center 62%;animation-delay:45s,-17s}@keyframes fhfade{0%{opacity:0} 4%{opacity:1} 17%{opacity:1} 21%{opacity:0} 100%{opacity:0}}.fh-htint{position:absolute;inset:0;z-index:0;background:linear-gradient(180deg,rgba(8,22,48,.62),rgba(10,30,66,.42))}@media (prefers-reduced-motion: reduce){.fhp-base{animation:none}.fhp{display:none}}@media (max-width: 768px){.fhp-base{animation:none!important}.fhp{display:none!important}}.fh-hero-in{max-width:1240px;margin:0 auto;position:relative;z-index:1}.fh-h1{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:40px;margin:0 0 6px}.fh-hsub{font-size:16px;color:rgba(255,255,255,.75);margin:0 0 20px}.fh-tt{display:flex;align-items:center;gap:6px;margin-bottom:14px;flex-wrap:wrap}.fh-ttb{border:none;background:rgba(255,255,255,.14);color:#fff;font-family:inherit;font-weight:700;font-size:14px;padding:9px 20px;border-radius:999px;cursor:pointer}.fh-ttb.active{background:#fff;color:#0b2440}.fh-ttb{position:relative}.fh-new{position:absolute;top:-8px;right:-6px;background:#FF4D4F;color:#fff;font-size:9px;font-weight:800;padding:2px 7px;border-radius:999px;letter-spacing:.03em}#multiLegs .fh-bar{margin-bottom:10px}.fh-addleg{background:rgba(255,255,255,.14);border:1px dashed rgba(255,255,255,.5);color:#fff;font-family:inherit;font-weight:700;font-size:13px;padding:10px 18px;border-radius:12px;cursor:pointer}.fh-legx{align-self:center;border:none;background:#fde9ea;color:#c0392b;width:30px;height:30px;border-radius:50%;cursor:pointer;font-weight:800;margin:0 6px;flex-shrink:0}.fh-tt-cab{margin-left:6px;color:rgba(255,255,255,.7);font-weight:600;font-size:14px}.fh-bar{display:flex;align-items:stretch;background:#fff;border-radius:16px;padding:6px;box-shadow:0 24px 55px -22px rgba(0,0,0,.55);flex-wrap:wrap}.fh-cell{position:relative;padding:9px 16px;flex:1;min-width:140px;border-right:1px solid #eef2f7}.fh-cell label{display:block;font-size:11px;font-weight:700;color:#8094a4;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px}.fh-cell input,.fh-cell select{width:100%;border:none;outline:none;font-family:inherit;font-size:15px;font-weight:600;color:#0b2440;background:transparent}.fh-ac{flex:1.4}.fh-dt{flex:.9;min-width:118px}.fh-px{flex:.9;min-width:120px;border-right:none}.fh-swap{align-self:center;border:1px solid #e5ecf5;background:#fff;color:#0a5fd7;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:16px;flex-shrink:0}.fh-go{background:#0a5fd7;color:#fff;border:none;font-family:inherit;font-weight:800;font-size:16px;padding:0 34px;border-radius:12px;cursor:pointer;margin:4px}.fh-go:hover{background:#0954bd}.fh-status{color:rgba(255,255,255,.85);font-size:13px;font-weight:600;margin-top:12px;min-height:18px}.fh-wrap{max-width:1240px;margin:0 auto;padding:22px 24px 40px}.fh-res{display:grid;grid-template-columns:248px 1fr;gap:22px;align-items:start}.fh-side{background:#fff;border:1px solid #e8edf3;border-radius:14px;padding:16px 18px 6px;position:sticky;top:16px}.fh-sgrp{border-bottom:1px solid #eef2f7;padding-bottom:14px;margin-bottom:14px}.fh-sgrp:last-child{border-bottom:none}.fh-sh{font-weight:800;font-size:14px;margin:0 0 11px}.fh-chk{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13.5px;font-weight:600;color:#3a4d5e;cursor:pointer;padding:5px 0}.fh-chk input{width:16px;height:16px;accent-color:#0a5fd7;margin-right:8px;vertical-align:middle}.fh-chk .pc{color:#0b2440;font-weight:700;font-size:12.5px;white-space:nowrap}.fh-chips{display:flex;flex-wrap:wrap;gap:7px}.fh-chip{border:1px solid #dbe4ee;background:#fff;border-radius:8px;font-family:inherit;font-size:12px;font-weight:700;color:#3a4d5e;padding:7px 10px;cursor:pointer}.fh-chip.on{border-color:#0a5fd7;background:#eaf3ff;color:#0a5fd7}.fh-fare{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}.fh-ft{background:#fff;border:1px solid #e8edf3;border-radius:12px;padding:11px 15px;cursor:pointer;text-align:left}.fh-ft.active{border-color:#0a5fd7;box-shadow:inset 0 -3px 0 #0a5fd7}.fh-ft .k{font-size:13px;font-weight:700;color:#5c6f80}.fh-ft.active .k{color:#0a5fd7}.fh-ft .v{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:18px;color:#0b2440;margin-top:3px}.fh-row{display:flex;align-items:center;gap:18px;background:#fff;border:1px solid #e8edf3;border-radius:14px;padding:15px 20px;margin-bottom:12px}.fh-row:hover{box-shadow:0 12px 26px -16px rgba(10,95,215,.3)}.fh-logo{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:12px;font-family:'Bricolage Grotesque',sans-serif;flex-shrink:0}.fh-mid{flex:1;min-width:210px}.fh-times{display:flex;align-items:center;gap:12px;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:19px;color:#0b2440}.fh-times .seg{flex:1;height:2px;background:#cdd9e6;position:relative;min-width:46px;max-width:130px}.fh-times .seg .d{position:absolute;top:-3px;width:7px;height:7px;border-radius:50%;background:#8aa0b6;left:50%;margin-left:-3px}.fh-plus{font-size:11px;color:#c0392b;font-weight:800;vertical-align:top}.fh-meta{display:flex;gap:8px;align-items:baseline;font-size:12.5px;color:#5c6f80;font-weight:600;margin-top:5px;flex-wrap:wrap}.fh-air{font-size:12.5px;color:#5c6f80;font-weight:700;margin-top:2px}.fh-stops{font-weight:700}.fh-stops.direct{color:#0a7d3b}.fh-stops.one{color:#b26a00}.fh-stops.multi{color:#c0392b}.fh-buy{text-align:right;min-width:132px;padding-left:16px;border-left:1px solid #eef2f7}.fh-amt{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:22px;color:#0b2440}.fh-tax{font-size:11px;color:#8094a4;font-weight:600;margin:2px 0 8px}.fh-book{display:inline-block;background:linear-gradient(135deg,#0a5fd7,#0d7ae8);color:#fff;font-weight:700;font-size:13px;padding:8px 16px;border-radius:9px}.fh-badge{display:inline-block;font-size:10px;font-weight:800;border-radius:6px;padding:3px 8px;margin-bottom:7px}.fh-badge.cheap{background:#e9f9ee;color:#0a7d3b}.fh-badge.fast{background:#eef1ff;color:#3b46c4}.fh-note{font-size:12px;color:#8094a4;margin:0 0 10px;line-height:1.5}.sky-drop{position:fixed;z-index:99999;background:#fff;border:1px solid #e5ecf5;border-radius:10px;max-height:320px;overflow-y:auto;box-shadow:0 14px 34px rgba(10,36,64,.2)}.sky-opt{padding:11px 14px;cursor:pointer;font-size:14px;display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid #f2f6fb;color:#0b2440}.sky-opt:last-child{border-bottom:none}.sky-opt:hover,.sky-opt.sky-active{background:#f0f7ff}.sky-opt .nm{display:flex;align-items:center;gap:7px}.sky-tag{font-size:10px;font-weight:700;border-radius:5px;padding:2px 6px}.sky-in{background:#eaf6ec;color:#0a7d3b}.sky-int{background:#eef2ff;color:#3b46c4}.sky-code{color:#0a5fd7;font-weight:700;font-size:12px;white-space:nowrap}@media(max-width:820px){.fh-res{grid-template-columns:1fr}.fh-side{position:static}}@media(max-width:640px){.fh-bar{flex-direction:column}.fh-cell{border-right:none;border-bottom:1px solid #eef2f7}.fh-h1{font-size:30px}.fh-buy{border-left:none;text-align:left;padding-left:0}}.fh-sh{display:flex;align-items:center;justify-content:space-between;cursor:pointer}.fh-sh .cv{color:#8094a4;font-size:11px;transition:transform .2s}.fh-sh.collapsed .cv{transform:rotate(-90deg)}.fh-sb{margin-top:2px}.fh-sel{display:flex;gap:12px;font-size:12px;font-weight:700;margin:2px 0 8px}.fh-sel a{color:#0a5fd7;cursor:pointer}.fh-sel .mut{color:#8094a4;cursor:pointer}.fh-showall{color:#0a5fd7;font-weight:700;font-size:13px;cursor:pointer;padding:6px 0;display:inline-block}.fh-price .lbl{font-size:13px;color:#0a5fd7;font-weight:700;margin-bottom:8px}.fh-price input[type=range]{width:100%;accent-color:#0a5fd7}.fh-price .ends{display:flex;justify-content:space-between;font-size:11.5px;color:#8094a4;font-weight:600;margin-top:4px}.cal-pop{position:fixed;z-index:100000;background:#fff;border-radius:16px;box-shadow:0 26px 64px -18px rgba(10,36,64,.45);padding:18px}.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.cal-title{font-weight:800;font-size:16px;color:#0b2440}.cal-nav{border:1px solid #e5ecf5;background:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:17px;color:#0a5fd7;line-height:1}.cal-months{display:flex;gap:22px;flex-wrap:wrap}.cal-m{flex:1;min-width:240px}.cal-mh{text-align:center;font-weight:700;font-size:14px;margin-bottom:8px;color:#0b2440}.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}.cal-dow{font-size:10px;color:#8094a4;text-align:center;font-weight:700;padding:2px 0}.cal-d{aspect-ratio:1;border:none;background:#f4f7fb;border-radius:8px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:700;color:#0b2440;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;padding:2px}.cal-d small{font-size:8.5px;font-weight:700;margin-top:2px}.cal-d:disabled{opacity:.35;cursor:default;background:transparent}.cal-d.sel{background:#0a5fd7;color:#fff}.cal-d.sel small{color:#fff}.cal-d.low{background:#e7f8ec}.cal-d.low small{color:#0a7d3b}.cal-d.med{background:#fef3e2}.cal-d.med small{color:#b26a00}.cal-d.high{background:#fde9ea}.cal-d.high small{color:#c0392b}.cal-legend{display:flex;gap:14px;align-items:center;margin-top:12px;font-size:12px;color:#5c6f80}.cal-leg{display:inline-flex;align-items:center;gap:5px}.cal-sw{width:12px;height:12px;border-radius:3px;display:inline-block}.fh-cabin{background:rgba(255,255,255,.16);color:#fff;border:none;font-family:inherit;font-weight:700;font-size:14px;padding:9px 32px 9px 16px;border-radius:999px;cursor:pointer;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center}.fh-cabin option{color:#0b2440}`; document.head.appendChild(st); }
 
   function el(id){return document.getElementById(id);}
   function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
@@ -317,12 +332,47 @@ class Component extends DCLogic {
   function pick(input,a){ if(!a)return; input.value=a.name+' ('+a.code+')'; input.dataset.iata=a.code; closeDrop(); }
   var onType=debounce(function(input){ input.dataset.iata=''; var q=input.value.trim(); if(q.length<1){closeDrop();return;} showAir(input,searchAir(q)); },60);
 
-  document.addEventListener('input',function(e){ var t=e.target; if(t&&(t.id==='fromAirport'||t.id==='toAirport')) onType(t); });
+  document.addEventListener('input',function(e){ var t=e.target; if(t&&(t.id==='fromAirport'||t.id==='toAirport'||(t.classList&&t.classList.contains('ac-air')))) onType(t); });
   document.addEventListener('keydown',function(e){ if(!drop||drop.style.display==='none')return; var opts=drop.querySelectorAll('.sky-opt'); if(e.key==='ArrowDown'){active=Math.min(active+1,opts.length-1);e.preventDefault();} else if(e.key==='ArrowUp'){active=Math.max(active-1,0);e.preventDefault();} else if(e.key==='Enter'){ if(active>=0&&dropFor){pick(dropFor,items[active]);e.preventDefault();} return;} else if(e.key==='Escape'){closeDrop();return;} Array.prototype.forEach.call(opts,function(o,i){o.classList.toggle('sky-active',i===active); if(i===active)o.scrollIntoView({block:'nearest'});}); });
   window.addEventListener('scroll',closeDrop,true); window.addEventListener('resize',closeDrop);
 
   /* ---------- controls ---------- */
-  function setTrip(){ var r=el('retWrap'); if(r) r.style.display=(TRIP==='oneway')?'none':''; Array.prototype.forEach.call(document.querySelectorAll('.fh-ttb'),function(b){ b.classList.toggle('active', b.getAttribute('data-trip')===TRIP); }); }
+  function setMode(){
+    Array.prototype.forEach.call(document.querySelectorAll('.fh-ttb'),function(b){ b.classList.toggle('active', b.getAttribute('data-mode')===MODE); });
+    var bar=document.querySelector('.fh-bar'); if(bar) bar.style.display=(MODE==='multi')?'none':'flex';
+    var r=el('retWrap'); if(r) r.style.display=(MODE==='round')?'':'none';
+    var px=el('paxWrap'); if(px) px.style.display=(MODE==='calendar')?'none':'';
+    var go=el('searchFlightsBtn'); if(go){ go.style.display=(MODE==='group')?'none':''; go.textContent=(MODE==='calendar')?'Fare Calendar':'Search'; }
+    var ml=el('multiLegs'); if(ml){ ml.style.display=(MODE==='multi')?'':'none'; if(MODE==='multi') renderLegs(); }
+    var gp=el('groupPanel'); if(gp) gp.style.display=(MODE==='group')?'':'none';
+  }
+  function legRow(i){
+    var L=LEGS[i]||{};
+    return '<div class="fh-bar">'
+      +'<div class="fh-cell fh-ac"><label>Flight '+(i+1)+' — from</label><input type="text" autocomplete="off" placeholder="City or airport" class="ac-air" data-leg="'+i+'" data-kind="from" value="'+esc(L.fromLabel||'')+'" '+(L.from?'data-iata="'+esc(L.from)+'"':'')+'></div>'
+      +'<div class="fh-cell fh-ac"><label>To</label><input type="text" autocomplete="off" placeholder="City or airport" class="ac-air" data-leg="'+i+'" data-kind="to" value="'+esc(L.toLabel||'')+'" '+(L.to?'data-iata="'+esc(L.to)+'"':'')+'></div>'
+      +'<div class="fh-cell fh-dt" style="border-right:none"><label>Date</label><input type="date" class="mleg-date" data-leg="'+i+'" value="'+esc(L.date||'')+'"></div>'
+      +(LEGS.length>2?'<button type="button" class="fh-legx" data-legx="'+i+'" title="Remove this flight">×</button>':'')
+      +'</div>';
+  }
+  function renderLegs(){
+    var ml=el('multiLegs'); if(!ml) return;
+    ml.innerHTML=LEGS.map(function(_,i){return legRow(i);}).join('')
+      +'<div style="display:flex;gap:12px;align-items:center;margin-top:2px;flex-wrap:wrap">'
+      +(LEGS.length<4?'<button type="button" class="fh-addleg" id="addLeg">+ Add another flight</button>':'')
+      +'<button type="button" id="multiSearchBtn" class="fh-go" style="padding:12px 34px">Search all flights</button></div>';
+  }
+  function syncLegsFromDom(){
+    var ml=el('multiLegs'); if(!ml) return;
+    Array.prototype.forEach.call(ml.querySelectorAll('.ac-air'),function(inp){
+      var i=+inp.getAttribute('data-leg'), k=inp.getAttribute('data-kind');
+      if(!LEGS[i]) LEGS[i]={};
+      LEGS[i][k]=inp.dataset.iata||''; LEGS[i][k+'Label']=inp.value||'';
+    });
+    Array.prototype.forEach.call(ml.querySelectorAll('.mleg-date'),function(d){
+      var i=+d.getAttribute('data-leg'); if(!LEGS[i]) LEGS[i]={}; LEGS[i].date=d.value||'';
+    });
+  }
   function swap(){ var a=el('fromAirport'),b=el('toAirport'); if(!a||!b)return; var av=a.value,ac=a.dataset.iata||''; a.value=b.value; a.dataset.iata=b.dataset.iata||''; b.value=av; b.dataset.iata=ac; }
   function toggleSet(set,val,on){ if(on===undefined){ if(set.has(val))set.delete(val); else set.add(val);} else { if(on)set.add(val); else set.delete(val);} }
   function setExcl(set,val,ex){ if(ex)set.add(val); else set.delete(val); }
@@ -331,9 +381,14 @@ class Component extends DCLogic {
   document.addEventListener('click',function(e){
     var t=e.target; if(!t.closest) return;
     var opt=t.closest('.sky-opt'); if(opt&&dropFor){ pick(dropFor,items[+opt.getAttribute('data-i')]); return; }
-    if(t.closest('#searchFlightsBtn')){ e.preventDefault(); searchFlights(); return; }
+    if(t.closest('#searchFlightsBtn')){ e.preventDefault(); if(MODE==='calendar'){ showFareCalendar(); } else { searchFlights(); } return; }
     if(t.closest('#fh-swap')){ e.preventDefault(); swap(); return; }
-    var tt=t.closest('.fh-ttb'); if(tt){ TRIP=tt.getAttribute('data-trip'); setTrip(); return; }
+    var tt=t.closest('.fh-ttb'); if(tt){ MODE=tt.getAttribute('data-mode'); setMode(); return; }
+    if(t.closest('#addLeg')){ syncLegsFromDom(); LEGS.push({}); renderLegs(); return; }
+    var lx=t.closest('.fh-legx'); if(lx){ syncLegsFromDom(); LEGS.splice(+lx.getAttribute('data-legx'),1); renderLegs(); return; }
+    if(t.closest('#multiSearchBtn')){ searchMulti(); return; }
+    if(t.closest('#groupGo')){ groupEnquire(); return; }
+    var fd=t.closest('[data-fdate]'); if(fd&&!fd.disabled){ MODE='oneway'; setMode(); setDate('depDate',fd.getAttribute('data-fdate')); searchFlights(); return; }
     var ft=t.closest('.fh-ft'); if(ft){ TAB=ft.getAttribute('data-tab'); applyView(); return; }
     var chip=t.closest('.fh-chip'); if(chip){ toggleSet(FILT.tod,chip.getAttribute('data-tod')); applyView(); return; }
     if(t.closest('#depDate')){ e.preventDefault(); openCal('dep'); return; }
@@ -358,7 +413,7 @@ class Component extends DCLogic {
     var from=(fi&&fi.dataset.iata)||'', to=(ti&&ti.dataset.iata)||'';
     var cabEl=el('cabinSel'); if(cabEl) CABIN=cabEl.value;
     var dep=el('depDate')&&(el('depDate').dataset.value||'');
-    var ret=(TRIP==='round'&&el('retDate'))?(el('retDate').dataset.value||''):'';
+    var ret=(MODE==='round'&&el('retDate'))?(el('retDate').dataset.value||''):'';
     var stt=el('flightStatus'), res=el('flightResults');
     if(!from||!to){ if(stt) stt.textContent='Please pick both airports from the suggestions.'; return; }
     if(!dep){ if(stt) stt.textContent='Please choose a departure date.'; return; }
@@ -452,11 +507,85 @@ class Component extends DCLogic {
   async function calFetch(){ var from=airVal('fromAirport'),to=airVal('toAirport'); if(!from||!to)return; var months=[monKey(CAL.y,CAL.mo),monKey(nextY(CAL.y,CAL.mo),nextM(CAL.mo))]; try{ var r=await fetch(API_BASE+'/api/flight-calendar?from='+encodeURIComponent(from)+'&to='+encodeURIComponent(to)+'&months='+months.join(','),{mode:'cors'}); var j=await r.json(); CAL.prices=Object.assign(CAL.prices||{},j.prices||{}); calTiers(); renderCal(); }catch(e){} }
   function openCal(field){ ensureCal(); CAL.field=field; CAL.prices={}; var start=(field==='ret'&&dval('depDate'))?dval('depDate'):todayD(); var sm=start.match(/^(\d{4})-(\d{2})/); CAL.y=+sm[1]; CAL.mo=+sm[2]; renderCal(); posCal(el(field==='ret'?'retDate':'depDate')); calEl.style.display='block'; calFetch(); }
   function calNav(dir){ if(dir==='prev'){ var pm=prevM(CAL.mo),py=prevY(CAL.y,CAL.mo); if(monKey(py,pm)<todayD().slice(0,7))return; CAL.y=py;CAL.mo=pm; } else { CAL.y=nextY(CAL.y,CAL.mo); CAL.mo=nextM(CAL.mo); } renderCal(); calFetch(); }
-  function pickDate(ds){ if(CAL.field==='dep'){ setDate('depDate',ds); if(dval('retDate')&&dval('retDate')<ds) setDate('retDate',''); if(TRIP==='round'){ CAL.field='ret'; renderCal(); return; } } else { if(dval('depDate')&&ds<dval('depDate'))return; setDate('retDate',ds); } closeCal(); }
+  function pickDate(ds){ if(CAL.field==='dep'){ setDate('depDate',ds); if(dval('retDate')&&dval('retDate')<ds) setDate('retDate',''); if(MODE==='round'){ CAL.field='ret'; renderCal(); return; } } else { if(dval('depDate')&&ds<dval('depDate'))return; setDate('retDate',ds); } closeCal(); }
   window.addEventListener('scroll',function(){ if(calEl&&calEl.style.display!=='none') closeCal(); },true);
 
+  /* ---------- multi-city ---------- */
+  async function searchMulti(){
+    syncLegsFromDom();
+    var stt=el('flightStatus'), res=el('flightResults');
+    var legs=LEGS.filter(function(L){return L.from&&L.to&&L.date;});
+    if(legs.length<2){ if(stt) stt.textContent='Fill from, to and date for at least 2 flights (pick airports from the suggestions).'; return; }
+    if(stt) stt.textContent='Searching '+legs.length+' flights…'; if(res) res.innerHTML='';
+    var html='';
+    for(var i=0;i<legs.length;i++){
+      var L=legs[i];
+      html+='<div class="fh-summary" style="margin-top:'+(i?26:0)+'px"><h2 class="fh-h2">Flight '+(i+1)+': '+esc(L.from)+' → '+esc(L.to)+'</h2><div class="sub">'+esc(L.date)+'</div></div>';
+      try{
+        var r=await fetch(API_BASE+'/api/flights?from='+encodeURIComponent(L.from)+'&to='+encodeURIComponent(L.to)+'&date='+encodeURIComponent(L.date)+'&cabin='+encodeURIComponent(CABIN),{mode:'cors'});
+        var j=await r.json();
+        var fl=(j.flights||[]).slice().sort(function(a,b){return (+a.price||1e12)-(+b.price||1e12);}).slice(0,5);
+        if(!r.ok||!fl.length){ html+='<p class="fh-note">No fares found for this flight'+(j.detail?' — '+esc(j.detail):'')+'.</p>'; }
+        else html+=fl.map(function(f){return renderRow(f,'');}).join('');
+      }catch(e){ html+='<p class="fh-note">Could not fetch this flight (is the proxy running?).</p>'; }
+      if(res) res.innerHTML=html;
+    }
+    var tot=0,ok=true;
+    if(stt) stt.textContent='Multi-city results ready — top 5 fares per flight shown.';
+    if(res) res.innerHTML=html+'<p class="fh-note" style="margin-top:12px">Multi-city fares are the cheapest one-way options per leg via Travelpayouts — tap Book on each leg to complete.</p>';
+  }
+
+  /* ---------- inline fare calendar ---------- */
+  async function showFareCalendar(){
+    var fi=el('fromAirport'), ti=el('toAirport');
+    var from=(fi&&fi.dataset.iata)||'', to=(ti&&ti.dataset.iata)||'';
+    var stt=el('flightStatus'), res=el('flightResults');
+    if(!from||!to){ if(stt) stt.textContent='Pick both airports from the suggestions to see the fare calendar.'; return; }
+    if(stt) stt.textContent='Loading fare calendar…';
+    var now=new Date(), y=now.getFullYear(), mo=now.getMonth()+1;
+    var y2=mo===12?y+1:y, mo2=mo===12?1:mo+1;
+    function mk(yy,mm){ return yy+'-'+(mm<10?'0':'')+mm; }
+    try{
+      var r=await fetch(API_BASE+'/api/flight-calendar?from='+encodeURIComponent(from)+'&to='+encodeURIComponent(to)+'&months='+mk(y,mo)+','+mk(y2,mo2),{mode:'cors'});
+      var j=await r.json(); var prices=j.prices||{};
+      var vals=Object.keys(prices).map(function(k){return +prices[k];}).filter(function(x){return x>0;}).sort(function(a,b){return a-b;});
+      var lo=vals.length?vals[Math.floor(vals.length/3)]:0, hi=vals.length?vals[Math.floor(vals.length*2/3)]:0;
+      function tier(p){ if(!p||!hi) return ''; if(p<=lo) return 'low'; if(p<=hi) return 'med'; return 'high'; }
+      function sh(n){ n=+n; if(n>=100000)return '₹'+(n/100000).toFixed(1)+'L'; if(n>=1000)return '₹'+Math.round(n/1000)+'k'; return '₹'+n; }
+      var t=new Date().toISOString().slice(0,10);
+      var M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      function month(yy,mm){
+        var h='<div class="cal-m" style="background:#fff;border-radius:14px;padding:14px;border:1px solid #e8edf3"><div class="cal-mh">'+M[mm-1]+' '+yy+'</div><div class="cal-grid">';
+        ['S','M','T','W','T','F','S'].forEach(function(d){h+='<div class="cal-dow">'+d+'</div>';});
+        var fd=new Date(yy,mm-1,1).getDay(), n=new Date(yy,mm,0).getDate();
+        for(var i=0;i<fd;i++)h+='<div></div>';
+        for(var d=1;d<=n;d++){
+          var ds=yy+'-'+(mm<10?'0':'')+mm+'-'+(d<10?'0':'')+d;
+          var dis=ds<t, pr=prices[ds];
+          h+='<button type="button" class="cal-d '+(dis?'':tier(pr))+'" data-fdate="'+ds+'"'+(dis?' disabled':'')+'>'+d+((pr&&!dis)?'<small>'+sh(pr)+'</small>':'')+'</button>';
+        }
+        return h+'</div></div>';
+      }
+      if(res) res.innerHTML='<div class="fh-summary"><h2 class="fh-h2">Fare calendar: '+esc(from)+' → '+esc(to)+'</h2><div class="sub">cheapest fare per day · tap a date to see flights</div></div>'
+        +'<div class="cal-months">'+month(y,mo)+month(y2,mo2)+'</div>'
+        +'<div class="cal-legend" style="margin-top:14px"><span class="cal-leg"><span class="cal-sw" style="background:#e7f8ec"></span>Low</span><span class="cal-leg"><span class="cal-sw" style="background:#fef3e2"></span>Medium</span><span class="cal-leg"><span class="cal-sw" style="background:#fde9ea"></span>High fare</span></div>';
+      if(stt) stt.textContent=Object.keys(prices).length+' days with fares — tap any date to search it.';
+    }catch(e){ if(stt) stt.textContent='Could not load the fare calendar — is the proxy running?'; }
+  }
+
+  /* ---------- group booking ---------- */
+  function groupEnquire(){
+    var fi=el('fromAirport'), ti=el('toAirport');
+    var from=(fi&&(fi.dataset.iata||fi.value))||'', to=(ti&&(ti.dataset.iata||ti.value))||'';
+    var dep=dval('depDate'), size=el('groupSize')?el('groupSize').value:'10+';
+    var msg='Hi Skyline Travel Planner! Group booking enquiry: '+size
+      +(from?', flying '+from:'')+(to?' to '+to:'')+(dep?' on '+dep:'')
+      +'. Please share group fares. ('+CABIN+')';
+    window.open('https://wa.me/918866050291?text='+encodeURIComponent(msg),'_blank');
+  }
+
   /* ---------- init ---------- */
-  var tries=0;(function ready(){ if(el('searchFlightsBtn')&&el('fromAirport')){ setTrip(); return; } if(tries++<120) setTimeout(ready,120); })();
+  var tries=0;(function ready(){ if(el('searchFlightsBtn')&&el('fromAirport')){ setMode(); return; } if(tries++<120) setTimeout(ready,120); })();
 })();
 </script>
 </body>

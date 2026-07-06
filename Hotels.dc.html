@@ -37,7 +37,25 @@
     .htl-go{background:#0a5fd7;color:#fff;border:none;font-family:inherit;font-weight:800;font-size:15px;padding:0 30px;border-radius:12px;cursor:pointer;margin:4px;display:flex;align-items:center}
     .htl-go:hover{background:#0954bd}
     @media (max-width:640px){.htl-bar{flex-direction:column}.htl-cell{border-right:none;border-bottom:1px solid #eef2f7}.htl-h1{font-size:30px}}
-    @media (prefers-reduced-motion: reduce){.hhp-base{animation:none}.hhp{display:none}}@media (max-width: 768px){.hhp-base{animation:none!important}.hhp{display:none!important}}
+    .hsc{position:absolute;z-index:0;pointer-events:none;filter:drop-shadow(0 3px 8px rgba(0,10,30,.45))}
+    .hsc-hotel{left:50%;transform:translateX(-50%);bottom:13px}
+    .hsc-road{position:absolute;z-index:0;left:0;right:0;bottom:12px;height:2px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4) 10%,rgba(255,255,255,.4) 90%,transparent);pointer-events:none}
+    .hsc-palm{bottom:13px}
+    .hveh{position:absolute;z-index:0;bottom:14px;pointer-events:none;filter:drop-shadow(0 3px 7px rgba(0,10,30,.45))}
+    .hveh .flip{display:block;transform:scaleX(-1)}
+    .hv1{animation:hvR 26s linear infinite;left:-10%}
+    .hv2{animation:hvL 15s linear infinite;left:110%;animation-delay:3s}
+    .hv3{animation:hvL 10s linear infinite;left:110%;animation-delay:8s}
+    @keyframes hvR{from{left:-10%}to{left:110%}}
+    @keyframes hvL{from{left:110%}to{left:-12%}}
+    .hpx{position:absolute;z-index:0;pointer-events:none;filter:drop-shadow(0 2px 6px rgba(0,10,30,.4))}
+    .hpx1{top:9%;left:-8%;animation:hpxR 32s linear infinite}
+    .hpx1 svg{transform:rotate(90deg)}
+    .hpx2{top:19%;left:110%;animation:hpxL 42s linear infinite;animation-delay:9s}
+    .hpx2 svg{transform:rotate(-90deg) scale(.75)}
+    @keyframes hpxR{from{left:-8%}to{left:110%}}
+    @keyframes hpxL{from{left:110%}to{left:-10%}}
+    @media (prefers-reduced-motion: reduce){.hhp-base{animation:none}.hhp{display:none}.hveh,.hpx{display:none}}@media (max-width: 768px){.hhp-base{animation:none!important}.hhp{display:none!important}.hveh,.hpx{display:none!important}}
   </style>
 </helmet>
 
@@ -65,6 +83,21 @@
   <div class="hhp-base hhp hhp2"></div>
   <div class="hhp-base hhp hhp3"></div>
   <div class="htl-htint"></div>
+  <span class="hpx hpx1"><svg width="30" height="30" viewBox="0 0 24 24" fill="rgba(255,255,255,.5)"><path d="M21 16l-7-4V6a2 2 0 10-4 0v6l-7 4v2l7-2v3l-2 1.5V22l4-1 4 1v-1.5L14 19v-3l7 2v-2z"/></svg></span>
+  <span class="hpx hpx2"><svg width="30" height="30" viewBox="0 0 24 24" fill="rgba(255,255,255,.5)"><path d="M21 16l-7-4V6a2 2 0 10-4 0v6l-7 4v2l7-2v3l-2 1.5V22l4-1 4 1v-1.5L14 19v-3l7 2v-2z"/></svg></span>
+  <span class="hsc hsc-hotel"><svg width="112" height="150" viewBox="0 0 96 130" fill="none"><rect x="66" y="4" width="5" height="120" rx="2" fill="rgba(255,255,255,.9)"/><path d="M66 8 C30 26, 14 66, 18 124 L66 124 Z" fill="rgba(255,255,255,.78)"/><rect x="36" y="40" width="28" height="2" fill="rgba(10,30,60,.3)"/><rect x="30" y="55" width="34" height="2" fill="rgba(10,30,60,.3)"/><rect x="26" y="70" width="38" height="2" fill="rgba(10,30,60,.3)"/><rect x="24" y="85" width="40" height="2" fill="rgba(10,30,60,.3)"/><rect x="22" y="100" width="42" height="2" fill="rgba(10,30,60,.3)"/><rect x="6" y="37" width="26" height="3" rx="1.5" fill="rgba(255,255,255,.85)"/><ellipse cx="12" cy="35.5" rx="9" ry="3.4" fill="rgba(255,255,255,.9)"/><rect x="10" y="122" width="76" height="4" rx="2" fill="rgba(255,255,255,.85)"/></svg></span>
+  <span class="hsc hsc-palm" style="left:6%"><svg width="30" height="40" viewBox="0 0 30 40" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="2.2" stroke-linecap="round"><path d="M14 40 C13 30 14 22 16 12"/><path d="M16 12 C10 7 4 6 1 9"/><path d="M16 12 C12 4 6 1 2 2"/><path d="M16 12 C18 3 24 0 28 2"/><path d="M16 12 C22 6 27 6 29 10"/><path d="M16 12 C20 11 26 13 28 17"/><path d="M16 12 C12 11 6 13 4 17"/></svg></span>
+  <span class="hsc hsc-palm" style="left:13%"><svg width="30" height="40" viewBox="0 0 30 40" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="2.2" stroke-linecap="round"><path d="M14 40 C13 30 14 22 16 12"/><path d="M16 12 C10 7 4 6 1 9"/><path d="M16 12 C12 4 6 1 2 2"/><path d="M16 12 C18 3 24 0 28 2"/><path d="M16 12 C22 6 27 6 29 10"/><path d="M16 12 C20 11 26 13 28 17"/><path d="M16 12 C12 11 6 13 4 17"/></svg></span>
+  <span class="hsc hsc-palm" style="left:33%"><svg width="30" height="40" viewBox="0 0 30 40" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="2.2" stroke-linecap="round"><path d="M14 40 C13 30 14 22 16 12"/><path d="M16 12 C10 7 4 6 1 9"/><path d="M16 12 C12 4 6 1 2 2"/><path d="M16 12 C18 3 24 0 28 2"/><path d="M16 12 C22 6 27 6 29 10"/><path d="M16 12 C20 11 26 13 28 17"/><path d="M16 12 C12 11 6 13 4 17"/></svg></span>
+  <span class="hsc hsc-palm" style="left:41.5%"><svg width="30" height="40" viewBox="0 0 30 40" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="2.2" stroke-linecap="round"><path d="M14 40 C13 30 14 22 16 12"/><path d="M16 12 C10 7 4 6 1 9"/><path d="M16 12 C12 4 6 1 2 2"/><path d="M16 12 C18 3 24 0 28 2"/><path d="M16 12 C22 6 27 6 29 10"/><path d="M16 12 C20 11 26 13 28 17"/><path d="M16 12 C12 11 6 13 4 17"/></svg></span>
+  <span class="hsc hsc-palm" style="left:58%"><svg width="30" height="40" viewBox="0 0 30 40" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="2.2" stroke-linecap="round"><path d="M14 40 C13 30 14 22 16 12"/><path d="M16 12 C10 7 4 6 1 9"/><path d="M16 12 C12 4 6 1 2 2"/><path d="M16 12 C18 3 24 0 28 2"/><path d="M16 12 C22 6 27 6 29 10"/><path d="M16 12 C20 11 26 13 28 17"/><path d="M16 12 C12 11 6 13 4 17"/></svg></span>
+  <span class="hsc hsc-palm" style="left:65%"><svg width="30" height="40" viewBox="0 0 30 40" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="2.2" stroke-linecap="round"><path d="M14 40 C13 30 14 22 16 12"/><path d="M16 12 C10 7 4 6 1 9"/><path d="M16 12 C12 4 6 1 2 2"/><path d="M16 12 C18 3 24 0 28 2"/><path d="M16 12 C22 6 27 6 29 10"/><path d="M16 12 C20 11 26 13 28 17"/><path d="M16 12 C12 11 6 13 4 17"/></svg></span>
+  <span class="hsc hsc-palm" style="left:82%"><svg width="30" height="40" viewBox="0 0 30 40" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="2.2" stroke-linecap="round"><path d="M14 40 C13 30 14 22 16 12"/><path d="M16 12 C10 7 4 6 1 9"/><path d="M16 12 C12 4 6 1 2 2"/><path d="M16 12 C18 3 24 0 28 2"/><path d="M16 12 C22 6 27 6 29 10"/><path d="M16 12 C20 11 26 13 28 17"/><path d="M16 12 C12 11 6 13 4 17"/></svg></span>
+  <span class="hsc hsc-palm" style="left:91%"><svg width="30" height="40" viewBox="0 0 30 40" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="2.2" stroke-linecap="round"><path d="M14 40 C13 30 14 22 16 12"/><path d="M16 12 C10 7 4 6 1 9"/><path d="M16 12 C12 4 6 1 2 2"/><path d="M16 12 C18 3 24 0 28 2"/><path d="M16 12 C22 6 27 6 29 10"/><path d="M16 12 C20 11 26 13 28 17"/><path d="M16 12 C12 11 6 13 4 17"/></svg></span>
+  <div class="hsc-road"></div>
+  <span class="hveh hv1"><svg width="54" height="22" viewBox="0 0 54 22" fill="none"><rect x="1" y="2" width="52" height="14" rx="4" fill="rgba(255,255,255,.85)"/><rect x="5" y="5" width="8" height="5" rx="1" fill="#0b2440" opacity=".5"/><rect x="15" y="5" width="8" height="5" rx="1" fill="#0b2440" opacity=".5"/><rect x="25" y="5" width="8" height="5" rx="1" fill="#0b2440" opacity=".5"/><rect x="35" y="5" width="8" height="5" rx="1" fill="#0b2440" opacity=".5"/><rect x="44" y="6" width="7" height="6" rx="1" fill="#0b2440" opacity=".42"/><circle cx="13" cy="17" r="3.2" fill="rgba(15,28,50,.85)"/><circle cx="41" cy="17" r="3.2" fill="rgba(15,28,50,.85)"/></svg></span>
+  <span class="hveh hv2"><span class="flip"><svg width="44" height="18" viewBox="0 0 44 18" fill="none"><path d="M2 12 L6 6 C8 3.5 12 3 16 3 L26 3 C31 3 35 5 38 8 L42 10 L42 13 C42 14 41 15 40 15 L4 15 C3 15 2 14 2 13 Z" fill="rgba(255,255,255,.85)"/><path d="M10 7 L14.5 4.5 H23 V9 H8.5 Z" fill="rgba(10,30,60,.4)"/><circle cx="11" cy="15" r="3" fill="rgba(15,28,50,.9)"/><circle cx="33" cy="15" r="3" fill="rgba(15,28,50,.9)"/></svg></span></span>
+  <span class="hveh hv3"><span class="flip"><svg width="36" height="21" viewBox="0 0 34 20" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.5" cy="15" r="3.8" fill="none"/><circle cx="27.5" cy="15" r="3.8" fill="none"/><path d="M6.5 15 L12 9 H20 L27.5 15" fill="none"/><path d="M12 9 L10.5 6 H14.5" fill="none"/><circle cx="18" cy="4.2" r="2.1" fill="rgba(255,255,255,.9)" stroke="none"/><path d="M15.5 9 C15.8 6.6 18.8 6.2 19.8 8.2 L21.5 9.6" fill="none" stroke-width="2.3"/></svg></span></span>
   <div class="htl-hero-in">
     <h1 class="htl-h1">Find your stay</h1>
     <p class="htl-hsub">3-star to 5-star hotels, palaces &amp; beach resorts across India</p>

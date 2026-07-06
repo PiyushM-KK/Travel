@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skyline — Live Preview</title>
+<style>
+  html,body{margin:0;height:100%;font-family:-apple-system,'Segoe UI',sans-serif;background:#0b2440;display:flex;flex-direction:column}
+  .bar{display:flex;align-items:center;gap:6px;padding:8px 12px;background:#0b2440;color:#fff;flex-wrap:wrap}
+  .dot{width:9px;height:9px;border-radius:50%;background:#22c55e;box-shadow:0 0 8px #22c55e;animation:pulse 1.6s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .lbl{font-weight:800;font-size:12px;letter-spacing:.06em;margin-right:8px}
+  .tabs{display:flex;gap:4px;flex-wrap:wrap;flex:1}
+  .tab{border:none;background:rgba(255,255,255,.12);color:#fff;font:600 12px/-apple-system inherit;font-size:12px;font-weight:600;padding:6px 12px;border-radius:999px;cursor:pointer}
+  .tab.on{background:#fff;color:#0b2440}
+  .mob{border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;font-size:12px;font-weight:700;padding:5px 12px;border-radius:999px;cursor:pointer}
+  .mob.on{background:#22c55e;border-color:#22c55e;color:#04220f}
+  .stamp{font-size:11px;color:rgba(255,255,255,.55);min-width:130px;text-align:right}
+  .stage{flex:1;display:flex;justify-content:center;background:#1a3354;overflow:hidden}
+  iframe{border:none;width:100%;height:100%;background:#fff;transition:width .25s}
+  .stage.phone iframe{width:390px;box-shadow:0 0 40px rgba(0,0,0,.5)}
+</style>
+</head>
+<body>
+<div class="bar">
+  <span class="dot"></span><span class="lbl">LIVE</span>
+  <div class="tabs" id="tabs"></div>
+  <button class="mob" id="mob">📱 Mobile</button>
+  <span class="stamp" id="stamp">watching…</span>
+</div>
+<div class="stage" id="stage"><iframe id="fr"></iframe></div>
+<script>
+(function(){
+  var PAGES=[['Home','Home.dc.html'],['Flights','Flights.dc.html'],['Trains','Trains.dc.html'],['Buses','Buses.dc.html'],['Hotels','Hotels.dc.html'],['Tours','Domestic Tours.dc.html'],['International','International.dc.html'],['Customize','Customize.dc.html']];
+  var page=new URLSearchParams(location.search).get('p')||'Home.dc.html';
+  var fr=document.getElementById('fr'), stamp=document.getElementById('stamp'), tabs=document.getElementById('tabs');
+  var marks={};
+
+  function watched(){ return [page,'support.js','AssistantWidget.dc.html']; }
+  function drawTabs(){
+    tabs.innerHTML=PAGES.map(function(p){return '<button class="tab'+(p[1]===page?' on':'')+'" data-p="'+p[1]+'">'+p[0]+'</button>';}).join('');
+  }
+  function load(){ fr.src=encodeURI(page)+'?lr='+Date.now(); stamp.textContent='reloaded '+new Date().toLocaleTimeString(); }
+  function baseline(){ marks={}; watched().forEach(function(f){ probe(f,function(v){ marks[f]=v; }); }); }
+  function probe(f,cb){
+    fetch(encodeURI(f),{method:'HEAD',cache:'no-store'}).then(function(r){ cb(r.headers.get('Last-Modified')||''); }).catch(function(){ cb(null); });
+  }
+  function tick(){
+    watched().forEach(function(f){
+      probe(f,function(v){
+        if(v===null||marks[f]===undefined){ if(v!==null&&marks[f]===undefined) marks[f]=v; return; }
+        if(v!==marks[f]){ marks[f]=v; load(); }
+      });
+    });
+  }
+  tabs.addEventListener('click',function(e){
+    var b=e.target.closest('.tab'); if(!b) return;
+    page=b.getAttribute('data-p');
+    history.replaceState(null,'','live.html?p='+encodeURIComponent(page));
+    drawTabs(); baseline(); load();
+  });
+  document.getElementById('mob').addEventListener('click',function(){
+    this.classList.toggle('on');
+    document.getElementById('stage').classList.toggle('phone');
+  });
+  drawTabs(); baseline(); load();
+  setInterval(tick,1000);
+})();
+</script>
+</body>
+</html>

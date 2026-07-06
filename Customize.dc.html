@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#F4F8FB;color:#0B2440;font-family:'Plus Jakarta Sans',sans-serif;-webkit-font-smoothing:antialiased}
+  a{text-decoration:none;color:inherit}
+  .opt{transition:border-color .18s,background .18s,transform .18s}
+  .opt:hover{border-color:#9FCBEC !important}
+  .cbtn:hover{transform:translateY(-2px)}
+  .cbtn{transition:transform .2s,box-shadow .2s,background .2s}
+  input::placeholder{color:#9AB3C7}
+  .fin:focus{border-color:#0A84D6 !important}
+</style>
+</helmet>
+
+<div ref="{{ root }}" style="min-height:100vh">
+
+  <div style="position:absolute;width:0;height:0;overflow:hidden;left:-9999px;top:0">
+    <x-import component-from-global-scope="image-slot" from="./image-slot.js" id="__loader" hint-size="0,0"></x-import>
+  </div>
+
+  <header style="background:#fff;border-bottom:1px solid #E4ECF3">
+    <div style="max-width:1080px;margin:0 auto;padding:14px 28px;display:flex;align-items:center;gap:20px">
+      <a href="Home.dc.html" style="display:flex;align-items:center;gap:11px;flex-shrink:0">
+        <image-slot id="brand-logo" src="images/logo.png" style="width:200px;height:48px;display:block" shape="rounded" radius="8" fit="contain" position="0% 50%" placeholder="Drop your logo"></image-slot>
+      </a>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
+        <button onClick="{{ toggleLang }}" style="border:1px solid #E4ECF3;background:#fff;cursor:pointer;font-family:inherit;font-weight:700;font-size:13px;color:#0B2440;height:38px;padding:0 14px;border-radius:10px">{{ langLabel }}</button>
+        <a href="Home.dc.html" style="font-size:13.5px;font-weight:600;color:#5C6F80" data-en="← Back to site" data-hi="← साइट पर वापस">← Back to site</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- FORM -->
+  <sc-if value="{{ formView }}" hint-placeholder-val="{{ true }}">
+  <section style="max-width:1080px;margin:0 auto;padding:34px 28px 70px;display:grid;grid-template-columns:260px 1fr;gap:34px;align-items:start">
+
+    <!-- step rail -->
+    <aside style="position:sticky;top:24px">
+      <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:24px;letter-spacing:-.02em;line-height:1.1" data-en="Build your trip" data-hi="अपनी यात्रा बनाएं">Build your trip</div>
+      <p style="font-size:13px;color:#5C6F80;margin:8px 0 20px" data-en="Tell us a few things and we'll craft a custom itinerary & quote." data-hi="कुछ विवरण दें और हम अनुकूलित योजना और कोटेशन बनाएंगे।">Tell us a few things and we'll craft a custom itinerary &amp; quote.</p>
+      <div style="display:flex;flex-direction:column;gap:2px">
+        <sc-for list="{{ nav }}" as="s" hint-placeholder-count="10">
+          <button onClick="{{ s.go }}" style="display:flex;align-items:center;gap:11px;text-align:left;cursor:pointer;border:0;background:{{ s.bg }};font-family:inherit;padding:9px 12px;border-radius:11px">
+            <span style="flex-shrink:0;width:24px;height:24px;border-radius:50%;background:{{ s.dotBg }};color:{{ s.dotC }};font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center">{{ s.mark }}</span>
+            <span style="font-size:13px;font-weight:{{ s.weight }};color:{{ s.color }}">{{ s.label }}</span>
+          </button>
+        </sc-for>
+      </div>
+    </aside>
+
+    <!-- step panel -->
+    <div style="background:#fff;border:1px solid #E4ECF3;border-radius:22px;padding:30px 32px;box-shadow:0 26px 56px -40px rgba(7,59,102,.5);min-height:440px;display:flex;flex-direction:column">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <span style="font-size:12px;font-weight:800;color:#0A84D6;letter-spacing:.05em;text-transform:uppercase">{{ cur.kicker }}</span>
+        <span style="font-size:12px;font-weight:700;color:#9AB3C7">{{ cur.counter }}</span>
+      </div>
+      <h2 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:26px;letter-spacing:-.01em;margin:2px 0 4px">{{ cur.title }}</h2>
+      <p style="font-size:14px;color:#5C6F80;margin:0 0 22px">{{ cur.subtitle }}</p>
+
+      <div style="flex:1">
+        <!-- choice chips -->
+        <sc-if value="{{ cur.isChoice }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-wrap:wrap;gap:10px">
+            <sc-for list="{{ options }}" as="o" hint-placeholder-count="8">
+              <button class="opt" onClick="{{ o.toggle }}" style="display:flex;align-items:center;gap:9px;cursor:pointer;font-family:inherit;font-weight:600;font-size:14px;color:{{ o.color }};border:1.5px solid {{ o.border }};background:{{ o.bg }};padding:12px 16px;border-radius:13px">
+                <span style="font-size:17px">{{ o.icon }}</span>{{ o.label }}
+                <sc-if value="{{ o.selected }}" hint-placeholder-val="{{ false }}"><span style="color:#0A84D6;font-weight:800">✓</span></sc-if>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- departure -->
+        <sc-if value="{{ cur.isDeparture }}" hint-placeholder-val="{{ false }}">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:520px">
+            <label style="display:flex;flex-direction:column;gap:7px;font-size:13px;font-weight:700;color:#3A4D5E;grid-column:span 2">Departure city
+              <input class="fin" data-field="depCity" onInput="{{ onInput }}" placeholder="e.g. Ahmedabad" style="border:1.5px solid #E4ECF3;border-radius:11px;padding:12px 14px;font-family:inherit;font-size:14px;outline:none;font-weight:500" /></label>
+            <label style="display:flex;flex-direction:column;gap:7px;font-size:13px;font-weight:700;color:#3A4D5E">Departure date
+              <input class="fin" type="date" data-field="depDate" onInput="{{ onInput }}" style="border:1.5px solid #E4ECF3;border-radius:11px;padding:12px 14px;font-family:inherit;font-size:14px;outline:none" /></label>
+            <label style="display:flex;flex-direction:column;gap:7px;font-size:13px;font-weight:700;color:#3A4D5E">Return date
+              <input class="fin" type="date" data-field="retDate" onInput="{{ onInput }}" style="border:1.5px solid #E4ECF3;border-radius:11px;padding:12px 14px;font-family:inherit;font-size:14px;outline:none" /></label>
+            <label style="display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;color:#3A4D5E;grid-column:span 2;cursor:pointer;margin-top:2px">
+              <input type="checkbox" data-field="flexible" onChange="{{ onCheck }}" style="width:18px;height:18px;accent-color:#0A84D6" /> My dates are flexible (±3 days)</label>
+          </div>
+        </sc-if>
+
+        <!-- travellers -->
+        <sc-if value="{{ cur.isTravellers }}" hint-placeholder-val="{{ false }}">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:520px">
+            <sc-for list="{{ counters }}" as="c" hint-placeholder-count="4">
+              <div style="display:flex;align-items:center;justify-content:space-between;border:1.5px solid #E4ECF3;border-radius:13px;padding:12px 14px">
+                <div><div style="font-weight:700;font-size:14px">{{ c.label }}</div><div style="font-size:11.5px;color:#9AB3C7">{{ c.hint }}</div></div>
+                <div style="display:flex;align-items:center;gap:12px">
+                  <button onClick="{{ c.dec }}" style="width:30px;height:30px;border-radius:9px;border:1.5px solid #E4ECF3;background:#fff;cursor:pointer;font-size:17px;font-weight:700;color:#0A84D6">−</button>
+                  <span style="font-weight:800;font-size:16px;width:18px;text-align:center">{{ c.value }}</span>
+                  <button onClick="{{ c.inc }}" style="width:30px;height:30px;border-radius:9px;border:1.5px solid #E4ECF3;background:#fff;cursor:pointer;font-size:17px;font-weight:700;color:#0A84D6">+</button>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- contact -->
+        <sc-if value="{{ cur.isContact }}" hint-placeholder-val="{{ false }}">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:560px">
+            <label style="display:flex;flex-direction:column;gap:7px;font-size:13px;font-weight:700;color:#3A4D5E;grid-column:span 2">Name
+              <input class="fin" data-field="name" onInput="{{ onInput }}" placeholder="Your full name" style="border:1.5px solid #E4ECF3;border-radius:11px;padding:12px 14px;font-family:inherit;font-size:14px;outline:none;font-weight:500" /></label>
+            <label style="display:flex;flex-direction:column;gap:7px;font-size:13px;font-weight:700;color:#3A4D5E">Mobile / WhatsApp
+              <input class="fin" data-field="phone" onInput="{{ onInput }}" placeholder="+91 ..." style="border:1.5px solid #E4ECF3;border-radius:11px;padding:12px 14px;font-family:inherit;font-size:14px;outline:none;font-weight:500" /></label>
+            <label style="display:flex;flex-direction:column;gap:7px;font-size:13px;font-weight:700;color:#3A4D5E">Email
+              <input class="fin" data-field="email" onInput="{{ onInput }}" placeholder="you@email.com" style="border:1.5px solid #E4ECF3;border-radius:11px;padding:12px 14px;font-family:inherit;font-size:14px;outline:none;font-weight:500" /></label>
+            <label style="display:flex;flex-direction:column;gap:7px;font-size:13px;font-weight:700;color:#3A4D5E;grid-column:span 2">Anything else? (optional)
+              <textarea class="fin" data-field="notes" onInput="{{ onInput }}" placeholder="Special occasions, must-see places, dietary needs…" rows="3" style="border:1.5px solid #E4ECF3;border-radius:11px;padding:12px 14px;font-family:inherit;font-size:14px;outline:none;resize:vertical;font-weight:500"></textarea></label>
+            <div style="grid-column:span 2;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+              <span style="font-size:13px;font-weight:700;color:#3A4D5E">Preferred contact:</span>
+              <sc-for list="{{ contactPrefs }}" as="p" hint-placeholder-count="3">
+                <button class="opt" onClick="{{ p.toggle }}" style="cursor:pointer;font-family:inherit;font-weight:600;font-size:13px;color:{{ p.color }};border:1.5px solid {{ p.border }};background:{{ p.bg }};padding:9px 14px;border-radius:999px">{{ p.label }}</button>
+              </sc-for>
+            </div>
+            <div style="grid-column:span 2;display:flex;gap:9px;align-items:flex-start;background:#F4F8FB;border-radius:12px;padding:13px 15px;font-size:12px;color:#5C6F80;line-height:1.5">
+              <span style="color:#1DA66B;font-size:15px">🔒</span> We only ask for contact details. Never share card, bank, Aadhaar or passport details here. Submitting this form does not create or confirm a booking.</div>
+          </div>
+        </sc-if>
+      </div>
+
+      <!-- nav buttons -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:26px;padding-top:22px;border-top:1px solid #F0F4F7">
+        <button onClick="{{ prev }}" style="cursor:pointer;font-family:inherit;font-weight:700;font-size:14px;color:{{ backColor }};background:transparent;border:0;padding:10px 4px">← Back</button>
+        <sc-if value="{{ isLast }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ submit }}" class="cbtn" style="cursor:pointer;font-family:inherit;font-weight:800;font-size:15px;color:#fff;background:#FF6A3D;border:0;padding:14px 28px;border-radius:13px;box-shadow:0 14px 28px -12px rgba(255,106,61,.7)" data-en="Submit enquiry" data-hi="अनुरोध भेजें">Submit enquiry</button>
+        </sc-if>
+        <sc-if value="{{ isNotLast }}" hint-placeholder-val="{{ true }}">
+          <button onClick="{{ next }}" class="cbtn" style="cursor:pointer;font-family:inherit;font-weight:800;font-size:15px;color:#fff;background:#0A84D6;border:0;padding:14px 28px;border-radius:13px;box-shadow:0 14px 28px -12px rgba(10,132,214,.8)" data-en="Continue →" data-hi="आगे →">Continue →</button>
+        </sc-if>
+      </div>
+    </div>
+  </section>
+  </sc-if>
+
+  <!-- CONFIRMATION -->
+  <sc-if value="{{ doneView }}" hint-placeholder-val="{{ false }}">
+  <section style="max-width:680px;margin:0 auto;padding:70px 28px">
+    <div style="background:#fff;border:1px solid #E4ECF3;border-radius:24px;padding:46px 40px;text-align:center;box-shadow:0 30px 60px -40px rgba(7,59,102,.5)">
+      <div style="width:74px;height:74px;border-radius:50%;background:#E7F8EF;display:flex;align-items:center;justify-content:center;margin:0 auto 22px">
+        <svg width="38" height="38" viewBox="0 0 24 24" fill="none"><path d="M7 12.5l3.2 3.2L17.5 8.5" stroke="#1DA66B" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <h2 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:30px;letter-spacing:-.02em;margin:0" data-en="Thank you — request received!" data-hi="धन्यवाद — अनुरोध प्राप्त हुआ!">Thank you — request received!</h2>
+      <p style="font-size:15px;color:#46596A;line-height:1.6;margin:14px auto 0;max-width:480px" data-en="Our travel-planning team will review your requirements and contact you with a proposed itinerary. Submission of this form does not create or confirm a booking." data-hi="हमारी टीम आपकी आवश्यकताओं की समीक्षा करेगी और प्रस्तावित योजना के साथ संपर्क करेगी। यह फॉर्म कोई बुकिंग नहीं बनाता।">Our travel-planning team will review your requirements and contact you with a proposed itinerary. Submission of this form does not create or confirm a booking.</p>
+      <div style="background:#F4F8FB;border-radius:14px;padding:16px 18px;margin:24px 0;text-align:left;font-size:13px;color:#46596A;line-height:1.7">{{ summary }}</div>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <a class="cbtn" href="{{ waLink }}" style="display:flex;align-items:center;gap:9px;background:#25D366;color:#fff;font-weight:700;font-size:15px;padding:15px 24px;border-radius:13px">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="#fff"><path d="M12 2a10 10 0 00-8.6 15l-1.3 4.8 4.9-1.3A10 10 0 1012 2z"/></svg>
+          <span data-en="Send on WhatsApp too" data-hi="WhatsApp पर भी भेजें">Send on WhatsApp too</span></a>
+        <a class="cbtn" href="Home.dc.html" style="background:#0B2440;color:#fff;font-weight:700;font-size:15px;padding:15px 24px;border-radius:13px" data-en="Back to home" data-hi="होम पर वापस">Back to home</a>
+      </div>
+    </div>
+  </section>
+  </sc-if>
+
+  <dc-import name="AssistantWidget" hint-size="0,0"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    lang: 'en', step: 0, submitted: false,
+    data: {
+      journey: [], dests: [], depCity: '', depDate: '', retDate: '', flexible: false,
+      adults: 2, children: 0, seniors: 0, rooms: 1,
+      transport: [], hotel: [], meals: '', interests: [], budget: '',
+      name: '', phone: '', email: '', notes: '', contactPref: 'WhatsApp',
+    },
+  };
+
+  setRoot = (el) => { if (el) { this.rootEl = el; this.applyLang(); } };
+  applyLang() {
+    if (!this.rootEl) return;
+    const hi = this.state.lang === 'hi';
+    this.rootEl.querySelectorAll('[data-en]').forEach((n) => {
+      n.textContent = hi ? (n.getAttribute('data-hi') || n.getAttribute('data-en')) : n.getAttribute('data-en');
+      n.style.fontFamily = hi ? "'Noto Sans Devanagari','Plus Jakarta Sans',sans-serif" : '';
+    });
+  }
+  componentDidUpdate() { this.applyLang(); }
+
+  steps() {
+    return [
+      { key: 'journey', kind: 'multi', title: 'What kind of trip?', subtitle: 'Pick all that apply.', options: [['🗺️','Domestic'],['✈️','International'],['🛕','Religious'],['💑','Honeymoon'],['👨‍👩‍👧','Family'],['🚌','Group'],['💼','Corporate'],['✨','Other']] },
+      { key: 'dests', kind: 'multi', title: 'Where would you like to go?', subtitle: 'Choose one or several destinations.', options: [['','Rajasthan'],['','Himachal'],['','Kashmir'],['','Kerala'],['','Goa'],['','Sikkim'],['','Mysuru & Coorg'],['','Mathura & Agra'],['','Gujarat'],['','Thailand'],['','Bali'],['','Maldives']] },
+      { key: 'departure', kind: 'departure', title: 'Departure details', subtitle: 'Where and when do you start?' },
+      { key: 'travellers', kind: 'travellers', title: 'Who is travelling?', subtitle: 'Add your group.' },
+      { key: 'transport', kind: 'multi', title: 'How will you travel?', subtitle: 'Select all that interest you.', options: [['✈️','Flight'],['🚆','Train'],['🚌','Bus'],['🚕','Private cab'],['🚐','Shared transport'],['🚫','Not required'],['🤔','Need recommendation']] },
+      { key: 'hotel', kind: 'multi', title: 'Hotel category', subtitle: 'Pick the comfort level(s) you like.', options: [['★★★','3-Star'],['★★★★','4-Star'],['★★★★★','5-Star'],['🌴','Resort'],['🏡','Villa'],['🏠','Homestay'],['🤔','Need recommendation']] },
+      { key: 'meals', kind: 'single', title: 'Meal preference', subtitle: 'Choose one.', options: [['☕','Breakfast only'],['🍽️','Breakfast & dinner'],['🍱','All meals'],['🥗','Vegetarian'],['🟢','Jain food'],['🌱','Vegan'],['—','No preference']] },
+      { key: 'interests', kind: 'multi', title: 'What do you enjoy?', subtitle: 'Pick a few interests.', options: [['🏞️','Sightseeing'],['🧗','Adventure'],['🏖️','Beaches'],['⛰️','Mountains'],['🐅','Wildlife'],['🛕','Religious sites'],['🏛️','Heritage'],['🛍️','Shopping'],['🌃','Nightlife'],['🧘','Relaxation'],['📷','Photography'],['🍲','Local food']] },
+      { key: 'budget', kind: 'single', title: 'Budget per person', subtitle: 'A broad range is fine.', options: [['💰','Under ₹15,000'],['💰','₹15,000 – ₹30,000'],['💰','₹30,000 – ₹50,000'],['💰','₹50,000 – ₹1,00,000'],['💎','₹1,00,000+'],['🤔','Not sure yet']] },
+      { key: 'contact', kind: 'contact', title: 'How can we reach you?', subtitle: "We'll send your itinerary and quote here." },
+    ];
+  }
+
+  toggleMulti(key, val) {
+    const arr = this.state.data[key];
+    const next = arr.includes(val) ? arr.filter((x) => x !== val) : [...arr, val];
+    this.setState({ data: { ...this.state.data, [key]: next } });
+  }
+  setSingle(key, val) { this.setState({ data: { ...this.state.data, [key]: val } }); }
+  onInput = (e) => { const f = e.target.getAttribute('data-field'); this.setState({ data: { ...this.state.data, [f]: e.target.value } }); };
+  onCheck = (e) => { const f = e.target.getAttribute('data-field'); this.setState({ data: { ...this.state.data, [f]: e.target.checked } }); };
+  bump(key, d) { this.setState({ data: { ...this.state.data, [key]: Math.max(key === 'adults' || key === 'rooms' ? 1 : 0, this.state.data[key] + d) } }); }
+
+  next = () => this.setState({ step: Math.min(this.steps().length - 1, this.state.step + 1) });
+  prev = () => this.setState({ step: Math.max(0, this.state.step - 1) });
+  go = (i) => this.setState({ step: i });
+  submit = () => { this.setState({ submitted: true }); window.scrollTo({ top: 0 }); };
+
+  waMessage() {
+    const d = this.state.data;
+    const j = d.journey.join(', ') || '—';
+    const dest = d.dests.join(', ') || '—';
+    return 'Hello Skyline Travel Planner. I would like a customized trip.' +
+      '\nTrip type: ' + j +
+      '\nDestinations: ' + dest +
+      '\nFrom: ' + (d.depCity || '—') + (d.depDate ? ' on ' + d.depDate : '') +
+      '\nTravellers: ' + d.adults + ' adults, ' + d.children + ' children, ' + d.seniors + ' seniors, ' + d.rooms + ' room(s)' +
+      '\nHotel: ' + (d.hotel.join(', ') || 'Need recommendation') +
+      '\nBudget: ' + (d.budget || '—') +
+      '\nName: ' + (d.name || '—') + ' | Phone: ' + (d.phone || '—') +
+      '\nPlease share an itinerary and quotation.';
+  }
+
+  renderVals() {
+    const steps = this.steps();
+    const i = this.state.step;
+    const cur = steps[i];
+    const d = this.state.data;
+    const C = (sel) => sel ? '#0A6FB8' : '#3A4D5E';
+    const B = (sel) => sel ? '#0A84D6' : '#E4ECF3';
+    const BG = (sel) => sel ? '#EAF5FD' : '#fff';
+
+    let options = [];
+    if (cur.kind === 'multi') {
+      options = cur.options.map(([icon, label]) => {
+        const sel = d[cur.key].includes(label);
+        return { icon, label, selected: sel, color: C(sel), border: B(sel), bg: BG(sel), toggle: () => this.toggleMulti(cur.key, label) };
+      });
+    } else if (cur.kind === 'single') {
+      options = cur.options.map(([icon, label]) => {
+        const sel = d[cur.key] === label;
+        return { icon, label, selected: sel, color: C(sel), border: B(sel), bg: BG(sel), toggle: () => this.setSingle(cur.key, label) };
+      });
+    }
+
+    const counters = [
+      { key: 'adults', label: 'Adults', hint: '12+ years', value: d.adults },
+      { key: 'children', label: 'Children', hint: 'with ages', value: d.children },
+      { key: 'seniors', label: 'Senior citizens', hint: '60+ years', value: d.seniors },
+      { key: 'rooms', label: 'Rooms', hint: 'needed', value: d.rooms },
+    ].map((c) => ({ ...c, inc: () => this.bump(c.key, 1), dec: () => this.bump(c.key, -1) }));
+
+    const contactPrefs = ['WhatsApp', 'Phone call', 'Email'].map((label) => {
+      const sel = d.contactPref === label;
+      return { label, color: C(sel), border: B(sel), bg: BG(sel), toggle: () => this.setSingle('contactPref', label) };
+    });
+
+    const nav = steps.map((s, idx) => {
+      const active = idx === i, done = idx < i;
+      return {
+        label: s.title,
+        go: () => this.go(idx),
+        bg: active ? '#EAF5FD' : 'transparent',
+        dotBg: active ? '#0A84D6' : done ? '#D7EBF8' : '#EEF3F7',
+        dotC: active ? '#fff' : done ? '#0A6FB8' : '#9AB3C7',
+        mark: done ? '✓' : String(idx + 1),
+        color: active ? '#0B2440' : '#5C6F80',
+        weight: active ? '700' : '600',
+      };
+    });
+
+    const d2 = this.state.data;
+    const summary = 'Trip: ' + (d2.journey.join(', ') || '—') + '  ·  ' + (d2.dests.join(', ') || 'destinations TBD') +
+      '\nTravellers: ' + d2.adults + ' adults, ' + d2.children + ' children, ' + d2.seniors + ' seniors' +
+      '\nHotel: ' + (d2.hotel.join(', ') || 'recommendation requested') + '  ·  Budget: ' + (d2.budget || '—');
+
+    return {
+      root: this.setRoot,
+      langLabel: this.state.lang === 'en' ? 'हिंदी' : 'EN',
+      toggleLang: () => this.setState((s) => ({ lang: s.lang === 'en' ? 'hi' : 'en' })),
+      formView: !this.state.submitted,
+      doneView: this.state.submitted,
+      cur: {
+        kicker: 'Step ' + (i + 1),
+        counter: (i + 1) + ' / ' + steps.length,
+        title: cur.title, subtitle: cur.subtitle,
+        isChoice: cur.kind === 'multi' || cur.kind === 'single',
+        isDeparture: cur.kind === 'departure',
+        isTravellers: cur.kind === 'travellers',
+        isContact: cur.kind === 'contact',
+      },
+      options, counters, contactPrefs,
+      onInput: this.onInput, onCheck: this.onCheck,
+      next: this.next, prev: this.prev, submit: this.submit,
+      isLast: i === steps.length - 1, isNotLast: i !== steps.length - 1,
+      backColor: i === 0 ? '#C5D2DD' : '#5C6F80',
+      nav, summary,
+      waLink: 'WhatsApp.dc.html?msg=' + encodeURIComponent(this.waMessage()),
+    };
+  }
+}
+</script>
+<script>
+/* Skyline — date guard: past dates disabled everywhere; the 2nd date in a pair
+   (return / check-out) cannot precede the 1st (departure / check-in). Robust to
+   the React render layer via a MutationObserver that re-applies the limits. */
+(function(){
+  function today(){ try{ return new Date().toISOString().slice(0,10); }catch(e){ return ''; } }
+  var T=today();
+  function apply(){
+    var dates=[].slice.call(document.querySelectorAll('input[type=\"date\"]'));
+    if(!dates.length) return;
+    dates.forEach(function(d){ if(d.getAttribute('data-end')!=='1' && d.min!==T) d.min=T; });
+    if(dates.length===2){
+      var a=dates[0], b=dates[1];
+      b.setAttribute('data-end','1');
+      var m=(a.value && a.value>T) ? a.value : T;
+      if(b.min!==m) b.min=m;
+      if(b.value && b.value<m) b.value=m;
+    }
+  }
+  function onEdit(e){ if(e.target && e.target.matches && e.target.matches('input[type=\"date\"]')) apply(); }
+  document.addEventListener('input', onEdit, true);
+  document.addEventListener('change', onEdit, true);
+  var t=0; setInterval(function(){ if(t++>40) return; apply(); }, 250); // covers late React mounts
+  try{ new MutationObserver(function(){ apply(); }).observe(document.documentElement,{childList:true,subtree:true}); }catch(e){}
+  apply();
+})();
+</script>
+</body>
+</html>

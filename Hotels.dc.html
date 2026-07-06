@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hotel Booking - Skyline Travel Planner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box }
+    body { margin: 0; background: #f5f9ff; color: #1a2332; font-family: 'Plus Jakarta Sans', sans-serif }
+    a { text-decoration: none; color: inherit }
+    .htl-hero{background:linear-gradient(135deg,#0ea5a4 0%,#1481c6 55%,#1170c9 100%);color:#fff;padding:48px 24px 150px;position:relative;overflow:hidden}
+    .hhp-base{position:absolute;inset:-3%;background:url('images/hero-hotel-1.jpg') center 60%/cover no-repeat;z-index:0;animation:hkb 26s ease-in-out infinite alternate;will-change:transform}
+    @keyframes hkb{from{transform:scale(1.02)} to{transform:scale(1.12) translate(-1.4%,1.4%)}}
+    .hhp{opacity:0;animation:hhfade 27s linear infinite, hkb 26s ease-in-out infinite alternate}
+    .hhp2{background-image:url('images/hero-hotel-2.jpg');background-position:center 55%;animation-delay:9s,-5s}
+    .hhp3{background-image:url('images/hero-hotel-3.jpg');background-position:center 50%;animation-delay:18s,-13s}
+    @keyframes hhfade{0%{opacity:0} 7%{opacity:1} 33%{opacity:1} 41%{opacity:0} 100%{opacity:0}}
+    .htl-htint{position:absolute;inset:0;z-index:0;background:linear-gradient(180deg,rgba(8,22,48,.6),rgba(10,30,66,.42))}
+    .htl-hero-in{max-width:1240px;margin:0 auto;position:relative;z-index:1}
+    .htl-h1{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:40px;margin:0 0 6px;text-shadow:0 3px 22px rgba(3,18,44,.55)}
+    .htl-hsub{font-size:16px;color:rgba(255,255,255,.85);margin:0 0 20px;text-shadow:0 2px 12px rgba(3,18,44,.5)}
+    .htl-bar{display:flex;align-items:stretch;background:#fff;border-radius:16px;padding:6px;box-shadow:0 24px 55px -22px rgba(0,0,0,.55);flex-wrap:wrap}
+    .htl-cell{padding:9px 16px;flex:1;min-width:150px;border-right:1px solid #eef2f7}
+    .htl-cell:last-of-type{border-right:none}
+    .htl-cell label{display:block;font-size:11px;font-weight:700;color:#8094a4;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px}
+    .htl-cell input{width:100%;border:none;outline:none;font-family:inherit;font-size:15px;font-weight:600;color:#0b2440;background:transparent}
+    .htl-go{background:#0a5fd7;color:#fff;border:none;font-family:inherit;font-weight:800;font-size:15px;padding:0 30px;border-radius:12px;cursor:pointer;margin:4px;display:flex;align-items:center}
+    .htl-go:hover{background:#0954bd}
+    @media (max-width:640px){.htl-bar{flex-direction:column}.htl-cell{border-right:none;border-bottom:1px solid #eef2f7}.htl-h1{font-size:30px}}
+    @media (prefers-reduced-motion: reduce){.hhp-base{animation:none}.hhp{display:none}}
+  </style>
+</helmet>
+
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <rect width="120" height="120" fill="#0A5FD7"/>
+    <rect x="25" y="35" width="70" height="55" rx="4" fill="#fff" opacity=".9"/>
+    <rect x="35" y="45" width="12" height="12" fill="#0A5FD7" opacity=".5"/>
+    <rect x="53" y="45" width="12" height="12" fill="#0A5FD7" opacity=".5"/>
+    <rect x="71" y="45" width="12" height="12" fill="#0A5FD7" opacity=".5"/>
+  </svg>
+</template>
+
+<!-- Header -->
+<header style="position: sticky; top: 0; z-index: 1000; background: linear-gradient(90deg, #0a5fd7 0%, #0c70e2 100%); box-shadow: 0 2px 14px rgba(10,36,64,.22)">
+  <div style="max-width: 1240px; margin: 0 auto; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between">
+    <a href="Home.dc.html" style="display: flex; align-items: center; background: #fff; padding: 6px 14px; border-radius: 12px; box-shadow: 0 4px 14px rgba(0,0,0,.15)"><img src="images/logo.jpeg" alt="Skyline Travel Planner" style="height: 56px; width: auto; display: block" /></a>
+    <a href="Home.dc.html" style="background: #fff; color: #0b6bbf; font-weight: 800; padding: 10px 18px; border-radius: 10px; box-shadow: 0 4px 14px rgba(0,0,0,.16)">← Back Home</a>
+  </div>
+</header>
+
+<!-- Hero + Search (matches Flights page) -->
+<section class="htl-hero">
+  <div class="hhp-base"></div>
+  <div class="hhp-base hhp hhp2"></div>
+  <div class="hhp-base hhp hhp3"></div>
+  <div class="htl-htint"></div>
+  <div class="htl-hero-in">
+    <h1 class="htl-h1">Find your stay</h1>
+    <p class="htl-hsub">3-star to 5-star hotels, palaces &amp; beach resorts across India</p>
+    <div class="htl-bar">
+      <div class="htl-cell">
+        <label>Destination</label>
+        <input type="text" placeholder="Goa, Kerala, Jaipur…">
+      </div>
+      <div class="htl-cell">
+        <label>Check-in</label>
+        <input type="date">
+      </div>
+      <div class="htl-cell">
+        <label>Check-out</label>
+        <input type="date">
+      </div>
+      <div class="htl-cell" style="flex:.6;min-width:110px">
+        <label>Rooms</label>
+        <input type="number" placeholder="1" min="1">
+      </div>
+      <a class="htl-go" href="https://www.booking.com" target="_blank" rel="noopener">Search Hotels</a>
+    </div>
+  </div>
+</section>
+
+<!-- Main Content -->
+<div style="max-width: 1280px; margin: 0 auto; padding: 40px 24px 48px">
+
+  <!-- Hotel Categories -->
+  <div>
+    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 32px; margin: 0 0 32px">Choose Your Hotel Category</h2>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px">
+      <sc-for list="{{ categories }}" as="cat" hint-placeholder-count="3">
+        <div style="background: #fff; border-radius: 16px; overflow: hidden; border: 1.5px solid #e5ecf5; transition: all .3s" style-hover="border-color: #0a5fd7; box-shadow: 0 8px 24px rgba(10,95,215,.1); transform: translateY(-4px)">
+          <!-- Category Header -->
+          <div style="background: linear-gradient(135deg, {{ cat.gradStart }}, {{ cat.gradEnd }}); padding: 24px; color: #fff">
+            <div style="font-weight: 800; font-size: 20px; margin-bottom: 4px">{{ cat.stars }} Star Hotels</div>
+            <div style="font-size: 13px; opacity: .9">{{ cat.tagline }}</div>
+          </div>
+          
+          <!-- Category Details -->
+          <div style="padding: 24px">
+            <div style="margin-bottom: 20px">
+              <div style="font-weight: 700; font-size: 13px; color: #5c6f80; text-transform: uppercase; margin-bottom: 8px">Ideal For</div>
+              <div style="font-size: 14px; color: #1a2332">{{ cat.idealFor }}</div>
+            </div>
+            
+            <div style="margin-bottom: 20px">
+              <div style="font-weight: 700; font-size: 13px; color: #5c6f80; text-transform: uppercase; margin-bottom: 8px">Amenities</div>
+              <ul style="margin: 0; padding-left: 18px; font-size: 14px">
+                <sc-for list="{{ cat.amenities }}" as="am" hint-placeholder-count="3">
+                  <li style="margin-bottom: 6px">{{ am }}</li>
+                </sc-for>
+              </ul>
+            </div>
+            
+            <a href="https://www.booking.com" target="_blank" style="display: block; text-align: center; background: {{ cat.btnColor }}; color: #fff; font-weight: 700; padding: 12px 16px; border-radius: 8px; font-size: 14px; transition: all .2s" style-hover="opacity: .9; transform: translateY(-1px)">View Hotels</a>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- Additional Info -->
+  <div style="background: #fff; border-radius: 16px; padding: 24px; border-left: 4px solid #0a5fd7; margin-top: 48px">
+    <p style="margin: 0; font-size: 14px; color: #5c6f80"><strong>Note:</strong> Hotel availability and pricing depend on your travel dates. Properties are subject to availability. Skyline Travel Planner does not process hotel payments directly — you will complete bookings with official hotel partners.</p>
+  </div>
+  <p style="font-size: 11px; color: #8094a4; margin-top: 28px">Hero photos (Wikimedia Commons): Debapriya Hore (CC BY-SA 4.0), McKay Savage (CC BY 2.0), Timothy A. Gonsalves (CC BY-SA 4.0)</p>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      categories: [
+        {
+          stars: '3',
+          tagline: 'Value & Comfort',
+          gradStart: '#667eea',
+          gradEnd: '#764ba2',
+          btnColor: '#667eea',
+          idealFor: 'Budget-conscious travellers, families seeking value, business trips with modest budgets',
+          amenities: ['Clean rooms', 'Basic amenities', 'WiFi', 'Parking', 'Restaurant/Café', 'Central location']
+        },
+        {
+          stars: '4',
+          tagline: 'Premium Experience',
+          gradStart: '#f093fb',
+          gradEnd: '#f5576c',
+          btnColor: '#f5576c',
+          idealFor: 'Couples, families seeking comfort, business travellers, honeymoons',
+          amenities: ['Spacious rooms', 'Quality furnishing', 'Multiple dining', 'Room service', 'Fitness centre', 'Swimming pool', 'Concierge']
+        },
+        {
+          stars: '5',
+          tagline: 'Luxury & Excellence',
+          gradStart: '#fa709a',
+          gradEnd: '#fee140',
+          btnColor: '#fa709a',
+          idealFor: 'Luxury travellers, special occasions, honeymoons, premium experiences',
+          amenities: ['Suites & villas', 'Luxury amenities', 'Fine dining', 'Spa & wellness', 'Butler service', 'Premium locations', 'Exclusive experiences']
+        }
+      ]
+    };
+  }
+}
+
+</script>
+<script>
+/* Skyline — date guard: past dates disabled everywhere; the 2nd date in a pair
+   (return / check-out) cannot precede the 1st (departure / check-in). Robust to
+   the React render layer via a MutationObserver that re-applies the limits. */
+(function(){
+  function today(){ try{ return new Date().toISOString().slice(0,10); }catch(e){ return ''; } }
+  var T=today();
+  function apply(){
+    var dates=[].slice.call(document.querySelectorAll('input[type=\"date\"]'));
+    if(!dates.length) return;
+    dates.forEach(function(d){ if(d.getAttribute('data-end')!=='1' && d.min!==T) d.min=T; });
+    if(dates.length===2){
+      var a=dates[0], b=dates[1];
+      b.setAttribute('data-end','1');
+      var m=(a.value && a.value>T) ? a.value : T;
+      if(b.min!==m) b.min=m;
+      if(b.value && b.value<m) b.value=m;
+    }
+  }
+  function onEdit(e){ if(e.target && e.target.matches && e.target.matches('input[type=\"date\"]')) apply(); }
+  document.addEventListener('input', onEdit, true);
+  document.addEventListener('change', onEdit, true);
+  var t=0; setInterval(function(){ if(t++>40) return; apply(); }, 250); // covers late React mounts
+  try{ new MutationObserver(function(){ apply(); }).observe(document.documentElement,{childList:true,subtree:true}); }catch(e){}
+  apply();
+})();
+</script>
+</body>
+</html>

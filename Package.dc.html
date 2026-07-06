@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Package Details - Skyline Travel Planner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box }
+    body { margin: 0; background: #f5f9ff; color: #1a2332; font-family: 'Plus Jakarta Sans', sans-serif }
+    a { text-decoration: none; color: inherit }
+  </style>
+</helmet>
+
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <rect width="120" height="120" fill="#0A5FD7"/>
+    <path d="M30 50 L60 30 L90 50 L85 85 Q60 95 35 85 Z" fill="#fff" opacity=".9"/>
+    <circle cx="60" cy="40" r="4" fill="#FFD000"/>
+  </svg>
+</template>
+
+<!-- Header -->
+<header style="position: sticky; top: 0; z-index: 1000; background: linear-gradient(90deg, #0a5fd7 0%, #0c70e2 100%); box-shadow: 0 2px 14px rgba(10,36,64,.22)">
+  <div style="max-width: 1240px; margin: 0 auto; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between">
+    <a href="Home.dc.html" style="display: flex; align-items: center; background: #fff; padding: 6px 14px; border-radius: 12px; box-shadow: 0 4px 14px rgba(0,0,0,.15)"><img src="images/logo.jpeg" alt="Skyline Travel Planner" style="height: 56px; width: auto; display: block" /></a>
+    <a href="Home.dc.html" style="background: #fff; color: #0b6bbf; font-weight: 800; padding: 10px 18px; border-radius: 10px; box-shadow: 0 4px 14px rgba(0,0,0,.16)">← Back Home</a>
+  </div>
+</header>
+
+<!-- Main Content -->
+<div style="max-width: 1280px; margin: 0 auto; padding: 48px 24px">
+  
+  <!-- Package Header -->
+  <div style="margin-bottom: 48px">
+    <h1 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 48px; margin: 0 0 12px">{{ packageName }}</h1>
+    <p style="font-size: 16px; color: #5c6f80; margin: 0">{{ packageDuration }} • Perfect for {{ packageFor }}</p>
+  </div>
+
+  <!-- Image Gallery -->
+  <div style="margin-bottom: 48px">
+    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 32px; margin: 0 0 24px">Add Photos of {{ packageName }}</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px">
+      <sc-for list="{{ photoSlots }}" as="slot" hint-placeholder-count="6">
+        <x-import component-from-global-scope="image-slot" from="./image-slot.js" style="width: 100%; aspect-ratio: 3/2; border-radius: 14px" id="{{ slot.id }}" placeholder="{{ slot.placeholder }}" shape="rounded" radius="14"></x-import>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- Package Details -->
+  <div style="background: #fff; border-radius: 16px; padding: 32px; margin-bottom: 32px">
+    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 28px; margin: 0 0 24px">About This Package</h2>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 32px; margin-bottom: 32px">
+      <div>
+        <div style="font-weight: 700; font-size: 13px; color: #5c6f80; text-transform: uppercase; margin-bottom: 8px">Duration</div>
+        <div style="font-size: 18px; font-weight: 700">{{ packageDuration }}</div>
+      </div>
+      <div>
+        <div style="font-weight: 700; font-size: 13px; color: #5c6f80; text-transform: uppercase; margin-bottom: 8px">Best Season</div>
+        <div style="font-size: 18px; font-weight: 700">{{ packageSeason }}</div>
+      </div>
+      <div>
+        <div style="font-weight: 700; font-size: 13px; color: #5c6f80; text-transform: uppercase; margin-bottom: 8px">Ideal For</div>
+        <div style="font-size: 18px; font-weight: 700">{{ packageFor }}</div>
+      </div>
+    </div>
+
+    <div style="padding-top: 24px; border-top: 1px solid #e5ecf5">
+      <h3 style="font-weight: 700; font-size: 16px; margin: 0 0 12px">Highlights</h3>
+      <ul style="margin: 0; padding-left: 18px; color: #5c6f80; line-height: 1.8">
+        <sc-for list="{{ highlights }}" as="h" hint-placeholder-count="4">
+          <li>{{ h }}</li>
+        </sc-for>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Hotel Categories -->
+  <div style="margin-bottom: 32px">
+    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 28px; margin: 0 0 24px">Choose Your Hotel</h2>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px">
+      <div style="background: #fff; border-radius: 14px; padding: 20px; border: 1.5px solid #667eea">
+        <div style="font-weight: 700; font-size: 16px; margin-bottom: 8px">3-Star Value</div>
+        <div style="font-size: 13px; color: #5c6f80; margin-bottom: 12px">Clean, practical, budget-friendly</div>
+        <a href="Hotels.dc.html" style="display: inline-block; background: #667eea; color: #fff; font-weight: 700; font-size: 13px; padding: 8px 14px; border-radius: 6px">View Options</a>
+      </div>
+      
+      <div style="background: #fff; border-radius: 14px; padding: 20px; border: 1.5px solid #f5576c">
+        <div style="font-weight: 700; font-size: 16px; margin-bottom: 8px">4-Star Comfort</div>
+        <div style="font-size: 13px; color: #5c6f80; margin-bottom: 12px">Premium rooms, great amenities</div>
+        <a href="Hotels.dc.html" style="display: inline-block; background: #f5576c; color: #fff; font-weight: 700; font-size: 13px; padding: 8px 14px; border-radius: 6px">View Options</a>
+      </div>
+      
+      <div style="background: #fff; border-radius: 14px; padding: 20px; border: 1.5px solid #fa709a">
+        <div style="font-weight: 700; font-size: 16px; margin-bottom: 8px">5-Star Luxury</div>
+        <div style="font-size: 13px; color: #5c6f80; margin-bottom: 12px">Premium experience, finest service</div>
+        <a href="Hotels.dc.html" style="display: inline-block; background: #fa709a; color: #fff; font-weight: 700; font-size: 13px; padding: 8px 14px; border-radius: 6px">View Options</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div style="background: linear-gradient(135deg, #0a5fd7, #0d7ae8); color: #fff; border-radius: 16px; padding: 40px; text-align: center">
+    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 32px; margin: 0 0 12px">Ready to Plan Your Trip?</h2>
+    <p style="font-size: 16px; margin: 0 0 24px; opacity: .9">Get a customized itinerary and quotation tailored to your preferences</p>
+    <a href="Customize.dc.html" style="display: inline-block; background: #fff; color: #0a5fd7; font-weight: 700; padding: 14px 28px; border-radius: 8px">Request a Custom Package</a>
+  </div>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    packageSlug: 'rajasthan'
+  };
+
+  componentDidMount() {
+    const params = new URLSearchParams(window.location.search);
+    const slug = params.get('pkg') || 'rajasthan';
+    this.setState({ packageSlug: slug });
+  }
+
+  renderVals() {
+    const packages = {
+      rajasthan: {
+        name: 'Rajasthan',
+        duration: '4-7 days',
+        season: 'Oct-Mar',
+        for: 'Families, Couples, Heritage Lovers',
+        highlights: [
+          'Palace of the Winds in Jaipur',
+          'Hawa Mahal and City Palace',
+          'Mehrangarh Fort in Jodhpur',
+          'Blue city exploration',
+          'Desert safari in Thar',
+          'Lakes and temples'
+        ],
+        photos: 6
+      },
+      himachal: {
+        name: 'Himachal Pradesh',
+        duration: '5-7 days',
+        season: 'Mar-Oct',
+        for: 'Adventure seekers, Nature lovers',
+        highlights: [
+          'Snow-capped mountains',
+          'Shimla ridge walks',
+          'Manali adventure activities',
+          'Rohtang Pass trekking',
+          'Hill station beauty',
+          'Local culture'
+        ],
+        photos: 6
+      },
+      kashmir: {
+        name: 'Kashmir',
+        duration: '5-6 days',
+        season: 'Apr-Sep',
+        for: 'Honeymooners, Nature enthusiasts',
+        highlights: [
+          'Srinagar houseboats',
+          'Dal Lake beauty',
+          'Gulmarg meadows',
+          'Pahalgam valley trekking',
+          'Sonamarg scenery',
+          'Local Wazwan cuisine'
+        ],
+        photos: 6
+      },
+      kerala: {
+        name: 'Kerala',
+        duration: '4-5 days',
+        season: 'Sep-Mar',
+        for: 'Honeymooners, Families',
+        highlights: [
+          'Backwater houseboat cruises',
+          'Munnar tea plantations',
+          'Thekkady wildlife sanctuary',
+          'Alappuzha beaches',
+          'Ayurveda treatments',
+          'Spice markets'
+        ],
+        photos: 6
+      },
+      goa: {
+        name: 'Goa',
+        duration: '3-5 days',
+        season: 'Nov-Mar',
+        for: 'Beach lovers, Families',
+        highlights: [
+          'Golden beaches',
+          'Portuguese heritage',
+          'Water sports activities',
+          'Beach parties and nightlife',
+          'Temple exploration',
+          'Local seafood cuisine'
+        ],
+        photos: 6
+      },
+      ooty: {
+        name: 'Ooty & Nilgiris',
+        duration: '3-4 days',
+        season: 'Jun-Sep',
+        for: 'Families, Couples',
+        highlights: [
+          'Cool mountain climate',
+          'Tea garden visits',
+          'Coonoor hill station',
+          'Toy train ride',
+          'Lake boating',
+          'Botanical gardens'
+        ],
+        photos: 6
+      },
+      mysuru: {
+        name: 'Mysuru & Coorg',
+        duration: '3-4 days',
+        season: 'Jun-Sep',
+        for: 'Nature lovers, Families',
+        highlights: [
+          'Mysore Palace grandeur',
+          'Coorg coffee plantations',
+          'Abbey Falls trek',
+          'Nagarhole wildlife',
+          'Local spice markets',
+          'Hill station serenity'
+        ],
+        photos: 6
+      },
+      agra: {
+        name: 'Agra & Taj Mahal',
+        duration: '2-3 days',
+        season: 'Oct-Mar',
+        for: 'History buffs, Couples',
+        highlights: [
+          'Taj Mahal wonder',
+          'Agra Fort exploration',
+          'Sunrise viewpoint',
+          'Local marble inlay work',
+          'Mathura temple visits',
+          'Vrindavan Krishna sites'
+        ],
+        photos: 6
+      },
+      kausani: {
+        name: 'Kausani & Kumaon',
+        duration: '5-7 days',
+        season: 'Mar-Jun, Sep-Nov',
+        for: 'Nature lovers, Off-beat travellers',
+        highlights: [
+          'Himalayan sunrise over Nanda Devi',
+          'Anasakti Ashram (Gandhi Ashram)',
+          'Kausani tea estate walk',
+          'Baijnath ancient temples',
+          'Almora and Bageshwar towns',
+          'Kumaon village trails'
+        ],
+        photos: 6
+      },
+      meghalaya: {
+        name: 'Meghalaya',
+        duration: '5-7 days',
+        season: 'Oct-Apr',
+        for: 'Nature lovers, Adventure seekers',
+        highlights: [
+          'Living root bridges of Cherrapunji',
+          'Crystal-clear Dawki river',
+          'Mawlynnong — cleanest village in Asia',
+          'Shillong hills and waterfalls',
+          'Mawsmai limestone caves',
+          'Nohkalikai Falls'
+        ],
+        photos: 6
+      },
+      assam: {
+        name: 'Assam & Kaziranga',
+        duration: '4-6 days',
+        season: 'Nov-Apr',
+        for: 'Wildlife lovers, Families',
+        highlights: [
+          'One-horned rhino safari in Kaziranga',
+          'Elephant and jeep safaris',
+          'Majuli — worlds largest river island',
+          'Kamakhya Temple in Guwahati',
+          'Brahmaputra river cruise',
+          'Assam tea garden visits'
+        ],
+        photos: 6
+      },
+      arunachal: {
+        name: 'Arunachal Pradesh',
+        duration: '6-8 days',
+        season: 'Oct-Apr',
+        for: 'Adventure seekers, Explorers',
+        highlights: [
+          'Tawang Monastery — largest in India',
+          'Sela Pass at 13,700 ft',
+          'Bomdila and Dirang valleys',
+          'Madhuri Lake (Sangetsar)',
+          'Tribal culture and villages',
+          'Snow-capped Himalayan drives'
+        ],
+        photos: 6
+      },
+      nagaland: {
+        name: 'Nagaland',
+        duration: '5-7 days',
+        season: 'Oct-Apr',
+        for: 'Culture lovers, Off-beat travellers',
+        highlights: [
+          'Kohima and the WWII memorial',
+          'Dzukou Valley trek',
+          'Khonoma — Asias first green village',
+          'Naga tribal heritage',
+          'Hornbill Festival (December)',
+          'Local Naga cuisine'
+        ],
+        photos: 6
+      },
+      manipur: {
+        name: 'Manipur & Loktak',
+        duration: '4-6 days',
+        season: 'Oct-Mar',
+        for: 'Nature lovers, Off-beat travellers',
+        highlights: [
+          'Loktak Lake and floating phumdis',
+          'Keibul Lamjao floating national park',
+          'Kangla Fort in Imphal',
+          'Ima Keithel — all-women market',
+          'Moirang and INA memorial',
+          'Manipuri dance and culture'
+        ],
+        photos: 6
+      },
+      mizoram: {
+        name: 'Mizoram',
+        duration: '5-7 days',
+        season: 'Oct-Mar',
+        for: 'Off-beat travellers, Nature lovers',
+        highlights: [
+          'Aizawl hilltop capital',
+          'Reiek peak and heritage village',
+          'Hmuifang forest reserve',
+          'Vantawng — Mizorams tallest waterfall',
+          'Mizo tribal culture',
+          'Bamboo dance (Cheraw)'
+        ],
+        photos: 6
+      },
+      thailand: {
+        name: 'Thailand',
+        duration: '5-7 days',
+        season: 'Nov-Feb',
+        for: 'Adventure seekers, Families',
+        highlights: [
+          'Bangkok temples and markets',
+          'Pattaya beach resorts',
+          'Phuket island beauty',
+          'Krabi limestone cliffs',
+          'Thai cuisine experiences',
+          'Island hopping tours'
+        ],
+        photos: 6
+      },
+      bali: {
+        name: 'Bali',
+        duration: '5-7 days',
+        season: 'Apr-Oct',
+        for: 'Honeymooners, Relaxation',
+        highlights: [
+          'Ubud culture and rice terraces',
+          'Kuta beach paradise',
+          'Seminyak nightlife',
+          'Temple explorations',
+          'Spa and wellness',
+          'Water sports'
+        ],
+        photos: 6
+      },
+      maldives: {
+        name: 'Maldives',
+        duration: '4-6 days',
+        season: 'Nov-Apr',
+        for: 'Honeymooners, Luxury',
+        highlights: [
+          'Overwater bungalows',
+          'Crystal clear lagoons',
+          'Snorkeling and diving',
+          'Pristine white beaches',
+          'Water villas',
+          'Sunset cruises'
+        ],
+        photos: 6
+      }
+    };
+
+    const pkg = packages[this.state.packageSlug] || packages.rajasthan;
+
+    const photoSlots = [];
+    for (let i = 1; i <= pkg.photos; i++) {
+      photoSlots.push({
+        id: `pkg-${this.state.packageSlug}-${i}`,
+        placeholder: `Photo ${i} of ${pkg.name}`
+      });
+    }
+
+    return {
+      packageName: pkg.name,
+      packageDuration: pkg.duration,
+      packageSeason: pkg.season,
+      packageFor: pkg.for,
+      highlights: pkg.highlights,
+      photoSlots: photoSlots
+    };
+  }
+}
+
+</script>
+</body>
+</html>

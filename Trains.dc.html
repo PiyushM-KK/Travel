@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Train Booking - Skyline Travel Planner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box }
+    body { margin: 0; background: #f5f9ff; color: #1a2332; font-family: 'Plus Jakarta Sans', sans-serif }
+    a { text-decoration: none; color: inherit }
+    /* --- live train search --- */
+    .stn-input, .date-input { width: 100%; padding: 12px; border: 1px solid #e5ecf5; border-radius: 8px; font-family: inherit; font-size: 14px; background: #fff; color: #1a2332 }
+    .stn-input:focus, .date-input:focus { outline: none; border-color: #0a5fd7 }
+    .stn-suggest { position: absolute; top: 100%; left: 0; right: 0; z-index: 50; background: #fff; border: 1px solid #e5ecf5; border-radius: 8px; margin-top: 4px; max-height: 280px; overflow-y: auto; box-shadow: 0 8px 24px rgba(10,95,215,.15); display: none }
+    .stn-suggest.open { display: block }
+    .stn-opt { padding: 10px 12px; cursor: pointer; font-size: 14px; display: flex; justify-content: space-between; gap: 10px; border-bottom: 1px solid #f2f6fb }
+    .stn-opt:last-child { border-bottom: none }
+    .stn-opt:hover, .stn-opt.active { background: #f0f7ff }
+    .stn-opt .code { color: #0a5fd7; font-weight: 700; font-size: 12px; white-space: nowrap }
+    .train-card { background: #fff; border: 1px solid #e5ecf5; border-radius: 14px; padding: 18px 20px; margin-bottom: 14px }
+    .train-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 14px }
+    .train-name { font-weight: 700; font-size: 16px }
+    .train-no { color: #5c6f80; font-weight: 600; font-size: 13px }
+    .train-times { display: flex; align-items: center; gap: 18px; flex-wrap: wrap }
+    .t-time { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 22px }
+    .t-stn { font-size: 12px; color: #5c6f80; font-weight: 600 }
+    .t-dur { color: #5c6f80; font-size: 13px; text-align: center; min-width: 90px }
+    .t-arrow { height: 2px; background: #e5ecf5; border-radius: 2px; margin-top: 6px }
+    .cls-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 14px; padding-top: 14px; border-top: 1px solid #f2f6fb }
+    .cls-chip { border: 1px solid #e5ecf5; border-radius: 8px; padding: 6px 10px; font-size: 12px; font-weight: 700; color: #1a2332; background: #f8fbff }
+    .days-chip { font-size: 11px; font-weight: 700; color: #0a7d3b; background: #e9f9ee; border-radius: 6px; padding: 4px 8px }
+    .trn-hero{background:linear-gradient(135deg,#0ea5a4 0%,#1481c6 55%,#1170c9 100%);color:#fff;padding:48px 24px 150px;position:relative;overflow:hidden}
+    .thp-base{position:absolute;inset:-3%;background:url('images/hero-vande.jpg') center 52%/cover no-repeat;z-index:0;animation:tkb 26s ease-in-out infinite alternate;will-change:transform}
+    @keyframes tkb{from{transform:scale(1.02)} to{transform:scale(1.12) translate(-1.4%,1.4%)}}
+    .thp{opacity:0;animation:thfade 27s linear infinite, tkb 26s ease-in-out infinite alternate}
+    .thp2{background-image:url('images/hero-chenab.jpg');background-position:center 45%;animation-delay:9s,-5s}
+    .thp3{background-image:url('images/hero-dudhsagar.jpg');background-position:center 58%;animation-delay:18s,-13s}
+    @keyframes thfade{0%{opacity:0} 7%{opacity:1} 33%{opacity:1} 41%{opacity:0} 100%{opacity:0}}
+    .trn-htint{position:absolute;inset:0;z-index:0;background:linear-gradient(180deg,rgba(8,22,48,.66),rgba(10,30,66,.46))}
+    .trn-hero-in{max-width:1240px;margin:0 auto;position:relative;z-index:1}
+    .trn-h1{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:40px;margin:0 0 6px;text-shadow:0 3px 22px rgba(3,18,44,.55)}
+    .trn-hsub{font-size:16px;color:rgba(255,255,255,.85);margin:0 0 20px;text-shadow:0 2px 12px rgba(3,18,44,.5)}
+    .trn-bar{display:flex;align-items:stretch;background:#fff;border-radius:16px;padding:6px;box-shadow:0 24px 55px -22px rgba(0,0,0,.55);flex-wrap:wrap}
+    .trn-cell{position:relative;padding:9px 16px;flex:1;min-width:170px;border-right:1px solid #eef2f7}
+    .trn-cell:last-of-type{border-right:none}
+    .trn-cell label{display:block;font-size:11px;font-weight:700;color:#8094a4;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px}
+    .trn-cell .stn-input,.trn-cell .date-input{border:none !important;padding:0;width:100%;outline:none;font-family:inherit;font-size:15px;font-weight:600;color:#0b2440;background:transparent}
+    .trn-go{background:#0a5fd7;color:#fff;border:none;font-family:inherit;font-weight:800;font-size:15px;padding:0 28px;border-radius:12px;cursor:pointer;margin:4px;display:flex;align-items:center}
+    .trn-go:hover{background:#0954bd}
+    .trn-irctc{display:flex;align-items:center;margin:4px 0 4px 4px;background:#eef4ff;color:#0a5fd7;font-weight:700;padding:0 18px;border-radius:12px;font-size:14px}
+    @media (max-width:640px){.trn-bar{flex-direction:column}.trn-cell{border-right:none;border-bottom:1px solid #eef2f7}.trn-h1{font-size:30px}}
+    @media (prefers-reduced-motion: reduce){.thp-base{animation:none}.thp{display:none}}
+  </style>
+</helmet>
+
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <rect width="120" height="120" fill="#0A5FD7"/>
+    <rect x="30" y="40" width="60" height="30" rx="4" fill="#fff" opacity=".9"/>
+    <circle cx="40" cy="75" r="6" fill="#fff" opacity=".9"/>
+    <circle cx="80" cy="75" r="6" fill="#fff" opacity=".9"/>
+  </svg>
+</template>
+
+<!-- Header -->
+<header style="position: sticky; top: 0; z-index: 1000; background: linear-gradient(90deg, #0a5fd7 0%, #0c70e2 100%); box-shadow: 0 2px 14px rgba(10,36,64,.22)">
+  <div style="max-width: 1240px; margin: 0 auto; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between">
+    <a href="Home.dc.html" style="display: flex; align-items: center; background: #fff; padding: 6px 14px; border-radius: 12px; box-shadow: 0 4px 14px rgba(0,0,0,.15)"><img src="images/logo.jpeg" alt="Skyline Travel Planner" style="height: 56px; width: auto; display: block" /></a>
+    <a href="Home.dc.html" style="background: #fff; color: #0b6bbf; font-weight: 800; padding: 10px 18px; border-radius: 10px; box-shadow: 0 4px 14px rgba(0,0,0,.16)">← Back Home</a>
+  </div>
+</header>
+
+<!-- Hero + Search (matches Flights page) -->
+<section class="trn-hero">
+  <div class="thp-base"></div>
+  <div class="thp-base thp thp2"></div>
+  <div class="thp-base thp thp3"></div>
+  <div class="trn-htint"></div>
+  <div class="trn-hero-in">
+    <h1 class="trn-h1">Find your train</h1>
+    <p class="trn-hsub">Vande Bharat, express &amp; sleeper trains across Indian Railways</p>
+    <div class="trn-bar">
+      <div class="trn-cell">
+        <label>From station</label>
+        <input id="fromInput" type="text" autocomplete="off" placeholder="Type city or station…" class="stn-input">
+        <input type="hidden" id="fromCode">
+        <div id="fromSuggest" class="stn-suggest"></div>
+      </div>
+      <div class="trn-cell">
+        <label>To station</label>
+        <input id="toInput" type="text" autocomplete="off" placeholder="Type city or station…" class="stn-input">
+        <input type="hidden" id="toCode">
+        <div id="toSuggest" class="stn-suggest"></div>
+      </div>
+      <div class="trn-cell" style="flex:.7;min-width:140px">
+        <label>Journey date</label>
+        <input id="journeyDate" type="date" class="date-input">
+      </div>
+      <button id="searchTrainsBtn" type="button" class="trn-go">Search Trains</button>
+      <a id="irctcLink" href="https://www.irctc.co.in" target="_blank" class="trn-irctc">IRCTC ↗</a>
+    </div>
+    <div style="margin-top:12px;min-height:18px"><span id="searchStatus" style="font-size: 13px; font-weight: 600; color: rgba(255,255,255,.9); text-shadow: 0 1px 8px rgba(3,18,44,.6)"></span></div>
+  </div>
+</section>
+
+<!-- Main Content -->
+<div style="max-width: 1280px; margin: 0 auto; padding: 40px 24px 48px">
+
+  <!-- Live Results -->
+  <div id="trainResults" style="margin-bottom: 48px"></div>
+
+  <!-- Info -->
+  <div style="background: #fff; border-radius: 16px; padding: 24px; border-left: 4px solid #0a5fd7; margin-bottom: 32px">
+    <p style="margin: 0; font-size: 14px; color: #5c6f80"><strong>Note:</strong> Train schedules, fares, and availability are managed by Indian Railways and IRCTC. Skyline Travel Planner does not issue tickets directly.</p>
+  </div>
+
+  <!-- Services -->
+  <div>
+    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 32px; margin: 0 0 24px">Train Services</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px">
+      <sc-for list="{{ services }}" as="s" hint-placeholder-count="4">
+        <div style="background: #fff; padding: 24px; border-radius: 14px; border: 1.5px solid #e5ecf5; text-align: center">
+          <div style="font-size: 32px; margin-bottom: 12px">{{ s.icon }}</div>
+          <div style="font-weight: 700; font-size: 16px; margin-bottom: 8px">{{ s.name }}</div>
+          <div style="font-size: 13px; color: #5c6f80">{{ s.desc }}</div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+  <p style="font-size: 11px; color: #8094a4; margin-top: 28px">Hero photos (Wikimedia Commons): Ganesh Mohan T (CC BY-SA 4.0), Konkan Railway (GODL-India), Samson Joseph (CC BY-SA 4.0)</p>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      services: [
+        { icon: '🎫', name: 'Tatkal Booking', desc: 'Last-minute reservations' },
+        { icon: '✅', name: 'Check PNR Status', desc: 'Track your booking' },
+        { icon: '🚆', name: 'Seat Availability', desc: 'Real-time updates' },
+        { icon: '📋', name: 'Tourist Trains', desc: 'Special heritage routes' }
+      ]
+    };
+  }
+}
+
+</script>
+<script>
+/* Skyline — live train search + seat availability. Talks to the train-api proxy
+   (server/train-api.py) which holds the RapidAPI key. Robust against the React
+   render layer: injects its own CSS, renders the dropdown on <body> (fixed), and
+   uses document-level event delegation. Set window.SKYLINE_TRAIN_API in production. */
+(function(){
+  var API_BASE=(window.SKYLINE_TRAIN_API||'http://localhost:3001').replace(/\/+$/,'');
+  var STATIONS=[
+    {code:'NDLS',name:"New Delhi"},
+    {code:'DLI',name:"Old Delhi"},
+    {code:'NZM',name:"Hazrat Nizamuddin"},
+    {code:'ANVT',name:"Anand Vihar Terminal"},
+    {code:'DEE',name:"Delhi Sarai Rohilla"},
+    {code:'GZB',name:"Ghaziabad"},
+    {code:'GGN',name:"Gurgaon"},
+    {code:'FDB',name:"Faridabad"},
+    {code:'CSMT',name:"Mumbai CSMT"},
+    {code:'MMCT',name:"Mumbai Central"},
+    {code:'DR',name:"Dadar"},
+    {code:'LTT',name:"Lokmanya Tilak Terminus"},
+    {code:'BDTS',name:"Bandra Terminus"},
+    {code:'KYN',name:"Kalyan"},
+    {code:'PUNE',name:"Pune"},
+    {code:'NGP',name:"Nagpur"},
+    {code:'NK',name:"Nashik Road"},
+    {code:'AWB',name:"Aurangabad"},
+    {code:'SUR',name:"Solapur"},
+    {code:'NED',name:"Nanded"},
+    {code:'RN',name:"Ratnagiri"},
+    {code:'ADI',name:"Ahmedabad"},
+    {code:'BRC',name:"Vadodara"},
+    {code:'ST',name:"Surat"},
+    {code:'RJT',name:"Rajkot"},
+    {code:'GNC',name:"Gandhinagar Capital"},
+    {code:'JAM',name:"Jamnagar"},
+    {code:'BVC',name:"Bhavnagar"},
+    {code:'JND',name:"Junagadh"},
+    {code:'VRL',name:"Veraval"},
+    {code:'DWK',name:"Dwarka"},
+    {code:'OKHA',name:"Okha"},
+    {code:'GIMB',name:"Gandhidham"},
+    {code:'BHUJ',name:"Bhuj"},
+    {code:'PNU',name:"Palanpur"},
+    {code:'ABR',name:"Abu Road"},
+    {code:'JP',name:"Jaipur"},
+    {code:'JU',name:"Jodhpur"},
+    {code:'UDZ',name:"Udaipur City"},
+    {code:'JSM',name:"Jaisalmer"},
+    {code:'BKN',name:"Bikaner"},
+    {code:'AII',name:"Ajmer"},
+    {code:'KOTA',name:"Kota"},
+    {code:'AWR',name:"Alwar"},
+    {code:'BTE',name:"Bharatpur"},
+    {code:'SWM',name:"Sawai Madhopur"},
+    {code:'AGC',name:"Agra Cantt"},
+    {code:'AF',name:"Agra Fort"},
+    {code:'MTJ',name:"Mathura"},
+    {code:'LKO',name:"Lucknow"},
+    {code:'CNB',name:"Kanpur Central"},
+    {code:'BSB',name:"Varanasi"},
+    {code:'PRYJ',name:"Prayagraj"},
+    {code:'GKP',name:"Gorakhpur"},
+    {code:'BE',name:"Bareilly"},
+    {code:'MB',name:"Moradabad"},
+    {code:'ALJN',name:"Aligarh"},
+    {code:'JHS',name:"Jhansi"},
+    {code:'MTC',name:"Meerut City"},
+    {code:'SRE',name:"Saharanpur"},
+    {code:'AY',name:"Ayodhya"},
+    {code:'DDN',name:"Dehradun"},
+    {code:'HW',name:"Haridwar"},
+    {code:'RKSH',name:"Rishikesh"},
+    {code:'KGM',name:"Kathgodam"},
+    {code:'HDW',name:"Haldwani"},
+    {code:'KTW',name:"Kotdwar"},
+    {code:'CDG',name:"Chandigarh"},
+    {code:'KLK',name:"Kalka"},
+    {code:'UMB',name:"Ambala Cantt"},
+    {code:'ASR',name:"Amritsar"},
+    {code:'LDH',name:"Ludhiana"},
+    {code:'JUC',name:"Jalandhar City"},
+    {code:'PTK',name:"Pathankot"},
+    {code:'BTI',name:"Bathinda"},
+    {code:'FZR',name:"Firozpur"},
+    {code:'ROK',name:"Rohtak"},
+    {code:'RE',name:"Rewari"},
+    {code:'HSR',name:"Hisar"},
+    {code:'SML',name:"Shimla"},
+    {code:'UHL',name:"Una Himachal"},
+    {code:'AADR',name:"Amb Andaura"},
+    {code:'JAT',name:"Jammu Tawi"},
+    {code:'SVDK',name:"Katra"},
+    {code:'UHP',name:"Udhampur"},
+    {code:'SINA',name:"Srinagar"},
+    {code:'BAHL',name:"Banihal"},
+    {code:'BRML',name:"Baramulla"},
+    {code:'BPL',name:"Bhopal"},
+    {code:'INDB',name:"Indore"},
+    {code:'GWL',name:"Gwalior"},
+    {code:'JBP',name:"Jabalpur"},
+    {code:'UJN',name:"Ujjain"},
+    {code:'STA',name:"Satna"},
+    {code:'R',name:"Raipur"},
+    {code:'BSP',name:"Bilaspur"},
+    {code:'DURG',name:"Durg"},
+    {code:'HWH',name:"Howrah"},
+    {code:'SDAH',name:"Sealdah"},
+    {code:'KOAA',name:"Kolkata"},
+    {code:'ASN',name:"Asansol"},
+    {code:'DGR',name:"Durgapur"},
+    {code:'KGP',name:"Kharagpur"},
+    {code:'MLDT',name:"Malda Town"},
+    {code:'NJP',name:"New Jalpaiguri"},
+    {code:'SGUJ',name:"Siliguri"},
+    {code:'APDJ',name:"Alipurduar"},
+    {code:'PNBE',name:"Patna"},
+    {code:'GAYA',name:"Gaya"},
+    {code:'BGP',name:"Bhagalpur"},
+    {code:'MFP',name:"Muzaffarpur"},
+    {code:'DBG',name:"Darbhanga"},
+    {code:'KIR',name:"Katihar"},
+    {code:'RNC',name:"Ranchi"},
+    {code:'DHN',name:"Dhanbad"},
+    {code:'TATA',name:"Tatanagar"},
+    {code:'BBS',name:"Bhubaneswar"},
+    {code:'PURI',name:"Puri"},
+    {code:'CTC',name:"Cuttack"},
+    {code:'SBP',name:"Sambalpur"},
+    {code:'GHY',name:"Guwahati"},
+    {code:'KYQ',name:"Kamakhya"},
+    {code:'DBRG',name:"Dibrugarh"},
+    {code:'NTSK',name:"New Tinsukia"},
+    {code:'DMV',name:"Dimapur"},
+    {code:'NHLN',name:"Naharlagun"},
+    {code:'AGTL',name:"Agartala"},
+    {code:'SCL',name:"Silchar"},
+    {code:'JRBM',name:"Jiribam"},
+    {code:'SC',name:"Secunderabad"},
+    {code:'HYB',name:"Hyderabad Deccan"},
+    {code:'KCG',name:"Kacheguda"},
+    {code:'VSKP',name:"Visakhapatnam"},
+    {code:'BZA',name:"Vijayawada"},
+    {code:'TPTY',name:"Tirupati"},
+    {code:'GNT',name:"Guntur"},
+    {code:'RJY',name:"Rajahmundry"},
+    {code:'WL',name:"Warangal"},
+    {code:'SBC',name:"KSR Bengaluru"},
+    {code:'YPR',name:"Yesvantpur"},
+    {code:'BNC',name:"Bengaluru Cantt"},
+    {code:'MYS',name:"Mysuru"},
+    {code:'UBL',name:"Hubballi"},
+    {code:'BGM',name:"Belagavi"},
+    {code:'MAQ',name:"Mangaluru Central"},
+    {code:'BAY',name:"Ballari"},
+    {code:'MAS',name:"Chennai Central"},
+    {code:'MS',name:"Chennai Egmore"},
+    {code:'CBE',name:"Coimbatore"},
+    {code:'MDU',name:"Madurai"},
+    {code:'TPJ',name:"Tiruchirapalli"},
+    {code:'SA',name:"Salem"},
+    {code:'ED',name:"Erode"},
+    {code:'MTP',name:"Mettupalayam"},
+    {code:'ONR',name:"Coonoor"},
+    {code:'UAM',name:"Udagamandalam Ooty"},
+    {code:'RMM',name:"Rameswaram"},
+    {code:'CAPE',name:"Kanyakumari"},
+    {code:'TVC',name:"Thiruvananthapuram Central"},
+    {code:'ERS',name:"Ernakulam Junction"},
+    {code:'ERN',name:"Ernakulam Town"},
+    {code:'CLT',name:"Kozhikode"},
+    {code:'TCR',name:"Thrissur"},
+    {code:'ALLP',name:"Alappuzha"},
+    {code:'QLN',name:"Kollam"},
+    {code:'CAN',name:"Kannur"},
+    {code:'PGT',name:"Palakkad"},
+    {code:'KTYM',name:"Kottayam"},
+    {code:'MAO',name:"Madgaon"},
+    {code:'VSG',name:"Vasco da Gama"},
+    {code:'THVM',name:"Thivim"},
+    {code:'KRMI',name:"Karmali"}
+  ];
+
+  if(!document.getElementById('sky-train-css')){
+    var st=document.createElement('style'); st.id='sky-train-css';
+    st.textContent=".sky-drop{position:fixed;z-index:99999;background:#fff;border:1px solid #e5ecf5;border-radius:8px;max-height:300px;overflow-y:auto;box-shadow:0 10px 30px rgba(10,95,215,.18)}"
+      +".sky-opt{padding:10px 12px;cursor:pointer;font-size:14px;display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid #f2f6fb}"
+      +".sky-opt:last-child{border-bottom:none}.sky-opt:hover,.sky-opt.sky-active{background:#f0f7ff}"
+      +".sky-code{color:#0a5fd7;font-weight:700;font-size:12px;white-space:nowrap}"
+      +".sky-h2{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:26px;margin:0 0 16px}"
+      +".sky-card{background:#fff;border:1px solid #e5ecf5;border-radius:14px;padding:18px 20px;margin-bottom:14px}"
+      +".sky-chead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:14px}"
+      +".sky-tname{font-weight:700;font-size:16px}.sky-tno{color:#5c6f80;font-weight:600;font-size:13px}"
+      +".sky-days{font-size:11px;font-weight:700;color:#0a7d3b;background:#e9f9ee;border-radius:6px;padding:4px 8px}"
+      +".sky-times{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}"
+      +".sky-time{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:22px}"
+      +".sky-stn{font-size:12px;color:#5c6f80;font-weight:600}"
+      +".sky-dur{color:#5c6f80;font-size:13px;text-align:center;min-width:110px}"
+      +".sky-line{height:2px;background:#e5ecf5;border-radius:2px;margin:6px 0}"
+      +".sky-cls-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:14px;padding-top:14px;border-top:1px solid #f2f6fb}"
+      +".sky-cls{border:1px solid #cfe0f5;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:700;color:#0a5fd7;background:#f8fbff;cursor:pointer;font-family:inherit}"
+      +".sky-cls:hover{background:#eef4ff}.sky-cls-done{cursor:default}";
+    document.head.appendChild(st);
+  }
+
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];}); }
+  function debounce(fn,ms){ var t; return function(){ var a=arguments,c=this; clearTimeout(t); t=setTimeout(function(){fn.apply(c,a);},ms); }; }
+  function inr(n){ if(n===''||n==null) return ''; return '₹'+String(n).replace(/\B(?=(\d{3})+(?!\d))/g,','); }
+
+  var drop=null, dropFor=null, items=[], active=-1;
+  function ensureDrop(){ if(!drop){ drop=document.createElement('div'); drop.className='sky-drop'; drop.style.display='none'; document.body.appendChild(drop);} return drop; }
+  function posDrop(input){ var r=input.getBoundingClientRect(); drop.style.left=r.left+'px'; drop.style.top=(r.bottom+4)+'px'; drop.style.width=r.width+'px'; }
+  function closeDrop(){ if(drop){ drop.style.display='none'; drop.innerHTML=''; } dropFor=null; items=[]; active=-1; }
+  function showSuggest(input,list){ ensureDrop(); items=list; active=-1; dropFor=input; if(!list.length){ closeDrop(); return; }
+    drop.innerHTML=list.map(function(s,i){ return '<div class="sky-opt" data-i="'+i+'"><span>'+esc(s.name)+'</span><span class="sky-code">'+esc(s.code)+'</span></div>'; }).join('');
+    posDrop(input); drop.style.display='block'; }
+  function pick(input,s){ if(!s) return; input.value=s.name+' ('+s.code+')'; input.dataset.stationCode=s.code; closeDrop(); }
+
+  // Stations are static — filter the bundled list locally (uses NO API quota).
+  function fetchStations(q){ var ql=q.toLowerCase(); return STATIONS.filter(function(s){return s.name.toLowerCase().indexOf(ql)>=0||s.code.toLowerCase().indexOf(ql)>=0;}).slice(0,12); }
+  var doStations=debounce(function(input){ input.dataset.stationCode=''; var q=input.value.trim(); if(q.length<2){ closeDrop(); return; } showSuggest(input, fetchStations(q)); },80);
+
+  document.addEventListener('input',function(e){ var t=e.target; if(t&&(t.id==='fromInput'||t.id==='toInput')) doStations(t); });
+  document.addEventListener('click',function(e){
+    var tgt=e.target; if(!tgt||!tgt.closest) return;
+    var opt=tgt.closest('.sky-opt'); if(opt&&dropFor){ pick(dropFor, items[+opt.getAttribute('data-i')]); return; }
+    if(tgt.closest('#searchTrainsBtn')){ e.preventDefault(); searchTrains(); return; }
+    var cbtn=tgt.closest('.sky-cls'); if(cbtn){ checkSeat(cbtn); return; }
+    if(drop&&drop.style.display!=='none' && !tgt.closest('.sky-drop') && tgt.id!=='fromInput' && tgt.id!=='toInput') closeDrop();
+  });
+  document.addEventListener('keydown',function(e){
+    if(!drop||drop.style.display==='none') return;
+    var opts=drop.querySelectorAll('.sky-opt');
+    if(e.key==='ArrowDown'){ active=Math.min(active+1,opts.length-1); e.preventDefault(); }
+    else if(e.key==='ArrowUp'){ active=Math.max(active-1,0); e.preventDefault(); }
+    else if(e.key==='Enter'){ if(active>=0&&dropFor){ pick(dropFor, items[active]); e.preventDefault(); } return; }
+    else if(e.key==='Escape'){ closeDrop(); return; }
+    Array.prototype.forEach.call(opts,function(o,i){ o.classList.toggle('sky-active', i===active); if(i===active) o.scrollIntoView({block:'nearest'}); });
+  });
+  window.addEventListener('scroll',closeDrop,true);
+  window.addEventListener('resize',closeDrop);
+
+  function fmtDays(d){ if(!d) return ''; if(Array.isArray(d)) return d.length>=7?'Daily':d.join(' '); if(/^[01]{7}$/.test(d)){ var L=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],on=[]; for(var i=0;i<7;i++) if(d[i]==='1') on.push(L[i]); return on.length===7?'Daily':on.join(' '); } return d; }
+  function classArr(c){ if(!c) return []; if(Array.isArray(c)) return c.map(function(x){return typeof x==='string'?x:(x.class_type||x.classType||x.code||x.name||'');}).filter(Boolean); if(typeof c==='string') return c.split(',').map(function(s){return s.trim();}).filter(Boolean); return []; }
+  function statusColor(txt){ txt=(txt||'').toUpperCase(); if(txt.indexOf('AVAIL')>=0) return '#0a7d3b'; if(txt.indexOf('RAC')>=0) return '#b26a00'; if(txt.indexOf('WAIT')>=0||txt.indexOf('WL')>=0||txt.indexOf('REGRET')>=0) return '#c0392b'; return '#5c6f80'; }
+
+  function renderTrain(t){
+    var cls=classArr(t.classes);
+    var chips=cls.map(function(c){ return '<button type="button" class="sky-cls" data-train="'+esc(t.number)+'" data-class="'+esc(c)+'">'+esc(c)+' · tap for seats</button>'; }).join('');
+    return '<div class="sky-card">'
+      +'<div class="sky-chead"><div><span class="sky-tname">'+esc(t.name||'Train')+'</span> <span class="sky-tno">#'+esc(t.number)+'</span></div>'
+      +(fmtDays(t.runsOn)?'<span class="sky-days">'+esc(fmtDays(t.runsOn))+'</span>':'')+'</div>'
+      +'<div class="sky-times"><div><div class="sky-time">'+esc(t.depTime||'--')+'</div><div class="sky-stn">'+esc(t.from||t.fromCode)+'</div></div>'
+      +'<div class="sky-dur">'+esc(t.duration||'')+'<div class="sky-line"></div>'+(t.distance?esc(t.distance)+' km':'')+'</div>'
+      +'<div style="text-align:right"><div class="sky-time">'+esc(t.arrTime||'--')+'</div><div class="sky-stn">'+esc(t.to||t.toCode)+'</div></div></div>'
+      +'<div class="sky-cls-row">'+chips+'</div></div>';
+  }
+
+  var ctx={from:'',to:'',date:''};
+  async function searchTrains(){
+    var fi=document.getElementById('fromInput'), ti=document.getElementById('toInput'), di=document.getElementById('journeyDate');
+    var status=document.getElementById('searchStatus'), results=document.getElementById('trainResults');
+    var from=(fi&&fi.dataset.stationCode)||'', to=(ti&&ti.dataset.stationCode)||'', date=(di&&di.value)||'';
+    if(!from||!to){ if(status) status.textContent='Please pick both stations from the suggestions.'; return; }
+    if(!date){ if(status) status.textContent='Please choose a date.'; return; }
+    ctx={from:from,to:to,date:date};
+    if(status) status.textContent='Searching trains…'; if(results) results.innerHTML='';
+    try{
+      var r=await fetch(API_BASE+'/api/trains?from='+encodeURIComponent(from)+'&to='+encodeURIComponent(to)+'&date='+encodeURIComponent(date),{mode:'cors'});
+      var j=await r.json();
+      if(!r.ok){ if(status) status.textContent=(j.status===429||/quota/i.test(j.detail||'')) ? 'Live train data unavailable — your RapidAPI plan monthly quota is exhausted. Upgrade the plan or wait for the reset.' : ('Could not fetch trains ('+(j.error||r.status)+'). Is the train-api proxy running?'); return; }
+      var trains=j.trains||[];
+      if(!trains.length){ if(status) status.textContent='No direct trains found for this route/date.'; return; }
+      if(status) status.textContent=trains.length+' train'+(trains.length>1?'s':'')+' found · tap a class for live availability & fare';
+      if(results) results.innerHTML='<h2 class="sky-h2">Available Trains</h2>'+trains.map(renderTrain).join('');
+    }catch(e){ if(status) status.textContent='Network error — is the proxy running at '+API_BASE+'?'; }
+  }
+
+  async function checkSeat(btn){
+    if(btn.dataset.loading==='1') return;
+    var train=btn.getAttribute('data-train'), cls=btn.getAttribute('data-class');
+    if(!ctx.from||!ctx.date){ return; }
+    btn.dataset.loading='1'; btn.textContent=cls+' · …';
+    try{
+      var r=await fetch(API_BASE+'/api/seat?from='+encodeURIComponent(ctx.from)+'&to='+encodeURIComponent(ctx.to)+'&train='+encodeURIComponent(train)+'&date='+encodeURIComponent(ctx.date)+'&class='+encodeURIComponent(cls),{mode:'cors'});
+      var j=await r.json(); var a=j.availability;
+      if(!r.ok||!a){ btn.textContent=cls+' · n/a'; btn.dataset.loading=''; return; }
+      var col=statusColor(a.status||a.statusRaw);
+      btn.classList.add('sky-cls-done'); btn.style.borderColor=col;
+      btn.innerHTML='<b>'+esc(cls)+'</b> · <span style="color:'+col+'">'+esc(a.status||a.statusRaw||'—')+'</span>'
+        +(a.fare?' · '+inr(a.fare):'')
+        +(a.prob?' · <span style="color:'+col+'">'+esc(a.prob)+'% '+esc(a.probLabel||'')+'</span>':'');
+      btn.dataset.loading='';
+    }catch(e){ btn.textContent=cls+' · retry'; btn.dataset.loading=''; }
+  }
+
+  function initDate(){ var d=document.getElementById('journeyDate'); if(d&&!d.value){ try{ d.value=new Date().toISOString().slice(0,10); d.min=d.value; }catch(e){} } }
+  var tries=0;(function ready(){ if(document.getElementById('journeyDate')){ initDate(); return; } if(tries++>100) return; setTimeout(ready,120); })();
+})();
+</script>
+<script>
+/* Skyline — date guard: past dates disabled everywhere; the 2nd date in a pair
+   (return / check-out) cannot precede the 1st (departure / check-in). Robust to
+   the React render layer via a MutationObserver that re-applies the limits. */
+(function(){
+  function today(){ try{ return new Date().toISOString().slice(0,10); }catch(e){ return ''; } }
+  var T=today();
+  function apply(){
+    var dates=[].slice.call(document.querySelectorAll('input[type=\"date\"]'));
+    if(!dates.length) return;
+    dates.forEach(function(d){ if(d.getAttribute('data-end')!=='1' && d.min!==T) d.min=T; });
+    if(dates.length===2){
+      var a=dates[0], b=dates[1];
+      b.setAttribute('data-end','1');
+      var m=(a.value && a.value>T) ? a.value : T;
+      if(b.min!==m) b.min=m;
+      if(b.value && b.value<m) b.value=m;
+    }
+  }
+  function onEdit(e){ if(e.target && e.target.matches && e.target.matches('input[type=\"date\"]')) apply(); }
+  document.addEventListener('input', onEdit, true);
+  document.addEventListener('change', onEdit, true);
+  var t=0; setInterval(function(){ if(t++>40) return; apply(); }, 250); // covers late React mounts
+  try{ new MutationObserver(function(){ apply(); }).observe(document.documentElement,{childList:true,subtree:true}); }catch(e){}
+  apply();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  .sk-as *{box-sizing:border-box}
+  @keyframes sk-pop{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+  @keyframes sk-blink{0%,80%,100%{opacity:.3}40%{opacity:1}}
+  .sk-q:hover{background:#EAF5FD !important;border-color:#0A84D6 !important}
+  .sk-send:hover{transform:scale(1.05)}
+</style>
+</helmet>
+
+<div class="sk-as" ref="{{ root }}">
+  <!-- Launcher -->
+  <button onClick="{{ toggle }}" style="position:fixed;left:22px;bottom:22px;z-index:8000;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#0A84D6,#34C3F0);color:#fff;border:0;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:14px;padding:13px 18px 13px 14px;border-radius:999px;box-shadow:0 16px 34px -10px rgba(10,132,214,.7)">
+    <span style="width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3z"/><circle cx="18.5" cy="17.5" r="1.6"/><circle cx="5.5" cy="16.5" r="1.2"/></svg>
+    </span>
+    Ask Skyline AI
+  </button>
+
+  <!-- Panel -->
+  <div ref="{{ panelEl }}" style="display:none;position:fixed;left:22px;bottom:22px;z-index:8500;width:374px;max-width:calc(100vw - 44px);height:560px;max-height:calc(100vh - 44px);background:#fff;border-radius:22px;box-shadow:0 40px 80px -24px rgba(7,59,102,.55);overflow:hidden;flex-direction:column;font-family:'Plus Jakarta Sans',sans-serif;animation:sk-pop .22s ease">
+    <!-- header -->
+    <div style="background:linear-gradient(135deg,#0A84D6,#34C3F0);color:#fff;padding:16px 18px;display:flex;align-items:center;gap:12px;flex-shrink:0">
+      <span style="width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3z"/><circle cx="18.5" cy="17.5" r="1.6"/><circle cx="5.5" cy="16.5" r="1.2"/></svg>
+      </span>
+      <div style="flex:1">
+        <div style="font-weight:800;font-size:15px;letter-spacing:-.01em">Skyline AI Travel Assistant</div>
+        <div style="font-size:11.5px;opacity:.9;display:flex;align-items:center;gap:6px"><span style="width:7px;height:7px;border-radius:50%;background:#7CF2B0"></span>Here to help plan your trip</div>
+      </div>
+      <button onClick="{{ toggle }}" style="background:rgba(255,255,255,.18);border:0;cursor:pointer;color:#fff;width:30px;height:30px;border-radius:9px;font-size:18px;line-height:1">×</button>
+    </div>
+
+    <!-- messages -->
+    <div ref="{{ scrollEl }}" style="flex:1;overflow-y:auto;padding:18px;background:#F6FAFD;display:flex;flex-direction:column;gap:12px">
+      <sc-for list="{{ messages }}" as="m" hint-placeholder-count="1">
+        <div style="display:flex;justify-content:{{ m.justify }}">
+          <div style="max-width:82%;padding:11px 14px;border-radius:{{ m.radius }};font-size:13.5px;line-height:1.5;background:{{ m.bg }};color:{{ m.color }};white-space:pre-wrap;box-shadow:0 2px 8px -4px rgba(7,59,102,.2)">{{ m.text }}</div>
+        </div>
+      </sc-for>
+      <sc-if value="{{ thinking }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;justify-content:flex-start">
+          <div style="padding:13px 16px;border-radius:16px 16px 16px 4px;background:#fff;display:flex;gap:5px">
+            <span style="width:7px;height:7px;border-radius:50%;background:#9AB3C7;animation:sk-blink 1.2s infinite"></span>
+            <span style="width:7px;height:7px;border-radius:50%;background:#9AB3C7;animation:sk-blink 1.2s infinite .2s"></span>
+            <span style="width:7px;height:7px;border-radius:50%;background:#9AB3C7;animation:sk-blink 1.2s infinite .4s"></span>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+
+    <!-- quick chips -->
+    <div style="display:flex;gap:8px;padding:10px 14px 0;flex-wrap:wrap;background:#fff;flex-shrink:0">
+      <sc-for list="{{ chips }}" as="c" hint-placeholder-count="3">
+        <button class="sk-q" onClick="{{ c.send }}" style="border:1px solid #E4ECF3;background:#fff;cursor:pointer;font-family:inherit;font-weight:600;font-size:12px;color:#3A4D5E;padding:7px 12px;border-radius:999px">{{ c.label }}</button>
+      </sc-for>
+    </div>
+
+    <!-- input -->
+    <form onSubmit="{{ onSubmit }}" style="display:flex;gap:9px;padding:12px 14px;background:#fff;border-top:1px solid #EEF3F7;flex-shrink:0">
+      <input ref="{{ inputEl }}" placeholder="Ask about destinations, hotels, budget…" style="flex:1;border:1.5px solid #E4ECF3;border-radius:12px;padding:12px 14px;font-family:inherit;font-size:13.5px;outline:none" />
+      <button class="sk-send" type="submit" style="flex-shrink:0;width:44px;border:0;cursor:pointer;background:#0A84D6;color:#fff;border-radius:12px;display:flex;align-items:center;justify-content:center;transition:transform .15s">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M3 11l18-8-8 18-2-7-8-3z"/></svg>
+      </button>
+    </form>
+    <div style="font-size:10.5px;color:#9AB3C7;text-align:center;padding:0 14px 10px;background:#fff;flex-shrink:0">Skyline AI gives guidance only — it can't confirm bookings, prices, availability or visas.</div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    open: false,
+    thinking: false,
+    messages: [{ role: 'assistant', text: "Namaste! 🙏 I'm the Skyline AI Travel Assistant. Tell me where you'd like to go, your dates, travellers and budget — I'll suggest destinations, trip length and hotel categories, then point you to a quote on WhatsApp or our custom form." }],
+  };
+
+  setRoot = (el) => { this.rootEl = el; };
+  setPanel = (el) => { this.panelEl = el; };
+  setScroll = (el) => { this.scrollEl = el; };
+  setInput = (el) => { this.inputEl = el; };
+
+  toggle = () => {
+    const open = !this.state.open;
+    this.setState({ open });
+    if (this.panelEl) this.panelEl.style.display = open ? 'flex' : 'none';
+    if (open) setTimeout(() => { this.inputEl && this.inputEl.focus(); this.scrollDown(); }, 60);
+  };
+
+  scrollDown() { if (this.scrollEl) this.scrollEl.scrollTop = this.scrollEl.scrollHeight; }
+  componentDidUpdate() { this.scrollDown(); }
+
+  systemPrimer() {
+    return `You are the Skyline AI Travel Assistant for "Skyline Travel Planner", an India-based travel planning website. Help with: destination selection, trip duration, preliminary itineraries, hotel-category comparison (3/4/5-star), packing lists, transport recommendations, family & honeymoon planning, budget planning, travel-season guidance, and FAQs. Focus destinations: Rajasthan, Himachal, Kashmir, Kerala, Goa, Sikkim, Mysuru/Coorg/Ooty, Mathura/Vrindavan/Agra, Gujarat, Uttar Pradesh, and internationally Thailand, Bali, Maldives. Prices are in Indian Rupees and always "starting from" estimates, never guaranteed. Keep replies warm, concise (under 120 words), and practical. After understanding the trip, encourage the user to either request a customized package (the website form) or chat on WhatsApp (+91 8866050291) for a quote. NEVER claim to confirm tickets, process payments, guarantee hotel availability, guarantee prices, guarantee visa approval, or give official immigration advice — politely defer those. Do not invent specific hotel bookings.`;
+  }
+
+  async ask(text) {
+    if (!text || this.state.thinking) return;
+    const msgs = [...this.state.messages, { role: 'user', text }];
+    this.setState({ messages: msgs, thinking: true });
+    try {
+      const api = [
+        { role: 'user', content: this.systemPrimer() },
+        { role: 'assistant', content: 'Understood — I will help plan trips with Skyline Travel Planner and follow those limits.' },
+        ...msgs.map((m) => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.text })),
+      ];
+      const reply = await window.claude.complete({ messages: api });
+      this.setState({ messages: [...msgs, { role: 'assistant', text: (reply || '').trim() || "Sorry, I didn't catch that — could you rephrase?" }], thinking: false });
+    } catch (e) {
+      this.setState({ messages: [...msgs, { role: 'assistant', text: "I'm having trouble connecting right now. For quick help, message us on WhatsApp at +91 8866050291 or use the Customize My Trip form." }], thinking: false });
+    }
+  }
+
+  onSubmit = (e) => {
+    e.preventDefault();
+    const v = this.inputEl ? this.inputEl.value.trim() : '';
+    if (this.inputEl) this.inputEl.value = '';
+    this.ask(v);
+  };
+
+  renderVals() {
+    return {
+      root: this.setRoot,
+      panelEl: this.setPanel,
+      scrollEl: this.setScroll,
+      inputEl: this.setInput,
+      toggle: this.toggle,
+      onSubmit: this.onSubmit,
+      thinking: this.state.thinking,
+      messages: this.state.messages.map((m) => {
+        const me = m.role === 'user';
+        return {
+          text: m.text,
+          justify: me ? 'flex-end' : 'flex-start',
+          bg: me ? '#0A84D6' : '#fff',
+          color: me ? '#fff' : '#1B2F40',
+          radius: me ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+        };
+      }),
+      chips: [
+        { label: '5-day Kerala?', send: () => this.ask('Can you suggest a 5-day Kerala itinerary for a family of 4?') },
+        { label: '3★ vs 5★', send: () => this.ask("What's the difference between a 3-star and 5-star package?") },
+        { label: 'Best season', send: () => this.ask('What is the best season to visit Kashmir?') },
+        { label: 'Honeymoon ideas', send: () => this.ask('Suggest a romantic honeymoon destination within ₹60,000 for a week.') },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

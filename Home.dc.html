@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Skyline Travel Planner - Customized Tours Across India & Beyond</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box }
+    body { margin: 0; background: #fff; color: #1a2332; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: antialiased }
+    a { text-decoration: none; color: inherit }
+    ::selection { background: #e8f2ff }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: translateY(0) } }
+    .fadeIn { animation: fadeIn .4s ease-out }
+    @keyframes gshift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:none} }
+    @keyframes planeX { from{left:-12%} to{left:112%} }
+    @keyframes bobY { 0%,100%{transform:translateY(0) rotate(90deg)} 50%{transform:translateY(-12px) rotate(90deg)} }
+    @keyframes drift { from{transform:translateX(0)} to{transform:translateX(46px)} }
+    @keyframes marquee { to{transform:translateX(-50%)} }
+    .hero-anim{background:linear-gradient(120deg,#0a5fd7,#0d7ae8,#0a6be0,#0956c4)!important;background-size:280% 280%!important;animation:gshift 16s ease infinite;position:relative;overflow:hidden}
+    .fu{animation:fadeUp .7s ease-out backwards}
+    .fu1{animation-delay:.08s}.fu2{animation-delay:.18s}.fu3{animation-delay:.28s}.fu4{animation-delay:.36s}.fu5{animation-delay:.44s}.fu6{animation-delay:.52s}.fu7{animation-delay:.6s}
+    .hero-photo{position:absolute;inset:-3%;background:url('images/hero-a380.jpg') center 46%/cover no-repeat;z-index:0;animation:kb 34s ease-in-out infinite alternate;will-change:transform}
+    @keyframes kb { from{transform:scale(1.02) translate(0,0)} to{transform:scale(1.13) translate(-1.6%,1.8%)} }
+    .hp{opacity:0;animation:hsfade 90s linear infinite, kb 18s ease-in-out infinite alternate}
+    .hp1{animation-delay:0s,0s}
+    .hp2{background-image:url('images/hero-a380-3.jpg');background-position:center 26%;animation-delay:9s,-9s}
+    .hp3{background-image:url('images/hero-a380-5.jpg');background-position:center 45%;animation-delay:18s,-7s}
+    .hp4{background-image:url('images/hero-a380-6.jpg');background-position:center 62%;animation-delay:27s,-16s}
+    .hp5{background-image:url('images/hero-chenab.jpg');background-position:center 45%;animation-delay:36s,-4s}
+    .hp6{background-image:url('images/hero-dudhsagar.jpg');background-position:center 58%;animation-delay:45s,-13s}
+    .hp7{background-image:url('images/hero-ghats.jpg');background-position:center 55%;animation-delay:54s,-6s}
+    .hp8{background-image:url('images/hero-taj.jpg');background-position:center 60%;animation-delay:63s,-11s}
+    .hp9{background-image:url('images/hero-vande.jpg');background-position:center 52%;animation-delay:72s,-8s}
+    .hp10{background-image:url('images/hero-kerala.jpg');background-position:center 55%;animation-delay:81s,-15s}
+    @keyframes hsfade { 0%{opacity:0} 2.2%{opacity:1} 10%{opacity:1} 13.5%{opacity:0} 100%{opacity:0} }
+    .xplane{position:absolute;z-index:0;pointer-events:none;filter:drop-shadow(0 2px 6px rgba(0,10,30,.4))}
+    .xp1{left:-8%;top:2%;animation:flyR 36s linear infinite}
+    .xp2{left:110%;top:6%;animation:flyL 47s linear infinite;animation-delay:7s}
+    .xplane .trail{position:absolute;top:50%;height:2px;border-radius:2px}
+    .xp1 .trail{right:70%;width:120px;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.5))}
+    .xp2 .trail{left:70%;width:96px;background:linear-gradient(90deg,rgba(255,255,255,.42),rgba(255,255,255,0))}
+    @keyframes flyR { from{left:-8%;top:1%} to{left:110%;top:6%} }
+    @keyframes flyL { from{left:110%;top:6%} to{left:-10%;top:0.5%} }
+    .hero-tint{position:absolute;inset:0;z-index:0;background:linear-gradient(180deg,rgba(12,14,38,.62) 0%,rgba(18,14,40,.28) 46%,rgba(16,16,48,.55) 100%)}
+    .hero-anim h1{text-shadow:0 3px 26px rgba(3,18,44,.6)}
+    .hero-anim p{text-shadow:0 2px 14px rgba(3,18,44,.55)}
+    .cat svg{transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+    .cat:hover svg{transform:translateY(-5px) scale(1.15)}
+    .dcard{position:relative;aspect-ratio:4/3;border-radius:16px;overflow:hidden;display:flex;align-items:flex-end;transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s;cursor:pointer}
+    .dcard:hover{transform:translateY(-7px);box-shadow:0 26px 48px -20px rgba(9,60,140,.5)}
+    .dbg{position:absolute;inset:0;z-index:0;background-size:cover;background-position:center;transition:transform .65s cubic-bezier(.2,.8,.2,1)}
+    .dcard:hover .dbg{transform:scale(1.09)}
+    .dxp{display:inline-flex;align-items:center;margin-top:12px;background:rgba(255,255,255,.16);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,.45);color:#fff;font-size:12.5px;font-weight:700;padding:6px 14px;border-radius:999px;opacity:0;transform:translateY(8px);transition:opacity .35s,transform .35s}
+    .dcard:hover .dxp{opacity:1;transform:none}
+    .marq-wrap{background:#0b2440;overflow:hidden;padding:13px 0}
+    .marq{display:flex;width:max-content;animation:marquee 46s linear infinite}
+    .marq span{white-space:nowrap;color:rgba(255,255,255,.82);font-weight:700;font-size:13.5px;letter-spacing:.02em;padding-right:18px}
+    .statv{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:31px;color:#fff;line-height:1}
+    .rv{transition:opacity .65s ease-out,transform .65s ease-out}
+    .rv-pre{opacity:0;transform:translateY(20px)}
+    @media (prefers-reduced-motion: reduce){ .hero-photo{animation:none} .xplane{display:none} .hero-anim,.marq,.fu,.dbg{animation:none !important;transition:none !important} .rv,.rv-pre{transition:none !important;opacity:1 !important;transform:none !important} }
+  </style>
+  <meta name="ext-resource-dependency" content="images/dest-rajasthan.jpg">
+  <meta name="ext-resource-dependency" content="images/dest-himachal.avif">
+  <meta name="ext-resource-dependency" content="images/dest-kashmir.webp">
+  <meta name="ext-resource-dependency" content="images/dest-kerala.webp">
+  <meta name="ext-resource-dependency" content="images/dest-goa.jpg">
+  <meta name="ext-resource-dependency" content="images/dest-ooty.webp">
+  <meta name="ext-resource-dependency" content="images/dest-mysuru.jpg">
+  <meta name="ext-resource-dependency" content="images/dest-agra.jpg">
+  <meta name="ext-resource-dependency" content="images/dest-thailand.jpg">
+  <meta name="ext-resource-dependency" content="images/dest-bali.jpg">
+  <meta name="ext-resource-dependency" content="images/dest-maldives.webp">
+</helmet>
+
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <rect width="120" height="120" fill="#0A5FD7"/>
+    <path d="M30 50 L60 30 L90 50 L85 85 Q60 95 35 85 Z" fill="#fff" opacity=".9"/>
+    <circle cx="60" cy="40" r="4" fill="#FFD000"/>
+    <text x="60" y="105" font-family="Arial" font-size="12" font-weight="bold" fill="#fff" text-anchor="middle">SKYLINE</text>
+  </svg>
+</template>
+
+<!-- ===== HEADER ===== -->
+<header style="position: sticky; top: 0; z-index: 1000; background: linear-gradient(135deg, #0a5fd7 0%, #0c70e2 100%); box-shadow: 0 2px 14px rgba(10,36,64,.22)">
+  <div style="max-width: 1280px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 32px">
+    <!-- Logo -->
+    <a href="Home.dc.html" style="display: flex; align-items: center; flex-shrink: 0; background: #fff; padding: 6px 14px; border-radius: 12px; box-shadow: 0 4px 14px rgba(0,0,0,.15)">
+      <img src="images/logo.jpeg" alt="Skyline Travel Planner" style="height: 56px; width: auto; display: block" />
+    </a>
+    
+    <!-- Main Menu -->
+    <nav style="display: flex; gap: 26px; align-items: center; flex: 1; flex-wrap: wrap">
+      <a href="Home.dc.html" style="font-weight: 700; font-size: 14px; color: #fff; border-bottom: 2px solid rgba(255,255,255,.85); padding-bottom: 2px">{{ t_home }}</a>
+      <a href="Domestic Tours.dc.html" style="font-weight: 600; font-size: 14px; color: rgba(255,255,255,.85); transition: color .2s" style-hover="color: #fff">{{ t_domestic }}</a>
+      <a href="Domestic Tours.dc.html" style="font-weight: 600; font-size: 14px; color: rgba(255,255,255,.85); transition: color .2s" style-hover="color: #fff">{{ t_international }}</a>
+      <a href="Customize.dc.html" style="font-weight: 600; font-size: 14px; color: rgba(255,255,255,.85); transition: color .2s" style-hover="color: #fff">{{ t_customize }}</a>
+    </nav>
+    
+    <!-- Right Controls -->
+    <div style="display: flex; align-items: center; gap: 12px; flex-shrink: 0">
+      <button onClick="{{ toggleLanguage }}" style="border: 1px solid rgba(255,255,255,.45); background: rgba(255,255,255,.14); cursor: pointer; font-family: inherit; font-weight: 700; font-size: 13px; color: #fff; padding: 8px 14px; border-radius: 8px; transition: all .2s" style-hover="background: rgba(255,255,255,.25)">
+        {{ langLabel }}
+      </button>
+      <a href="WhatsApp.dc.html" style="display: flex; align-items: center; gap: 6px; background: #25d366; color: #fff; font-weight: 700; font-size: 13px; padding: 10px 14px; border-radius: 8px; transition: all .2s" style-hover="background: #1da852; transform: translateY(-1px)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.54.36 3 .97 4.29L2 22l6.29-.97C9.01 21.64 10.46 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 18c-1.41 0-2.73-.36-3.88-.97l-.28-.14-2.89.44.44-2.89-.14-.28C4.36 14.73 4 13.41 4 12c0-4.41 3.59-8 8-8s8 3.59 8 8-3.59 8-8 8z"/></svg>
+        {{ t_chat }}
+      </a>
+      <a href="Customize.dc.html" style="background: #fff; color: #0a5fd7; font-weight: 800; font-size: 13px; padding: 10px 18px; border-radius: 8px; box-shadow: 0 4px 14px rgba(0,0,0,.18); transition: all .2s" style-hover="transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,.28)">
+        {{ t_customize_btn }}
+      </a>
+    </div>
+  </div>
+</header>
+
+<!-- ===== HERO: SEARCH CATEGORIES ===== -->
+<section class="hero-anim" style="background: linear-gradient(135deg, #0a5fd7 0%, #0d7ae8 100%); color: #fff; padding: 48px 24px">
+  <div class="hero-photo"></div>
+  <div class="hero-photo hp hp1"></div>
+  <div class="hero-photo hp hp2"></div>
+  <div class="hero-photo hp hp3"></div>
+  <div class="hero-photo hp hp4"></div>
+  <div class="hero-photo hp hp5"></div>
+  <div class="hero-photo hp hp6"></div>
+  <div class="hero-photo hp hp7"></div>
+  <div class="hero-photo hp hp8"></div>
+  <div class="hero-photo hp hp9"></div>
+  <div class="hero-photo hp hp10"></div>
+  <div class="hero-tint"></div>
+  <span class="xplane xp1"><span class="trail"></span><svg width="34" height="34" viewBox="0 0 24 24" fill="rgba(255,255,255,.9)" style="transform:rotate(98deg)"><path d="M21 16l-7-4V6a2 2 0 10-4 0v6l-7 4v2l7-2v3l-2 1.5V22l4-1 4 1v-1.5L14 19v-3l7 2v-2z"/></svg></span>
+  <span class="xplane xp2"><span class="trail"></span><svg width="25" height="25" viewBox="0 0 24 24" fill="rgba(255,255,255,.75)" style="transform:rotate(-96deg)"><path d="M21 16l-7-4V6a2 2 0 10-4 0v6l-7 4v2l7-2v3l-2 1.5V22l4-1 4 1v-1.5L14 19v-3l7 2v-2z"/></svg></span>
+  <div style="max-width: 1280px; margin: 0 auto; position: relative; z-index: 1">
+    <div style="text-align: center; margin-bottom: 40px">
+      <h1 class="fu" style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 46px; line-height: 1.12; margin: 0 auto; max-width: 880px; letter-spacing: -.02em">{{ t_hero_headline }}</h1>
+      <p class="fu fu2" style="font-size: 18px; line-height: 1.5; color: rgba(255,255,255,.85); margin: 16px 0 0; max-width: 640px; margin-left: auto; margin-right: auto">{{ t_hero_subheading }}</p>
+    </div>
+    
+    <!-- Search Categories Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; max-width: 1000px; margin: 230px auto 0">
+      <a href="Flights.dc.html" class="cat fu fu3" style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px 16px; background: rgba(255,255,255,.12); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,.2); border-radius: 14px; transition: all .3s; cursor: pointer" style-hover="background: rgba(255,255,255,.18); border-color: rgba(255,255,255,.4); transform: translateY(-4px)">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M21 16l-7-4V6a2 2 0 10-4 0v6l-7 4v2l7-2v3l-2 1.5V22l4-1 4 1v-1.5L14 19v-3l7 2v-2z" fill="#fff"/></svg>
+        <span style="font-weight: 700; font-size: 15px">{{ t_flights }}</span>
+      </a>
+      
+      <a href="Trains.dc.html" class="cat fu fu4" style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px 16px; background: rgba(255,255,255,.12); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,.2); border-radius: 14px; transition: all .3s; cursor: pointer" style-hover="background: rgba(255,255,255,.18); border-color: rgba(255,255,255,.4); transform: translateY(-4px)">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><rect x="6" y="3" width="12" height="14" rx="3" stroke="#fff" stroke-width="1.8"/><path d="M6 11h12M9 21l-2 2M15 21l2 2" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span style="font-weight: 700; font-size: 15px">{{ t_trains }}</span>
+      </a>
+      
+      <a href="Buses.dc.html" class="cat fu fu5" style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px 16px; background: rgba(255,255,255,.12); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,.2); border-radius: 14px; transition: all .3s; cursor: pointer" style-hover="background: rgba(255,255,255,.18); border-color: rgba(255,255,255,.4); transform: translateY(-4px)">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="13" rx="3" stroke="#fff" stroke-width="1.8"/><path d="M4 12h16M8 21l-1 1M16 21l1 1" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span style="font-weight: 700; font-size: 15px">{{ t_buses }}</span>
+      </a>
+      
+      <a href="Hotels.dc.html" class="cat fu fu6" style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px 16px; background: rgba(255,255,255,.12); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,.2); border-radius: 14px; transition: all .3s; cursor: pointer" style-hover="background: rgba(255,255,255,.18); border-color: rgba(255,255,255,.4); transform: translateY(-4px)">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M3 18V9a2 2 0 012-2h6a2 2 0 012 2v3h6a2 2 0 012 2v4" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><path d="M3 14h18M6 7V5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span style="font-weight: 700; font-size: 15px">{{ t_hotels }}</span>
+      </a>
+      
+      <a href="Customize.dc.html" class="cat fu fu7" style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px 16px; background: rgba(255,255,255,.25); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,.4); border-radius: 14px; transition: all .3s" style-hover="background: rgba(255,255,255,.35); transform: translateY(-4px)">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M9 20l-5 1 1-5L17 4l4 4L9 20z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><path d="M14 7l3 3" stroke="#fff" stroke-width="1.8"/></svg>
+        <span style="font-weight: 700; font-size: 15px">{{ t_packages }}</span>
+      </a>
+    </div>
+<div class="fu fu7" style="display:flex;gap:38px;justify-content:center;flex-wrap:wrap;margin-top:38px"><div style="text-align:center;min-width:120px"><div class="statv" data-count-to="15" data-suffix="+">15+</div><div style="font-size:12.5px;color:rgba(255,255,255,.8);font-weight:600;margin-top:5px" data-i18n-en="Indian destinations" data-i18n-hi="भारतीय गंतव्य" data-i18n-gu="ભારતીય સ્થળો">Indian destinations</div></div><div style="text-align:center;min-width:120px"><div class="statv" data-count-to="3" data-suffix="">3</div><div style="font-size:12.5px;color:rgba(255,255,255,.8);font-weight:600;margin-top:5px" data-i18n-en="International getaways" data-i18n-hi="विदेशी गंतव्य" data-i18n-gu="વિદેશી સ્થળો">International getaways</div></div><div style="text-align:center;min-width:120px"><div class="statv" data-count-to="11" data-suffix="">11</div><div style="font-size:12.5px;color:rgba(255,255,255,.8);font-weight:600;margin-top:5px" data-i18n-en="Travel styles" data-i18n-hi="यात्रा शैलियाँ" data-i18n-gu="પ્રવાસ શૈલીઓ">Travel styles</div></div><div style="text-align:center;min-width:120px"><div class="statv" data-count-to="3" data-suffix="">3</div><div style="font-size:12.5px;color:rgba(255,255,255,.8);font-weight:600;margin-top:5px" data-i18n-en="Languages" data-i18n-hi="भाषाएँ" data-i18n-gu="ભાષાઓ">Languages</div></div></div>
+  </div>
+</section>
+
+<div class="marq-wrap"><div class="marq"><span>Rajasthan ✈ Himachal Pradesh ✈ Kashmir ✈ Kerala ✈ Goa ✈ Ooty & Nilgiris ✈ Mysuru & Coorg ✈ Agra ✈ Meghalaya ✈ Assam ✈ Arunachal Pradesh ✈ Nagaland ✈ Manipur ✈ Mizoram ✈ Kausani ✈ Thailand ✈ Bali ✈ Maldives ✈ </span><span aria-hidden="true">Rajasthan ✈ Himachal Pradesh ✈ Kashmir ✈ Kerala ✈ Goa ✈ Ooty & Nilgiris ✈ Mysuru & Coorg ✈ Agra ✈ Meghalaya ✈ Assam ✈ Arunachal Pradesh ✈ Nagaland ✈ Manipur ✈ Mizoram ✈ Kausani ✈ Thailand ✈ Bali ✈ Maldives ✈ </span></div></div>
+
+<!-- ===== POPULAR DESTINATIONS ===== -->
+<section style="max-width: 1280px; margin: 0 auto; padding: 64px 24px 48px">
+  <div style="margin-bottom: 32px">
+    <span style="color: #0a5fd7; font-weight: 700; font-size: 12px; letter-spacing: .06em; text-transform: uppercase">{{ t_within_india }}</span>
+    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 42px; letter-spacing: -.02em; margin: 8px 0 0">{{ t_popular_destinations }}</h2>
+  </div>
+  
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; width: 100%">
+      <!-- Rajasthan -->
+      <a href="Domestic Tours.dc.html" class="dcard rv">
+        <div class="dbg" style="background-color: #dce6f2; background-image: url('images/dest-rajasthan.jpg')"></div>
+        <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgba(26,35,50,.88))"></div>
+        <div style="position: relative; z-index: 2; padding: 20px; width: 100%">
+          <div style="font-weight: 700; font-size: 17px; color: #fff" data-i18n-en="Rajasthan" data-i18n-hi="राजस्थान" data-i18n-gu="રાજસ્થાન">Rajasthan</div>
+          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="4-7 days" data-i18n-hi="4-7 दिन" data-i18n-gu="4-7 દિવસ">4-7 days</div>
+          <span class="dxp"><span data-i18n-en="Explore" data-i18n-hi="देखें" data-i18n-gu="જુઓ">Explore</span>&nbsp;→</span>
+        </div>
+      </a>
+      <!-- Himachal Pradesh -->
+      <a href="Domestic Tours.dc.html" class="dcard rv">
+        <div class="dbg" style="background-color: #dce6f2; background-image: url('images/dest-himachal.avif')"></div>
+        <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgba(26,35,50,.88))"></div>
+        <div style="position: relative; z-index: 2; padding: 20px; width: 100%">
+          <div style="font-weight: 700; font-size: 17px; color: #fff" data-i18n-en="Himachal Pradesh" data-i18n-hi="हिमाचल प्रदेश" data-i18n-gu="હિમાચલ પ્રદેશ">Himachal Pradesh</div>
+          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="5-7 days" data-i18n-hi="5-7 दिन" data-i18n-gu="5-7 દિવસ">5-7 days</div>
+          <span class="dxp"><span data-i18n-en="Explore" data-i18n-hi="देखें" data-i18n-gu="જુઓ">Explore</span>&nbsp;→</span>
+        </div>
+      </a>
+      <!-- Kashmir -->
+      <a href="Domestic Tours.dc.html" class="dcard rv">
+        <div class="dbg" style="background-color: #dce6f2; background-image: url('images/dest-kashmir.webp')"></div>
+        <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgba(26,35,50,.88))"></div>
+        <div style="position: relative; z-index: 2; padding: 20px; width: 100%">
+          <div style="font-weight: 700; font-size: 17px; color: #fff" data-i18n-en="Kashmir" data-i18n-hi="कश्मीर" data-i18n-gu="કાશ્મીર">Kashmir</div>
+          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="5-6 days" data-i18n-hi="5-6 दिन" data-i18n-gu="5-6 દિવસ">5-6 days</div>
+          <span class="dxp"><span data-i18n-en="Explore" data-i18n-hi="देखें" data-i18n-gu="જુઓ">Explore</span>&nbsp;→</span>
+        </div>
+      </a>
+      <!-- Kerala -->
+      <a href="Domestic Tours.dc.html" class="dcard rv">
+        <div class="dbg" style="background-color: #dce6f2; background-image: url('images/dest-kerala.webp')"></div>
+        <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgba(26,35,50,.88))"></div>
+        <div style="position: relative; z-index: 2; padding: 20px; width: 100%">
+          <div style="font-weight: 700; font-size: 17px; color: #fff" data-i18n-en="Kerala" data-i18n-hi="केरल" data-i18n-gu="કેરળ">Kerala</div>
+          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="4-5 days" data-i18n-hi="4-5 दिन" data-i18n-gu="4-5 દિવસ">4-5 days</div>
+          <span class="dxp"><span data-i18n-en="Explore" data-i18n-hi="देखें" data-i18n-gu="જુઓ">Explore</span>&nbsp;→</span>
+        </div>
+      </a>
+      <!-- Goa -->
+      <a href="Domestic Tours.dc.html" class="dcard rv">
+        <div class="dbg" style="background-color: #dce6f2; background-image: url('images/dest-goa.jpg')"></div>
+        <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgba(26,35,50,.88))"></div>
+        <div style="position: relative; z-index: 2; padding: 20px; width: 100%">
+          <div style="font-weight: 700; font-size: 17px; color: #fff" data-i18n-en="Goa" data-i18n-hi="गोवा" data-i18n-gu="ગોવા">Goa</div>
+          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="3-5 days" data-i18n-hi="3-5 दिन" data-i18n-gu="3-5 દિવસ">3-5 days</div>
+          <span class="dxp"><span data-i18n-en="Explore" data-i18n-hi="देखें" data-i18n-gu="જુઓ">Explore</span>&nbsp;→</span>
+        </div>
+      </a>
+      <!-- Ooty & Nilgiris -->
+      <a href="Domestic Tours.dc.html" class="dcard rv">
+        <div class="dbg" style="background-color: #dce6f2; background-image: url('images/dest-ooty.webp')"></div>
+        <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgba(26,35,50,.88))"></div>
+        <div style="position: relative; z-index: 2; padding: 20px; width: 100%">
+          <div style="font-weight: 700; font-size: 17px; color: #fff" data-i18n-en="Ooty & Nilgiris" data-i18n-hi="ऊटी और नीलगिरि" data-i18n-gu="ઊટી અને નીલગિરિ">Ooty & Nilgiris</div>
+          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="3-4 days" data-i18n-hi="3-4 दिन" data-i18n-gu="3-4 દિવસ">3-4 days</div>
+          <span class="dxp"><span data-i18n-en="Explore" data-i18n-hi="देखें" data-i18n-gu="જુઓ">Explore</span>&nbsp;→</span>
+        </div>
+      </a>
+      <!-- Mysuru & Coorg -->
+      <a href="Domestic Tours.dc.html" class="dcard rv">
+        <div class="dbg" style="background-color: #dce6f2; background-image: url('images/dest-mysuru.jpg')"></div>
+        <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgba(26,35,50,.88))"></div>
+        <div style="position: relative; z-index: 2; padding: 20px; width: 100%">
+          <div style="font-weight: 700; font-size: 17px; color: #fff" data-i18n-en="Mysuru & Coorg" data-i18n-hi="मैसूर और कूर्ग" data-i18n-gu="મૈસૂર અને કૂર્ગ">Mysuru & Coorg</div>
+          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="3-4 days" data-i18n-hi="3-4 दिन" data-i18n-gu="3-4 દિવસ">3-4 days</div>
+          <span class="dxp"><span data-i18n-en="Explore" data-i18n-hi="देखें" data-i18n-gu="જુઓ">Explore</span>&nbsp;→</span>
+        </div>
+      </a>
+      <!-- Agra & Taj Mahal -->
+      <a href="Domestic Tours.dc.html" class="dcard rv">
+        <div class="dbg" style="background-color: #dce6f2; background-image: url('images/dest-agra.jpg')"></div>
+        <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgba(26,35,50,.88))"></div>
+        <div style="position: relative; z-index: 2; padding: 20px; width: 100%">
+          <div style="font-weight: 700; font-size: 17px; color: #fff" data-i18n-en="Agra & Taj Mahal" data-i18n-hi="आगरा और ताज महल" data-i18n-gu="આગ્રા અને તાજમહેલ">Agra & Taj Mahal</div>
+          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="2-3 days" data-i18n-hi="2-3 दिन" data-i18n-gu="2-3 દિવસ">2-3 days</div>
+          <span class="dxp"><span data-i18n-en="Explore" data-i18n-hi="देखें" data-i18n-gu="જુઓ">Explore</span>&nbsp;→</span>
+        </div>
+      </a>
+      <!-- Meghalaya -->
+      <a href="Domestic Tours.dc.html" class="dcard rv">
+        <div class="dbg" style="background-color: #dce6f2; background-image: url('images/dest-meghalaya.jpg')"></div>
+        <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgba(26,35,50,.88))"></div>
+        <div style="position: relative; z-index: 2; padding: 20px; width: 100%">
+          <div style="font-weight: 700; font-size: 17px; color: #fff" data-i18n-en="Meghalaya" data-i18n-hi="मेघालय" data-i18n-gu="મેઘાલય">Meghalaya</div>
+          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="5-7 days" data-i18n-hi="5-7 दिन" data-i18n-gu="5-7 દિવસ">5-7 days</div>
+          <span class="dxp"><span data-i18n-en="Explore" data-i18n-hi="देखें" data-i18n-gu="જુઓ">Explore</span>&nbsp;→</span>
+        </div>
+      </a>
+      <!-- Assam · Kaziranga -->
+      <a href="Domestic Tours.dc.html" class="dcard rv">
+        <div class="dbg" style="background-color: #dce6f2; background-image: url('images/dest-assam.jpg')"></div>
+        <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgba(26,35,50,.88))"></div>
+        <div style="position: relative; z-index: 2; padding: 20px; width: 100%">
+          <div style="font-weight: 700; font-size: 17px; color: #fff" data-i18n-en="Assam · Kaziranga" data-i18n-hi="असम · काज़ीरंगा" data-i18n-gu="આસામ · કાઝીરંગા">Assam · Kaziranga</div>
+          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="4-6 days" data-i18n-hi="4-6 दिन" data-i18n-gu="4-6 દિવસ">4-6 days</div>
+          <span class="dxp"><span data-i18n-en="Explore" data-i18n-hi="देखें" data-i18n-gu="જુઓ">Explore</span>&nbsp;→</span>
+        </div>
+      </a>
+      <!-- Arunachal Pradesh -->
+      <a href="Domestic Tours.dc.html" class="dcard rv">
+        <div class="dbg" style="background-color: #dce6f2; background-image: url('images/dest-arunachal.jpg')"></div>
+        <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgba(26,35,50,.88))"></div>
+        <div style="position: relative; z-index: 2; padding: 20px; width: 100%">
+          <div style="font-weight: 700; font-size: 17px; color: #fff" data-i18n-en="Arunachal Pradesh" data-i18n-hi="अरुणाचल प्रदेश" data-i18n-gu="અરુણાચલ પ્રદેશ">Arunachal Pradesh</div>
+          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="6-8 days" data-i18n-hi="6-8 दिन" data-i18n-gu="6-8 દિવસ">6-8 days</div>
+          <span class="dxp"><span data-i18n-en="Explore" data-i18n-hi="देखें" data-i18n-gu="જુઓ">Explore</span>&nbsp;→</span>
+        </div>
+      </a>
+      <!-- Nagaland -->
+      <a href="Domestic Tours.dc.html" class="dcard rv">
+        <div class="dbg" style="background-color: #dce6f2; background-image: url('images/dest-nagaland.jpg')"></div>
+        <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgba(26,35,50,.88))"></div>
+        <div style="position: relative; z-index: 2; padding: 20px; width: 100%">
+          <div style="font-weight: 700; font-size: 17px; color: #fff" data-i18n-en="Nagaland" data-i18n-hi="नागालैंड" data-i18n-gu="નાગાલેન્ડ">Nagaland</div>
+          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="5-7 days" data-i18n-hi="5-7 दिन" data-i18n-gu="5-7 દિવસ">5-7 days</div>
+          <span class="dxp"><span data-i18n-en="Explore" data-i18n-hi="देखें" data-i18n-gu="જુઓ">Explore</span>&nbsp;→</span>
+        </div>
+      </a>
+      <!-- Manipur · Loktak -->
+      <a href="Domestic Tours.dc.html" class="dcard rv">
+        <div class="dbg" style="background-color: #dce6f2; background-image: url('images/dest-manipur.jpg')"></div>
+        <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgba(26,35,50,.88))"></div>
+        <div style="position: relative; z-index: 2; padding: 20px; width: 100%">
+          <div style="font-weight: 700; font-size: 17px; color: #fff" data-i18n-en="Manipur · Loktak" data-i18n-hi="मणिपुर · लोकतक" data-i18n-gu="મણિપુર · લોકતક">Manipur · Loktak</div>
+          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="4-6 days" data-i18n-hi="4-6 दिन" data-i18n-gu="4-6 દિવસ">4-6 days</div>
+          <span class="dxp"><span data-i18n-en="Explore" data-i18n-hi="देखें" data-i18n-gu="જુઓ">Explore</span>&nbsp;→</span>
+        </div>
+      </a>
+      <!-- Mizoram -->
+      <a href="Domestic Tours.dc.html" class="dcard rv">
+        <div class="dbg" style="background-color: #dce6f2; background-image: url('images/dest-mizoram.jpg')"></div>
+        <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgba(26,35,50,.88))"></div>
+        <div style="position: relative; z-index: 2; padding: 20px; width: 100%">
+          <div style="font-weight: 700; font-size: 17px; color: #fff" data-i18n-en="Mizoram" data-i18n-hi="मिज़ोरम" data-i18n-gu="મિઝોરમ">Mizoram</div>
+          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="5-7 days" data-i18n-hi="5-7 दिन" data-i18n-gu="5-7 દિવસ">5-7 days</div>
+          <span class="dxp"><span data-i18n-en="Explore" data-i18n-hi="देखें" data-i18n-gu="જુઓ">Explore</span>&nbsp;→</span>
+        </div>
+      </a>
+      <!-- Kausani, Uttarakhand -->
+      <a href="Domestic Tours.dc.html" class="dcard rv">
+        <div class="dbg" style="background-color: #dce6f2; background-image: url('images/dest-kausani.jpg')"></div>
+        <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgba(26,35,50,.88))"></div>
+        <div style="position: relative; z-index: 2; padding: 20px; width: 100%">
+          <div style="font-weight: 700; font-size: 17px; color: #fff" data-i18n-en="Kausani, Uttarakhand" data-i18n-hi="कौसानी, उत्तराखंड" data-i18n-gu="કૌસાની, ઉત્તરાખંડ">Kausani, Uttarakhand</div>
+          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="5-7 days · Off-beat Kumaon" data-i18n-hi="5-7 दिन · अनोखा कुमाऊं" data-i18n-gu="5-7 દિવસ · અનોખું કુમાઉં">5-7 days · Off-beat Kumaon</div>
+          <span class="dxp"><span data-i18n-en="Explore" data-i18n-hi="देखें" data-i18n-gu="જુઓ">Explore</span>&nbsp;→</span>
+        </div>
+      </a>
+  </div>
+</section>
+
+<!-- ===== INTERNATIONAL DESTINATIONS ===== -->
+<section style="max-width: 1280px; margin: 0 auto; padding: 48px 24px">
+  <div style="margin-bottom: 32px">
+    <span style="color: #0a5fd7; font-weight: 700; font-size: 12px; letter-spacing: .06em; text-transform: uppercase">{{ t_beyond_india }}</span>
+    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 42px; letter-spacing: -.02em; margin: 8px 0 0">{{ t_international }}</h2>
+  </div>
+  
+  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; max-width: 680px">
+    <sc-for list="{{ international }}" as="i" hint-placeholder-count="0">
+      <a href="Package.dc.html?pkg={{ i.slug }}" class="dcard rv">
+        <div class="dbg" style="{{ i.bg }}"></div>
+        <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgba(26,35,50,.88))"></div>
+        <div style="position: relative; z-index: 2; padding: 20px; width: 100%">
+          <div style="font-weight: 700; font-size: 17px; color: #fff">{{ i.name }}</div>
+          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px">{{ i.duration }}</div>
+          <span class="dxp"><span data-i18n-en="Explore" data-i18n-hi="देखें" data-i18n-gu="જુઓ">Explore</span>&nbsp;→</span>
+        </div>
+      </a>
+    </sc-for>
+  </div>
+</section>
+
+<!-- ===== PACKAGE STYLES ===== -->
+<section style="background: #f5f9ff; padding: 64px 24px">
+  <div style="max-width: 1280px; margin: 0 auto">
+    <div style="margin-bottom: 32px">
+      <span style="color: #0a5fd7; font-weight: 700; font-size: 12px; letter-spacing: .06em; text-transform: uppercase">{{ t_travel_styles }}</span>
+      <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 42px; letter-spacing: -.02em; margin: 8px 0 0">{{ t_package_styles }}</h2>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px">
+      <sc-for list="{{ styles }}" as="s" hint-placeholder-count="11">
+        <a href="Customize.dc.html" style="display: flex; align-items: center; gap: 12px; padding: 16px; border: 1.5px solid #e5ecf5; border-radius: 12px; background: #fff; transition: all .2s" style-hover="border-color: #0a5fd7; background: #f0f7ff; transform: translateY(-2px)">
+          <span style="font-size: 24px">{{ s.icon }}</span>
+          <span style="font-weight: 700; font-size: 14px; color: #1a2332">{{ s.name }}</span>
+        </a>
+      </sc-for>
+    </div>
+  </div>
+</section>
+
+<!-- ===== HOW IT WORKS ===== -->
+<section style="background: #1a2332; color: #fff; padding: 64px 24px">
+  <div style="max-width: 1280px; margin: 0 auto">
+    <div style="text-align: center; margin-bottom: 48px">
+      <span style="color: #5fc2f0; font-weight: 700; font-size: 12px; letter-spacing: .06em; text-transform: uppercase">{{ t_process }}</span>
+      <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 42px; letter-spacing: -.02em; margin: 8px 0 0">{{ t_how_works }}</h2>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px">
+      <sc-for list="{{ steps }}" as="st" hint-placeholder-count="4">
+        <div style="text-align: center">
+          <div style="width: 56px; height: 56px; border-radius: 14px; background: rgba(95,194,240,.15); display: flex; align-items: center; justify-content: center; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 24px; color: #5fc2f0; margin: 0 auto 16px">{{ st.num }}</div>
+          <div style="font-weight: 700; font-size: 16px; margin-bottom: 8px">{{ st.title }}</div>
+          <div style="font-size: 14px; line-height: 1.5; color: rgba(255,255,255,.7)">{{ st.desc }}</div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</section>
+
+<!-- ===== WHY CHOOSE US ===== -->
+<section style="max-width: 1280px; margin: 0 auto; padding: 64px 24px">
+  <div style="margin-bottom: 40px; text-align: center">
+    <span style="color: #0a5fd7; font-weight: 700; font-size: 12px; letter-spacing: .06em; text-transform: uppercase">{{ t_why_us }}</span>
+    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 42px; letter-spacing: -.02em; margin: 8px 0 0">{{ t_why_choose }}</h2>
+  </div>
+  
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px">
+    <sc-for list="{{ reasons }}" as="r" hint-placeholder-count="6">
+      <div style="padding: 24px; border: 1.5px solid #e5ecf5; border-radius: 14px; background: #fff; transition: all .2s" style-hover="border-color: #0a5fd7; box-shadow: 0 8px 20px rgba(10,95,215,.1); transform: translateY(-2px)">
+        <div style="font-size: 28px; margin-bottom: 12px">{{ r.icon }}</div>
+        <div style="font-weight: 700; font-size: 16px; margin-bottom: 6px; color: #1a2332">{{ r.title }}</div>
+        <div style="font-size: 14px; line-height: 1.5; color: #5c6f80">{{ r.desc }}</div>
+      </div>
+    </sc-for>
+  </div>
+</section>
+
+<!-- ===== CTA: CUSTOMIZED PACKAGE ===== -->
+<section style="background: linear-gradient(135deg, #0a5fd7 0%, #0d7ae8 100%); color: #fff; padding: 64px 24px; text-align: center">
+  <div style="max-width: 640px; margin: 0 auto">
+    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 40px; letter-spacing: -.02em; margin: 0 0 16px">{{ t_cta_headline }}</h2>
+    <p style="font-size: 16px; line-height: 1.6; color: rgba(255,255,255,.9); margin: 0 0 32px">{{ t_cta_subheading }}</p>
+    <a href="Customize.dc.html" style="display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #0a5fd7; font-weight: 700; font-size: 15px; padding: 14px 28px; border-radius: 8px; transition: all .3s" style-hover="transform: translateY(-2px); box-shadow: 0 12px 30px rgba(0,0,0,.2)">
+      {{ t_request_quote }}
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer style="background: #1a2332; color: #fff; padding: 48px 24px 24px; border-top: 1px solid rgba(255,255,255,.1)">
+  <div style="max-width: 1280px; margin: 0 auto; padding-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,.1)">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 32px; margin-bottom: 32px">
+      <div>
+        <div style="font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 16px; color: #5fc2f0">{{ t_explore }}</div>
+        <div style="display: flex; flex-direction: column; gap: 8px; font-size: 14px">
+          <a href="Domestic.dc.html" style="color: rgba(255,255,255,.7); transition: color .2s" style-hover="color: #5fc2f0">{{ t_domestic }}</a>
+          <a href="International.dc.html" style="color: rgba(255,255,255,.7); transition: color .2s" style-hover="color: #5fc2f0">{{ t_international }}</a>
+          <a href="Customize.dc.html" style="color: rgba(255,255,255,.7); transition: color .2s" style-hover="color: #5fc2f0">{{ t_customize }}</a>
+        </div>
+      </div>
+      <div>
+        <div style="font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 16px; color: #5fc2f0">{{ t_services }}</div>
+        <div style="display: flex; flex-direction: column; gap: 8px; font-size: 14px">
+          <a href="#" style="color: rgba(255,255,255,.7); transition: color .2s" style-hover="color: #5fc2f0">{{ t_flights }}</a>
+          <a href="#" style="color: rgba(255,255,255,.7); transition: color .2s" style-hover="color: #5fc2f0">{{ t_trains }}</a>
+          <a href="#" style="color: rgba(255,255,255,.7); transition: color .2s" style-hover="color: #5fc2f0">{{ t_buses }}</a>
+          <a href="#" style="color: rgba(255,255,255,.7); transition: color .2s" style-hover="color: #5fc2f0">{{ t_hotels }}</a>
+        </div>
+      </div>
+      <div>
+        <div style="font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 16px; color: #5fc2f0">{{ t_contact_us }}</div>
+        <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px">
+          <div style="display: flex; align-items: center; gap: 8px; color: rgba(255,255,255,.8)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <span>info@skylinetravelplanner.com</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; color: rgba(255,255,255,.8)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.54.36 3 .97 4.29L2 22l6.29-.97C9.01 21.64 10.46 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2z"/></svg>
+            <span>+91 88660 50291</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="text-align: center; padding-top: 24px; font-size: 12px; color: rgba(255,255,255,.5)">
+    <div style="display: flex; gap: 20px; justify-content: center; margin-bottom: 12px">
+      <a href="Privacy.dc.html" style="color: #5fc2f0; font-weight: 600" style-hover="text-decoration: underline">Privacy Policy</a>
+      <a href="Privacy.dc.html#cookies" style="color: #5fc2f0; font-weight: 600" style-hover="text-decoration: underline">Cookie Policy</a>
+    </div>
+    <p>© 2024 Skyline Travel Planner. {{ t_no_payments }}<br>{{ t_affiliate_disclosure }}<br><span style="font-size:11px">Hero photos (Wikimedia Commons): M. Visser, D. Aiello/Jebulon, Mozzihh, M. Michalczyk, Konkan Railway (GODL-India), Samson Joseph, Nikhilrabade, Gunjan Pandey, Ganesh Mohan T, V. Argenberg — CC BY/BY-SA</span></p>
+  </div>
+</footer>
+
+<!-- ===== COOKIE CONSENT BANNER ===== -->
+<sc-if value="{{ showCookies }}" hint-placeholder-val="{{ true }}">
+  <div style="position: fixed; left: 0; right: 0; bottom: 0; z-index: 2000; background: #1a2332; color: #fff; padding: 20px 24px; box-shadow: 0 -4px 24px rgba(0,0,0,.25)">
+    <div style="max-width: 1280px; margin: 0 auto; display: flex; align-items: center; gap: 24px; flex-wrap: wrap">
+      <div style="flex: 1; min-width: 260px; font-size: 14px; line-height: 1.6; color: rgba(255,255,255,.85)">
+        We use cookies to remember your language preference and improve your browsing experience. By clicking "Accept", you agree to our use of cookies. Read our <a href="Privacy.dc.html#cookies" style="color: #5fc2f0; font-weight: 600; text-decoration: underline">Cookie Policy</a>.
+      </div>
+      <div style="display: flex; gap: 12px; flex-shrink: 0">
+        <button onClick="{{ declineCookies }}" style="background: transparent; color: #fff; font-weight: 700; font-size: 14px; padding: 12px 22px; border: 1.5px solid rgba(255,255,255,.35); border-radius: 8px; cursor: pointer">Decline</button>
+        <button onClick="{{ acceptCookies }}" style="background: #25d366; color: #fff; font-weight: 700; font-size: 14px; padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer">Accept</button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<dc-import name="AssistantWidget" hint-size="0,0"></dc-import>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    lang: 'en',
+    cookieChoice: null,
+    destinations: [
+      { id: 'raj', slug: 'rajasthan', name: 'Rajasthan', duration: '4-7 days', img: 'images/dest-rajasthan.jpg' },
+      { id: 'him', slug: 'himachal', name: 'Himachal Pradesh', duration: '5-7 days', img: 'images/dest-himachal.avif' },
+      { id: 'kash', slug: 'kashmir', name: 'Kashmir', duration: '5-6 days', img: 'images/dest-kashmir.webp' },
+      { id: 'ker', slug: 'kerala', name: 'Kerala', duration: '4-5 days', img: 'images/dest-kerala.webp' },
+      { id: 'goa', slug: 'goa', name: 'Goa', duration: '3-5 days', img: 'images/dest-goa.jpg' },
+      { id: 'oot', slug: 'ooty', name: 'Ooty & Nilgiris', duration: '3-4 days', img: 'images/dest-ooty.webp' },
+      { id: 'mys', slug: 'mysuru', name: 'Mysuru & Coorg', duration: '3-4 days', img: 'images/dest-mysuru.jpg' },
+      { id: 'agr', slug: 'agra', name: 'Agra & Taj Mahal', duration: '2-3 days', img: 'images/dest-agra.jpg' },
+      { id: 'megh', slug: 'meghalaya', name: 'Meghalaya', duration: '5-7 days', img: 'images/dest-meghalaya.jpg' },
+      { id: 'asm', slug: 'assam', name: 'Assam · Kaziranga', duration: '4-6 days', img: 'images/dest-assam.jpg' },
+      { id: 'arun', slug: 'arunachal', name: 'Arunachal Pradesh', duration: '6-8 days', img: 'images/dest-arunachal.jpg' },
+      { id: 'naga', slug: 'nagaland', name: 'Nagaland', duration: '5-7 days', img: 'images/dest-nagaland.jpg' },
+      { id: 'mani', slug: 'manipur', name: 'Manipur · Loktak', duration: '4-6 days', img: 'images/dest-manipur.jpg' },
+      { id: 'mizo', slug: 'mizoram', name: 'Mizoram', duration: '5-7 days', img: 'images/dest-mizoram.jpg' },
+      { id: 'kaus', slug: 'kausani', name: 'Kausani, Uttarakhand', duration: '5-7 days · Off-beat Kumaon', img: 'images/dest-kausani.jpg' }
+    ],
+    international: [
+      { id: 'thai', slug: 'thailand', name: 'Thailand', name_hi: 'थाईलैंड', name_gu: 'થાઈલેન્ડ', duration: '5-7 days', duration_hi: '5-7 दिन', duration_gu: '5-7 દિવસ', img: 'images/dest-thailand.jpg' },
+      { id: 'bali', slug: 'bali', name: 'Bali', name_hi: 'बाली', name_gu: 'બાલી', duration: '5-7 days', duration_hi: '5-7 दिन', duration_gu: '5-7 દિવસ', img: 'images/dest-bali.jpg' },
+      { id: 'mal', slug: 'maldives', name: 'Maldives', name_hi: 'मालदीव', name_gu: 'માલદીવ્સ', duration: '4-6 days', duration_hi: '4-6 दिन', duration_gu: '4-6 દિવસ', img: 'images/dest-maldives.webp' }
+    ],
+    styles: [
+      { icon: '👨‍👩‍👧‍👦', name: 'Family' },
+      { icon: '💑', name: 'Honeymoon' },
+      { icon: '🙏', name: 'Religious' },
+      { icon: '👥', name: 'Group' },
+      { icon: '🏖️', name: 'Beach' },
+      { icon: '⛰️', name: 'Adventure' },
+      { icon: '👴', name: 'Senior' },
+      { icon: '✨', name: 'Luxury' },
+      { icon: '💰', name: 'Budget' },
+      { icon: '🏢', name: 'Corporate' },
+      { icon: '🎨', name: 'Custom' }
+    ],
+    steps: [
+      { num: '1', title: 'Choose Destination', title_hi: 'गंतव्य चुनें', title_gu: 'સ્થળ પસંદ કરો', desc: 'Browse domestic or international destinations and packages', desc_hi: 'भारतीय या अंतरराष्ट्रीय गंतव्य और पैकेज देखें', desc_gu: 'ભારતીય કે આંતરરાષ્ટ્રીય સ્થળો અને પેકેજ જુઓ' },
+      { num: '2', title: 'Share Details', title_hi: 'विवरण साझा करें', title_gu: 'વિગતો શેર કરો', desc: 'Tell us your dates, travellers, budget and preferences', desc_hi: 'हमें अपनी तारीखें, यात्री, बजट और प्राथमिकताएं बताएं', desc_gu: 'અમને તમારી તારીખો, પ્રવાસીઓ, બજેટ અને પસંદગીઓ જણાવો' },
+      { num: '3', title: 'Get Itinerary', title_hi: 'यात्रा योजना पाएं', title_gu: 'પ્રવાસ યોજના મેળવો', desc: 'Receive a customized itinerary and quotation', desc_hi: 'अनुकूलित यात्रा योजना और कोटेशन प्राप्त करें', desc_gu: 'કસ્ટમાઇઝ્ડ પ્રવાસ યોજના અને ક્વોટેશન મેળવો' },
+      { num: '4', title: 'Book & Travel', title_hi: 'बुक करें और यात्रा करें', title_gu: 'બુક કરો અને પ્રવાસ કરો', desc: 'Complete booking with official providers and enjoy', desc_hi: 'आधिकारिक प्रदाताओं के साथ बुकिंग पूरी करें और आनंद लें', desc_gu: 'અધિકૃત પ્રદાતાઓ સાથે બુકિંગ પૂર્ણ કરો અને આનંદ માણો' }
+    ],
+    reasons: [
+      { icon: '🇮🇳', title: 'India Expertise', title_hi: 'भारत विशेषज्ञता', title_gu: 'ભારત નિપુણતા', desc: 'Focused destination knowledge across all regions', desc_hi: 'सभी क्षेत्रों में केंद्रित गंतव्य ज्ञान', desc_gu: 'તમામ પ્રદેશોમાં કેન્દ્રિત સ્થળ જ્ઞાન' },
+      { icon: '🌍', title: 'Global Reach', title_hi: 'वैश्विक पहुंच', title_gu: 'વૈશ્વિક પહોંચ', desc: 'Domestic and international packages', desc_hi: 'भारतीय और अंतरराष्ट्रीय पैकेज', desc_gu: 'ભારતીય અને આંતરરાષ્ટ્રીય પેકેજ' },
+      { icon: '⭐', title: 'Hotel Choice', title_hi: 'होटल विकल्प', title_gu: 'હોટેલ પસંદગી', desc: '3-star, 4-star and 5-star options', desc_hi: '3-स्टार, 4-स्टार और 5-स्टार विकल्प', desc_gu: '3-સ્ટાર, 4-સ્ટાર અને 5-સ્ટાર વિકલ્પો' },
+      { icon: '📋', title: 'Customized', title_hi: 'अनुकूलित', title_gu: 'કસ્ટમાઇઝ્ડ', desc: 'Tailored itineraries for every traveller', desc_hi: 'हर यात्री के लिए तैयार यात्रा योजनाएं', desc_gu: 'દરેક પ્રવાસી માટે તૈયાર પ્રવાસ યોજનાઓ' },
+      { icon: '📞', title: 'WhatsApp Support', title_hi: 'व्हाट्सएप सहायता', title_gu: 'વોટ્સએપ સપોર્ટ', desc: 'Direct contact for assistance', desc_hi: 'सहायता के लिए सीधा संपर्क', desc_gu: 'સહાય માટે સીધો સંપર્ક' },
+      { icon: '✅', title: 'No Payments', title_hi: 'कोई भुगतान नहीं', title_gu: 'કોઈ ચુકવણી નહીં', desc: 'Book directly with official providers', desc_hi: 'आधिकारिक प्रदाताओं के साथ सीधे बुक करें', desc_gu: 'અધિકૃત પ્રદાતાઓ સાથે સીધું બુક કરો' }
+    ]
+  };
+
+  componentDidMount() {
+    try {
+      const c = localStorage.getItem('skyline_cookie_consent');
+      if (c) this.setState({ cookieChoice: c });
+    } catch (e) {}
+    this.applyLang();
+  }
+
+  componentDidUpdate() { this.applyLang(); }
+
+  // Swap text of the static (non data-bound) cards, e.g. the domestic destinations grid.
+  applyLang() {
+    if (typeof document === 'undefined') return;
+    const lang = this.state.lang;
+    document.querySelectorAll('[data-i18n-en]').forEach((n) => {
+      const v = lang === 'hi' ? n.getAttribute('data-i18n-hi')
+              : lang === 'gu' ? n.getAttribute('data-i18n-gu')
+              : n.getAttribute('data-i18n-en');
+      if (v != null) n.textContent = v;
+    });
+  }
+
+  // Pick the field for the current language, falling back to English.
+  tr(obj, base) {
+    const lang = this.state.lang;
+    if (lang === 'hi') return obj[base + '_hi'] || obj[base];
+    if (lang === 'gu') return obj[base + '_gu'] || obj[base];
+    return obj[base];
+  }
+
+  renderVals() {
+    const lang = this.state.lang;
+    const translations = {
+      en: {
+        siteTitle: 'Skyline Travel Planner',
+        t_home: 'Home',
+        t_domestic: 'Domestic Tours',
+        t_international: 'International Tours',
+        t_customize: 'Customized Packages',
+        t_flights: 'Flights',
+        t_trains: 'Trains',
+        t_buses: 'Buses',
+        t_hotels: 'Hotels',
+        t_packages: 'Tour Packages',
+        t_chat: 'Chat',
+        t_customize_btn: 'Customize My Trip',
+        t_hero_headline: 'Discover India and the World with Skyline Travel Planner',
+        t_hero_subheading: 'Explore flights, trains, buses, hotels and customized holiday packages across India, Thailand, Bali and the Maldives.',
+        t_within_india: 'Within India',
+        t_popular_destinations: 'Popular Indian destinations',
+        t_beyond_india: 'Beyond India',
+        t_international: 'International destinations',
+        t_travel_styles: 'Travel Styles',
+        t_package_styles: 'All Travel Styles',
+        t_process: 'Our Process',
+        t_how_works: 'How It Works',
+        t_why_us: 'Why Choose Us',
+        t_why_choose: 'Why Choose Skyline Travel Planner',
+        t_cta_headline: 'Your Holiday Should Fit You',
+        t_cta_subheading: 'Request a customized package tailored to your preferences, budget and travel dates.',
+        t_request_quote: 'Request a Quote',
+        t_explore: 'Explore',
+        t_services: 'Services',
+        t_contact_us: 'Contact',
+        t_no_payments: 'No payments processed on this website.',
+        t_affiliate_disclosure: 'We may earn commissions from affiliated providers.'
+      },
+      hi: {
+        siteTitle: 'स्काईलाइन ट्रैवल प्लानर',
+        t_home: 'होम',
+        t_domestic: 'भारतीय टूर',
+        t_international: 'अंतरराष्ट्रीय टूर',
+        t_customize: 'कस्टमाइज्ड पैकेज',
+        t_flights: 'उड़ानें',
+        t_trains: 'ट्रेनें',
+        t_buses: 'बसें',
+        t_hotels: 'होटल',
+        t_packages: 'टूर पैकेज',
+        t_chat: 'चैट करें',
+        t_customize_btn: 'मेरी यात्रा बनाएं',
+        t_hero_headline: 'स्काईलाइन ट्रैवल प्लानर के साथ भारत और दुनिया की खोज करें',
+        t_hero_subheading: 'भारत, थाईलैंड, बाली और मालदीव की उड़ानें, ट्रेनें, बसें, होटल और कस्टमाइज्ड पैकेज देखें।',
+        t_within_india: 'भारत में',
+        t_popular_destinations: 'लोकप्रिय भारतीय गंतव्य',
+        t_beyond_india: 'भारत से बाहर',
+        t_international: 'अंतरराष्ट्रीय गंतव्य',
+        t_travel_styles: 'यात्रा शैली',
+        t_package_styles: 'सभी यात्रा शैली',
+        t_process: 'हमारी प्रक्रिया',
+        t_how_works: 'यह कैसे काम करता है',
+        t_why_us: 'हमें क्यों चुनें',
+        t_why_choose: 'स्काईलाइन ट्रैवल प्लानर को क्यों चुनें',
+        t_cta_headline: 'आपकी छुट्टी आपके अनुसार हो',
+        t_cta_subheading: 'अपनी पसंद, बजट और यात्रा तारीख के अनुसार कस्टमाइज्ड पैकेज का अनुरोध करें।',
+        t_request_quote: 'कोटेशन माँगें',
+        t_explore: 'एक्सप्लोर करें',
+        t_services: 'सेवाएं',
+        t_contact_us: 'संपर्क',
+        t_no_payments: 'इस वेबसाइट पर कोई भुगतान संसाधित नहीं किया जाता है।',
+        t_affiliate_disclosure: 'हम संबद्ध प्रदाताओं से कमीशन अर्जित कर सकते हैं।'
+      },
+      gu: {
+        siteTitle: 'સ્કાયલાઇન ટ્રાવેલ પ્લાનર',
+        t_home: 'હોમ',
+        t_domestic: 'ભારતીય ટૂર',
+        t_international: 'આંતરરાષ્ટ્રીય ટૂર',
+        t_customize: 'કસ્ટમાઇઝ્ડ પેકેજ',
+        t_flights: 'ફ્લાઇટ્સ',
+        t_trains: 'ટ્રેનો',
+        t_buses: 'બસો',
+        t_hotels: 'હોટેલો',
+        t_packages: 'ટૂર પેકેજ',
+        t_chat: 'ચેટ કરો',
+        t_customize_btn: 'મારી ટ્રીપ કસ્ટમાઇઝ કરો',
+        t_hero_headline: 'સ્કાયલાઇન ટ્રાવેલ પ્લાનર સાથે ભારત અને વિશ્વની શોધ કરો',
+        t_hero_subheading: 'ભારત, થાઈલેન્ડ, બાલી અને માલદીવ્સ માટે ફ્લાઇટ્સ, ટ્રેનો, બસો અને હોટેલો શોધો.',
+        t_within_india: 'ભારતમાં',
+        t_popular_destinations: 'લોકપ્રિય ભારતીય સ્થળો',
+        t_beyond_india: 'ભારતની બહાર',
+        t_international: 'આંતરરાષ્ટ્રીય સ્થળો',
+        t_travel_styles: 'ટ્રાવેલ સ્ટાઇલ',
+        t_package_styles: 'તમામ ટ્રાવેલ સ્ટાઇલ',
+        t_process: 'અમારી પ્રક્રિયા',
+        t_how_works: 'તે કેવી રીતે કામ કરે છે',
+        t_why_us: 'અમને શા માટે પસંદ કરો',
+        t_why_choose: 'સ્કાયલાઇન ટ્રાવેલ પ્લાનર શા માટે પસંદ કરો',
+        t_cta_headline: 'તમારી ટ્રીપ તમારી શરતોમાં હોય',
+        t_cta_subheading: 'તમારી પસંદ, બજેટ અને ટ્રાવેલ તારીખ અનુસાર કસ્ટમાઇઝ્ડ પેકેજની વિનંતી કરો.',
+        t_request_quote: 'ક્વોટ માટે વિનંતી કરો',
+        t_explore: 'શોધો',
+        t_services: 'સેવાઓ',
+        t_contact_us: 'સંપર્ક',
+        t_no_payments: 'આ વેબસાઇટ પર કોઈ ચુકવણી કરવામાં આવતી નથી.',
+        t_affiliate_disclosure: 'અમે સંબંધિત પ્રદાતાઓ પાસેથી કમિશન મેળવી શકીએ છીએ.'
+      }
+    };
+
+    const t = translations[lang];
+
+    return {
+      showCookies: this.state.cookieChoice === null,
+      acceptCookies: () => {
+        try { localStorage.setItem('skyline_cookie_consent', 'accepted'); } catch (e) {}
+        this.setState({ cookieChoice: 'accepted' });
+      },
+      declineCookies: () => {
+        try { localStorage.setItem('skyline_cookie_consent', 'declined'); } catch (e) {}
+        this.setState({ cookieChoice: 'declined' });
+      },
+      siteTitle: t.siteTitle,
+      langLabel: lang === 'en' ? 'EN' : lang === 'hi' ? 'हिन्दी' : 'ગુજરાતી',
+      toggleLanguage: () => {
+        const langs = ['en', 'hi', 'gu'];
+        const idx = langs.indexOf(this.state.lang);
+        this.setState({ lang: langs[(idx + 1) % langs.length] });
+      },
+      goToFlights: (e) => { e.preventDefault(); alert('Redirect to flights'); },
+      goToTrains: (e) => { e.preventDefault(); alert('Redirect to trains'); },
+      goBuses: (e) => { e.preventDefault(); alert('Redirect to buses'); },
+      goHotels: (e) => { e.preventDefault(); alert('Redirect to hotels'); },
+      destinations: this.state.destinations.map((d) => ({ ...d, bg: { position: 'absolute', inset: 0, zIndex: 0, backgroundColor: '#dce6f2', backgroundImage: 'url("' + d.img + '")', backgroundSize: 'cover', backgroundPosition: 'center' } })),
+      international: this.state.international.map((i) => ({ ...i, name: this.tr(i, 'name'), duration: this.tr(i, 'duration'), bg: { position: 'absolute', inset: 0, zIndex: 0, backgroundColor: '#dce6f2', backgroundImage: 'url("' + i.img + '")', backgroundSize: 'cover', backgroundPosition: 'center' } })),
+      styles: this.state.styles,
+      steps: this.state.steps.map((st) => ({ ...st, title: this.tr(st, 'title'), desc: this.tr(st, 'desc') })),
+      reasons: this.state.reasons.map((r) => ({ ...r, title: this.tr(r, 'title'), desc: this.tr(r, 'desc') })),
+      ...t
+    };
+  }
+}
+
+</script>
+<script>
+/* Skyline — scroll reveal + stat counters (progressive enhancement; safe if JS is off). */
+(function(){
+  if(!('IntersectionObserver' in window)) return;
+  function runCounter(el){
+    if(el.dataset.done) return; el.dataset.done='1';
+    var to=+el.getAttribute('data-count-to')||0, suf=el.getAttribute('data-suffix')||'', t0=null;
+    function step(ts){ if(!t0)t0=ts; var k=Math.min(1,(ts-t0)/1100); k=1-Math.pow(1-k,3);
+      el.textContent=Math.round(to*k)+suf; if(k<1) requestAnimationFrame(step); }
+    requestAnimationFrame(step);
+  }
+  var io=new IntersectionObserver(function(es){ es.forEach(function(en){ if(!en.isIntersecting) return;
+    var el=en.target; io.unobserve(el);
+    el.classList.remove('rv-pre');
+    if(el.hasAttribute('data-count-to')) runCounter(el);
+  }); },{threshold:.15});
+  function hook(){
+    document.querySelectorAll('.rv:not([data-rvh])').forEach(function(el){
+      el.setAttribute('data-rvh','1');
+      var r=el.getBoundingClientRect();
+      if(r.top>window.innerHeight*0.9) el.classList.add('rv-pre');
+      io.observe(el);
+    });
+    document.querySelectorAll('[data-count-to]:not([data-rvh])').forEach(function(el){
+      el.setAttribute('data-rvh','1'); io.observe(el);
+    });
+  }
+  var n=0; var iv=setInterval(function(){ hook(); sweep(); if(n++>25) clearInterval(iv); },400);
+  try{ new MutationObserver(function(){ hook(); }).observe(document.documentElement,{childList:true,subtree:true}); }catch(e){}
+  // Safety nets: never leave content hidden if animations/observers are unavailable.
+  function forceFu(){ document.querySelectorAll('.fu').forEach(function(el){ try{ if(getComputedStyle(el).opacity==='0'){ el.style.animation='none'; el.style.opacity='1'; el.style.transform='none'; } }catch(e){} }); }
+  function sweep(){ document.querySelectorAll('.rv-pre').forEach(function(el){ var r=el.getBoundingClientRect(); if(r.top<window.innerHeight*0.96) el.classList.remove('rv-pre'); }); }
+  setTimeout(forceFu,1800); setTimeout(forceFu,4000);
+  window.addEventListener('scroll', function(){ sweep(); }, {passive:true});
+  hook();
+})();
+</script>
+</body>
+</html>

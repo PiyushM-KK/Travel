@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bus Booking - Skyline Travel Planner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box }
+    body { margin: 0; background: #f5f9ff; color: #1a2332; font-family: 'Plus Jakarta Sans', sans-serif }
+    a { text-decoration: none; color: inherit }
+    .bus-hero{background:linear-gradient(135deg,#0ea5a4 0%,#1481c6 55%,#1170c9 100%);color:#fff;padding:48px 24px 150px;position:relative;overflow:hidden}
+    .bhp-base{position:absolute;inset:-3%;background:url('images/hero-bus-1.jpg') center 68%/cover no-repeat;z-index:0;animation:bkb 26s ease-in-out infinite alternate;will-change:transform}
+    @keyframes bkb{from{transform:scale(1.02)} to{transform:scale(1.12) translate(-1.4%,1.4%)}}
+    .bhp{opacity:0;animation:bhfade 36s linear infinite, bkb 26s ease-in-out infinite alternate}
+    .bhp2{background-image:url('images/hero-bus-2.jpg');background-position:center 60%;animation-delay:9s,-5s}
+    .bhp3{background-image:url('images/hero-bus-3.jpg');background-position:center 45%;animation-delay:18s,-9s}
+    .bhp4{background-image:url('images/hero-bus-4.jpg');background-position:center 42%;animation-delay:27s,-13s}
+    @keyframes bhfade{0%{opacity:0} 6%{opacity:1} 25%{opacity:1} 31%{opacity:0} 100%{opacity:0}}
+    .bus-htint{position:absolute;inset:0;z-index:0;background:linear-gradient(180deg,rgba(8,22,48,.66),rgba(10,30,66,.46))}
+    .bus-hero-in{max-width:1240px;margin:0 auto;position:relative;z-index:1}
+    .bus-h1{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:40px;margin:0 0 6px;text-shadow:0 3px 22px rgba(3,18,44,.55)}
+    .bus-hsub{font-size:16px;color:rgba(255,255,255,.85);margin:0 0 20px;text-shadow:0 2px 12px rgba(3,18,44,.5)}
+    .bus-bar{display:flex;align-items:stretch;background:#fff;border-radius:16px;padding:6px;box-shadow:0 24px 55px -22px rgba(0,0,0,.55);flex-wrap:wrap}
+    .bus-cell{padding:9px 16px;flex:1;min-width:150px;border-right:1px solid #eef2f7}
+    .bus-cell:last-of-type{border-right:none}
+    .bus-cell label{display:block;font-size:11px;font-weight:700;color:#8094a4;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px}
+    .bus-cell input,.bus-cell select{width:100%;border:none;outline:none;font-family:inherit;font-size:15px;font-weight:600;color:#0b2440;background:transparent}
+    .bus-go{background:#0a5fd7;color:#fff;border:none;font-family:inherit;font-weight:800;font-size:15px;padding:0 30px;border-radius:12px;cursor:pointer;margin:4px;display:flex;align-items:center}
+    .bus-go:hover{background:#0954bd}
+    @media (max-width:640px){.bus-bar{flex-direction:column}.bus-cell{border-right:none;border-bottom:1px solid #eef2f7}.bus-h1{font-size:30px}}
+    @media (prefers-reduced-motion: reduce){.bhp-base{animation:none}.bhp{display:none}}
+  </style>
+</helmet>
+
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <rect width="120" height="120" fill="#0A5FD7"/>
+    <rect x="25" y="35" width="70" height="40" rx="4" fill="#fff" opacity=".9"/>
+    <circle cx="35" cy="80" r="5" fill="#fff" opacity=".9"/>
+    <circle cx="85" cy="80" r="5" fill="#fff" opacity=".9"/>
+  </svg>
+</template>
+
+<!-- Header -->
+<header style="position: sticky; top: 0; z-index: 1000; background: linear-gradient(90deg, #0a5fd7 0%, #0c70e2 100%); box-shadow: 0 2px 14px rgba(10,36,64,.22)">
+  <div style="max-width: 1240px; margin: 0 auto; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between">
+    <a href="Home.dc.html" style="display: flex; align-items: center; background: #fff; padding: 6px 14px; border-radius: 12px; box-shadow: 0 4px 14px rgba(0,0,0,.15)"><img src="images/logo.jpeg" alt="Skyline Travel Planner" style="height: 56px; width: auto; display: block" /></a>
+    <a href="Home.dc.html" style="background: #fff; color: #0b6bbf; font-weight: 800; padding: 10px 18px; border-radius: 10px; box-shadow: 0 4px 14px rgba(0,0,0,.16)">← Back Home</a>
+  </div>
+</header>
+
+<!-- Hero + Search (matches Flights page) -->
+<section class="bus-hero">
+  <div class="bhp-base"></div>
+  <div class="bhp-base bhp bhp2"></div>
+  <div class="bhp-base bhp bhp3"></div>
+  <div class="bhp-base bhp bhp4"></div>
+  <div class="bus-htint"></div>
+  <div class="bus-hero-in">
+    <h1 class="bus-h1">Find your bus</h1>
+    <p class="bus-hsub">Intercity, sleeper &amp; premium Volvo coaches across India</p>
+    <div class="bus-bar">
+      <div class="bus-cell">
+        <label>Leaving from</label>
+        <input type="text" placeholder="Delhi, Mumbai, Bangalore…">
+      </div>
+      <div class="bus-cell">
+        <label>Going to</label>
+        <input type="text" placeholder="Goa, Kerala, Jaipur…">
+      </div>
+      <div class="bus-cell">
+        <label>Travel date</label>
+        <input type="date">
+      </div>
+      <div class="bus-cell">
+        <label>Passengers</label>
+        <select><option>1 Adult</option><option>2 Adults</option><option>3 Adults</option><option>4+ Adults</option></select>
+      </div>
+      <a class="bus-go" href="https://www.redbus.in" target="_blank" rel="noopener">Search on redBus</a>
+    </div>
+  </div>
+</section>
+
+<!-- Main Content -->
+<div style="max-width: 1280px; margin: 0 auto; padding: 40px 24px 48px">
+
+  <!-- Bus Types -->
+  <div>
+    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 32px; margin: 0 0 24px">Bus Types Available</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px">
+      <sc-for list="{{ busTypes }}" as="b" hint-placeholder-count="6">
+        <div style="background: #fff; padding: 24px; border-radius: 14px; border: 1.5px solid #e5ecf5; text-align: center">
+          <div style="font-size: 32px; margin-bottom: 12px">{{ b.icon }}</div>
+          <div style="font-weight: 700; font-size: 16px; margin-bottom: 8px">{{ b.name }}</div>
+          <div style="font-size: 13px; color: #5c6f80">{{ b.desc }}</div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+  <p style="font-size: 11px; color: #8094a4; margin-top: 28px">Hero photos (Wikimedia Commons): Rsrikanth05 (CC BY-SA 4.0), KSRTC (CC0), Prabirghose (CC BY-SA 4.0)</p>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      busTypes: [
+        { icon: '🚌', name: 'Intercity Buses', desc: 'Comfortable long-distance travel' },
+        { icon: '🛏️', name: 'Sleeper Buses', desc: 'Overnight journeys with berths' },
+        { icon: '✨', name: 'Volvo Premium', desc: 'AC luxury coaches' },
+        { icon: '🚐', name: 'Minibus', desc: 'Small group travel' },
+        { icon: '🏛️', name: 'Tourist Coaches', desc: 'Guided sightseeing trips' },
+        { icon: '👥', name: 'Group Transport', desc: 'Private group bookings' }
+      ]
+    };
+  }
+}
+
+</script>
+<script>
+/* Skyline — date guard: past dates disabled everywhere; the 2nd date in a pair
+   (return / check-out) cannot precede the 1st (departure / check-in). Robust to
+   the React render layer via a MutationObserver that re-applies the limits. */
+(function(){
+  function today(){ try{ return new Date().toISOString().slice(0,10); }catch(e){ return ''; } }
+  var T=today();
+  function apply(){
+    var dates=[].slice.call(document.querySelectorAll('input[type=\"date\"]'));
+    if(!dates.length) return;
+    dates.forEach(function(d){ if(d.getAttribute('data-end')!=='1' && d.min!==T) d.min=T; });
+    if(dates.length===2){
+      var a=dates[0], b=dates[1];
+      b.setAttribute('data-end','1');
+      var m=(a.value && a.value>T) ? a.value : T;
+      if(b.min!==m) b.min=m;
+      if(b.value && b.value<m) b.value=m;
+    }
+  }
+  function onEdit(e){ if(e.target && e.target.matches && e.target.matches('input[type=\"date\"]')) apply(); }
+  document.addEventListener('input', onEdit, true);
+  document.addEventListener('change', onEdit, true);
+  var t=0; setInterval(function(){ if(t++>40) return; apply(); }, 250); // covers late React mounts
+  try{ new MutationObserver(function(){ apply(); }).observe(document.documentElement,{childList:true,subtree:true}); }catch(e){}
+  apply();
+})();
+</script>
+</body>
+</html>

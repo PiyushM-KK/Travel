@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Flight Booking - Skyline Travel Planner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box }
+    body { margin: 0; background: #f5f9ff; color: #1a2332; font-family: 'Plus Jakarta Sans', sans-serif }
+    a { text-decoration: none; color: inherit }
+  </style>
+</helmet>
+
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <rect width="120" height="120" fill="#0A5FD7"/>
+    <path d="M30 50 L60 30 L90 50 L85 85 Q60 95 35 85 Z" fill="#fff" opacity=".9"/>
+    <circle cx="60" cy="40" r="4" fill="#FFD000"/>
+  </svg>
+</template>
+
+<!-- Header -->
+<header style="position: sticky; top: 0; z-index: 1000; background: linear-gradient(90deg,#0ea5a4 0%,#1481c6 55%,#1170c9 100%); box-shadow: 0 2px 12px rgba(10,36,64,.18)">
+  <div style="max-width: 1240px; margin: 0 auto; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between">
+    <a href="Home.dc.html" style="display: flex; align-items: center; background:#fff; padding:6px 14px; border-radius:12px; box-shadow:0 4px 14px rgba(0,0,0,.14)"><img src="images/logo.jpeg" alt="Skyline Travel Planner" style="height: 56px; width: auto; display: block" /></a>
+    <a href="Home.dc.html" style="background:#fff; color:#0b6bbf; font-weight:800; padding:10px 18px; border-radius:10px; box-shadow:0 4px 14px rgba(0,0,0,.16)">← Back Home</a>
+  </div>
+</header>
+
+<!-- Main Content -->
+<!-- Hero + Search (FlightHub-style) -->
+<section class="fh-hero">
+  <div class="fhp-base"></div>
+  <div class="fhp-base fhp fhp2"></div>
+  <div class="fhp-base fhp fhp3"></div>
+  <div class="fhp-base fhp fhp4"></div>
+  <div class="fhp-base fhp fhp5"></div>
+  <div class="fhp-base fhp fhp6"></div>
+  <div class="fh-htint"></div>
+  <div class="fh-hero-in">
+    <h1 class="fh-h1">Find your flight</h1>
+    <p class="fh-hsub">Live fares to anywhere &mdash; domestic &amp; international</p>
+    <div class="fh-tt">
+      <button type="button" class="fh-ttb active" data-trip="round">Round trip</button>
+      <button type="button" class="fh-ttb" data-trip="oneway">One way</button>
+      <select id="cabinSel" class="fh-cabin"><option value="Economy">Economy</option><option value="Premium Economy">Premium Economy</option><option value="Business">Business</option><option value="First">First</option></select>
+    </div>
+    <div class="fh-bar">
+      <div class="fh-cell fh-ac">
+        <label>Leaving from</label>
+        <input id="fromAirport" type="text" autocomplete="off" placeholder="City or airport">
+      </div>
+      <button type="button" class="fh-swap" id="fh-swap" title="Swap">&#8646;</button>
+      <div class="fh-cell fh-ac">
+        <label>Going to</label>
+        <input id="toAirport" type="text" autocomplete="off" placeholder="City or airport">
+      </div>
+      <div class="fh-cell fh-dt">
+        <label>Departing</label>
+        <input id="depDate" type="text" readonly autocomplete="off" placeholder="Add date">
+      </div>
+      <div class="fh-cell fh-dt" id="retWrap">
+        <label>Returning</label>
+        <input id="retDate" type="text" readonly autocomplete="off" placeholder="Add date">
+      </div>
+      <div class="fh-cell fh-px">
+        <label>Passengers</label>
+        <select id="paxSel"><option>1 Adult</option><option>2 Adults</option><option>3 Adults</option><option>4 Adults</option></select>
+      </div>
+      <button type="button" id="searchFlightsBtn" class="fh-go">Search</button>
+    </div>
+    <div id="flightStatus" class="fh-status"></div>
+  </div>
+</section>
+
+<div class="fh-wrap">
+  <!-- Live Flight Results -->
+  <div id="flightResults" style="margin-bottom: 48px"></div>
+
+  <!-- Airlines -->
+  <div style="margin-bottom: 48px">
+    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 32px; margin: 0 0 24px">Official Airline Partners</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px">
+      <sc-for list="{{ airlines }}" as="a" hint-placeholder-count="6">
+        <div style="background: #fff; padding: 24px; border-radius: 14px; border: 1.5px solid #e5ecf5; text-align: center">
+          <div style="font-weight: 700; font-size: 16px; margin-bottom: 8px">{{ a.name }}</div>
+          <div style="font-size: 13px; color: #5c6f80; margin-bottom: 16px">{{ a.coverage }}</div>
+          <a href="{{ a.link }}" target="_blank" style="display: inline-block; background: #0a5fd7; color: #fff; font-weight: 700; font-size: 13px; padding: 10px 16px; border-radius: 6px">Check Flights</a>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+  <p style="font-size: 11px; color: #8094a4; margin-top: 28px">Hero photos (Wikimedia Commons): M. Visser, D. Aiello/Jebulon, Joe Ravi, Mozzihh, M. Michalczyk — CC BY/BY-SA</p>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      airlines: [
+        { name: 'Air India', coverage: 'Domestic & International', link: 'https://www.airindia.in' },
+        { name: 'IndiGo', coverage: 'Domestic & International', link: 'https://www.goindigo.in' },
+        { name: 'Air India Express', coverage: 'Domestic', link: 'https://www.airindiaexpress.com' },
+        { name: 'SpiceJet', coverage: 'Domestic', link: 'https://www.spicejet.com' },
+        { name: 'Akasa Air', coverage: 'Domestic', link: 'https://www.akasaair.com' },
+        { name: 'Star Air', coverage: 'Regional', link: 'https://www.staraviations.in' }
+      ]
+    };
+  }
+}
+
+</script>
+<script>
+/* Skyline — date guard: past dates disabled everywhere; the 2nd date in a pair
+   (return / check-out) cannot precede the 1st (departure / check-in). Robust to
+   the React render layer via a MutationObserver that re-applies the limits. */
+(function(){
+  function today(){ try{ return new Date().toISOString().slice(0,10); }catch(e){ return ''; } }
+  var T=today();
+  function apply(){
+    var dates=[].slice.call(document.querySelectorAll('input[type=\"date\"]'));
+    if(!dates.length) return;
+    dates.forEach(function(d){ if(d.getAttribute('data-end')!=='1' && d.min!==T) d.min=T; });
+    if(dates.length===2){
+      var a=dates[0], b=dates[1];
+      b.setAttribute('data-end','1');
+      var m=(a.value && a.value>T) ? a.value : T;
+      if(b.min!==m) b.min=m;
+      if(b.value && b.value<m) b.value=m;
+    }
+  }
+  function onEdit(e){ if(e.target && e.target.matches && e.target.matches('input[type=\"date\"]')) apply(); }
+  document.addEventListener('input', onEdit, true);
+  document.addEventListener('change', onEdit, true);
+  var t=0; setInterval(function(){ if(t++>40) return; apply(); }, 250); // covers late React mounts
+  try{ new MutationObserver(function(){ apply(); }).observe(document.documentElement,{childList:true,subtree:true}); }catch(e){}
+  apply();
+})();
+</script>
+<script>
+/* Skyline — FlightHub-style flight search + results (Travelpayouts backend). */
+(function(){
+  var API_BASE=(window.SKYLINE_TRAIN_API||'http://localhost:3001').replace(/\/+$/,'');
+  var AIRPORTS=[
+    {code:'DEL',name:"Delhi (Indira Gandhi)",i:0},
+    {code:'BOM',name:"Mumbai (Chhatrapati Shivaji)",i:0},
+    {code:'BLR',name:"Bengaluru (Kempegowda)",i:0},
+    {code:'MAA',name:"Chennai",i:0},
+    {code:'CCU',name:"Kolkata (Netaji Subhas)",i:0},
+    {code:'HYD',name:"Hyderabad (Rajiv Gandhi)",i:0},
+    {code:'COK',name:"Kochi (Cochin)",i:0},
+    {code:'AMD',name:"Ahmedabad",i:0},
+    {code:'PNQ',name:"Pune",i:0},
+    {code:'GOX',name:"Goa (Mopa/Manohar)",i:0},
+    {code:'GOI',name:"Goa (Dabolim)",i:0},
+    {code:'JAI',name:"Jaipur",i:0},
+    {code:'LKO',name:"Lucknow",i:0},
+    {code:'PAT',name:"Patna",i:0},
+    {code:'IXC',name:"Chandigarh",i:0},
+    {code:'GAU',name:"Guwahati",i:0},
+    {code:'BBI',name:"Bhubaneswar",i:0},
+    {code:'TRV',name:"Thiruvananthapuram",i:0},
+    {code:'CCJ',name:"Kozhikode (Calicut)",i:0},
+    {code:'IXM',name:"Madurai",i:0},
+    {code:'CJB',name:"Coimbatore",i:0},
+    {code:'VNS',name:"Varanasi",i:0},
+    {code:'NAG',name:"Nagpur",i:0},
+    {code:'IDR',name:"Indore",i:0},
+    {code:'BHO',name:"Bhopal",i:0},
+    {code:'RPR',name:"Raipur",i:0},
+    {code:'VTZ',name:"Visakhapatnam",i:0},
+    {code:'VGA',name:"Vijayawada",i:0},
+    {code:'TIR',name:"Tirupati",i:0},
+    {code:'IXB',name:"Bagdogra (Siliguri)",i:0},
+    {code:'IXR',name:"Ranchi",i:0},
+    {code:'IXA',name:"Agartala",i:0},
+    {code:'IMF',name:"Imphal",i:0},
+    {code:'DIB',name:"Dibrugarh",i:0},
+    {code:'IXS',name:"Silchar",i:0},
+    {code:'DMU',name:"Dimapur",i:0},
+    {code:'JRH',name:"Jorhat",i:0},
+    {code:'TEZ',name:"Tezpur",i:0},
+    {code:'IXL',name:"Leh",i:0},
+    {code:'SXR',name:"Srinagar",i:0},
+    {code:'IXJ',name:"Jammu",i:0},
+    {code:'ATQ',name:"Amritsar",i:0},
+    {code:'DED',name:"Dehradun",i:0},
+    {code:'PGH',name:"Pantnagar",i:0},
+    {code:'KUU',name:"Kullu (Bhuntar)",i:0},
+    {code:'DHM',name:"Dharamshala (Kangra)",i:0},
+    {code:'TRZ',name:"Tiruchirapalli",i:0},
+    {code:'IXE',name:"Mangaluru",i:0},
+    {code:'HBX',name:"Hubballi",i:0},
+    {code:'MYQ',name:"Mysuru",i:0},
+    {code:'IXZ',name:"Port Blair",i:0},
+    {code:'UDR',name:"Udaipur",i:0},
+    {code:'JDH',name:"Jodhpur",i:0},
+    {code:'BKB',name:"Bikaner",i:0},
+    {code:'STV',name:"Surat",i:0},
+    {code:'BDQ',name:"Vadodara",i:0},
+    {code:'RAJ',name:"Rajkot",i:0},
+    {code:'JGA',name:"Jamnagar",i:0},
+    {code:'BHU',name:"Bhavnagar",i:0},
+    {code:'JLR',name:"Jabalpur",i:0},
+    {code:'GWL',name:"Gwalior",i:0},
+    {code:'KNU',name:"Kanpur",i:0},
+    {code:'AGR',name:"Agra",i:0},
+    {code:'IXD',name:"Prayagraj",i:0},
+    {code:'GAY',name:"Gaya",i:0},
+    {code:'DBR',name:"Darbhanga",i:0},
+    {code:'RJA',name:"Rajahmundry",i:0},
+    {code:'ISK',name:"Nashik",i:0},
+    {code:'IXU',name:"Aurangabad",i:0},
+    {code:'NDC',name:"Nanded",i:0},
+    {code:'SAG',name:"Shirdi",i:0},
+    {code:'KLH',name:"Kolhapur",i:0},
+    {code:'PNY',name:"Puducherry",i:0},
+    {code:'TCR',name:"Tuticorin",i:0},
+    {code:'CDP',name:"Kadapa",i:0},
+    {code:'BEP',name:"Bellary",i:0},
+    {code:'DXB',name:"Dubai, UAE",i:1},
+    {code:'AUH',name:"Abu Dhabi, UAE",i:1},
+    {code:'SHJ',name:"Sharjah, UAE",i:1},
+    {code:'DOH',name:"Doha, Qatar",i:1},
+    {code:'KWI',name:"Kuwait City, Kuwait",i:1},
+    {code:'BAH',name:"Bahrain",i:1},
+    {code:'MCT',name:"Muscat, Oman",i:1},
+    {code:'RUH',name:"Riyadh, Saudi Arabia",i:1},
+    {code:'JED',name:"Jeddah, Saudi Arabia",i:1},
+    {code:'SIN',name:"Singapore",i:1},
+    {code:'KUL',name:"Kuala Lumpur, Malaysia",i:1},
+    {code:'BKK',name:"Bangkok (Suvarnabhumi), Thailand",i:1},
+    {code:'DMK',name:"Bangkok (Don Mueang), Thailand",i:1},
+    {code:'HKT',name:"Phuket, Thailand",i:1},
+    {code:'DPS',name:"Bali (Denpasar), Indonesia",i:1},
+    {code:'CGK',name:"Jakarta, Indonesia",i:1},
+    {code:'MLE',name:"Mal\u00e9, Maldives",i:1},
+    {code:'CMB',name:"Colombo, Sri Lanka",i:1},
+    {code:'KTM',name:"Kathmandu, Nepal",i:1},
+    {code:'DAC',name:"Dhaka, Bangladesh",i:1},
+    {code:'HKG',name:"Hong Kong",i:1},
+    {code:'ICN',name:"Seoul (Incheon), South Korea",i:1},
+    {code:'NRT',name:"Tokyo (Narita), Japan",i:1},
+    {code:'HND',name:"Tokyo (Haneda), Japan",i:1},
+    {code:'PEK',name:"Beijing, China",i:1},
+    {code:'PVG',name:"Shanghai (Pudong), China",i:1},
+    {code:'LHR',name:"London (Heathrow), UK",i:1},
+    {code:'LGW',name:"London (Gatwick), UK",i:1},
+    {code:'CDG',name:"Paris (Charles de Gaulle), France",i:1},
+    {code:'FRA',name:"Frankfurt, Germany",i:1},
+    {code:'MUC',name:"Munich, Germany",i:1},
+    {code:'AMS',name:"Amsterdam, Netherlands",i:1},
+    {code:'ZRH',name:"Zurich, Switzerland",i:1},
+    {code:'IST',name:"Istanbul, Turkey",i:1},
+    {code:'FCO',name:"Rome (Fiumicino), Italy",i:1},
+    {code:'MAD',name:"Madrid, Spain",i:1},
+    {code:'BCN',name:"Barcelona, Spain",i:1},
+    {code:'JFK',name:"New York (JFK), USA",i:1},
+    {code:'EWR',name:"Newark, USA",i:1},
+    {code:'ORD',name:"Chicago (O'Hare), USA",i:1},
+    {code:'LAX',name:"Los Angeles, USA",i:1},
+    {code:'SFO',name:"San Francisco, USA",i:1},
+    {code:'IAD',name:"Washington (Dulles), USA",i:1},
+    {code:'YYZ',name:"Toronto, Canada",i:1},
+    {code:'YVR',name:"Vancouver, Canada",i:1},
+    {code:'SYD',name:"Sydney, Australia",i:1},
+    {code:'MEL',name:"Melbourne, Australia",i:1},
+    {code:'PER',name:"Perth, Australia",i:1},
+    {code:'AKL',name:"Auckland, New Zealand",i:1},
+    {code:'JNB',name:"Johannesburg, South Africa",i:1},
+    {code:'NBO',name:"Nairobi, Kenya",i:1},
+    {code:'CAI',name:"Cairo, Egypt",i:1},
+    {code:'MRU',name:"Mauritius",i:1},
+    {code:'SEZ',name:"Seychelles",i:1}
+  ];
+  var TRIP='round', LAST=null, TAB='best', CABIN='Economy';
+  var FILT={stopsExcl:new Set(),airExcl:new Set(),tod:new Set()};
+  var PMAX=null, PRANGE={min:0,max:0}, AIR_EXPANDED=false, _lastAirCodes=[];
+  var COLLAPSE={stops:false,times:true,price:false,airlines:false};
+  var _mp=1,_md=1;
+
+  if(!document.getElementById('fh-css')){ var st=document.createElement('style'); st.id='fh-css'; st.textContent=`.fh-hero{background:linear-gradient(135deg,#0ea5a4 0%,#1481c6 55%,#1170c9 100%);color:#fff;padding:30px 24px 30px;position:relative;overflow:hidden}.fhp-base{position:absolute;inset:-3%;background:url('images/hero-a380.jpg') center 46%/cover no-repeat;z-index:0;animation:fkb 26s ease-in-out infinite alternate;will-change:transform}@keyframes fkb{from{transform:scale(1.02)} to{transform:scale(1.12) translate(-1.4%,1.4%)}}.fhp{opacity:0;animation:fhfade 54s linear infinite, fkb 26s ease-in-out infinite alternate}.fhp2{background-image:url('images/hero-a380-2.jpg');background-position:center 40%;animation-delay:9s,-5s}.fhp3{background-image:url('images/hero-a380-3.jpg');background-position:center 26%;animation-delay:18s,-9s}.fhp4{background-image:url('images/hero-a380-4.jpg');background-position:center 42%;animation-delay:27s,-13s}.fhp5{background-image:url('images/hero-a380-5.jpg');background-position:center 45%;animation-delay:36s,-7s}.fhp6{background-image:url('images/hero-a380-6.jpg');background-position:center 62%;animation-delay:45s,-17s}@keyframes fhfade{0%{opacity:0} 4%{opacity:1} 17%{opacity:1} 21%{opacity:0} 100%{opacity:0}}.fh-htint{position:absolute;inset:0;z-index:0;background:linear-gradient(180deg,rgba(8,22,48,.62),rgba(10,30,66,.42))}@media (prefers-reduced-motion: reduce){.fhp-base{animation:none}.fhp{display:none}}.fh-hero-in{max-width:1240px;margin:0 auto;position:relative;z-index:1}.fh-h1{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:40px;margin:0 0 6px}.fh-hsub{font-size:16px;color:rgba(255,255,255,.75);margin:0 0 20px}.fh-tt{display:flex;align-items:center;gap:6px;margin-bottom:14px;flex-wrap:wrap}.fh-ttb{border:none;background:rgba(255,255,255,.14);color:#fff;font-family:inherit;font-weight:700;font-size:14px;padding:9px 20px;border-radius:999px;cursor:pointer}.fh-ttb.active{background:#fff;color:#0b2440}.fh-tt-cab{margin-left:6px;color:rgba(255,255,255,.7);font-weight:600;font-size:14px}.fh-bar{display:flex;align-items:stretch;background:#fff;border-radius:16px;padding:6px;box-shadow:0 24px 55px -22px rgba(0,0,0,.55);flex-wrap:wrap}.fh-cell{position:relative;padding:9px 16px;flex:1;min-width:140px;border-right:1px solid #eef2f7}.fh-cell label{display:block;font-size:11px;font-weight:700;color:#8094a4;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px}.fh-cell input,.fh-cell select{width:100%;border:none;outline:none;font-family:inherit;font-size:15px;font-weight:600;color:#0b2440;background:transparent}.fh-ac{flex:1.4}.fh-dt{flex:.9;min-width:118px}.fh-px{flex:.9;min-width:120px;border-right:none}.fh-swap{align-self:center;border:1px solid #e5ecf5;background:#fff;color:#0a5fd7;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:16px;flex-shrink:0}.fh-go{background:#0a5fd7;color:#fff;border:none;font-family:inherit;font-weight:800;font-size:16px;padding:0 34px;border-radius:12px;cursor:pointer;margin:4px}.fh-go:hover{background:#0954bd}.fh-status{color:rgba(255,255,255,.85);font-size:13px;font-weight:600;margin-top:12px;min-height:18px}.fh-wrap{max-width:1240px;margin:0 auto;padding:22px 24px 40px}.fh-res{display:grid;grid-template-columns:248px 1fr;gap:22px;align-items:start}.fh-side{background:#fff;border:1px solid #e8edf3;border-radius:14px;padding:16px 18px 6px;position:sticky;top:16px}.fh-sgrp{border-bottom:1px solid #eef2f7;padding-bottom:14px;margin-bottom:14px}.fh-sgrp:last-child{border-bottom:none}.fh-sh{font-weight:800;font-size:14px;margin:0 0 11px}.fh-chk{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13.5px;font-weight:600;color:#3a4d5e;cursor:pointer;padding:5px 0}.fh-chk input{width:16px;height:16px;accent-color:#0a5fd7;margin-right:8px;vertical-align:middle}.fh-chk .pc{color:#0b2440;font-weight:700;font-size:12.5px;white-space:nowrap}.fh-chips{display:flex;flex-wrap:wrap;gap:7px}.fh-chip{border:1px solid #dbe4ee;background:#fff;border-radius:8px;font-family:inherit;font-size:12px;font-weight:700;color:#3a4d5e;padding:7px 10px;cursor:pointer}.fh-chip.on{border-color:#0a5fd7;background:#eaf3ff;color:#0a5fd7}.fh-fare{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}.fh-ft{background:#fff;border:1px solid #e8edf3;border-radius:12px;padding:11px 15px;cursor:pointer;text-align:left}.fh-ft.active{border-color:#0a5fd7;box-shadow:inset 0 -3px 0 #0a5fd7}.fh-ft .k{font-size:13px;font-weight:700;color:#5c6f80}.fh-ft.active .k{color:#0a5fd7}.fh-ft .v{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:18px;color:#0b2440;margin-top:3px}.fh-row{display:flex;align-items:center;gap:18px;background:#fff;border:1px solid #e8edf3;border-radius:14px;padding:15px 20px;margin-bottom:12px}.fh-row:hover{box-shadow:0 12px 26px -16px rgba(10,95,215,.3)}.fh-logo{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:12px;font-family:'Bricolage Grotesque',sans-serif;flex-shrink:0}.fh-mid{flex:1;min-width:210px}.fh-times{display:flex;align-items:center;gap:12px;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:19px;color:#0b2440}.fh-times .seg{flex:1;height:2px;background:#cdd9e6;position:relative;min-width:46px;max-width:130px}.fh-times .seg .d{position:absolute;top:-3px;width:7px;height:7px;border-radius:50%;background:#8aa0b6;left:50%;margin-left:-3px}.fh-plus{font-size:11px;color:#c0392b;font-weight:800;vertical-align:top}.fh-meta{display:flex;gap:8px;align-items:baseline;font-size:12.5px;color:#5c6f80;font-weight:600;margin-top:5px;flex-wrap:wrap}.fh-air{font-size:12.5px;color:#5c6f80;font-weight:700;margin-top:2px}.fh-stops{font-weight:700}.fh-stops.direct{color:#0a7d3b}.fh-stops.one{color:#b26a00}.fh-stops.multi{color:#c0392b}.fh-buy{text-align:right;min-width:132px;padding-left:16px;border-left:1px solid #eef2f7}.fh-amt{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:22px;color:#0b2440}.fh-tax{font-size:11px;color:#8094a4;font-weight:600;margin:2px 0 8px}.fh-book{display:inline-block;background:linear-gradient(135deg,#0a5fd7,#0d7ae8);color:#fff;font-weight:700;font-size:13px;padding:8px 16px;border-radius:9px}.fh-badge{display:inline-block;font-size:10px;font-weight:800;border-radius:6px;padding:3px 8px;margin-bottom:7px}.fh-badge.cheap{background:#e9f9ee;color:#0a7d3b}.fh-badge.fast{background:#eef1ff;color:#3b46c4}.fh-note{font-size:12px;color:#8094a4;margin:0 0 10px;line-height:1.5}.sky-drop{position:fixed;z-index:99999;background:#fff;border:1px solid #e5ecf5;border-radius:10px;max-height:320px;overflow-y:auto;box-shadow:0 14px 34px rgba(10,36,64,.2)}.sky-opt{padding:11px 14px;cursor:pointer;font-size:14px;display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid #f2f6fb;color:#0b2440}.sky-opt:last-child{border-bottom:none}.sky-opt:hover,.sky-opt.sky-active{background:#f0f7ff}.sky-opt .nm{display:flex;align-items:center;gap:7px}.sky-tag{font-size:10px;font-weight:700;border-radius:5px;padding:2px 6px}.sky-in{background:#eaf6ec;color:#0a7d3b}.sky-int{background:#eef2ff;color:#3b46c4}.sky-code{color:#0a5fd7;font-weight:700;font-size:12px;white-space:nowrap}@media(max-width:820px){.fh-res{grid-template-columns:1fr}.fh-side{position:static}}@media(max-width:640px){.fh-bar{flex-direction:column}.fh-cell{border-right:none;border-bottom:1px solid #eef2f7}.fh-h1{font-size:30px}.fh-buy{border-left:none;text-align:left;padding-left:0}}.fh-sh{display:flex;align-items:center;justify-content:space-between;cursor:pointer}.fh-sh .cv{color:#8094a4;font-size:11px;transition:transform .2s}.fh-sh.collapsed .cv{transform:rotate(-90deg)}.fh-sb{margin-top:2px}.fh-sel{display:flex;gap:12px;font-size:12px;font-weight:700;margin:2px 0 8px}.fh-sel a{color:#0a5fd7;cursor:pointer}.fh-sel .mut{color:#8094a4;cursor:pointer}.fh-showall{color:#0a5fd7;font-weight:700;font-size:13px;cursor:pointer;padding:6px 0;display:inline-block}.fh-price .lbl{font-size:13px;color:#0a5fd7;font-weight:700;margin-bottom:8px}.fh-price input[type=range]{width:100%;accent-color:#0a5fd7}.fh-price .ends{display:flex;justify-content:space-between;font-size:11.5px;color:#8094a4;font-weight:600;margin-top:4px}.cal-pop{position:fixed;z-index:100000;background:#fff;border-radius:16px;box-shadow:0 26px 64px -18px rgba(10,36,64,.45);padding:18px}.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.cal-title{font-weight:800;font-size:16px;color:#0b2440}.cal-nav{border:1px solid #e5ecf5;background:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:17px;color:#0a5fd7;line-height:1}.cal-months{display:flex;gap:22px;flex-wrap:wrap}.cal-m{flex:1;min-width:240px}.cal-mh{text-align:center;font-weight:700;font-size:14px;margin-bottom:8px;color:#0b2440}.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}.cal-dow{font-size:10px;color:#8094a4;text-align:center;font-weight:700;padding:2px 0}.cal-d{aspect-ratio:1;border:none;background:#f4f7fb;border-radius:8px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:700;color:#0b2440;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;padding:2px}.cal-d small{font-size:8.5px;font-weight:700;margin-top:2px}.cal-d:disabled{opacity:.35;cursor:default;background:transparent}.cal-d.sel{background:#0a5fd7;color:#fff}.cal-d.sel small{color:#fff}.cal-d.low{background:#e7f8ec}.cal-d.low small{color:#0a7d3b}.cal-d.med{background:#fef3e2}.cal-d.med small{color:#b26a00}.cal-d.high{background:#fde9ea}.cal-d.high small{color:#c0392b}.cal-legend{display:flex;gap:14px;align-items:center;margin-top:12px;font-size:12px;color:#5c6f80}.cal-leg{display:inline-flex;align-items:center;gap:5px}.cal-sw{width:12px;height:12px;border-radius:3px;display:inline-block}.fh-cabin{background:rgba(255,255,255,.16);color:#fff;border:none;font-family:inherit;font-weight:700;font-size:14px;padding:9px 32px 9px 16px;border-radius:999px;cursor:pointer;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center}.fh-cabin option{color:#0b2440}`; document.head.appendChild(st); }
+
+  function el(id){return document.getElementById(id);}
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
+  function debounce(fn,ms){var t;return function(){var a=arguments,c=this;clearTimeout(t);t=setTimeout(function(){fn.apply(c,a);},ms);};}
+  function inr(n){ if(n===''||n==null||isNaN(+n)) return n||''; return '₹'+Math.round(+n).toLocaleString('en-IN'); }
+  function timeOf(iso){ var m=String(iso||'').match(/T(\d{2}):(\d{2})/); return m?m[1]+':'+m[2]:''; }
+  function ampm(iso){ var m=String(iso||'').match(/T(\d{2}):(\d{2})/); if(!m) return ''; var h=+m[1],mm=m[2],ap=h<12?'AM':'PM',h12=h%12; if(h12===0)h12=12; return h12+':'+mm+' '+ap; }
+  function fmtDurMin(mn){ mn=+mn||0; if(!mn) return '—'; var h=Math.floor(mn/60),m=mn%60; return (h?h+'h ':'')+(m?m+'m':''); }
+  function addMins(hhmm,mins){ var m=String(hhmm).match(/(\d{2}):(\d{2})/); if(!m) return {t:'',d:0}; var tot=(+m[1])*60+(+m[2])+(+mins||0); var day=Math.floor(tot/1440); tot=((tot%1440)+1440)%1440; var h=Math.floor(tot/60),mm=tot%60; var ap=h<12?'AM':'PM',h12=h%12; if(h12===0)h12=12; return {t:h12+':'+(mm<10?'0':'')+mm+' '+ap,d:day}; }
+  function stopCls(n){n=+n||0;return n===0?'direct':(n===1?'one':'multi');}
+  function stopTxt(n){n=+n||0;return n===0?'Non-stop':(n===1?'1 stop':n+' stops');}
+  function stopBucket(n){n=+n||0;return n>=2?2:n;}
+  function todBucket(iso){var m=String(iso||'').match(/T(\d{2}):/);if(!m)return null;var h=+m[1];return h<6?'night':(h<12?'morning':(h<18?'afternoon':'evening'));}
+  function airColor(k){k=k||'X';var h=0;for(var i=0;i<k.length;i++)h=(h*31+k.charCodeAt(i))>>>0;var pp=['#0a5fd7','#e8590c','#2b8a3e','#7048e8','#c2255c','#0b7285','#5f3dc4','#a61e4d','#1864ab','#d9480f'];return pp[h%pp.length];}
+  function wkday(iso){var m=String(iso||'').match(/^(\d{4})-(\d{2})-(\d{2})/);if(!m)return '';var dt=new Date(+m[1],+m[2]-1,+m[3]);var W=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return W[dt.getDay()]+' '+(+m[3])+' '+M[+m[2]-1];}
+
+  /* ---------- airport autocomplete ---------- */
+  var drop=null,dropFor=null,items=[],active=-1;
+  function ensureDrop(){ if(!drop){ drop=document.createElement('div'); drop.className='sky-drop'; drop.style.display='none'; document.body.appendChild(drop);} return drop; }
+  function posDrop(input){ var r=input.getBoundingClientRect(); drop.style.left=r.left+'px'; drop.style.top=(r.bottom+4)+'px'; drop.style.width=Math.max(r.width,240)+'px'; }
+  function closeDrop(){ if(drop){ drop.style.display='none'; drop.innerHTML=''; } dropFor=null; items=[]; active=-1; }
+  function searchAir(q){ var ql=q.toLowerCase(),a=[],b=[]; for(var i=0;i<AIRPORTS.length;i++){ var x=AIRPORTS[i],nm=x.name.toLowerCase(),cd=x.code.toLowerCase(); if(cd===ql||nm.indexOf(ql)===0||cd.indexOf(ql)===0)a.push(x); else if(nm.indexOf(ql)>=0)b.push(x);} return a.concat(b).slice(0,12); }
+  function showAir(input,list){ ensureDrop(); items=list; active=-1; dropFor=input; if(!list.length){closeDrop();return;} drop.innerHTML=list.map(function(a,i){ var tag=a.i?'<span class="sky-tag sky-int">INTL</span>':'<span class="sky-tag sky-in">IND</span>'; return '<div class="sky-opt" data-i="'+i+'"><span class="nm">'+tag+esc(a.name)+'</span><span class="sky-code">'+esc(a.code)+'</span></div>'; }).join(''); posDrop(input); drop.style.display='block'; }
+  function pick(input,a){ if(!a)return; input.value=a.name+' ('+a.code+')'; input.dataset.iata=a.code; closeDrop(); }
+  var onType=debounce(function(input){ input.dataset.iata=''; var q=input.value.trim(); if(q.length<1){closeDrop();return;} showAir(input,searchAir(q)); },60);
+
+  document.addEventListener('input',function(e){ var t=e.target; if(t&&(t.id==='fromAirport'||t.id==='toAirport')) onType(t); });
+  document.addEventListener('keydown',function(e){ if(!drop||drop.style.display==='none')return; var opts=drop.querySelectorAll('.sky-opt'); if(e.key==='ArrowDown'){active=Math.min(active+1,opts.length-1);e.preventDefault();} else if(e.key==='ArrowUp'){active=Math.max(active-1,0);e.preventDefault();} else if(e.key==='Enter'){ if(active>=0&&dropFor){pick(dropFor,items[active]);e.preventDefault();} return;} else if(e.key==='Escape'){closeDrop();return;} Array.prototype.forEach.call(opts,function(o,i){o.classList.toggle('sky-active',i===active); if(i===active)o.scrollIntoView({block:'nearest'});}); });
+  window.addEventListener('scroll',closeDrop,true); window.addEventListener('resize',closeDrop);
+
+  /* ---------- controls ---------- */
+  function setTrip(){ var r=el('retWrap'); if(r) r.style.display=(TRIP==='oneway')?'none':''; Array.prototype.forEach.call(document.querySelectorAll('.fh-ttb'),function(b){ b.classList.toggle('active', b.getAttribute('data-trip')===TRIP); }); }
+  function swap(){ var a=el('fromAirport'),b=el('toAirport'); if(!a||!b)return; var av=a.value,ac=a.dataset.iata||''; a.value=b.value; a.dataset.iata=b.dataset.iata||''; b.value=av; b.dataset.iata=ac; }
+  function toggleSet(set,val,on){ if(on===undefined){ if(set.has(val))set.delete(val); else set.add(val);} else { if(on)set.add(val); else set.delete(val);} }
+  function setExcl(set,val,ex){ if(ex)set.add(val); else set.delete(val); }
+  function airVal(id){ var e=el(id); return e?(e.dataset.iata||''):''; }
+
+  document.addEventListener('click',function(e){
+    var t=e.target; if(!t.closest) return;
+    var opt=t.closest('.sky-opt'); if(opt&&dropFor){ pick(dropFor,items[+opt.getAttribute('data-i')]); return; }
+    if(t.closest('#searchFlightsBtn')){ e.preventDefault(); searchFlights(); return; }
+    if(t.closest('#fh-swap')){ e.preventDefault(); swap(); return; }
+    var tt=t.closest('.fh-ttb'); if(tt){ TRIP=tt.getAttribute('data-trip'); setTrip(); return; }
+    var ft=t.closest('.fh-ft'); if(ft){ TAB=ft.getAttribute('data-tab'); applyView(); return; }
+    var chip=t.closest('.fh-chip'); if(chip){ toggleSet(FILT.tod,chip.getAttribute('data-tod')); applyView(); return; }
+    if(t.closest('#depDate')){ e.preventDefault(); openCal('dep'); return; }
+    if(t.closest('#retDate')){ e.preventDefault(); openCal('ret'); return; }
+    var cd=t.closest('.cal-d'); if(cd&&!cd.disabled){ pickDate(cd.getAttribute('data-date')); return; }
+    var cn=t.closest('.cal-nav'); if(cn){ calNav(cn.getAttribute('data-cal')); return; }
+    var scg=t.closest('.fh-sh'); if(scg&&scg.getAttribute('data-collapse')){ var k=scg.getAttribute('data-collapse'); COLLAPSE[k]=!COLLAPSE[k]; applyView(); return; }
+    var aa=t.closest('[data-air]'); if(aa){ var act=aa.getAttribute('data-air'); if(act==='all'){ FILT.airExcl.clear(); } else if(act==='clear'){ _lastAirCodes.forEach(function(c){FILT.airExcl.add(c);}); } else if(act==='toggle'){ AIR_EXPANDED=!AIR_EXPANDED; } applyView(); return; }
+    if(calEl&&calEl.style.display!=='none'&&!t.closest('.cal-pop')&&t.id!=='depDate'&&t.id!=='retDate') closeCal();
+    if(drop&&drop.style.display!=='none'&&!t.closest('.sky-drop')&&t.id!=='fromAirport'&&t.id!=='toAirport') closeDrop();
+  });
+  document.addEventListener('change',function(e){ var t=e.target; if(!t.classList)return;
+    if(t.classList.contains('fh-fstop')){ setExcl(FILT.stopsExcl,+t.value,!t.checked); applyView(); }
+    else if(t.classList.contains('fh-fair')){ setExcl(FILT.airExcl,t.value,!t.checked); applyView(); }
+    else if(t.id==='fh-pmax'){ PMAX=(+t.value>=PRANGE.max)?null:+t.value; applyView(); }
+    else if(t.id==='cabinSel'){ CABIN=t.value; if(LAST) searchFlights(); }
+  });
+
+  /* ---------- search ---------- */
+  async function searchFlights(){
+    var fi=el('fromAirport'),ti=el('toAirport');
+    var from=(fi&&fi.dataset.iata)||'', to=(ti&&ti.dataset.iata)||'';
+    var cabEl=el('cabinSel'); if(cabEl) CABIN=cabEl.value;
+    var dep=el('depDate')&&(el('depDate').dataset.value||'');
+    var ret=(TRIP==='round'&&el('retDate'))?(el('retDate').dataset.value||''):'';
+    var stt=el('flightStatus'), res=el('flightResults');
+    if(!from||!to){ if(stt) stt.textContent='Please pick both airports from the suggestions.'; return; }
+    if(!dep){ if(stt) stt.textContent='Please choose a departure date.'; return; }
+    if(stt) stt.textContent='Searching live fares…'; if(res) res.innerHTML='';
+    try{
+      var url=API_BASE+'/api/flights?from='+encodeURIComponent(from)+'&to='+encodeURIComponent(to)+'&date='+encodeURIComponent(dep)+(ret?'&return='+encodeURIComponent(ret):'')+'&cabin='+encodeURIComponent(CABIN);
+      var r=await fetch(url,{mode:'cors'}); var j=await r.json();
+      if(!r.ok){ if(stt) stt.textContent = j.error==='flights_not_configured' ? 'Flights API not configured — add your Travelpayouts token in server/.env.' : ('Could not fetch flights: '+(j.detail||j.error||r.status)); return; }
+      var fl=j.flights||[];
+      if(!fl.length){ if(stt) stt.textContent='No fares found for this route/date.'; return; }
+      LAST={flights:fl,from:from,to:to,cabin:CABIN,meta:{roundTripTrimmed:!!j.roundTripTrimmed,fallbackMonth:!!j.fallbackMonth,month:j.month||'',source:j.source||'',enriched:!!j.enriched}};
+      TAB='best'; FILT={stopsExcl:new Set(),airExcl:new Set(),tod:new Set()}; PMAX=null; AIR_EXPANDED=false;
+      if(stt) stt.textContent=fl.length+' flight'+(fl.length!==1?'s':'')+' found';
+      applyView();
+    }catch(e){ if(stt) stt.textContent='Network error — is the proxy running at '+API_BASE+'?'; }
+  }
+
+  /* ---------- results ---------- */
+  function score(f){ return (+f.price||1e9)/_mp + (+f.durationMin||1e9)/_md*0.6; }
+  function passFilter(f){
+    if(FILT.stopsExcl.has(stopBucket(f.stops))) return false;
+    if(FILT.airExcl.has(f.airlineCode||'')) return false;
+    if(FILT.tod.size){ var tb=todBucket(f.depAt); if(tb && !FILT.tod.has(tb)) return false; }
+    if(PMAX!=null && (+f.price||0)>PMAX) return false;
+    return true;
+  }
+  function sorter(tab){ return function(a,b){ if(tab==='shortest')return (+a.durationMin||1e9)-(+b.durationMin||1e9); if(tab==='cheapest')return (+a.price||1e12)-(+b.price||1e12); return score(a)-score(b); }; }
+  function sh(key,label){ return '<div class="fh-sh'+(COLLAPSE[key]?' collapsed':'')+'" data-collapse="'+key+'"><span>'+label+'</span><span class="cv">▼</span></div>'; }
+  function grp(key,label,body){ return '<div class="fh-sgrp">'+sh(key,label)+'<div class="fh-sb"'+(COLLAPSE[key]?' style="display:none"':'')+'>'+body+'</div></div>'; }
+  function chkRow(cls,val,checked,label,price){ return '<label class="fh-chk"><span><input type="checkbox" class="'+cls+'" value="'+esc(val)+'"'+(checked?' checked':'')+'>'+esc(label)+'</span>'+(price!=null?'<span class="pc">'+esc(inr(price))+'</span>':'')+'</label>'; }
+  function sideStops(sp){ var o=[[0,'Non-stop'],[1,'1 stop'],[2,'2+ stops']].filter(function(x){return sp[x[0]]!=null;}); var rows=o.map(function(x){ return chkRow('fh-fstop',x[0],!FILT.stopsExcl.has(x[0]),x[1],sp[x[0]]); }).join(''); return grp('stops','Stops',rows||'<div class="fh-note">—</div>'); }
+  function sideTod(){ var b=[['morning','Morning'],['afternoon','Afternoon'],['evening','Evening'],['night','Night']]; var body='<div class="fh-chips">'+b.map(function(x){return '<button type="button" class="fh-chip'+(FILT.tod.has(x[0])?' on':'')+'" data-tod="'+x[0]+'">'+x[1]+'</button>';}).join('')+'</div>'; return grp('times','Flight times',body); }
+  function sidePrice(mn,mx){ if(!(mx>mn))return ''; var val=(PMAX==null?mx:PMAX); var step=Math.max(1,Math.round((mx-mn)/50)); var body='<div class="fh-price"><div class="lbl">'+((PMAX==null||PMAX>=mx)?'Any price':('Up to '+inr(PMAX)))+'</div><input type="range" id="fh-pmax" min="'+mn+'" max="'+mx+'" step="'+step+'" value="'+val+'"><div class="ends"><span>'+esc(inr(mn))+'</span><span>'+esc(inr(mx))+'</span></div></div>'; return grp('price','Price',body); }
+  function sideAir(ap,an){ var codes=Object.keys(ap).sort(function(a,b){return ap[a]-ap[b];}); var multi=''; var idx=codes.indexOf(''); if(idx>=0){ codes.splice(idx,1); multi=chkRow('fh-fair','',!FILT.airExcl.has(''),an['']||'Multiple airlines',ap['']); } var sel='<div class="fh-sel"><span class="mut" data-air="all">Select all</span><a data-air="clear">Clear all</a></div>'; var shown=AIR_EXPANDED?codes:codes.slice(0,6); var rows=shown.map(function(c){ return chkRow('fh-fair',c,!FILT.airExcl.has(c),an[c]||'Other',ap[c]); }).join(''); var more=(codes.length>6)?('<span class="fh-showall" data-air="toggle">'+(AIR_EXPANDED?'Show fewer ▲':'Show all airlines ▾')+'</span>'):''; return grp('airlines','Airlines',multi+sel+rows+more); }
+  function notesHtml(m){ var n=''; if(m.roundTripTrimmed)n+='<p class="fh-note" style="color:#b26a00">Return is more than 30 days after departure — showing one-way fares (provider limit).</p>'; if(m.fallbackMonth)n+='<p class="fh-note">No fares on the exact date — showing cheapest across '+esc(m.month||'')+' (date on each row).</p>'; if(m.source==='latest'||m.source==='cheap'||m.enriched)n+='<p class="fh-note" style="color:#3b46c4">Some fares from a broader cache — times/airline may be approximate; tap Book for live details.</p>'; return n; }
+
+  function renderRow(f,badge){
+    var hasTime=/T\d{2}:\d{2}/.test(f.depAt||'');
+    var dep=hasTime?ampm(f.depAt):'', arr=hasTime?addMins(timeOf(f.depAt),f.durationMin):{t:'',d:0};
+    var code=f.airlineCode||'', name=f.airline||(f.agency?f.agency:'Multiple airlines');
+    var logo=(code||name.replace(/[^A-Za-z]/g,'').slice(0,2).toUpperCase()||'✈');
+    var times=hasTime
+      ? '<span>'+esc(dep)+'</span><span class="seg"><span class="d"></span></span><span>'+esc(arr.t)+(arr.d?'<sup class="fh-plus">+'+arr.d+'</sup>':'')+'</span>'
+      : '<span>'+esc(f.fromCode)+'</span><span class="seg"><span class="d"></span></span><span>'+esc(f.toCode)+'</span>';
+    return '<div class="fh-row"><div class="fh-logo" style="background:'+airColor(code||name)+'">'+esc(logo)+'</div>'
+      +'<div class="fh-mid">'+(badge||'')
+        +'<div class="fh-times">'+times+'</div>'
+        +'<div class="fh-meta"><span>'+esc(fmtDurMin(f.durationMin))+'</span><span class="fh-stops '+stopCls(f.stops)+'">• '+esc(stopTxt(f.stops))+'</span>'+(wkday(f.depAt)?'<span>• '+esc(wkday(f.depAt))+'</span>':'')+'</div>'
+        +'<div class="fh-air">'+esc(name)+(f.flightNumber?' · '+esc(f.flightNumber):'')+' · '+esc(f.fromCode)+'–'+esc(f.toCode)+'</div>'
+      +'</div>'
+      +'<div class="fh-buy"><div class="fh-amt">'+esc(inr(f.price))+(hasTime?'':' <span style="font-size:11px;color:#3b46c4">approx</span>')+'</div><div class="fh-tax">per adult</div>'
+      +(f.book?'<a class="fh-book" href="'+esc(f.book)+'" target="_blank" rel="noopener">Book ↗</a>':'')+'</div></div>';
+  }
+
+  function applyView(){
+    var res=el('flightResults'); if(!res||!LAST) return;
+    var all=LAST.flights, sp={},ap={},an={},minP=Infinity,maxP=0,minD=Infinity;
+    all.forEach(function(f){ var pr=+f.price||0,d=+f.durationMin||Infinity; if(pr){ if(pr<minP)minP=pr; if(pr>maxP)maxP=pr; } if(d<minD)minD=d; var sb=stopBucket(f.stops); if(pr&&pr<(sp[sb]||Infinity))sp[sb]=pr; var ac=f.airlineCode||''; if(pr&&pr<(ap[ac]||Infinity))ap[ac]=pr; if(ac==='')an['']='Multiple airlines'; else an[ac]=f.airline||f.agency||'Other'; });
+    if(!isFinite(minP))minP=0; PRANGE={min:minP,max:maxP}; _lastAirCodes=Object.keys(ap);
+    _mp=minP||1; _md=isFinite(minD)?minD:1;
+    var shortest=null; all.forEach(function(f){ if((+f.durationMin||1e9)===minD) shortest=f; });
+    var bestF=all.slice().sort(function(a,b){return score(a)-score(b);})[0];
+    var tabs=[['best','Best',bestF?+bestF.price:null],['cheapest','Cheapest',minP||null],['shortest','Shortest',shortest?+shortest.price:null]];
+    var fl=all.filter(passFilter).sort(sorter(TAB));
+    var side=sideStops(sp)+sideTod()+sidePrice(minP,maxP)+sideAir(ap,an);
+    var fareTabs='<div class="fh-fare">'+tabs.map(function(t){return '<button type="button" class="fh-ft'+(TAB===t[0]?' active':'')+'" data-tab="'+t[0]+'"><div class="k">'+t[1]+'</div><div class="v">'+(t[2]!=null?esc(inr(t[2])):'—')+'</div></button>';}).join('')+'</div>';
+    var rows=fl.length?fl.map(function(f){ var b=''; if(minP&&+f.price===minP)b+='<span class="fh-badge cheap">Cheapest</span> '; if(isFinite(minD)&&+f.durationMin===minD)b+='<span class="fh-badge fast">Fastest</span> '; return renderRow(f,b?('<div>'+b+'</div>'):''); }).join(''):'<p class="fh-note">No flights match your filters — clear a filter to see more.</p>';
+    res.innerHTML='<div class="fh-res"><aside class="fh-side">'+side+'</aside><main><div style="font-size:13px;color:#5c6f80;font-weight:700;margin-bottom:10px"><span style="color:#0a5fd7">'+esc(LAST.cabin||'Economy')+'</span> · '+fl.length+' of '+all.length+' flights</div>'+((LAST.cabin&&LAST.cabin!=='Economy')?'<p class="fh-note" style="color:#b26a00">Note: cached fares are economy-based — true '+esc(LAST.cabin)+' pricing needs a direct-airline provider (Duffel).</p>':'')+fareTabs+notesHtml(LAST.meta)+rows+'<p class="fh-note" style="margin-top:12px">Live fares via Travelpayouts (Aviasales). Prices are indicative; complete booking on the airline/agent — Skyline earns commission.</p></main></div>';
+  }
+
+  /* ---------- fare-heatmap calendar ---------- */
+  var calEl=null, CAL={field:null,y:0,mo:0,prices:{},lo:0,hi:0};
+  function ensureCal(){ if(!calEl){ calEl=document.createElement('div'); calEl.className='cal-pop'; calEl.style.display='none'; document.body.appendChild(calEl);} return calEl; }
+  function closeCal(){ if(calEl) calEl.style.display='none'; CAL.field=null; }
+  function isoD(y,m,d){ return y+'-'+(m<10?'0':'')+m+'-'+(d<10?'0':'')+d; }
+  function monKey(y,m){ return y+'-'+(m<10?'0':'')+m; }
+  function nextM(m){return m===12?1:m+1;} function nextY(y,m){return m===12?y+1:y;}
+  function prevM(m){return m===1?12:m-1;} function prevY(y,m){return m===1?y-1:y;}
+  function daysIn(y,m){ return new Date(y,m,0).getDate(); }
+  function firstDow(y,m){ return new Date(y,m-1,1).getDay(); }
+  function todayD(){ try{return new Date().toISOString().slice(0,10);}catch(e){return '';} }
+  function fmtNice(is){ var m=String(is||'').match(/^(\d{4})-(\d{2})-(\d{2})/); if(!m)return ''; var dt=new Date(+m[1],+m[2]-1,+m[3]); var W=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; return W[dt.getDay()]+', '+M[+m[2]-1]+' '+(+m[3]); }
+  function dval(id){ var e=el(id); return e?(e.dataset.value||''):''; }
+  function setDate(id,is){ var e=el(id); if(!e)return; e.dataset.value=is||''; e.value=is?fmtNice(is):''; }
+  function shortInr(n){ n=+n; if(n>=100000)return '₹'+(n/100000).toFixed(1)+'L'; if(n>=1000)return '₹'+Math.round(n/1000)+'k'; return '₹'+n; }
+  function calTiers(){ var v=Object.keys(CAL.prices).map(function(k){return +CAL.prices[k];}).filter(function(x){return x>0;}).sort(function(a,b){return a-b;}); if(!v.length){CAL.lo=CAL.hi=0;return;} CAL.lo=v[Math.floor(v.length/3)]; CAL.hi=v[Math.floor(v.length*2/3)]; }
+  function tierOf(pr){ if(!pr||!CAL.hi)return ''; if(pr<=CAL.lo)return 'low'; if(pr<=CAL.hi)return 'med'; return 'high'; }
+  function calMonth(y,m){ var t=todayD(),dep=dval('depDate'),M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; var h='<div class="cal-m"><div class="cal-mh">'+M[m-1]+' '+y+'</div><div class="cal-grid">'; ['S','M','T','W','T','F','S'].forEach(function(d){h+='<div class="cal-dow">'+d+'</div>';}); var fd=firstDow(y,m),n=daysIn(y,m),i; for(i=0;i<fd;i++)h+='<div></div>'; for(var d=1;d<=n;d++){ var ds=isoD(y,m,d); var dis=ds<t||(CAL.field==='ret'&&dep&&ds<dep); var pr=CAL.prices[ds]; var tier=dis?'':tierOf(pr); var selv=(CAL.field==='ret'?dval('retDate'):dep)===ds; h+='<button type="button" class="cal-d '+tier+(selv?' sel':'')+'" data-date="'+ds+'"'+(dis?' disabled':'')+'>'+d+((pr&&!dis)?'<small>'+shortInr(pr)+'</small>':'')+'</button>'; } return h+'</div></div>'; }
+  function renderCal(){ ensureCal(); calEl.innerHTML='<div class="cal-head"><button type="button" class="cal-nav" data-cal="prev">‹</button><div class="cal-title">Select your '+(CAL.field==='ret'?'return':'departure')+' date</div><button type="button" class="cal-nav" data-cal="next">›</button></div><div class="cal-months">'+calMonth(CAL.y,CAL.mo)+calMonth(nextY(CAL.y,CAL.mo),nextM(CAL.mo))+'</div><div class="cal-legend"><span class="cal-leg"><span class="cal-sw" style="background:#e7f8ec"></span>Low</span><span class="cal-leg"><span class="cal-sw" style="background:#fef3e2"></span>Med</span><span class="cal-leg"><span class="cal-sw" style="background:#fde9ea"></span>High fare</span></div>'; }
+  function posCal(a){ if(!a)return; var r=a.getBoundingClientRect(); var w=Math.min(600,window.innerWidth*0.94); var left=Math.min(r.left,window.innerWidth-w-10); calEl.style.left=Math.max(8,left)+'px'; calEl.style.top=(r.bottom+8)+'px'; calEl.style.width=w+'px'; }
+  async function calFetch(){ var from=airVal('fromAirport'),to=airVal('toAirport'); if(!from||!to)return; var months=[monKey(CAL.y,CAL.mo),monKey(nextY(CAL.y,CAL.mo),nextM(CAL.mo))]; try{ var r=await fetch(API_BASE+'/api/flight-calendar?from='+encodeURIComponent(from)+'&to='+encodeURIComponent(to)+'&months='+months.join(','),{mode:'cors'}); var j=await r.json(); CAL.prices=Object.assign(CAL.prices||{},j.prices||{}); calTiers(); renderCal(); }catch(e){} }
+  function openCal(field){ ensureCal(); CAL.field=field; CAL.prices={}; var start=(field==='ret'&&dval('depDate'))?dval('depDate'):todayD(); var sm=start.match(/^(\d{4})-(\d{2})/); CAL.y=+sm[1]; CAL.mo=+sm[2]; renderCal(); posCal(el(field==='ret'?'retDate':'depDate')); calEl.style.display='block'; calFetch(); }
+  function calNav(dir){ if(dir==='prev'){ var pm=prevM(CAL.mo),py=prevY(CAL.y,CAL.mo); if(monKey(py,pm)<todayD().slice(0,7))return; CAL.y=py;CAL.mo=pm; } else { CAL.y=nextY(CAL.y,CAL.mo); CAL.mo=nextM(CAL.mo); } renderCal(); calFetch(); }
+  function pickDate(ds){ if(CAL.field==='dep'){ setDate('depDate',ds); if(dval('retDate')&&dval('retDate')<ds) setDate('retDate',''); if(TRIP==='round'){ CAL.field='ret'; renderCal(); return; } } else { if(dval('depDate')&&ds<dval('depDate'))return; setDate('retDate',ds); } closeCal(); }
+  window.addEventListener('scroll',function(){ if(calEl&&calEl.style.display!=='none') closeCal(); },true);
+
+  /* ---------- init ---------- */
+  var tries=0;(function ready(){ if(el('searchFlightsBtn')&&el('fromAirport')){ setTrip(); return; } if(tries++<120) setTimeout(ready,120); })();
+})();
+</script>
+</body>
+</html>

@@ -26,7 +26,10 @@
     <span style="width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3z"/><circle cx="18.5" cy="17.5" r="1.6"/><circle cx="5.5" cy="16.5" r="1.2"/></svg>
     </span>
-    Ask Skyline AI
+    {{ launcherLabel }}
+    <sc-if value="{{ hasUnread }}" hint-placeholder-val="{{ false }}">
+      <span style="position:absolute;top:-7px;right:-7px;min-width:23px;height:23px;border-radius:999px;background:#FF4D4F;color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 6px;box-shadow:0 4px 12px rgba(200,30,30,.5);border:2px solid #fff">{{ unread }}</span>
+    </sc-if>
   </button>
 
   <!-- Panel -->
@@ -40,7 +43,9 @@
         <div style="font-weight:800;font-size:15px;letter-spacing:-.01em">Skyline AI Travel Assistant</div>
         <div style="font-size:11.5px;opacity:.9;display:flex;align-items:center;gap:6px"><span style="width:7px;height:7px;border-radius:50%;background:#7CF2B0"></span>Here to help plan your trip</div>
       </div>
-      <button onClick="{{ toggle }}" style="background:rgba(255,255,255,.18);border:0;cursor:pointer;color:#fff;width:30px;height:30px;border-radius:9px;font-size:18px;line-height:1">×</button>
+      <button onClick="{{ toggle }}" title="Minimize — your chat continues" aria-label="Minimize chat" style="background:rgba(255,255,255,.18);border:0;cursor:pointer;color:#fff;width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg>
+      </button>
     </div>
 
     <!-- messages -->
@@ -93,6 +98,7 @@ class Component extends DCLogic {
   state = {
     open: false,
     thinking: false,
+    unread: 0,
     messages: [{ role: 'assistant', text: "Namaste! 🙏 I'm the Skyline AI Travel Assistant. Tell me where you'd like to go, your dates, travellers and budget — I'll suggest destinations, trip length and hotel categories, then point you to a quote on WhatsApp or our custom form." }],
   };
 
@@ -103,7 +109,7 @@ class Component extends DCLogic {
 
   toggle = () => {
     const open = !this.state.open;
-    this.setState({ open });
+    this.setState({ open, unread: open ? 0 : this.state.unread });
     if (this.panelEl) this.panelEl.style.display = open ? 'flex' : 'none';
     if (open) setTimeout(() => { this.inputEl && this.inputEl.focus(); this.scrollDown(); }, 60);
   };
@@ -146,9 +152,9 @@ class Component extends DCLogic {
         ];
         reply = await window.claude.complete({ messages: api });
       }
-      this.setState({ messages: [...msgs, { role: 'assistant', text: (reply || '').trim() || "Sorry, I didn't catch that — could you rephrase?" }], thinking: false });
+      this.setState({ messages: [...msgs, { role: 'assistant', text: (reply || '').trim() || "Sorry, I didn't catch that — could you rephrase?" }], thinking: false, unread: this.state.open ? 0 : this.state.unread + 1 });
     } catch (e) {
-      this.setState({ messages: [...msgs, { role: 'assistant', text: "I'm having trouble connecting right now. For quick help, tap “Chat on WhatsApp” below or use the Customize My Trip form." }], thinking: false });
+      this.setState({ messages: [...msgs, { role: 'assistant', text: "I'm having trouble connecting right now. For quick help, tap “Chat on WhatsApp” below or use the Customize My Trip form." }], thinking: false, unread: this.state.open ? 0 : this.state.unread + 1 });
     }
   }
 
@@ -168,6 +174,9 @@ class Component extends DCLogic {
       inputEl: this.setInput,
       toggle: this.toggle,
       onSubmit: this.onSubmit,
+      launcherLabel: this.state.messages.length > 1 ? 'Resume chat' : 'Ask Skyline AI',
+      hasUnread: this.state.unread > 0,
+      unread: this.state.unread > 9 ? '9+' : String(this.state.unread),
       thinking: this.state.thinking,
       messages: this.state.messages.map((m) => {
         const me = m.role === 'user';

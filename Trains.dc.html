@@ -59,7 +59,16 @@
     .trn-go:hover{background:#0954bd}
     .trn-irctc{display:flex;align-items:center;margin:4px 0 4px 4px;background:#eef4ff;color:#0a5fd7;font-weight:700;padding:0 18px;border-radius:12px;font-size:14px}
     @media (max-width:640px){.trn-bar{flex-direction:column}.trn-cell{border-right:none;border-bottom:1px solid #eef2f7}.trn-h1{font-size:30px}}
-    @media (prefers-reduced-motion: reduce){.thp-base{animation:none}.thp{display:none}}@media (max-width: 768px){.thp-base{animation:none!important}.thp{display:none!important}}
+    .xtrv{position:absolute;z-index:0;pointer-events:none;filter:drop-shadow(0 3px 7px rgba(0,10,30,.45))}
+    .xtrv .flip{display:block;transform:scaleX(-1)}
+    .xtrv .strk{position:absolute;top:50%;height:2px;border-radius:2px}
+    .xtrv1 .strk{right:82%;width:110px;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.45))}
+    .xtrv2 .strk{left:82%;width:90px;background:linear-gradient(90deg,rgba(255,255,255,.4),rgba(255,255,255,0))}
+    .xtrv1{top:64%;left:-16%;animation:xtrR 20s linear infinite}
+    .xtrv2{top:78%;left:112%;animation:xtrL 28s linear infinite;animation-delay:4s;transform:scale(0.8);opacity:.8}
+    @keyframes xtrR{from{left:-16%}to{left:112%}}
+    @keyframes xtrL{from{left:112%}to{left:-18%}}
+    @media (prefers-reduced-motion: reduce){.thp-base{animation:none}.thp{display:none}.xtrv{display:none}}@media (max-width: 768px){.thp-base{animation:none!important}.thp{display:none!important}.xtrv{display:none!important}}
   </style>
 </helmet>
 
@@ -86,6 +95,8 @@
   <div class="thp-base thp thp2"></div>
   <div class="thp-base thp thp3"></div>
   <div class="trn-htint"></div>
+  <span class="xtrv xtrv1"><span class="strk"></span><svg width="92" height="20" viewBox="0 0 86 20" fill="none"><rect x="0" y="2" width="24" height="12" rx="3" fill="rgba(255,255,255,.82)"/><rect x="26" y="2" width="24" height="12" rx="3" fill="rgba(255,255,255,.82)"/><path d="M52 2h16c6 0 12 6 14 12H52z" fill="rgba(255,255,255,.88)"/><rect x="3" y="5" width="5" height="4" rx="1" fill="#0b2440" opacity=".5"/><rect x="10" y="5" width="5" height="4" rx="1" fill="#0b2440" opacity=".5"/><rect x="17" y="5" width="5" height="4" rx="1" fill="#0b2440" opacity=".5"/><rect x="29" y="5" width="5" height="4" rx="1" fill="#0b2440" opacity=".5"/><rect x="36" y="5" width="5" height="4" rx="1" fill="#0b2440" opacity=".5"/><rect x="43" y="5" width="5" height="4" rx="1" fill="#0b2440" opacity=".5"/><rect x="55" y="5" width="6" height="4" rx="1" fill="#0b2440" opacity=".5"/><rect x="0" y="15" width="82" height="2" rx="1" fill="rgba(255,255,255,.45)"/></svg></span>
+  <span class="xtrv xtrv2"><span class="strk"></span><span class="flip"><svg width="92" height="20" viewBox="0 0 86 20" fill="none"><rect x="0" y="2" width="24" height="12" rx="3" fill="rgba(255,255,255,.82)"/><rect x="26" y="2" width="24" height="12" rx="3" fill="rgba(255,255,255,.82)"/><path d="M52 2h16c6 0 12 6 14 12H52z" fill="rgba(255,255,255,.88)"/><rect x="3" y="5" width="5" height="4" rx="1" fill="#0b2440" opacity=".5"/><rect x="10" y="5" width="5" height="4" rx="1" fill="#0b2440" opacity=".5"/><rect x="17" y="5" width="5" height="4" rx="1" fill="#0b2440" opacity=".5"/><rect x="29" y="5" width="5" height="4" rx="1" fill="#0b2440" opacity=".5"/><rect x="36" y="5" width="5" height="4" rx="1" fill="#0b2440" opacity=".5"/><rect x="43" y="5" width="5" height="4" rx="1" fill="#0b2440" opacity=".5"/><rect x="55" y="5" width="6" height="4" rx="1" fill="#0b2440" opacity=".5"/><rect x="0" y="15" width="82" height="2" rx="1" fill="rgba(255,255,255,.45)"/></svg></span></span>
   <div class="trn-hero-in">
     <h1 class="trn-h1">Find your train</h1>
     <p class="trn-hsub">Vande Bharat, express &amp; sleeper trains across Indian Railways</p>

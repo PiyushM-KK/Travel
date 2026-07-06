@@ -38,7 +38,16 @@
     .bus-go{background:#0a5fd7;color:#fff;border:none;font-family:inherit;font-weight:800;font-size:15px;padding:0 30px;border-radius:12px;cursor:pointer;margin:4px;display:flex;align-items:center}
     .bus-go:hover{background:#0954bd}
     @media (max-width:640px){.bus-bar{flex-direction:column}.bus-cell{border-right:none;border-bottom:1px solid #eef2f7}.bus-h1{font-size:30px}}
-    @media (prefers-reduced-motion: reduce){.bhp-base{animation:none}.bhp{display:none}}@media (max-width: 768px){.bhp-base{animation:none!important}.bhp{display:none!important}}
+    .xbsv{position:absolute;z-index:0;pointer-events:none;filter:drop-shadow(0 3px 7px rgba(0,10,30,.45))}
+    .xbsv .flip{display:block;transform:scaleX(-1)}
+    .xbsv .strk{position:absolute;top:50%;height:2px;border-radius:2px}
+    .xbsv1 .strk{right:82%;width:110px;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.45))}
+    .xbsv2 .strk{left:82%;width:90px;background:linear-gradient(90deg,rgba(255,255,255,.4),rgba(255,255,255,0))}
+    .xbsv1{top:64%;left:-16%;animation:xbsR 24s linear infinite}
+    .xbsv2{top:78%;left:112%;animation:xbsL 32s linear infinite;animation-delay:4s;transform:scale(0.85);opacity:.8}
+    @keyframes xbsR{from{left:-16%}to{left:112%}}
+    @keyframes xbsL{from{left:112%}to{left:-18%}}
+    @media (prefers-reduced-motion: reduce){.bhp-base{animation:none}.bhp{display:none}.xbsv{display:none}}@media (max-width: 768px){.bhp-base{animation:none!important}.bhp{display:none!important}.xbsv{display:none!important}}
   </style>
 </helmet>
 
@@ -66,6 +75,8 @@
   <div class="bhp-base bhp bhp3"></div>
   <div class="bhp-base bhp bhp4"></div>
   <div class="bus-htint"></div>
+  <span class="xbsv xbsv1"><span class="strk"></span><svg width="58" height="22" viewBox="0 0 54 22" fill="none"><rect x="1" y="2" width="52" height="14" rx="4" fill="rgba(255,255,255,.82)"/><rect x="5" y="5" width="8" height="5" rx="1" fill="#0b2440" opacity=".5"/><rect x="15" y="5" width="8" height="5" rx="1" fill="#0b2440" opacity=".5"/><rect x="25" y="5" width="8" height="5" rx="1" fill="#0b2440" opacity=".5"/><rect x="35" y="5" width="8" height="5" rx="1" fill="#0b2440" opacity=".5"/><rect x="44" y="6" width="7" height="6" rx="1" fill="#0b2440" opacity=".42"/><circle cx="13" cy="17" r="3.2" fill="rgba(15,28,50,.85)"/><circle cx="41" cy="17" r="3.2" fill="rgba(15,28,50,.85)"/></svg></span>
+  <span class="xbsv xbsv2"><span class="strk"></span><span class="flip"><svg width="58" height="22" viewBox="0 0 54 22" fill="none"><rect x="1" y="2" width="52" height="14" rx="4" fill="rgba(255,255,255,.82)"/><rect x="5" y="5" width="8" height="5" rx="1" fill="#0b2440" opacity=".5"/><rect x="15" y="5" width="8" height="5" rx="1" fill="#0b2440" opacity=".5"/><rect x="25" y="5" width="8" height="5" rx="1" fill="#0b2440" opacity=".5"/><rect x="35" y="5" width="8" height="5" rx="1" fill="#0b2440" opacity=".5"/><rect x="44" y="6" width="7" height="6" rx="1" fill="#0b2440" opacity=".42"/><circle cx="13" cy="17" r="3.2" fill="rgba(15,28,50,.85)"/><circle cx="41" cy="17" r="3.2" fill="rgba(15,28,50,.85)"/></svg></span></span>
   <div class="bus-hero-in">
     <h1 class="bus-h1">Find your bus</h1>
     <p class="bus-hsub">Intercity, sleeper &amp; premium Volvo coaches across India</p>

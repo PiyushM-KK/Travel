@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://unpkg.com" crossorigin>
+<link rel="dns-prefetch" href="https://unpkg.com">
+<link rel="icon" type="image/png" href="images/logo.png">
 <script src="./support.js"></script>
 </head>
 <body>
@@ -60,6 +63,9 @@
 
     <!-- quick chips -->
     <div style="display:flex;gap:8px;padding:10px 14px 0;flex-wrap:wrap;background:#fff;flex-shrink:0">
+      <a href="{{ waHref }}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:6px;text-decoration:none;border:1px solid #25D366;background:#25D366;color:#fff;font-family:inherit;font-weight:700;font-size:12px;padding:7px 12px;border-radius:999px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M12 2a10 10 0 00-8.6 15l-1.3 4.8 4.9-1.3A10 10 0 1012 2z"/></svg>Chat on WhatsApp
+      </a>
       <sc-for list="{{ chips }}" as="c" hint-placeholder-count="3">
         <button class="sk-q" onClick="{{ c.send }}" style="border:1px solid #E4ECF3;background:#fff;cursor:pointer;font-family:inherit;font-weight:600;font-size:12px;color:#3A4D5E;padding:7px 12px;border-radius:999px">{{ c.label }}</button>
       </sc-for>
@@ -78,6 +84,12 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
+  // ── AI backend ───────────────────────────────────────────────────────────
+  // Deploy server/openai-chat-worker.js (see its header) and paste your Worker
+  // URL below, replacing the whole string. Until then the widget routes to
+  // WhatsApp (live) or the design-preview AI (in the editor).
+  aiEndpoint = 'https://hello-world.skyline-dev.workers.dev';
+
   state = {
     open: false,
     thinking: false,
@@ -106,17 +118,37 @@ class Component extends DCLogic {
   async ask(text) {
     if (!text || this.state.thinking) return;
     const msgs = [...this.state.messages, { role: 'user', text }];
+    const useEndpoint = this.aiEndpoint && this.aiEndpoint.indexOf('REPLACE_WITH_YOUR_WORKER_URL') === -1;
+    const usePreview = window.claude && typeof window.claude.complete === 'function';
+    // No AI backend at all → route to WhatsApp instead of showing a connection error.
+    if (!useEndpoint && !usePreview) {
+      this.setState({ messages: [...msgs, { role: 'assistant', text: "For the fastest, most accurate help, tap the green “Chat on WhatsApp” button below — our travel team will personally plan your trip and share a quote. 🙏 You can also use the “Customize My Trip” form." }] });
+      return;
+    }
     this.setState({ messages: msgs, thinking: true });
     try {
-      const api = [
-        { role: 'user', content: this.systemPrimer() },
-        { role: 'assistant', content: 'Understood — I will help plan trips with Skyline Travel Planner and follow those limits.' },
-        ...msgs.map((m) => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.text })),
-      ];
-      const reply = await window.claude.complete({ messages: api });
+      let reply;
+      if (useEndpoint) {
+        // Live: call our OpenAI-backed Worker. The system prompt/rules live server-side.
+        const res = await fetch(this.aiEndpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages: msgs.map((m) => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.text })) }),
+        });
+        const data = await res.json();
+        reply = data.reply;
+      } else {
+        // Design-preview environment: use the built-in AI.
+        const api = [
+          { role: 'user', content: this.systemPrimer() },
+          { role: 'assistant', content: 'Understood — I will help plan trips with Skyline Travel Planner and follow those limits.' },
+          ...msgs.map((m) => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.text })),
+        ];
+        reply = await window.claude.complete({ messages: api });
+      }
       this.setState({ messages: [...msgs, { role: 'assistant', text: (reply || '').trim() || "Sorry, I didn't catch that — could you rephrase?" }], thinking: false });
     } catch (e) {
-      this.setState({ messages: [...msgs, { role: 'assistant', text: "I'm having trouble connecting right now. For quick help, message us on WhatsApp at +91 8866050291 or use the Customize My Trip form." }], thinking: false });
+      this.setState({ messages: [...msgs, { role: 'assistant', text: "I'm having trouble connecting right now. For quick help, tap “Chat on WhatsApp” below or use the Customize My Trip form." }], thinking: false });
     }
   }
 
@@ -129,6 +161,7 @@ class Component extends DCLogic {
 
   renderVals() {
     return {
+      waHref: 'https://wa.me/918866050291?text=' + encodeURIComponent('Hi Skyline Travel Planner, I would like help planning a trip.'),
       root: this.setRoot,
       panelEl: this.setPanel,
       scrollEl: this.setScroll,
@@ -150,7 +183,6 @@ class Component extends DCLogic {
         { label: '5-day Kerala?', send: () => this.ask('Can you suggest a 5-day Kerala itinerary for a family of 4?') },
         { label: '3★ vs 5★', send: () => this.ask("What's the difference between a 3-star and 5-star package?") },
         { label: 'Best season', send: () => this.ask('What is the best season to visit Kashmir?') },
-        { label: 'Honeymoon ideas', send: () => this.ask('Suggest a romantic honeymoon destination within ₹60,000 for a week.') },
       ],
     };
   }

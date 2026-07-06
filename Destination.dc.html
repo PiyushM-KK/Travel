@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Destination Guide | Skyline Travel Planner</title>
+<meta name="description" content="Explore India & international destinations with Skyline Travel Planner — top places to visit, best time to go, ideal trip length and indicative starting-from costs. No payments on this website.">
+<link rel="canonical" href="https://piyushm-kk.github.io/Travel/Destination.dc.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Skyline Travel Planner">
+<meta property="og:title" content="Destination Guide | Skyline Travel Planner">
+<meta property="og:description" content="Top places, best time to visit, trip length and indicative costs for India & beyond.">
+<meta property="og:image" content="https://piyushm-kk.github.io/Travel/images/header-banner.jpg">
+<link rel="preconnect" href="https://unpkg.com" crossorigin>
+<link rel="dns-prefetch" href="https://unpkg.com">
+<link rel="icon" type="image/png" href="images/logo.png">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:linear-gradient(180deg, #e9f2fb 0%, #f5efe6 45%, #f3ede3 100%);background-attachment:fixed;color:#0B2440;font-family:'Plus Jakarta Sans',sans-serif;-webkit-font-smoothing:antialiased}
+  a{text-decoration:none;color:inherit}
+  .navlink:hover{color:#0A84D6 !important}
+  .cbtn{transition:transform .2s,box-shadow .2s}
+  .cbtn:hover{transform:translateY(-2px)}
+  .pcard{transition:transform .3s ease, box-shadow .3s ease}
+  .pcard:hover{transform:translateY(-4px);box-shadow:0 20px 40px -26px rgba(7,59,102,.5)}
+  .dhead-nav{display:none;align-items:center;gap:19px;margin-left:8px;flex-wrap:wrap;font-size:13.5px;font-weight:600;color:#3A4D5E}
+  @media (min-width:860px){ .dhead-nav{display:flex} }
+</style>
+</helmet>
+
+<div ref="{{ root }}" style="min-height:100vh">
+
+  <header style="position:sticky;top:0;z-index:1000;background:rgba(255,255,255,.9);backdrop-filter:blur(14px);border-bottom:1px solid #E4ECF3">
+    <div style="max-width:1240px;margin:0 auto;padding:14px 28px;display:flex;align-items:center;gap:28px">
+      <a href="index.html" style="display:flex;align-items:center;flex-shrink:0"><img src="images/logo.png" alt="Skyline Travel Planner" style="height:48px;width:auto;display:block" /></a>
+      <nav class="dhead-nav">
+        <a class="navlink" href="Domestic.dc.html">Domestic Tours</a>
+        <a class="navlink" href="International.dc.html">International</a>
+        <a class="navlink" href="Customize.dc.html">Customized</a>
+        <a class="navlink" href="Flights.dc.html">Flights</a>
+        <a class="navlink" href="Hotels.dc.html">Hotels</a>
+      </nav>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:12px;flex-shrink:0">
+        <a class="cbtn" href="Customize.dc.html" style="background:#FF6A3D;color:#fff;font-weight:700;font-size:13px;padding:10px 16px;border-radius:10px;box-shadow:0 8px 18px -8px rgba(255,106,61,.7)">Customize My Trip</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section style="position:relative;overflow:hidden;color:#fff">
+    <div style="{{ d.heroBg }}"></div>
+    <div style="position:absolute;inset:0;z-index:1;background:linear-gradient(180deg, rgba(6,28,60,.28) 0%, rgba(6,28,60,.35) 55%, rgba(6,28,60,.80) 100%)"></div>
+    <div style="position:relative;z-index:2;max-width:1240px;margin:0 auto;padding:70px 28px 34px">
+      <div style="font-size:13px;font-weight:600;color:rgba(255,255,255,.85);margin-bottom:14px"><a href="index.html" style="color:#fff">Home</a> &nbsp;/&nbsp; <a href="{{ d.listHref }}" style="color:#fff">{{ d.regionLabel }}</a> &nbsp;/&nbsp; {{ d.name }}</div>
+      <span style="display:inline-block;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);backdrop-filter:blur(6px);color:#fff;font-weight:700;font-size:12px;letter-spacing:.04em;text-transform:uppercase;padding:6px 12px;border-radius:999px">{{ d.regionLabel }}</span>
+      <h1 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:52px;line-height:1.05;letter-spacing:-.02em;margin:14px 0 6px;text-shadow:0 2px 24px rgba(0,0,0,.35)">{{ d.name }}</h1>
+      <p style="font-size:18px;color:rgba(255,255,255,.9);margin:0 0 22px;max-width:640px">{{ d.tagline }}</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <span style="background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.26);backdrop-filter:blur(6px);color:#fff;font-weight:600;font-size:13px;padding:9px 14px;border-radius:12px">📅 Best time: {{ d.bestTime }}</span>
+        <span style="background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.26);backdrop-filter:blur(6px);color:#fff;font-weight:600;font-size:13px;padding:9px 14px;border-radius:12px">⏱️ Ideal: {{ d.duration }}</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT + PLACES -->
+  <section style="max-width:1240px;margin:0 auto;padding:44px 28px 20px">
+    <p style="font-size:17px;line-height:1.65;color:#3A4D5E;max-width:820px;margin:0 0 8px">{{ d.about }}</p>
+
+    <sc-if value="{{ d.visaNote }}" hint-placeholder-val="{{ false }}">
+      <div style="display:inline-block;background:#FFF6E9;border:1px solid #F3D9AE;color:#8A5A12;font-size:13px;font-weight:600;padding:8px 14px;border-radius:10px;margin-top:6px">🛂 {{ d.visaNote }}</div>
+    </sc-if>
+
+    <h2 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:30px;letter-spacing:-.01em;margin:34px 0 18px">Top places to visit</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px">
+      <sc-for list="{{ d.places }}" as="p" hint-placeholder-count="4">
+        <div class="pcard" style="background:#fff;border:1px solid #EAEFF3;border-radius:16px;padding:20px;box-shadow:0 12px 28px -24px rgba(7,59,102,.5)">
+          <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:18px;margin-bottom:6px;color:#0B2440">{{ p.name }}</div>
+          <div style="font-size:14px;line-height:1.55;color:#5C6F80">{{ p.desc }}</div>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- HIGHLIGHTS -->
+    <h2 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:30px;letter-spacing:-.01em;margin:38px 0 16px">Trip highlights</h2>
+    <div style="display:flex;flex-wrap:wrap;gap:10px">
+      <sc-for list="{{ d.highlights }}" as="h" hint-placeholder-count="4">
+        <span style="background:#EAF5FD;color:#0A6FB8;font-weight:600;font-size:14px;padding:10px 16px;border-radius:12px;border:1px solid #D7EBF8">{{ h }}</span>
+      </sc-for>
+    </div>
+
+    <!-- HOTEL TIERS -->
+    <h2 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:30px;letter-spacing:-.01em;margin:40px 0 16px">Choose your comfort level</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px">
+      <sc-for list="{{ tiers }}" as="t" hint-placeholder-count="3">
+        <div style="background:#fff;border:1.5px solid #E4ECF3;border-radius:16px;overflow:hidden">
+          <div style="background:linear-gradient(135deg,{{ t.c1 }},{{ t.c2 }});color:#fff;padding:18px 20px">
+            <div style="font-weight:800;font-size:18px">{{ t.stars }}</div>
+            <div style="font-size:12.5px;opacity:.92;margin-top:2px">{{ t.tag }}</div>
+          </div>
+          <div style="padding:16px 20px;font-size:14px;color:#46596A;line-height:1.55">{{ t.desc }}</div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="margin-top:22px;background:#F4F8FB;border:1px solid #E4ECF3;border-radius:14px;padding:14px 18px;font-size:12.5px;color:#5C6F80;line-height:1.6">Note: Prices are indicative, per-person "starting from" estimates for guidance only — not guaranteed. Flights, hotel availability and visas are confirmed by the official provider, never on this website.</div>
+  </section>
+
+  <!-- CTA -->
+  <section style="max-width:1240px;margin:0 auto;padding:16px 28px 70px">
+    <div style="background:#0B2440;border-radius:24px;padding:40px 44px;display:flex;align-items:center;justify-content:space-between;gap:30px;flex-wrap:wrap">
+      <div style="color:#fff;max-width:600px">
+        <h3 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:28px;letter-spacing:-.01em;margin:0">Plan your {{ d.name }} trip</h3>
+        <p style="font-size:15px;color:rgba(255,255,255,.72);margin:10px 0 0">Tell us your dates, travellers and preferences — we'll craft a customized itinerary and share a quote. No payments on this website.</p>
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <a class="cbtn" href="Customize.dc.html" style="background:#FF6A3D;color:#fff;font-weight:800;font-size:15px;padding:15px 26px;border-radius:14px;box-shadow:0 14px 30px -12px rgba(255,106,61,.7)">Customize My Trip</a>
+        <a class="cbtn" href="{{ d.waLink }}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:9px;background:#25D366;color:#fff;font-weight:800;font-size:15px;padding:15px 22px;border-radius:14px">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="#fff"><path d="M12 2a10 10 0 00-8.6 15l-1.3 4.8 4.9-1.3A10 10 0 1012 2z"/></svg>WhatsApp
+        </a>
+      </div>
+    </div>
+
+    <!-- related -->
+    <div style="margin-top:34px">
+      <div style="font-size:13px;font-weight:700;color:#0A84D6;letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px">More destinations</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <sc-for list="{{ related }}" as="r" hint-placeholder-count="6">
+          <a href="{{ r.href }}" style="background:#fff;border:1.5px solid #E4ECF3;color:#3A4D5E;font-weight:700;font-size:13.5px;padding:9px 15px;border-radius:999px" class="cbtn">{{ r.name }} →</a>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <footer style="background:#06192C;color:rgba(255,255,255,.55);padding:30px 28px;text-align:center;font-size:12.5px;line-height:1.6">
+    <div style="margin-bottom:12px"><a href="Privacy.dc.html" style="color:#5fc2f0;font-weight:600;margin:0 10px">Privacy Policy</a><a href="Privacy.dc.html#cookies" style="color:#5fc2f0;font-weight:600;margin:0 10px">Cookie Policy</a></div>
+    Skyline Travel Planner does not process flight, train, bus or hotel payments through this website. Estimated prices are indicative and subject to travel dates and availability. · WhatsApp 8866050291 · info@skylinetravelplanner.com
+  </footer>
+
+  <a href="{{ d.waLink }}" target="_blank" rel="noopener" class="cbtn" style="position:fixed;right:22px;bottom:22px;z-index:8000;display:flex;align-items:center;gap:10px;background:#25D366;color:#fff;font-weight:700;font-size:14px;padding:14px 20px;border-radius:999px;box-shadow:0 16px 34px -10px rgba(37,211,102,.7)">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M12 2a10 10 0 00-8.6 15l-1.3 4.8 4.9-1.3A10 10 0 1012 2zm5.6 14.2c-.2.6-1.2 1.2-1.7 1.2-.4 0-1 .1-3-.8a11 11 0 01-4.6-4.1c-.3-.5-.8-1.4-.8-2.2 0-.8.4-1.2.6-1.4.2-.2.4-.2.6-.2h.4c.2 0 .4 0 .6.5l.7 1.7c0 .2.1.4 0 .5l-.3.5-.3.3c-.1.1-.3.3-.1.5.1.3.7 1.1 1.4 1.7 1 .8 1.7 1.1 2 1.2.2.1.4.1.5-.1l.6-.8c.2-.2.3-.2.5-.1l1.6.8c.2.1.4.2.4.3.1.1.1.6 0 .9z"/></svg>
+    <span>Chat with us</span>
+  </a>
+
+  <dc-import name="AssistantWidget" hint-size="0,0"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { slug: 'rajasthan' };
+
+  componentDidMount() {
+    let slug = '';
+    try { slug = (new URL(window.location.href).searchParams.get('dest') || '').toLowerCase().trim(); } catch (e) {}
+    if (slug && this.data()[slug]) this.setState({ slug });
+    // reflect the destination in the page title/tab
+    try { const d = this.data()[this.state.slug] || this.data()[slug]; if (d) document.title = d.name + ' Travel Guide | Skyline Travel Planner'; } catch (e) {}
+  }
+
+  data() {
+    const D = 'Domestic.dc.html', I = 'International.dc.html';
+    return {
+      rajasthan: { name: 'Rajasthan', region: D, regionLabel: 'Domestic', img: 'images/dest-rajasthan.jpg', tagline: 'The Land of Kings — forts, palaces, desert camps and colourful culture.', bestTime: 'Oct–Mar', duration: '4–7 days', fromPrice: '₹18,000', about: 'Rajasthan is India at its most royal — mighty hilltop forts, lake palaces, bustling bazaars, camel safaris in the Thar desert and vibrant folk music and cuisine.', visaNote: '', places: [ ['Jaipur', 'Pink City — Amber Fort, City Palace, Hawa Mahal and lively bazaars.'], ['Udaipur', 'City of Lakes — Lake Pichola, City Palace and romantic sunset boat rides.'], ['Jodhpur', 'Blue City crowned by the majestic Mehrangarh Fort.'], ['Jaisalmer', 'Golden Fort and Sam sand-dune desert camps under the stars.'] ], highlights: ['Forts & palaces', 'Desert safari & camps', 'Folk music & dance', 'Royal Rajasthani cuisine'] },
+      himachal: { name: 'Himachal Pradesh', region: D, regionLabel: 'Domestic', img: 'images/dest-himachal.avif', tagline: 'Himalayan hill stations, snow, adventure and pine-scented valleys.', bestTime: 'Mar–Jun · Dec–Feb (snow)', duration: '5–7 days', fromPrice: '₹16,000', about: 'From colonial Shimla to adventure-packed Manali and the serene monasteries of Dharamshala, Himachal is the go-to for mountains, snow and easy escapes.', visaNote: '', places: [ ['Shimla', 'Colonial charm, the Ridge, Mall Road and the toy train.'], ['Manali', 'Solang Valley, Rohtang Pass, river adventures and cafes.'], ['Dharamshala & McLeodganj', 'Tibetan culture, monasteries and Himalayan views.'], ['Kasol & Parvati Valley', 'Riverside hamlets, pine forests and laid-back trails.'] ], highlights: ['Snow & mountain views', 'Adventure & paragliding', 'Monasteries & culture', 'Apple orchards & cafes'] },
+      kashmir: { name: 'Kashmir', region: D, regionLabel: 'Domestic', img: 'images/dest-kashmir.webp', tagline: 'Paradise on Earth — Dal Lake shikaras, Mughal gardens and alpine meadows.', bestTime: 'Mar–Oct · tulips in Apr · snow Dec–Feb', duration: '5–6 days', fromPrice: '₹22,000', about: 'Kashmir wraps you in houseboats on Dal Lake, Mughal gardens, gondola rides in Gulmarg and the flower-filled meadows of Pahalgam and Sonamarg.', visaNote: '', places: [ ['Srinagar', 'Shikara rides on Dal Lake, houseboats and Mughal gardens.'], ['Gulmarg', 'Gondola cable car, meadows and winter skiing.'], ['Pahalgam', 'Valley of shepherds — Betaab Valley and river walks.'], ['Sonamarg', 'The Meadow of Gold — glaciers and alpine scenery.'] ], highlights: ['Houseboat stay', 'Gulmarg gondola', 'Alpine meadows', 'Saffron & Kashmiri cuisine'] },
+      kerala: { name: 'Kerala', region: D, regionLabel: 'Domestic', img: 'images/dest-kerala.webp', tagline: "God's Own Country — backwaters, tea hills, beaches and ayurveda.", bestTime: 'Sep–Mar', duration: '4–5 days', fromPrice: '₹18,000', about: 'Glide through Alleppey backwaters on a houseboat, wander misty Munnar tea gardens, spot wildlife in Thekkady and unwind with ayurveda — Kerala is pure calm.', visaNote: '', places: [ ['Munnar', 'Rolling tea plantations, misty hills and cool climate.'], ['Alleppey', 'Backwater houseboat cruises through palm-fringed lagoons.'], ['Thekkady', 'Periyar wildlife sanctuary and spice plantations.'], ['Kochi', 'Fort Kochi heritage, Chinese fishing nets and cafes.'] ], highlights: ['Backwater houseboat', 'Tea & spice gardens', 'Ayurveda & wellness', 'Beaches & culture'] },
+      goa: { name: 'Goa', region: D, regionLabel: 'Domestic', img: 'images/dest-goa.jpg', tagline: 'Sun, sand and good vibes — beaches, nightlife and Portuguese heritage.', bestTime: 'Nov–Feb', duration: '3–5 days', fromPrice: '₹14,000', about: 'India’s favourite beach break — lively North Goa, laid-back South Goa beaches, water sports, buzzing shacks and old-world Portuguese churches and quarters.', visaNote: '', places: [ ['North Goa', 'Baga, Calangute, Anjuna — beaches, shacks and nightlife.'], ['South Goa', 'Palolem and Colva — quieter, palm-lined sands.'], ['Old Goa', 'UNESCO churches and Portuguese heritage.'], ['Dudhsagar Falls', 'Spectacular four-tier waterfall and jungle trails.'] ], highlights: ['Beaches & shacks', 'Water sports', 'Nightlife & cafes', 'Portuguese heritage'] },
+      ooty: { name: 'Ooty & Nilgiris', region: D, regionLabel: 'Domestic', img: 'images/dest-ooty.webp', tagline: 'Queen of the Nilgiris — tea gardens, toy train and cool blue hills.', bestTime: 'Oct–Jun', duration: '3–4 days', fromPrice: '₹12,000', about: 'A classic South Indian hill escape — the heritage Nilgiri toy train, emerald tea estates, botanical gardens and the quieter charm of neighbouring Coonoor.', visaNote: '', places: [ ['Ooty', 'Botanical Gardens, Ooty Lake and the Nilgiri toy train.'], ['Coonoor', "Sim’s Park, Dolphin’s Nose and tea-estate views."], ['Doddabetta Peak', 'Highest point in the Nilgiris with sweeping vistas.'], ['Tea Estates', 'Tea factory tours and scenic plantation drives.'] ], highlights: ['Heritage toy train', 'Tea gardens', 'Lakes & gardens', 'Cool hill climate'] },
+      mysuru: { name: 'Mysuru & Coorg', region: D, regionLabel: 'Domestic', img: 'images/dest-mysuru.jpg', tagline: 'Royal Mysuru palaces and the misty coffee country of Coorg.', bestTime: 'Oct–Mar', duration: '3–4 days', fromPrice: '₹13,000', about: 'Pair the grandeur of Mysore Palace and Chamundi Hills with the coffee estates, waterfalls and cool green hills of Coorg — the Scotland of India.', visaNote: '', places: [ ['Mysore Palace', 'Opulent royal palace, dazzling when lit up.'], ['Chamundi Hills', 'Hilltop temple with panoramic city views.'], ['Coorg', 'Coffee estates, Abbey Falls and Raja’s Seat sunsets.'], ['Dubare Camp', 'Elephant camp and Cauvery riverside experiences.'] ], highlights: ['Royal palace', 'Coffee country', 'Waterfalls', 'Culture & cuisine'] },
+      agra: { name: 'Agra & Taj Mahal', region: D, regionLabel: 'Domestic', img: 'images/dest-agra.jpg', tagline: 'The Taj Mahal, Mughal grandeur and the spiritual Braj region.', bestTime: 'Oct–Mar', duration: '2–3 days', fromPrice: '₹9,000', about: 'See the Taj Mahal glow at sunrise, explore Agra Fort and Fatehpur Sikri, and extend to the Krishna temples of Mathura and Vrindavan.', visaNote: '', places: [ ['Taj Mahal', 'The iconic monument of love — magical at sunrise.'], ['Agra Fort', 'Grand red-sandstone Mughal fort and palaces.'], ['Fatehpur Sikri', 'Beautifully preserved Mughal ghost city.'], ['Mathura & Vrindavan', 'Sacred birthplace of Krishna and vibrant temples.'] ], highlights: ['Taj at sunrise', 'Mughal heritage', 'Spiritual Braj', 'Marble handicrafts'] },
+      uttarakhand: { name: 'Uttarakhand', region: D, regionLabel: 'Domestic', img: 'images/dest-uttarakhand.jpg', tagline: 'Off-beat Kumaon & Garhwal — Himalayan views, lakes and wildlife.', bestTime: 'Mar–Jun · Sep–Nov', duration: '5–7 days', fromPrice: '₹16,000', about: 'From the lakes of Nainital to the sweeping Himalayan panoramas of Kausani and Mukteshwar, plus tiger country at Jim Corbett — Uttarakhand is serene and scenic.', visaNote: '', places: [ ['Nainital', 'Lakeside hill town with boating and Mall Road.'], ['Kausani', 'Panoramic Himalayan sunrise views — the "Switzerland of India".'], ['Mukteshwar', 'Orchards, pine forests and quiet mountain trails.'], ['Jim Corbett', 'India’s oldest national park — tiger safaris and wildlife.'] ], highlights: ['Himalayan views', 'Lakes & hill towns', 'Wildlife safari', 'Temples & nature'] },
+      thailand: { name: 'Thailand', region: I, regionLabel: 'International', img: 'images/dest-thailand.jpg', tagline: 'Beaches, temples, islands and legendary street food.', bestTime: 'Nov–Mar', duration: '5–7 days', fromPrice: '₹42,000', about: 'Buzzing Bangkok, dreamy Phuket and Krabi islands, and the temple town of Chiang Mai — Thailand blends beaches, culture, shopping and nightlife.', visaNote: 'International trip — passport required; check current visa rules for Indian passport holders.', places: [ ['Bangkok', 'Grand Palace, temples, floating markets and shopping.'], ['Phuket & Krabi', 'Island hopping, beaches and limestone cliffs.'], ['Pattaya', 'Beaches, coral islands and lively entertainment.'], ['Chiang Mai', 'Old-city temples, night bazaars and hill country.'] ], highlights: ['Island hopping', 'Street food', 'Temples & culture', 'Beaches & nightlife'] },
+      bali: { name: 'Bali', region: I, regionLabel: 'International', img: 'images/dest-bali.jpg', tagline: 'Island of the Gods — rice terraces, temples, beaches and resorts.', bestTime: 'Apr–Oct', duration: '5–7 days', fromPrice: '₹46,000', about: 'Bali balances spiritual Ubud with its rice terraces and temples, buzzing beach towns like Seminyak, and jaw-dropping cliffs and islands like Nusa Penida.', visaNote: 'International trip — passport required; visa on arrival typically available for Indian passport holders (verify current rules).', places: [ ['Ubud', 'Rice terraces, temples, art villages and jungle spas.'], ['Seminyak & Kuta', 'Beach clubs, sunsets, surf and shopping.'], ['Nusa Penida', 'Dramatic cliffs, Kelingking Beach and snorkeling.'], ['Uluwatu', 'Clifftop temple and Kecak fire-dance at sunset.'] ], highlights: ['Rice terraces', 'Temples & culture', 'Beach clubs', 'Island day-trips'] },
+      maldives: { name: 'Maldives', region: I, regionLabel: 'International', img: 'images/dest-maldives.webp', tagline: 'Overwater villas, turquoise lagoons and world-class snorkeling.', bestTime: 'Nov–Apr', duration: '4–6 days', fromPrice: '₹58,000', about: 'The ultimate honeymoon and luxury escape — private resort islands, overwater villas, coral reefs teeming with life, and seaplane transfers over turquoise atolls.', visaNote: 'International trip — passport required; free visa on arrival typically granted to Indian passport holders (verify current rules).', places: [ ['Male Atolls', 'Gateway atolls and vibrant local markets.'], ['Resort Islands', 'Private-island resorts with overwater villas.'], ['Maafushi', 'Popular local island for budget-friendly stays.'], ['House Reefs', 'Snorkeling and diving with turtles and rays.'] ], highlights: ['Overwater villas', 'Snorkeling & diving', 'Spa & luxury', 'Seaplane transfers'] },
+      meghalaya: { name: 'Meghalaya', region: D, regionLabel: 'North-East India', img: 'images/dest-meghalaya.jpg', tagline: "The Abode of Clouds — living root bridges, waterfalls and Asia's cleanest village.", bestTime: 'Oct–Apr', duration: '5–7 days', about: 'Meghalaya dazzles with the towering Nohkalikai and Seven Sisters waterfalls, the famous double-decker living root bridges, the crystal-clear river at Dawki and the serene village of Mawlynnong.', visaNote: '', places: [ ['Shillong', 'The "Scotland of the East" — lakes, cafes and rolling hills.'], ['Cherrapunji (Sohra)', 'Living root bridges, Nohkalikai Falls and mist-clad canyons.'], ['Dawki', 'The crystal-clear Umngot River where boats seem to float on air.'], ['Mawlynnong', "Asia's cleanest village and the double-decker root bridge."] ], highlights: ['Living root bridges', 'Waterfalls & canyons', 'Crystal-clear rivers', 'Scenic hill drives'] },
+      assam: { name: 'Assam · Kaziranga', region: D, regionLabel: 'North-East India', img: 'images/dest-assam.jpg', tagline: 'One-horned rhinos, emerald tea gardens and the mighty Brahmaputra.', bestTime: 'Nov–Apr', duration: '4–6 days', about: "Assam pairs the wildlife of Kaziranga National Park — home to two-thirds of the world's one-horned rhinos — with endless tea estates, Brahmaputra river cruises and warm Assamese culture.", visaNote: '', places: [ ['Kaziranga National Park', 'Jeep and elephant safaris to spot one-horned rhinos.'], ['Guwahati', 'Gateway city on the Brahmaputra with river cruises.'], ['Jorhat & Tea Gardens', 'Sprawling emerald tea estates and colonial bungalows.'], ['Majuli', "The world's largest river island — culture and monasteries."] ], highlights: ['Rhino safaris', 'Tea estates', 'Brahmaputra cruises', 'River-island culture'] },
+      arunachal: { name: 'Arunachal Pradesh', region: D, regionLabel: 'North-East India', img: 'images/dest-arunachal.jpg', tagline: 'Land of Dawn-Lit Mountains — snow peaks, valleys and thundering falls.', bestTime: 'Oct–Apr', duration: '6–8 days', about: "India's wild eastern frontier of high mountain passes, the emerald Nuranang Falls, alpine lakes and the tranquil Ziro and Sangti valleys — dramatic, remote and unforgettable.", visaNote: 'Indian visitors need an Inner Line Permit (ILP) — our team helps arrange it.', places: [ ['Tawang', 'High-altitude town amid snow peaks and alpine lakes.'], ['Nuranang Falls', 'A spectacular 100m waterfall in a lush green gorge.'], ['Sela Pass', 'Dramatic snow-clad mountain pass and frozen lake.'], ['Ziro Valley', 'Rice fields, pine hills and Apatani tribal culture.'] ], highlights: ['Snow mountain passes', 'Waterfalls & lakes', 'Tribal culture', 'Offbeat adventure'] },
+      nagaland: { name: 'Nagaland', region: D, regionLabel: 'North-East India', img: 'images/dest-nagaland.jpg', tagline: 'Rolling green valleys, vibrant tribal culture and the Hornbill Festival.', bestTime: 'Oct–Apr · Hornbill in Dec', duration: '5–7 days', about: 'Nagaland enchants with the mist-draped Dzükou Valley, colourful Naga tribal heritage and the world-famous Hornbill Festival — a December celebration of music, dance and crafts.', visaNote: 'Indian visitors need an Inner Line Permit (ILP) — our team helps arrange it.', places: [ ['Kohima', 'Hilltop capital, WWII history and the Hornbill Festival.'], ['Dzükou Valley', 'Emerald rolling hills and seasonal wildflowers.'], ['Khonoma', "Asia's first green village, terraced fields and forests."], ['Kisama Heritage Village', 'Home of the vibrant Hornbill Festival.'] ], highlights: ['Dzükou Valley trek', 'Hornbill Festival', 'Tribal heritage', 'Green villages'] },
+      manipur: { name: 'Manipur · Loktak', region: D, regionLabel: 'North-East India', img: 'images/dest-manipur.jpg', tagline: 'The floating lake, emerald phumdis and graceful valley culture.', bestTime: 'Oct–Mar', duration: '4–6 days', about: "Manipur's jewel is Loktak Lake with its surreal floating rings of vegetation (phumdis) and the world's only floating national park, set in a graceful valley of dance, weaving and polo heritage.", visaNote: '', places: [ ['Loktak Lake', 'Surreal floating phumdi rings and lakeside homestays.'], ['Keibul Lamjao', "The world's only floating national park."], ['Imphal', "Kangla Fort, the Ima Keithel women's market and museums."], ['Sendra Island', 'Panoramic viewpoint over the floating lake.'] ], highlights: ['Floating lake', 'Floating national park', 'Valley culture', 'Local markets'] },
+      mizoram: { name: 'Mizoram', region: D, regionLabel: 'North-East India', img: 'images/dest-mizoram.jpg', tagline: 'Blue misty hills, bamboo forests and warm Mizo hospitality.', bestTime: 'Oct–Mar', duration: '5–7 days', about: "A tranquil land of rolling blue hills, the plunging Vantawng Falls, terraced hillsides and vibrant Mizo culture — one of India's most peaceful and untouched corners.", visaNote: 'Indian visitors need an Inner Line Permit (ILP) — our team helps arrange it.', places: [ ['Aizawl', 'Hilltop capital with panoramic ridge-top views.'], ['Vantawng Falls', "Mizoram's highest waterfall amid green forest."], ['Reiek', 'Trekking peak with sweeping valley views.'], ['Hmuifang', 'Forested hills, resorts and Mizo village life.'] ], highlights: ['Blue misty hills', 'Waterfalls', 'Bamboo forests', 'Mizo culture'] },
+      sikkim: { name: 'Sikkim', region: D, regionLabel: 'North-East India', img: 'images/dest-sikkim.jpg', tagline: 'Kanchenjunga sunrises, monasteries, alpine lakes and lush Himalayan valleys.', bestTime: 'Mar–May · Oct–Dec', duration: '6–7 days', about: "Sikkim dazzles with dawn views of Kanchenjunga — the world's third-highest peak — serene Buddhist monasteries, the glacial Tsomgo Lake, flower-filled valleys and the tea-garden charm of neighbouring Darjeeling.", visaNote: 'Indian visitors need permits for North Sikkim and Nathu La — our team helps arrange them.', places: [ ['Gangtok', 'Lively hill capital — MG Marg, the ropeway and hilltop monasteries.'], ['Tsomgo Lake & Nathu La', 'A glacial lake and the high Indo-China border pass.'], ['Pelling', 'Front-row Kanchenjunga views, Pemayangtse monastery and the skywalk.'], ['Lachung & Yumthang', "North Sikkim's Valley of Flowers and snow points."] ], highlights: ['Kanchenjunga sunrise', 'Monasteries', 'Alpine lakes', 'Valley of Flowers'] },
+    };
+  }
+
+  renderVals() {
+    const all = this.data();
+    const slug = all[this.state.slug] ? this.state.slug : 'rajasthan';
+    const d0 = all[slug];
+
+    const heroBg = { position: 'absolute', inset: 0, zIndex: 0, backgroundColor: '#0a3a78', backgroundImage: 'url("' + d0.img + '")', backgroundSize: 'cover', backgroundPosition: 'center' };
+    const waLink = 'https://wa.me/918866050291?text=' + encodeURIComponent('Hello Skyline Travel Planner, I am interested in a ' + d0.name + ' trip. Please share ideas and a quote.');
+
+    const related = Object.keys(all).filter((k) => k !== slug).slice(0, 6).map((k) => ({ name: all[k].name, href: 'Destination.dc.html?dest=' + k }));
+
+    const tiers = [
+      { stars: '★★★ 3-Star', tag: 'Comfort & value', desc: 'Clean, well-located hotels with the essentials — great for budget-conscious trips.', c1: '#5fa8ff', c2: '#0a5fd7' },
+      { stars: '★★★★ 4-Star', tag: 'Premium comfort', desc: 'Upgraded rooms, better amenities, pools and dining — a step up in comfort.', c1: '#ff9e6d', c2: '#FF6A3D' },
+      { stars: '★★★★★ 5-Star', tag: 'Luxury', desc: 'Top resorts and hotels with premium service, spa and fine dining.', c1: '#b98cff', c2: '#7C5CFF' },
+    ];
+
+    return {
+      root: (el) => { this.rootEl = el; },
+      d: {
+        ...d0,
+        heroBg,
+        waLink,
+        listHref: d0.region,
+        places: d0.places.map(([name, desc]) => ({ name, desc })),
+      },
+      tiers,
+      related,
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skyline Travel Planner — Customized Tours Across India & Beyond</title>
+<meta name="description" content="Discover India and the world with Skyline Travel Planner — customized holiday packages, domestic & international tours, plus hotels, flights, trains and buses. Get a free custom itinerary and quote. No payments taken on this website.">
+<link rel="canonical" href="https://piyushm-kk.github.io/Travel/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Skyline Travel Planner">
+<meta property="og:title" content="Skyline Travel Planner — Customized Tours Across India & Beyond">
+<meta property="og:description" content="Customized holiday packages across India, Thailand, Bali & the Maldives. Get a free itinerary & quote on WhatsApp.">
+<meta property="og:image" content="https://piyushm-kk.github.io/Travel/images/header-banner.jpg">
+<meta property="og:url" content="https://piyushm-kk.github.io/Travel/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://unpkg.com" crossorigin>
+<link rel="dns-prefetch" href="https://unpkg.com">
+<link rel="icon" type="image/png" href="images/logo.png">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Skyline Travel Planner - Customized Tours Across India & Beyond</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box }
+    body { margin: 0; background: linear-gradient(180deg, #e9f2fb 0%, #f5efe6 45%, #f3ede3 100%); background-attachment: fixed; color: #1a2332; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: antialiased }
+    a { text-decoration: none; color: inherit }
+    ::selection { background: #e8f2ff }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: translateY(0) } }
+    .fadeIn { animation: fadeIn .4s ease-out }
+    /* Responsive header nav (inline @media doesn't work in the DC runtime, so use real classes) */
+    .sky-nav { display: none; gap: 28px; align-items: center; flex: 1 }
+    .sky-burger { display: none; align-items: center; justify-content: center; width: 44px; height: 40px; background: rgba(255,255,255,.72); border: 1px solid #e5ecf5; border-radius: 10px; cursor: pointer; flex-shrink: 0 }
+    @media (min-width: 860px) { .sky-nav { display: flex } }
+    @media (max-width: 859px) { .sky-burger { display: flex } .sky-hide-mobile { display: none !important } }
+    /* Clickable destination cards with hover zoom + lift */
+    .destcard { transition: transform .3s ease, box-shadow .3s ease }
+    .destcard:hover { transform: translateY(-6px); box-shadow: 0 22px 44px -22px rgba(10,95,215,.45) }
+    .destimg { transition: transform .7s ease }
+    .destcard:hover .destimg { transform: scale(1.08) }
+    .destcard:hover .destview { background: rgba(255,255,255,.30) !important; border-color: rgba(255,255,255,.5) !important }
+    @media (prefers-reduced-motion: reduce) { .destcard, .destimg { transition: none } }
+  </style>
+  <meta name="ext-resource-dependency" content="images/dest-rajasthan.jpg">
+  <meta name="ext-resource-dependency" content="images/dest-himachal.avif">
+  <meta name="ext-resource-dependency" content="images/dest-kashmir.webp">
+  <meta name="ext-resource-dependency" content="images/dest-kerala.webp">
+  <meta name="ext-resource-dependency" content="images/dest-goa.jpg">
+  <meta name="ext-resource-dependency" content="images/dest-ooty.webp">
+  <meta name="ext-resource-dependency" content="images/dest-mysuru.jpg">
+  <meta name="ext-resource-dependency" content="images/dest-agra.jpg">
+  <meta name="ext-resource-dependency" content="images/dest-uttarakhand.jpg">
+  <meta name="ext-resource-dependency" content="images/uttarakhand-pine.jpg">
+  <meta name="ext-resource-dependency" content="images/uttarakhand-ridge.jpg">
+  <meta name="ext-resource-dependency" content="images/uttarakhand-waterfall.jpg">
+  <meta name="ext-resource-dependency" content="images/header-banner.jpg">
+  <meta name="ext-resource-dependency" content="images/dest-thailand.jpg">
+  <meta name="ext-resource-dependency" content="images/dest-bali.jpg">
+  <meta name="ext-resource-dependency" content="images/dest-maldives.webp">
+</helmet>
+
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <rect width="120" height="120" fill="#0A5FD7"/>
+    <path d="M30 50 L60 30 L90 50 L85 85 Q60 95 35 85 Z" fill="#fff" opacity=".9"/>
+    <circle cx="60" cy="40" r="4" fill="#FFD000"/>
+    <text x="60" y="105" font-family="Arial" font-size="12" font-weight="bold" fill="#fff" text-anchor="middle">SKYLINE</text>
+  </svg>
+</template>
+
+<!-- ===== HEADER ===== -->
+<header style="position: sticky; top: 0; z-index: 1000; background-image: linear-gradient(rgba(255,255,255,.80), rgba(255,255,255,.88)), url('images/header-banner.jpg'); background-size: cover; background-position: center; backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,.6); box-shadow: 0 2px 12px rgba(10,95,215,.12)">
+  <div style="max-width: 1280px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 32px">
+    <!-- Logo -->
+    <a href="index.html" style="display: flex; align-items: center; flex-shrink: 0; background: rgba(255,255,255,.72); border-radius: 16px; padding: 4px 12px; box-shadow: 0 2px 10px rgba(10,95,215,.08)">
+      <img src="images/logo.jpeg" alt="Skyline Travel Planner" style="height: 48px; width: auto; display: block; mix-blend-mode: multiply" />
+    </a>
+    
+    <!-- Main Menu (desktop) -->
+    <nav class="sky-nav">
+      <a href="index.html" style="font-weight: 600; font-size: 14px; color: #0a5fd7">{{ t_home }}</a>
+      <a href="Domestic.dc.html" style="font-weight: 600; font-size: 14px; color: #1a2332; transition: color .2s" style-hover="color: #0a5fd7">{{ t_domestic }}</a>
+      <a href="International.dc.html" style="font-weight: 600; font-size: 14px; color: #1a2332; transition: color .2s" style-hover="color: #0a5fd7">{{ t_international }}</a>
+      <a href="Customize.dc.html" style="font-weight: 600; font-size: 14px; color: #1a2332; transition: color .2s" style-hover="color: #0a5fd7">{{ t_customize }}</a>
+    </nav>
+
+    <!-- Right Controls -->
+    <div style="display: flex; align-items: center; gap: 12px; flex-shrink: 0">
+      <button onClick="{{ toggleLanguage }}" style="border: 1px solid #e5ecf5; background: #fff; cursor: pointer; font-family: inherit; font-weight: 600; font-size: 13px; color: #1a2332; padding: 8px 12px; border-radius: 8px; transition: all .2s" style-hover="background: #f5f9ff; border-color: #0a5fd7">
+        {{ langLabel }}
+      </button>
+      <a class="sky-hide-mobile" href="https://wa.me/918866050291?text=Hi%20Skyline%20Travel%20Planner%2C%20I%27d%20like%20help%20planning%20a%20trip." target="_blank" rel="noopener" style="display: flex; align-items: center; gap: 6px; background: #25d366; color: #fff; font-weight: 700; font-size: 13px; padding: 10px 14px; border-radius: 8px; transition: all .2s" style-hover="background: #1da852; transform: translateY(-1px)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.54.36 3 .97 4.29L2 22l6.29-.97C9.01 21.64 10.46 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 18c-1.41 0-2.73-.36-3.88-.97l-.28-.14-2.89.44.44-2.89-.14-.28C4.36 14.73 4 13.41 4 12c0-4.41 3.59-8 8-8s8 3.59 8 8-3.59 8-8 8z"/></svg>
+        {{ t_chat }}
+      </a>
+      <a class="sky-hide-mobile" href="Customize.dc.html" style="background: linear-gradient(135deg, #0a5fd7, #0d7ae8); color: #fff; font-weight: 700; font-size: 13px; padding: 10px 16px; border-radius: 8px; transition: all .2s" style-hover="transform: translateY(-2px); box-shadow: 0 8px 20px rgba(10,95,215,.25)">
+        {{ t_customize_btn }}
+      </a>
+      <!-- Mobile hamburger -->
+      <button class="sky-burger" onClick="{{ toggleMenu }}" aria-label="Menu">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h16" stroke="#1a2332" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile dropdown menu -->
+  <sc-if value="{{ mobileOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="border-top: 1px solid rgba(255,255,255,.6); background: rgba(255,255,255,.96); backdrop-filter: blur(10px); padding: 10px 24px 16px">
+      <div style="display: flex; flex-direction: column; gap: 4px; max-width: 1280px; margin: 0 auto">
+        <a href="index.html" style="font-weight: 700; font-size: 15px; color: #0a5fd7; padding: 12px 8px; border-bottom: 1px solid #eef3f7">{{ t_home }}</a>
+        <a href="Domestic.dc.html" style="font-weight: 600; font-size: 15px; color: #1a2332; padding: 12px 8px; border-bottom: 1px solid #eef3f7">{{ t_domestic }}</a>
+        <a href="International.dc.html" style="font-weight: 600; font-size: 15px; color: #1a2332; padding: 12px 8px; border-bottom: 1px solid #eef3f7">{{ t_international }}</a>
+        <a href="Customize.dc.html" style="font-weight: 600; font-size: 15px; color: #1a2332; padding: 12px 8px; border-bottom: 1px solid #eef3f7">{{ t_customize }}</a>
+        <div style="display: flex; gap: 10px; margin-top: 12px">
+          <a href="https://wa.me/918866050291?text=Hi%20Skyline%20Travel%20Planner%2C%20I%27d%20like%20help%20planning%20a%20trip." target="_blank" rel="noopener" style="flex: 1; text-align: center; background: #25d366; color: #fff; font-weight: 700; font-size: 14px; padding: 12px; border-radius: 8px">{{ t_chat }}</a>
+          <a href="Customize.dc.html" style="flex: 1; text-align: center; background: linear-gradient(135deg, #0a5fd7, #0d7ae8); color: #fff; font-weight: 700; font-size: 14px; padding: 12px; border-radius: 8px">{{ t_customize_btn }}</a>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</header>
+
+<!-- ===== HERO: SEARCH CATEGORIES ===== -->
+<section style="position: relative; overflow: hidden; color: #fff; padding: 72px 24px">
+  <div style="position: absolute; inset: 0; z-index: 0">
+    <sc-for list="{{ heroSlides }}" as="s" hint-placeholder-count="0">
+      <div class="sky-hero-layer" style="{{ s.style }}"></div>
+    </sc-for>
+  </div>
+  <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, rgba(6,28,60,.32) 0%, rgba(6,28,60,.12) 40%, rgba(6,28,60,.55) 100%)"></div>
+  <div style="position: relative; z-index: 2; max-width: 1280px; margin: 0 auto">
+    <div style="text-align: center; margin-bottom: 40px">
+      <h1 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 48px; line-height: 1.1; margin: 0; letter-spacing: -.02em; text-shadow: 0 2px 24px rgba(0,0,0,.35)">{{ t_hero_headline }}</h1>
+      <p style="font-size: 18px; line-height: 1.5; color: rgba(255,255,255,.85); margin: 16px 0 0; max-width: 640px; margin-left: auto; margin-right: auto">{{ t_hero_subheading }}</p>
+    </div>
+    
+    <!-- Search Categories Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; max-width: 1000px; margin: 0 auto">
+      <a href="Flights.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px 16px; background: rgba(255,255,255,.12); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,.2); border-radius: 14px; transition: all .3s; cursor: pointer" style-hover="background: rgba(255,255,255,.18); border-color: rgba(255,255,255,.4); transform: translateY(-4px)">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M21 16l-7-4V6a2 2 0 10-4 0v6l-7 4v2l7-2v3l-2 1.5V22l4-1 4 1v-1.5L14 19v-3l7 2v-2z" fill="#fff"/></svg>
+        <span style="font-weight: 700; font-size: 15px">{{ t_flights }}</span>
+      </a>
+      
+      <a href="Trains.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px 16px; background: rgba(255,255,255,.12); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,.2); border-radius: 14px; transition: all .3s; cursor: pointer" style-hover="background: rgba(255,255,255,.18); border-color: rgba(255,255,255,.4); transform: translateY(-4px)">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><rect x="6" y="3" width="12" height="14" rx="3" stroke="#fff" stroke-width="1.8"/><path d="M6 11h12M9 21l-2 2M15 21l2 2" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span style="font-weight: 700; font-size: 15px">{{ t_trains }}</span>
+      </a>
+      
+      <a href="Buses.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px 16px; background: rgba(255,255,255,.12); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,.2); border-radius: 14px; transition: all .3s; cursor: pointer" style-hover="background: rgba(255,255,255,.18); border-color: rgba(255,255,255,.4); transform: translateY(-4px)">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="13" rx="3" stroke="#fff" stroke-width="1.8"/><path d="M4 12h16M8 21l-1 1M16 21l1 1" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span style="font-weight: 700; font-size: 15px">{{ t_buses }}</span>
+      </a>
+      
+      <a href="Hotels.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px 16px; background: rgba(255,255,255,.12); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,.2); border-radius: 14px; transition: all .3s; cursor: pointer" style-hover="background: rgba(255,255,255,.18); border-color: rgba(255,255,255,.4); transform: translateY(-4px)">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M3 18V9a2 2 0 012-2h6a2 2 0 012 2v3h6a2 2 0 012 2v4" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><path d="M3 14h18M6 7V5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span style="font-weight: 700; font-size: 15px">{{ t_hotels }}</span>
+      </a>
+      
+      <a href="Customize.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px 16px; background: rgba(255,255,255,.25); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,.4); border-radius: 14px; transition: all .3s" style-hover="background: rgba(255,255,255,.35); transform: translateY(-4px)">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M9 20l-5 1 1-5L17 4l4 4L9 20z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><path d="M14 7l3 3" stroke="#fff" stroke-width="1.8"/></svg>
+        <span style="font-weight: 700; font-size: 15px">{{ t_packages }}</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== POPULAR DESTINATIONS ===== -->
+<section style="max-width: 1280px; margin: 0 auto; padding: 64px 24px 48px">
+  <div style="margin-bottom: 32px">
+    <span style="color: #0a5fd7; font-weight: 700; font-size: 12px; letter-spacing: .06em; text-transform: uppercase">{{ t_within_india }}</span>
+    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 42px; letter-spacing: -.02em; margin: 8px 0 0">{{ t_popular_destinations }}</h2>
+  </div>
+  
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; width: 100%">
+    <sc-for list="{{ destinations }}" as="d" hint-placeholder-count="0">
+      <a href="{{ d.href }}" class="destcard" style="position: relative; aspect-ratio: 4/3; border-radius: 16px; overflow: hidden; display: flex; align-items: flex-end; text-decoration: none">
+        <div class="destimg" style="{{ d.bg }}"></div>
+        <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 45%, rgba(26,35,50,.85))"></div>
+        <div style="position: relative; z-index: 2; padding: 20px; width: 100%; display: flex; align-items: flex-end; justify-content: space-between; gap: 10px">
+          <div>
+            <div style="font-weight: 700; font-size: 16px; color: #fff">{{ d.name }}</div>
+            <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px">{{ d.duration }}</div>
+          </div>
+          <span class="destview" style="flex-shrink: 0; background: rgba(255,255,255,.16); backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,.3); color: #fff; font-weight: 700; font-size: 12px; padding: 7px 12px; border-radius: 999px; transition: background .3s, border-color .3s">Explore →</span>
+        </div>
+      </a>
+    </sc-for>
+    <a href="Destination.dc.html?dest=uttarakhand" class="destcard" style="position: relative; aspect-ratio: 4/3; border-radius: 16px; overflow: hidden; display: flex; align-items: flex-end; text-decoration: none">
+      <div class="sky-uk-layer" style="position: absolute; inset: 0; z-index: 0; background-color: #0a3a78; background-image: url('images/dest-uttarakhand.jpg'); background-size: cover; background-position: center; opacity: 1; transition: opacity 2.8s ease"></div>
+      <div class="sky-uk-layer" style="position: absolute; inset: 0; z-index: 0; background-color: #0a3a78; background-image: url('images/uttarakhand-pine.jpg'); background-size: cover; background-position: center; opacity: 0; transition: opacity 2.8s ease"></div>
+      <div class="sky-uk-layer" style="position: absolute; inset: 0; z-index: 0; background-color: #0a3a78; background-image: url('images/uttarakhand-ridge.jpg'); background-size: cover; background-position: center; opacity: 0; transition: opacity 2.8s ease"></div>
+      <div class="sky-uk-layer" style="position: absolute; inset: 0; z-index: 0; background-color: #0a3a78; background-image: url('images/uttarakhand-waterfall.jpg'); background-size: cover; background-position: center; opacity: 0; transition: opacity 2.8s ease"></div>
+      <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgba(26,35,50,.78))"></div>
+      <div style="position: relative; z-index: 2; padding: 20px; width: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 10px">
+        <span class="sky-uk-label" style="background: rgba(255,255,255,.08); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,.22); color: rgba(255,255,255,.82); font-weight: 600; font-size: 12px; letter-spacing: .02em; padding: 5px 13px; border-radius: 999px; transition: opacity 1s ease">Kausani</span>
+        <div>
+          <div style="font-weight: 700; font-size: 16px; color: #fff">Uttarakhand</div>
+          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px">5-7 days · Off-beat Kumaon</div>
+        </div>
+      </div>
+    </a>
+  </div>
+  <p style="font-size: 11px; color: #8aa0b5; margin: 16px 0 0; line-height: 1.7">
+    North-East photo credits (via Wikimedia Commons): Nohkalikai Falls © Vikramjit Kakati · Kaziranga © Diganta Talukdar · Nuranang Falls © Sdasamdabad · Dzükou Valley © Dhrubazaanphotography · Loktak Lake © Sudiptorana — all CC&nbsp;BY-SA&nbsp;4.0; Vantawng Falls © Lpachuau — CC&nbsp;BY&nbsp;3.0.
+  </p>
+</section>
+
+<!-- ===== INTERNATIONAL DESTINATIONS ===== -->
+<section style="max-width: 1280px; margin: 0 auto; padding: 48px 24px">
+  <div style="margin-bottom: 32px">
+    <span style="color: #0a5fd7; font-weight: 700; font-size: 12px; letter-spacing: .06em; text-transform: uppercase">{{ t_beyond_india }}</span>
+    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 42px; letter-spacing: -.02em; margin: 8px 0 0">{{ t_international }}</h2>
+  </div>
+  
+  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; max-width: 680px">
+    <sc-for list="{{ international }}" as="i" hint-placeholder-count="0">
+      <a href="{{ i.href }}" class="destcard" style="position: relative; aspect-ratio: 4/3; border-radius: 16px; overflow: hidden; display: flex; align-items: flex-end; text-decoration: none">
+        <div class="destimg" style="{{ i.bg }}"></div>
+        <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 45%, rgba(26,35,50,.85))"></div>
+        <div style="position: relative; z-index: 2; padding: 20px; width: 100%; display: flex; align-items: flex-end; justify-content: space-between; gap: 10px">
+          <div>
+            <div style="font-weight: 700; font-size: 16px; color: #fff">{{ i.name }}</div>
+            <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px">{{ i.duration }}</div>
+          </div>
+          <span class="destview" style="flex-shrink: 0; background: rgba(255,255,255,.16); backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,.3); color: #fff; font-weight: 700; font-size: 12px; padding: 7px 12px; border-radius: 999px; transition: background .3s, border-color .3s">Explore →</span>
+        </div>
+      </a>
+    </sc-for>
+  </div>
+</section>
+
+<!-- ===== PACKAGE STYLES ===== -->
+<section style="background: rgba(255,255,255,.55); padding: 64px 24px">
+  <div style="max-width: 1280px; margin: 0 auto">
+    <div style="margin-bottom: 32px">
+      <span style="color: #0a5fd7; font-weight: 700; font-size: 12px; letter-spacing: .06em; text-transform: uppercase">{{ t_travel_styles }}</span>
+      <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 42px; letter-spacing: -.02em; margin: 8px 0 0">{{ t_package_styles }}</h2>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px">
+      <sc-for list="{{ styles }}" as="s" hint-placeholder-count="11">
+        <a href="Customize.dc.html" style="display: flex; align-items: center; gap: 12px; padding: 16px; border: 1.5px solid #e5ecf5; border-radius: 12px; background: #fff; transition: all .2s" style-hover="border-color: #0a5fd7; background: #f0f7ff; transform: translateY(-2px)">
+          <span style="font-size: 24px">{{ s.icon }}</span>
+          <span style="font-weight: 700; font-size: 14px; color: #1a2332">{{ s.name }}</span>
+        </a>
+      </sc-for>
+    </div>
+  </div>
+</section>
+
+<!-- ===== HOW IT WORKS ===== -->
+<section style="background: #1a2332; color: #fff; padding: 64px 24px">
+  <div style="max-width: 1280px; margin: 0 auto">
+    <div style="text-align: center; margin-bottom: 48px">
+      <span style="color: #5fc2f0; font-weight: 700; font-size: 12px; letter-spacing: .06em; text-transform: uppercase">{{ t_process }}</span>
+      <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 42px; letter-spacing: -.02em; margin: 8px 0 0">{{ t_how_works }}</h2>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px">
+      <sc-for list="{{ steps }}" as="st" hint-placeholder-count="4">
+        <div style="text-align: center">
+          <div style="width: 56px; height: 56px; border-radius: 14px; background: rgba(95,194,240,.15); display: flex; align-items: center; justify-content: center; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 24px; color: #5fc2f0; margin: 0 auto 16px">{{ st.num }}</div>
+          <div style="font-weight: 700; font-size: 16px; margin-bottom: 8px">{{ st.title }}</div>
+          <div style="font-size: 14px; line-height: 1.5; color: rgba(255,255,255,.7)">{{ st.desc }}</div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</section>
+
+<!-- ===== WHY CHOOSE US ===== -->
+<section style="max-width: 1280px; margin: 0 auto; padding: 64px 24px">
+  <div style="margin-bottom: 40px; text-align: center">
+    <span style="color: #0a5fd7; font-weight: 700; font-size: 12px; letter-spacing: .06em; text-transform: uppercase">{{ t_why_us }}</span>
+    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 42px; letter-spacing: -.02em; margin: 8px 0 0">{{ t_why_choose }}</h2>
+  </div>
+  
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px">
+    <sc-for list="{{ reasons }}" as="r" hint-placeholder-count="6">
+      <div style="padding: 24px; border: 1.5px solid #e5ecf5; border-radius: 14px; background: #fff; transition: all .2s" style-hover="border-color: #0a5fd7; box-shadow: 0 8px 20px rgba(10,95,215,.1); transform: translateY(-2px)">
+        <div style="font-size: 28px; margin-bottom: 12px">{{ r.icon }}</div>
+        <div style="font-weight: 700; font-size: 16px; margin-bottom: 6px; color: #1a2332">{{ r.title }}</div>
+        <div style="font-size: 14px; line-height: 1.5; color: #5c6f80">{{ r.desc }}</div>
+      </div>
+    </sc-for>
+  </div>
+</section>
+
+<!-- ===== CTA: CUSTOMIZED PACKAGE ===== -->
+<section style="background: linear-gradient(135deg, #0a5fd7 0%, #0d7ae8 100%); color: #fff; padding: 64px 24px; text-align: center">
+  <div style="max-width: 640px; margin: 0 auto">
+    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 40px; letter-spacing: -.02em; margin: 0 0 16px">{{ t_cta_headline }}</h2>
+    <p style="font-size: 16px; line-height: 1.6; color: rgba(255,255,255,.9); margin: 0 0 32px">{{ t_cta_subheading }}</p>
+    <a href="Customize.dc.html" style="display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #0a5fd7; font-weight: 700; font-size: 15px; padding: 14px 28px; border-radius: 8px; transition: all .3s" style-hover="transform: translateY(-2px); box-shadow: 0 12px 30px rgba(0,0,0,.2)">
+      {{ t_request_quote }}
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer style="background: #1a2332; color: #fff; padding: 48px 24px 24px; border-top: 1px solid rgba(255,255,255,.1)">
+  <div style="max-width: 1280px; margin: 0 auto; padding-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,.1)">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 32px; margin-bottom: 32px">
+      <div>
+        <div style="font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 16px; color: #5fc2f0">{{ t_explore }}</div>
+        <div style="display: flex; flex-direction: column; gap: 8px; font-size: 14px">
+          <a href="Domestic.dc.html" style="color: rgba(255,255,255,.7); transition: color .2s" style-hover="color: #5fc2f0">{{ t_domestic }}</a>
+          <a href="International.dc.html" style="color: rgba(255,255,255,.7); transition: color .2s" style-hover="color: #5fc2f0">{{ t_international }}</a>
+          <a href="Customize.dc.html" style="color: rgba(255,255,255,.7); transition: color .2s" style-hover="color: #5fc2f0">{{ t_customize }}</a>
+        </div>
+      </div>
+      <div>
+        <div style="font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 16px; color: #5fc2f0">{{ t_services }}</div>
+        <div style="display: flex; flex-direction: column; gap: 8px; font-size: 14px">
+          <a href="Flights.dc.html" style="color: rgba(255,255,255,.7); transition: color .2s" style-hover="color: #5fc2f0">{{ t_flights }}</a>
+          <a href="Trains.dc.html" style="color: rgba(255,255,255,.7); transition: color .2s" style-hover="color: #5fc2f0">{{ t_trains }}</a>
+          <a href="Buses.dc.html" style="color: rgba(255,255,255,.7); transition: color .2s" style-hover="color: #5fc2f0">{{ t_buses }}</a>
+          <a href="Hotels.dc.html" style="color: rgba(255,255,255,.7); transition: color .2s" style-hover="color: #5fc2f0">{{ t_hotels }}</a>
+        </div>
+      </div>
+      <div>
+        <div style="font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 16px; color: #5fc2f0">{{ t_contact_us }}</div>
+        <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px">
+          <div style="display: flex; align-items: center; gap: 8px; color: rgba(255,255,255,.8)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <span>info@skylinetravelplanner.com</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; color: rgba(255,255,255,.8)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.54.36 3 .97 4.29L2 22l6.29-.97C9.01 21.64 10.46 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2z"/></svg>
+            <span>+91 88660 50291</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="text-align: center; padding-top: 24px; font-size: 12px; color: rgba(255,255,255,.5)">
+    <div style="display: flex; gap: 20px; justify-content: center; margin-bottom: 12px">
+      <a href="Privacy.dc.html" style="color: #5fc2f0; font-weight: 600" style-hover="text-decoration: underline">Privacy Policy</a>
+      <a href="Privacy.dc.html#cookies" style="color: #5fc2f0; font-weight: 600" style-hover="text-decoration: underline">Cookie Policy</a>
+    </div>
+    <p>© {{ year }} Skyline Travel Planner. {{ t_no_payments }}<br>{{ t_affiliate_disclosure }}</p>
+  </div>
+</footer>
+
+<!-- ===== COOKIE CONSENT BANNER ===== -->
+<sc-if value="{{ showCookies }}" hint-placeholder-val="{{ true }}">
+  <div style="position: fixed; left: 0; right: 0; bottom: 0; z-index: 2000; background: #1a2332; color: #fff; padding: 20px 24px; box-shadow: 0 -4px 24px rgba(0,0,0,.25)">
+    <div style="max-width: 1280px; margin: 0 auto; display: flex; align-items: center; gap: 24px; flex-wrap: wrap">
+      <div style="flex: 1; min-width: 260px; font-size: 14px; line-height: 1.6; color: rgba(255,255,255,.85)">
+        We use cookies to remember your language preference and improve your browsing experience. By clicking "Accept", you agree to our use of cookies. Read our <a href="Privacy.dc.html#cookies" style="color: #5fc2f0; font-weight: 600; text-decoration: underline">Cookie Policy</a>.
+      </div>
+      <div style="display: flex; gap: 12px; flex-shrink: 0">
+        <button onClick="{{ declineCookies }}" style="background: transparent; color: #fff; font-weight: 700; font-size: 14px; padding: 12px 22px; border: 1.5px solid rgba(255,255,255,.35); border-radius: 8px; cursor: pointer">Decline</button>
+        <button onClick="{{ acceptCookies }}" style="background: #25d366; color: #fff; font-weight: 700; font-size: 14px; padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer">Accept</button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<dc-import name="AssistantWidget" hint-size="0,0"></dc-import>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    lang: 'en',
+    cookieChoice: null,
+    mobileOpen: false,
+    heroImages: [
+      'images/dest-maldives.webp',
+      'images/dest-kashmir.webp',
+      'images/dest-kerala.webp',
+      'images/dest-rajasthan.jpg',
+      'images/dest-bali.jpg',
+      'images/dest-himachal.avif',
+      'images/dest-uttarakhand.jpg',
+      'images/dest-thailand.jpg',
+      'images/dest-goa.jpg'
+    ],
+    destinations: [
+      { id: 'raj', slug: 'rajasthan', name: 'Rajasthan', duration: '4-7 days', img: 'images/dest-rajasthan.jpg' },
+      { id: 'him', slug: 'himachal', name: 'Himachal Pradesh', duration: '5-7 days', img: 'images/dest-himachal.avif' },
+      { id: 'kash', slug: 'kashmir', name: 'Kashmir', duration: '5-6 days', img: 'images/dest-kashmir.webp' },
+      { id: 'ker', slug: 'kerala', name: 'Kerala', duration: '4-5 days', img: 'images/dest-kerala.webp' },
+      { id: 'goa', slug: 'goa', name: 'Goa', duration: '3-5 days', img: 'images/dest-goa.jpg' },
+      { id: 'oot', slug: 'ooty', name: 'Ooty & Nilgiris', duration: '3-4 days', img: 'images/dest-ooty.webp' },
+      { id: 'mys', slug: 'mysuru', name: 'Mysuru & Coorg', duration: '3-4 days', img: 'images/dest-mysuru.jpg' },
+      { id: 'agr', slug: 'agra', name: 'Agra & Taj Mahal', duration: '2-3 days', img: 'images/dest-agra.jpg' },
+      { id: 'megh', slug: 'meghalaya', name: 'Meghalaya', duration: '5-7 days', img: 'images/dest-meghalaya.jpg' },
+      { id: 'asm', slug: 'assam', name: 'Assam · Kaziranga', duration: '4-6 days', img: 'images/dest-assam.jpg' },
+      { id: 'arun', slug: 'arunachal', name: 'Arunachal Pradesh', duration: '6-8 days', img: 'images/dest-arunachal.jpg' },
+      { id: 'naga', slug: 'nagaland', name: 'Nagaland', duration: '5-7 days', img: 'images/dest-nagaland.jpg' },
+      { id: 'mani', slug: 'manipur', name: 'Manipur · Loktak', duration: '4-6 days', img: 'images/dest-manipur.jpg' },
+      { id: 'mizo', slug: 'mizoram', name: 'Mizoram', duration: '5-7 days', img: 'images/dest-mizoram.jpg' }
+    ],
+    international: [
+      { id: 'thai', slug: 'thailand', name: 'Thailand', duration: '5-7 days', img: 'images/dest-thailand.jpg' },
+      { id: 'bali', slug: 'bali', name: 'Bali', duration: '5-7 days', img: 'images/dest-bali.jpg' },
+      { id: 'mal', slug: 'maldives', name: 'Maldives', duration: '4-6 days', img: 'images/dest-maldives.webp' }
+    ],
+    styles: [
+      { icon: '👨‍👩‍👧‍👦', name: 'Family' },
+      { icon: '💑', name: 'Honeymoon' },
+      { icon: '🙏', name: 'Religious' },
+      { icon: '👥', name: 'Group' },
+      { icon: '🏖️', name: 'Beach' },
+      { icon: '⛰️', name: 'Adventure' },
+      { icon: '👴', name: 'Senior' },
+      { icon: '✨', name: 'Luxury' },
+      { icon: '💰', name: 'Budget' },
+      { icon: '🏢', name: 'Corporate' },
+      { icon: '🎨', name: 'Custom' }
+    ],
+    steps: [
+      { num: '1', title: 'Choose Destination', desc: 'Browse domestic or international destinations and packages' },
+      { num: '2', title: 'Share Details', desc: 'Tell us your dates, travellers, budget and preferences' },
+      { num: '3', title: 'Get Itinerary', desc: 'Receive a customized itinerary and quotation' },
+      { num: '4', title: 'Book & Travel', desc: 'Complete booking with official providers and enjoy' }
+    ],
+    reasons: [
+      { icon: '🇮🇳', title: 'India Expertise', desc: 'Focused destination knowledge across all regions' },
+      { icon: '🌍', title: 'Global Reach', desc: 'Domestic and international packages' },
+      { icon: '⭐', title: 'Hotel Choice', desc: '3-star, 4-star and 5-star options' },
+      { icon: '📋', title: 'Customized', desc: 'Tailored itineraries for every traveller' },
+      { icon: '📞', title: 'WhatsApp Support', desc: 'Direct contact for assistance' },
+      { icon: '✅', title: 'No Payments', desc: 'Book directly with official providers' }
+    ]
+  };
+
+  componentDidMount() {
+    try {
+      const c = localStorage.getItem('skyline_cookie_consent');
+      if (c) this.setState({ cookieChoice: c });
+    } catch (e) {}
+    // Preload hero images, then start the crossfade slideshow
+    this.state.heroImages.forEach((src) => { const im = new Image(); im.src = src; });
+    const N = this.state.heroImages.length;
+    const PERIOD = 5000;
+    this._hi = Math.floor(Date.now() / PERIOD) % N;
+    const apply = () => {
+      const idx = Math.floor(Date.now() / PERIOD) % N;
+      if (idx === this._hi) return;
+      this._hi = idx;
+      const layers = document.querySelectorAll('.sky-hero-layer');
+      layers.forEach((el, i) => {
+        el.style.opacity = i === idx ? '1' : '0';
+        el.style.transform = i === idx ? 'scale(1.06)' : 'scale(1)';
+      });
+    };
+    if (window.__skyHeroTimer) clearInterval(window.__skyHeroTimer);
+    window.__skyHeroTimer = this._heroTimer = setInterval(apply, 600);
+
+    // Uttarakhand card slideshow (place labels change with each photo)
+    const ukNames = ['Kausani', 'Mukteshwar', 'Binsar', 'Bhalu Gaad Falls'];
+    this._uk = -1;
+    const ukApply = () => {
+      const layers = document.querySelectorAll('.sky-uk-layer');
+      const label = document.querySelector('.sky-uk-label');
+      if (!layers.length) return;
+      const idx = Math.floor(Date.now() / 7000) % layers.length;
+      if (idx === this._uk) return;
+      this._uk = idx;
+      layers.forEach((el, i) => { el.style.opacity = i === idx ? '1' : '0'; });
+      if (label) {
+        label.style.opacity = '0';
+        setTimeout(() => { label.textContent = ukNames[idx]; label.style.opacity = '1'; }, 900);
+      }
+    };
+    if (window.__skyUkTimer) clearInterval(window.__skyUkTimer);
+    window.__skyUkTimer = this._ukTimer = setInterval(ukApply, 500);
+  }
+
+  componentWillUnmount() {
+    if (this._heroTimer) clearInterval(this._heroTimer);
+    if (window.__skyHeroTimer) { clearInterval(window.__skyHeroTimer); window.__skyHeroTimer = null; }
+    if (this._ukTimer) clearInterval(this._ukTimer);
+    if (window.__skyUkTimer) { clearInterval(window.__skyUkTimer); window.__skyUkTimer = null; }
+  }
+
+  renderVals() {
+    const lang = this.state.lang;
+    const translations = {
+      en: {
+        siteTitle: 'Skyline Travel Planner',
+        t_home: 'Home',
+        t_domestic: 'Domestic Tours',
+        t_international: 'International Tours',
+        t_customize: 'Customized Packages',
+        t_flights: 'Flights',
+        t_trains: 'Trains',
+        t_buses: 'Buses',
+        t_hotels: 'Hotels',
+        t_packages: 'Tour Packages',
+        t_chat: 'Chat',
+        t_customize_btn: 'Customize My Trip',
+        t_hero_headline: 'Discover India and the World with Skyline Travel Planner',
+        t_hero_subheading: 'Explore flights, trains, buses, hotels and customized holiday packages across India, Thailand, Bali and the Maldives.',
+        t_within_india: 'Within India',
+        t_popular_destinations: 'Popular Indian destinations',
+        t_beyond_india: 'Beyond India',
+        t_international: 'International destinations',
+        t_ne_kicker: 'The Unexplored East',
+        t_northeast: 'North-East India',
+        t_travel_styles: 'Travel Styles',
+        t_package_styles: 'All Travel Styles',
+        t_process: 'Our Process',
+        t_how_works: 'How It Works',
+        t_why_us: 'Why Choose Us',
+        t_why_choose: 'Why Choose Skyline Travel Planner',
+        t_cta_headline: 'Your Holiday Should Fit You',
+        t_cta_subheading: 'Request a customized package tailored to your preferences, budget and travel dates.',
+        t_request_quote: 'Request a Quote',
+        t_explore: 'Explore',
+        t_services: 'Services',
+        t_contact_us: 'Contact',
+        t_no_payments: 'No payments processed on this website.',
+        t_affiliate_disclosure: 'We may earn commissions from affiliated providers.'
+      },
+      hi: {
+        siteTitle: 'स्काईलाइन ट्रैवल प्लानर',
+        t_home: 'होम',
+        t_domestic: 'भारतीय टूर',
+        t_international: 'अंतरराष्ट्रीय टूर',
+        t_customize: 'कस्टमाइज्ड पैकेज',
+        t_flights: 'उड़ानें',
+        t_trains: 'ट्रेनें',
+        t_buses: 'बसें',
+        t_hotels: 'होटल',
+        t_packages: 'टूर पैकेज',
+        t_chat: 'चैट करें',
+        t_customize_btn: 'मेरी यात्रा बनाएं',
+        t_hero_headline: 'स्काईलाइन ट्रैवल प्लानर के साथ भारत और दुनिया की खोज करें',
+        t_hero_subheading: 'भारत, थाईलैंड, बाली और मालदीव की उड़ानें, ट्रेनें, बसें, होटल और कस्टमाइज्ड पैकेज देखें।',
+        t_within_india: 'भारत में',
+        t_popular_destinations: 'लोकप्रिय भारतीय गंतव्य',
+        t_beyond_india: 'भारत से बाहर',
+        t_international: 'अंतरराष्ट्रीय गंतव्य',
+        t_ne_kicker: 'अनदेखा पूर्वोत्तर',
+        t_northeast: 'पूर्वोत्तर भारत',
+        t_travel_styles: 'यात्रा शैली',
+        t_package_styles: 'सभी यात्रा शैली',
+        t_process: 'हमारी प्रक्रिया',
+        t_how_works: 'यह कैसे काम करता है',
+        t_why_us: 'हमें क्यों चुनें',
+        t_why_choose: 'स्काईलाइन ट्रैवल प्लानर को क्यों चुनें',
+        t_cta_headline: 'आपकी छुट्टी आपके अनुसार हो',
+        t_cta_subheading: 'अपनी पसंद, बजट और यात्रा तारीख के अनुसार कस्टमाइज्ड पैकेज का अनुरोध करें।',
+        t_request_quote: 'कोटेशन माँगें',
+        t_explore: 'एक्सप्लोर करें',
+        t_services: 'सेवाएं',
+        t_contact_us: 'संपर्क',
+        t_no_payments: 'इस वेबसाइट पर कोई भुगतान संसाधित नहीं किया जाता है।',
+        t_affiliate_disclosure: 'हम संबद्ध प्रदाताओं से कमीशन अर्जित कर सकते हैं।'
+      },
+      gu: {
+        siteTitle: 'સ્કાયલાઇન ટ્રાવેલ પ્લાનર',
+        t_home: 'હોમ',
+        t_domestic: 'ભારતીય ટૂર',
+        t_international: 'આંતરરાષ્ટ્રીય ટૂર',
+        t_customize: 'કસ્ટમાઇઝ્ડ પેકેજ',
+        t_flights: 'ફ્લાઇટ્સ',
+        t_trains: 'ટ્રેનો',
+        t_buses: 'બસો',
+        t_hotels: 'હોટેલો',
+        t_packages: 'ટૂર પેકેજ',
+        t_chat: 'ચેટ કરો',
+        t_customize_btn: 'મારી ટ્રીપ કસ્ટમાઇઝ કરો',
+        t_hero_headline: 'સ્કાયલાઇન ટ્રાવેલ પ્લાનર સાથે ભારત અને વિશ્વની શોધ કરો',
+        t_hero_subheading: 'ભારત, થાઈલેન્ડ, બાલી અને માલદીવ્સ માટે ફ્લાઇટ્સ, ટ્રેનો, બસો અને હોટેલો શોધો.',
+        t_within_india: 'ભારતમાં',
+        t_popular_destinations: 'લોકપ્રિય ભારતીય સ્થળો',
+        t_beyond_india: 'ભારતની બહાર',
+        t_international: 'આંતરરાષ્ટ્રીય સ્થળો',
+        t_ne_kicker: 'અન્વેષિત પૂર્વોત્તર',
+        t_northeast: 'પૂર્વોત્તર ભારત',
+        t_travel_styles: 'ટ્રાવેલ સ્ટાઇલ',
+        t_package_styles: 'તમામ ટ્રાવેલ સ્ટાઇલ',
+        t_process: 'અમારી પ્રક્રિયા',
+        t_how_works: 'તે કેવી રીતે કામ કરે છે',
+        t_why_us: 'અમને શા માટે પસંદ કરો',
+        t_why_choose: 'સ્કાયલાઇન ટ્રાવેલ પ્લાનર શા માટે પસંદ કરો',
+        t_cta_headline: 'તમારી ટ્રીપ તમારી શરતોમાં હોય',
+        t_cta_subheading: 'તમારી પસંદ, બજેટ અને ટ્રાવેલ તારીખ અનુસાર કસ્ટમાઇઝ્ડ પેકેજની વિનંતી કરો.',
+        t_request_quote: 'ક્વોટ માટે વિનંતી કરો',
+        t_explore: 'શોધો',
+        t_services: 'સેવાઓ',
+        t_contact_us: 'સંપર્ક',
+        t_no_payments: 'આ વેબસાઇટ પર કોઈ ચુકવણી કરવામાં આવતી નથી.',
+        t_affiliate_disclosure: 'અમે સંબંધિત પ્રદાતાઓ પાસેથી કમિશન મેળવી શકીએ છીએ.'
+      }
+    };
+
+    const t = translations[lang];
+
+    return {
+      year: new Date().getFullYear(),
+      mobileOpen: this.state.mobileOpen,
+      toggleMenu: () => this.setState({ mobileOpen: !this.state.mobileOpen }),
+      showCookies: this.state.cookieChoice === null,
+      acceptCookies: () => {
+        try { localStorage.setItem('skyline_cookie_consent', 'accepted'); } catch (e) {}
+        this.setState({ cookieChoice: 'accepted' });
+      },
+      declineCookies: () => {
+        try { localStorage.setItem('skyline_cookie_consent', 'declined'); } catch (e) {}
+        this.setState({ cookieChoice: 'declined' });
+      },
+      siteTitle: t.siteTitle,
+      langLabel: lang === 'en' ? 'EN' : lang === 'hi' ? 'हिन्दी' : 'ગુજરાતી',
+      toggleLanguage: () => {
+        const langs = ['en', 'hi', 'gu'];
+        const idx = langs.indexOf(this.state.lang);
+        this.setState({ lang: langs[(idx + 1) % langs.length] });
+      },
+      goToFlights: (e) => { e.preventDefault(); alert('Redirect to flights'); },
+      goToTrains: (e) => { e.preventDefault(); alert('Redirect to trains'); },
+      goBuses: (e) => { e.preventDefault(); alert('Redirect to buses'); },
+      goHotels: (e) => { e.preventDefault(); alert('Redirect to hotels'); },
+      heroSlides: this.state.heroImages.map((src, idx) => ({
+        style: {
+          position: 'absolute', inset: 0,
+          backgroundColor: '#0a3a78',
+          backgroundImage: 'url("' + src + '")',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          opacity: idx === (this._hi || 0) ? 1 : 0,
+          transform: idx === (this._hi || 0) ? 'scale(1.06)' : 'scale(1)',
+          transition: 'opacity 1.4s ease, transform 5.5s ease'
+        }
+      })),
+      destinations: this.state.destinations.map((d) => ({ ...d, href: 'Destination.dc.html?dest=' + d.slug, bg: { position: 'absolute', inset: 0, zIndex: 0, backgroundColor: '#dce6f2', backgroundImage: 'url("' + d.img + '")', backgroundSize: 'cover', backgroundPosition: 'center' } })),
+      international: this.state.international.map((i) => ({ ...i, href: 'Destination.dc.html?dest=' + i.slug, bg: { position: 'absolute', inset: 0, zIndex: 0, backgroundColor: '#dce6f2', backgroundImage: 'url("' + i.img + '")', backgroundSize: 'cover', backgroundPosition: 'center' } })),
+      styles: this.state.styles,
+      steps: this.state.steps,
+      reasons: this.state.reasons,
+      ...t
+    };
+  }
+}
+
+</script>
+</body>
+</html>

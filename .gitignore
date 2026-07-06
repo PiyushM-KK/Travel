@@ -5,3 +5,13 @@ server/.env
 .DS_Store
 __pycache__/
 *.pyc
+
+# (from remote)
+uploads/
+.venv/
+.image-slots.state.json
+.thumbnail
+
+# Local secrets — never commit
+.env
+.claude/

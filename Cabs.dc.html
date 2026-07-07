@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cab & Taxi Booking - Skyline Travel Planner</title>
+<meta name="description" content="Book airport transfers, outstation cabs, hourly rentals and city rides across India with trusted partners like Uber, Ola, Rapido and Savaari.">
+<link rel="icon" type="image/png" href="images/logo.png">
+<link rel="preconnect" href="https://unpkg.com" crossorigin>
+<link rel="dns-prefetch" href="https://unpkg.com">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cab & Taxi Booking - Skyline Travel Planner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box }
+    body { margin: 0; background: #f5f9ff; color: #1a2332; font-family: 'Plus Jakarta Sans', sans-serif }
+    a { text-decoration: none; color: inherit }
+
+    /* ===== Hero: animated dusk city + road scene (no photos needed) ===== */
+    .cab-hero{background:linear-gradient(180deg,#122a6b 0%,#1c4fa8 46%,#e8833a 86%,#f2a244 100%);color:#fff;padding:48px 24px 210px;position:relative;overflow:hidden}
+    .cab-sun{position:absolute;left:50%;bottom:150px;width:120px;height:120px;margin-left:-60px;border-radius:50%;background:radial-gradient(circle,#ffe9a8 0%,#ffc861 45%,rgba(255,190,90,0) 72%);z-index:0}
+    .cab-city{position:absolute;left:0;right:0;bottom:64px;width:100%;z-index:0;display:block}
+    .cab-city svg{display:block;width:100%}
+    .cab-road{position:absolute;left:0;right:0;bottom:0;height:66px;background:linear-gradient(180deg,#232e3d 0%,#161e29 100%);z-index:0}
+    .cab-lane{position:absolute;left:0;right:0;bottom:31px;height:3px;background:repeating-linear-gradient(90deg,rgba(245,197,66,.85) 0 26px,transparent 26px 58px);border-radius:2px;z-index:0}
+    .cab-htint{position:absolute;inset:0;z-index:0;background:linear-gradient(180deg,rgba(8,18,48,.42),rgba(8,18,48,0) 55%)}
+    .cab-hero-in{max-width:1240px;margin:0 auto;position:relative;z-index:2}
+    .cab-h1{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:40px;margin:0 0 6px;text-shadow:0 3px 22px rgba(3,12,40,.55)}
+    .cab-hsub{font-size:16px;color:rgba(255,255,255,.88);margin:0 0 20px;text-shadow:0 2px 12px rgba(3,12,40,.5)}
+
+    /* search bar (same pattern as Flights/Buses pages) */
+    .cab-bar{display:flex;align-items:stretch;background:#fff;border-radius:16px;padding:6px;box-shadow:0 24px 55px -22px rgba(0,0,0,.55);flex-wrap:wrap}
+    .cab-cell{padding:9px 16px;flex:1;min-width:150px;border-right:1px solid #eef2f7}
+    .cab-cell:last-of-type{border-right:none}
+    .cab-cell label{display:block;font-size:11px;font-weight:700;color:#8094a4;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px}
+    .cab-cell input,.cab-cell select{width:100%;border:none;outline:none;font-family:inherit;font-size:15px;font-weight:600;color:#0b2440;background:transparent}
+    .cab-go{background:#0a5fd7;color:#fff;border:none;font-family:inherit;font-weight:800;font-size:15px;padding:0 30px;border-radius:12px;cursor:pointer;margin:4px;display:flex;align-items:center}
+    .cab-go:hover{background:#0954bd}
+
+    /* crossing vehicles on the road */
+    .xcab{position:absolute;z-index:1;pointer-events:none;filter:drop-shadow(0 3px 6px rgba(0,8,26,.5))}
+    .xcab .flip{display:block;transform:scaleX(-1)}
+    .xcab .strk{position:absolute;top:55%;height:2px;border-radius:2px}
+    .xcab1{bottom:14px;left:-14%;animation:xcbR 21s linear infinite}
+    .xcab1 .strk{right:88%;width:100px;background:linear-gradient(90deg,rgba(255,235,170,0),rgba(255,235,170,.5))}
+    .xcab2{bottom:38px;left:112%;animation:xcbL 30s linear infinite;animation-delay:5s;transform:scale(.82);opacity:.9}
+    .xcab2 .strk{left:88%;width:80px;background:linear-gradient(90deg,rgba(255,235,170,.45),rgba(255,235,170,0))}
+    @keyframes xcbR{from{left:-14%}to{left:112%}}
+    @keyframes xcbL{from{left:112%}to{left:-16%}}
+
+    @media (max-width:640px){.cab-bar{flex-direction:column}.cab-cell{border-right:none;border-bottom:1px solid #eef2f7}.cab-h1{font-size:30px}}
+    @media (max-width:768px){.cab-hero{padding-bottom:170px}.cab-sun{bottom:120px;width:84px;height:84px;margin-left:-42px}.xcab svg{width:52px;height:22px}.xcab1 .strk{width:46px}.xcab2 .strk{width:38px}.xcab1{animation-duration:15s}.xcab2{animation-duration:21s}}
+    @media (prefers-reduced-motion: reduce){.xcab{display:none}}
+  </style>
+</helmet>
+
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <rect width="120" height="120" fill="#0A5FD7"/>
+    <rect x="22" y="48" width="76" height="28" rx="8" fill="#FFC93C"/>
+    <rect x="42" y="36" width="36" height="16" rx="6" fill="#FFC93C"/>
+    <circle cx="38" cy="80" r="7" fill="#fff"/>
+    <circle cx="82" cy="80" r="7" fill="#fff"/>
+  </svg>
+</template>
+
+<!-- Header -->
+<header style="position: sticky; top: 0; z-index: 1000; background: linear-gradient(90deg, #0a5fd7 0%, #0c70e2 100%); box-shadow: 0 2px 14px rgba(10,36,64,.22)">
+  <div style="max-width: 1240px; margin: 0 auto; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between">
+    <a href="Home.dc.html" style="display: flex; align-items: center; background: #fff; padding: 6px 14px; border-radius: 12px; box-shadow: 0 4px 14px rgba(0,0,0,.15)"><img src="images/logo.jpeg" alt="Skyline Travel Planner" style="height: 56px; width: auto; display: block" /></a>
+    <a href="Home.dc.html" style="background: #fff; color: #0b6bbf; font-weight: 800; padding: 10px 18px; border-radius: 10px; box-shadow: 0 4px 14px rgba(0,0,0,.16)">← Back Home</a>
+  </div>
+</header>
+
+<!-- Hero + Search -->
+<section class="cab-hero">
+  <div class="cab-htint"></div>
+  <div class="cab-sun"></div>
+  <!-- skyline: back layer -->
+  <span class="cab-city" style="bottom:64px;opacity:.55">
+    <svg viewBox="0 0 1200 120" height="120" preserveAspectRatio="none" fill="#0e2a63">
+      <path d="M0 120V78h38V54h30v24h26V38h44v40h30V64h52v56zm240 0V70h34V42h40v28h24v50zm120 0V58h46V30h36v28h28v62zm130 0V82h30V50h48v32h26v38zm124 0V66h38V36h34v30h30v54zm122 0V76h44V48h32v28h30v44zm126 0V60h36V34h42v26h26v60zm124 0V80h32V52h40v28h30v40zm122 0V68h40V40h34v28h38v52z"/>
+    </svg>
+  </span>
+  <!-- skyline: front layer with lit windows -->
+  <span class="cab-city">
+    <svg viewBox="0 0 1200 96" height="96" preserveAspectRatio="none">
+      <path fill="#0a1c44" d="M0 96V50h26V26h36v24h22V40h48v56zm152 0V34h42V14h34v20h26v62zm122 0V56h30V32h44v24h28v40zm122 0V22h38v-8h30v8h30v74zm118 0V48h34V26h40v22h26v48zm120 0V38h44V18h32v20h28v58zm124 0V58h30V30h46v28h26v38zm122 0V30h40V12h34v18h30v66zm124 0V52h34V28h40v24h32v44z"/>
+      <g fill="#ffd76e" opacity=".85">
+        <rect x="40" y="38" width="6" height="6"/><rect x="52" y="52" width="6" height="6"/><rect x="90" y="56" width="6" height="6"/>
+        <rect x="170" y="42" width="6" height="6"/><rect x="184" y="26" width="6" height="6"/><rect x="206" y="48" width="6" height="6"/>
+        <rect x="292" y="44" width="6" height="6"/><rect x="316" y="64" width="6" height="6"/>
+        <rect x="410" y="32" width="6" height="6"/><rect x="424" y="50" width="6" height="6"/><rect x="444" y="70" width="6" height="6"/>
+        <rect x="536" y="40" width="6" height="6"/><rect x="560" y="58" width="6" height="6"/>
+        <rect x="642" y="30" width="6" height="6"/><rect x="656" y="48" width="6" height="6"/><rect x="680" y="66" width="6" height="6"/>
+        <rect x="770" y="44" width="6" height="6"/><rect x="792" y="60" width="6" height="6"/>
+        <rect x="884" y="24" width="6" height="6"/><rect x="898" y="44" width="6" height="6"/><rect x="920" y="62" width="6" height="6"/>
+        <rect x="1010" y="42" width="6" height="6"/><rect x="1034" y="58" width="6" height="6"/><rect x="1090" y="70" width="6" height="6"/>
+      </g>
+    </svg>
+  </span>
+  <div class="cab-road"></div>
+  <div class="cab-lane"></div>
+
+  <!-- taxi crossing right -->
+  <span class="xcab xcab1"><span class="strk"></span>
+    <svg width="66" height="28" viewBox="0 0 66 28" fill="none">
+      <rect x="27" y="0" width="12" height="5" rx="1.5" fill="#16202e"/>
+      <path d="M17 12 Q19 4 26 4 L40 4 Q47 4 50 12 Z" fill="#ffc93c"/>
+      <rect x="22" y="6" width="9" height="5" rx="1" fill="#12335e" opacity=".85"/>
+      <rect x="34" y="6" width="10" height="5" rx="1" fill="#12335e" opacity=".85"/>
+      <rect x="3" y="11" width="60" height="10" rx="4" fill="#ffc93c"/>
+      <g fill="#16202e"><rect x="8" y="14" width="4" height="4"/><rect x="16" y="14" width="4" height="4"/><rect x="24" y="14" width="4" height="4"/><rect x="32" y="14" width="4" height="4"/><rect x="40" y="14" width="4" height="4"/><rect x="48" y="14" width="4" height="4"/></g>
+      <rect x="60" y="13" width="4" height="3" rx="1" fill="#fff2b0"/>
+      <circle cx="16" cy="22" r="4.4" fill="#16202e"/><circle cx="16" cy="22" r="1.8" fill="#9fb0c4"/>
+      <circle cx="50" cy="22" r="4.4" fill="#16202e"/><circle cx="50" cy="22" r="1.8" fill="#9fb0c4"/>
+    </svg>
+  </span>
+  <!-- auto-rickshaw crossing left -->
+  <span class="xcab xcab2"><span class="strk"></span><span class="flip">
+    <svg width="48" height="30" viewBox="0 0 48 30" fill="none">
+      <path d="M8 14 Q9 4 19 4 L33 4 Q41 4 43 14 Z" fill="#ffd23f"/>
+      <rect x="34" y="6" width="7" height="7" rx="1.5" fill="#cfe8ff" opacity=".9"/>
+      <rect x="12" y="6" width="9" height="7" rx="1.5" fill="#12335e" opacity=".7"/>
+      <rect x="6" y="13" width="38" height="9" rx="3" fill="#1d8a4a"/>
+      <rect x="42" y="15" width="3" height="3" rx="1" fill="#fff2b0"/>
+      <circle cx="14" cy="24" r="4.2" fill="#16202e"/><circle cx="14" cy="24" r="1.6" fill="#9fb0c4"/>
+      <circle cx="37" cy="24" r="4.2" fill="#16202e"/><circle cx="37" cy="24" r="1.6" fill="#9fb0c4"/>
+    </svg>
+  </span></span>
+
+  <div class="cab-hero-in">
+    <h1 class="cab-h1">Book a cab, anywhere in India</h1>
+    <p class="cab-hsub">Airport transfers, outstation trips, hourly rentals &amp; city rides</p>
+    <div class="cab-bar">
+      <div class="cab-cell">
+        <label>Pickup from</label>
+        <input type="text" placeholder="City, airport or hotel…">
+      </div>
+      <div class="cab-cell">
+        <label>Drop to</label>
+        <input type="text" placeholder="Destination…">
+      </div>
+      <div class="cab-cell">
+        <label>Pickup date</label>
+        <input type="date">
+      </div>
+      <div class="cab-cell">
+        <label>Trip type</label>
+        <select><option>One-way drop</option><option>Round trip</option><option>Airport transfer</option><option>Hourly rental (4/8/12 hr)</option></select>
+      </div>
+      <a class="cab-go" href="https://www.savaari.com" target="_blank" rel="noopener">Search on Savaari</a>
+    </div>
+  </div>
+</section>
+
+<!-- Main Content -->
+<div style="max-width: 1280px; margin: 0 auto; padding: 40px 24px 48px">
+
+  <!-- Ride Options -->
+  <div style="margin-bottom: 48px">
+    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 32px; margin: 0 0 24px">Ride Options</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px">
+      <sc-for list="{{ cabTypes }}" as="c" hint-placeholder-count="6">
+        <div style="background: #fff; padding: 24px; border-radius: 14px; border: 1.5px solid #e5ecf5; text-align: center">
+          <div style="font-size: 32px; margin-bottom: 12px">{{ c.icon }}</div>
+          <div style="font-weight: 700; font-size: 16px; margin-bottom: 8px">{{ c.name }}</div>
+          <div style="font-size: 13px; color: #5c6f80">{{ c.desc }}</div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- Partners -->
+  <div style="margin-bottom: 48px">
+    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 32px; margin: 0 0 24px">Trusted Cab Partners</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px">
+      <sc-for list="{{ partners }}" as="p" hint-placeholder-count="6">
+        <div style="background: #fff; padding: 24px; border-radius: 14px; border: 1.5px solid #e5ecf5; text-align: center">
+          <div style="font-weight: 700; font-size: 16px; margin-bottom: 8px">{{ p.name }}</div>
+          <div style="font-size: 13px; color: #5c6f80; margin-bottom: 16px">{{ p.coverage }}</div>
+          <a href="{{ p.link }}" target="_blank" rel="noopener" style="display: inline-block; background: #0a5fd7; color: #fff; font-weight: 700; font-size: 13px; padding: 10px 16px; border-radius: 6px">Book Cabs</a>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- Popular outstation routes -->
+  <div>
+    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 32px; margin: 0 0 6px">Popular Outstation Routes</h2>
+    <p style="font-size: 14px; color: #5c6f80; margin: 0 0 24px">Want a private cab with driver for any of these? <a href="Customize.dc.html" style="color: #0a5fd7; font-weight: 700">Send us an enquiry</a> and we'll arrange it as part of your trip.</p>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px">
+      <sc-for list="{{ routes }}" as="r" hint-placeholder-count="6">
+        <a href="Customize.dc.html" style="display: block; background: #fff; padding: 20px 22px; border-radius: 14px; border: 1.5px solid #e5ecf5; transition: all .25s" style-hover="border-color: #0a5fd7; transform: translateY(-3px); box-shadow: 0 12px 26px -14px rgba(10,60,130,.35)">
+          <div style="font-weight: 800; font-size: 16px; margin-bottom: 6px">{{ r.route }}</div>
+          <div style="font-size: 13px; color: #5c6f80; margin-bottom: 10px">{{ r.meta }}</div>
+          <span style="display: inline-block; background: #eaf3ff; color: #0a5fd7; font-weight: 700; font-size: 12px; padding: 5px 10px; border-radius: 999px">{{ r.tag }}</span>
+        </a>
+      </sc-for>
+    </div>
+  </div>
+
+  <p style="font-size: 11px; color: #8094a4; margin-top: 28px">Skyline Travel Planner does not operate cabs or take payments — bookings are completed with the provider you choose. Distances and drive times are approximate.</p>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      cabTypes: [
+        { icon: '🛬', name: 'Airport Transfers', desc: 'Fixed-fare pickups & drops' },
+        { icon: '🛣️', name: 'Outstation One-way', desc: 'Intercity drops, pay one side' },
+        { icon: '🔁', name: 'Round Trips', desc: 'Same cab & driver, multi-day' },
+        { icon: '⏱️', name: 'Hourly Rentals', desc: '4/8/12-hr city packages' },
+        { icon: '🚕', name: 'City Rides', desc: 'Point-to-point app cabs' },
+        { icon: '🚙', name: 'SUV & Luxury', desc: 'Innova, Ertiga & premium cars' }
+      ],
+      partners: [
+        { name: 'Savaari', coverage: 'Outstation & airport taxis', link: 'https://www.savaari.com' },
+        { name: 'Uber', coverage: 'City rides & intercity', link: 'https://www.uber.com/in/en/' },
+        { name: 'Ola Cabs', coverage: 'City, rentals & outstation', link: 'https://www.olacabs.com' },
+        { name: 'Rapido', coverage: 'Bike taxis, autos & cabs', link: 'https://www.rapido.bike' },
+        { name: 'MakeMyTrip Cabs', coverage: 'Outstation & airport', link: 'https://www.makemytrip.com/cabs/' },
+        { name: 'BlaBlaCar', coverage: 'Intercity carpooling', link: 'https://www.blablacar.in' }
+      ],
+      routes: [
+        { route: 'Delhi → Agra', meta: '≈ 230 km · 3.5–4 hrs via Yamuna Expressway', tag: 'Taj Mahal day trip' },
+        { route: 'Mumbai → Pune', meta: '≈ 150 km · 3–3.5 hrs via Expressway', tag: 'Weekend hop' },
+        { route: 'Delhi → Jaipur', meta: '≈ 280 km · 4.5–5 hrs', tag: 'Pink City getaway' },
+        { route: 'Bengaluru → Mysuru', meta: '≈ 145 km · 3 hrs', tag: 'Palace & Coorg route' },
+        { route: 'Ahmedabad → Statue of Unity', meta: '≈ 200 km · 3.5 hrs', tag: 'Kevadia day trip' },
+        { route: 'Kochi → Munnar', meta: '≈ 130 km · 3.5–4 hrs hill drive', tag: 'Tea country' }
+      ]
+    };
+  }
+}
+
+</script>
+<script>
+/* Skyline — date guard: past dates disabled everywhere; the 2nd date in a pair
+   (return / check-out) cannot precede the 1st (departure / check-in). Robust to
+   the React render layer via a MutationObserver that re-applies the limits. */
+(function(){
+  function today(){ try{ return new Date().toISOString().slice(0,10); }catch(e){ return ''; } }
+  var T=today();
+  function apply(){
+    var dates=[].slice.call(document.querySelectorAll('input[type=\"date\"]'));
+    if(!dates.length) return;
+    dates.forEach(function(d){ if(d.getAttribute('data-end')!=='1' && d.min!==T) d.min=T; });
+    if(dates.length===2){
+      var a=dates[0], b=dates[1];
+      b.setAttribute('data-end','1');
+      var m=(a.value && a.value>T) ? a.value : T;
+      if(b.min!==m) b.min=m;
+      if(b.value && b.value<m) b.value=m;
+    }
+  }
+  function onEdit(e){ if(e.target && e.target.matches && e.target.matches('input[type=\"date\"]')) apply(); }
+  document.addEventListener('input', onEdit, true);
+  document.addEventListener('change', onEdit, true);
+  var t=0; setInterval(function(){ if(t++>40) return; apply(); }, 250); // covers late React mounts
+  try{ new MutationObserver(function(){ apply(); }).observe(document.documentElement,{childList:true,subtree:true}); }catch(e){}
+  apply();
+})();
+</script>
+</body>
+</html>

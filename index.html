@@ -156,7 +156,12 @@
         <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="13" rx="3" stroke="#fff" stroke-width="1.8"/><path d="M4 12h16M8 21l-1 1M16 21l1 1" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
         <span style="font-weight: 700; font-size: 15px">{{ t_buses }}</span>
       </a>
-      
+
+      <a href="Cabs.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px 16px; background: rgba(255,255,255,.12); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,.2); border-radius: 14px; transition: all .3s; cursor: pointer" style-hover="background: rgba(255,255,255,.18); border-color: rgba(255,255,255,.4); transform: translateY(-4px)">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><rect x="10" y="2.5" width="4" height="2.5" rx="1" fill="#fff"/><path d="M5.5 11l1.2-3.6A2 2 0 018.6 6h6.8a2 2 0 011.9 1.4L18.5 11" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><rect x="3" y="11" width="18" height="6.5" rx="2" stroke="#fff" stroke-width="1.8"/><path d="M6.5 17.5V19M17.5 17.5V19" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><circle cx="7.2" cy="14.2" r="1.1" fill="#fff"/><circle cx="16.8" cy="14.2" r="1.1" fill="#fff"/></svg>
+        <span style="font-weight: 700; font-size: 15px">{{ t_cabs }}</span>
+      </a>
+
       <a href="Hotels.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px 16px; background: rgba(255,255,255,.12); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,.2); border-radius: 14px; transition: all .3s; cursor: pointer" style-hover="background: rgba(255,255,255,.18); border-color: rgba(255,255,255,.4); transform: translateY(-4px)">
         <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M3 18V9a2 2 0 012-2h6a2 2 0 012 2v3h6a2 2 0 012 2v4" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><path d="M3 14h18M6 7V5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
         <span style="font-weight: 700; font-size: 15px">{{ t_hotels }}</span>
@@ -322,6 +327,7 @@
           <a href="Flights.dc.html" style="color: rgba(255,255,255,.7); transition: color .2s" style-hover="color: #5fc2f0">{{ t_flights }}</a>
           <a href="Trains.dc.html" style="color: rgba(255,255,255,.7); transition: color .2s" style-hover="color: #5fc2f0">{{ t_trains }}</a>
           <a href="Buses.dc.html" style="color: rgba(255,255,255,.7); transition: color .2s" style-hover="color: #5fc2f0">{{ t_buses }}</a>
+          <a href="Cabs.dc.html" style="color: rgba(255,255,255,.7); transition: color .2s" style-hover="color: #5fc2f0">{{ t_cabs }}</a>
           <a href="Hotels.dc.html" style="color: rgba(255,255,255,.7); transition: color .2s" style-hover="color: #5fc2f0">{{ t_hotels }}</a>
         </div>
       </div>
@@ -496,6 +502,7 @@ class Component extends DCLogic {
         t_flights: 'Flights',
         t_trains: 'Trains',
         t_buses: 'Buses',
+        t_cabs: 'Cabs',
         t_hotels: 'Hotels',
         t_packages: 'Tour Packages',
         t_chat: 'Chat',
@@ -532,6 +539,7 @@ class Component extends DCLogic {
         t_flights: 'उड़ानें',
         t_trains: 'ट्रेनें',
         t_buses: 'बसें',
+        t_cabs: 'कैब',
         t_hotels: 'होटल',
         t_packages: 'टूर पैकेज',
         t_chat: 'चैट करें',
@@ -568,6 +576,7 @@ class Component extends DCLogic {
         t_flights: 'ફ્લાઇટ્સ',
         t_trains: 'ટ્રેનો',
         t_buses: 'બસો',
+        t_cabs: 'કેબ',
         t_hotels: 'હોટેલો',
         t_packages: 'ટૂર પેકેજ',
         t_chat: 'ચેટ કરો',

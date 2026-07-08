@@ -69,6 +69,22 @@
     .statv{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:31px;color:#fff;line-height:1}
     .rv{transition:opacity .65s ease-out,transform .65s ease-out}
     .rv-pre{opacity:0;transform:translateY(20px)}
+    /* Language dropdown (opens on hover/focus; animated fade + slide) */
+    .sky-langwrap{position:relative}
+    .sky-langmenu{position:absolute;top:calc(100% + 8px);right:0;z-index:3000;min-width:172px;background:#fff;border:1px solid #e5ecf5;border-radius:12px;box-shadow:0 18px 40px -16px rgba(10,95,215,.45);padding:6px;opacity:0;visibility:hidden;transform:translateY(-8px) scale(.96);transform-origin:top right;transition:opacity .18s ease .25s,transform .18s cubic-bezier(.2,.8,.2,1) .25s,visibility 0s linear .43s}
+    /* invisible bridge over the button→menu gap so hover isn't lost in transit */
+    .sky-langmenu::before{content:'';position:absolute;top:-12px;left:-8px;right:-8px;height:12px}
+    .sky-langwrap:hover .sky-langmenu,.sky-langwrap:focus-within .sky-langmenu{opacity:1;visibility:visible;transform:translateY(0) scale(1);transition:opacity .22s ease,transform .22s cubic-bezier(.2,.8,.2,1)}
+    .sky-caret{transition:transform .25s ease}
+    .sky-langwrap:hover .sky-caret,.sky-langwrap:focus-within .sky-caret{transform:rotate(180deg)}
+    .sky-langitem{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;border:none;background:transparent;cursor:pointer;font-family:inherit;font-weight:600;font-size:13.5px;color:#1a2332;padding:9px 12px;border-radius:8px;text-align:left;transition:background .15s,color .15s}
+    .sky-langitem:hover{background:#f0f7ff;color:#0a5fd7}
+    @media (prefers-reduced-motion: reduce){ .sky-langmenu,.sky-caret{transition:none} }
+    /* Destination explorer filter chips */
+    .fchips{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+    .fchip{font-family:inherit;font-weight:700;font-size:13px;padding:9px 16px;border-radius:999px;cursor:pointer;transition:all .2s;background:#fff;color:#1a2332;border:1.5px solid #e5ecf5}
+    .fchip:hover{border-color:#0a5fd7}
+    .fchip.on{background:linear-gradient(135deg,#0a5fd7,#0d7ae8);color:#fff;border-color:#0a5fd7;box-shadow:0 8px 18px -8px rgba(10,95,215,.6)}
     @media (max-width: 768px){
       /* compact mobile header: logo+controls on row 1, scrollable nav on row 2 */
       header > div{flex-wrap:wrap!important;gap:8px 10px!important;padding:10px 14px!important}
@@ -134,9 +150,21 @@
     
     <!-- Right Controls -->
     <div style="display: flex; align-items: center; gap: 12px; flex-shrink: 0">
-      <button onClick="{{ toggleLanguage }}" style="border: 1px solid rgba(255,255,255,.45); background: rgba(255,255,255,.14); cursor: pointer; font-family: inherit; font-weight: 700; font-size: 13px; color: #fff; padding: 8px 14px; border-radius: 8px; transition: all .2s" style-hover="background: rgba(255,255,255,.25)">
-        {{ langLabel }}
-      </button>
+      <div class="sky-langwrap">
+        <button aria-haspopup="true" style="display: flex; align-items: center; gap: 7px; border: 1px solid rgba(255,255,255,.45); background: rgba(255,255,255,.14); cursor: pointer; font-family: inherit; font-weight: 700; font-size: 13px; color: #fff; padding: 8px 14px; border-radius: 8px; transition: all .2s" style-hover="background: rgba(255,255,255,.25)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.7 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.7-3.8-9S9.5 5.6 12 3z" stroke="currentColor" stroke-width="1.8"/></svg>
+          {{ langLabel }}
+          <svg class="sky-caret" width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="sky-langmenu" role="menu">
+          <sc-for list="{{ langOptions }}" as="lo" hint-placeholder-count="3">
+            <button class="sky-langitem" role="menuitem" onClick="{{ lo.pick }}" style="{{ lo.style }}">
+              <span>{{ lo.name }}</span>
+              <span style="font-size: 12px; font-weight: 700">{{ lo.mark }}</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
       <a href="WhatsApp.dc.html" style="display: flex; align-items: center; gap: 6px; background: #25d366; color: #fff; font-weight: 700; font-size: 13px; padding: 10px 14px; border-radius: 8px; transition: all .2s" style-hover="background: #1da852; transform: translateY(-1px)">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.54.36 3 .97 4.29L2 22l6.29-.97C9.01 21.64 10.46 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 18c-1.41 0-2.73-.36-3.88-.97l-.28-.14-2.89.44.44-2.89-.14-.28C4.36 14.73 4 13.41 4 12c0-4.41 3.59-8 8-8s8 3.59 8 8-3.59 8-8 8z"/></svg>
         {{ t_chat }}
@@ -202,167 +230,186 @@
         <span style="font-weight: 700; font-size: 15px">{{ t_packages }}</span>
       </a>
     </div>
-<div class="fu fu7" style="display:flex;gap:38px;justify-content:center;flex-wrap:wrap;margin-top:38px"><div style="text-align:center;min-width:120px"><div class="statv" data-count-to="15" data-suffix="+">15+</div><div style="font-size:12.5px;color:rgba(255,255,255,.8);font-weight:600;margin-top:5px" data-i18n-en="Indian destinations" data-i18n-hi="भारतीय गंतव्य" data-i18n-gu="ભારતીય સ્થળો">Indian destinations</div></div><div style="text-align:center;min-width:120px"><div class="statv" data-count-to="3" data-suffix="">3</div><div style="font-size:12.5px;color:rgba(255,255,255,.8);font-weight:600;margin-top:5px" data-i18n-en="International getaways" data-i18n-hi="विदेशी गंतव्य" data-i18n-gu="વિદેશી સ્થળો">International getaways</div></div><div style="text-align:center;min-width:120px"><div class="statv" data-count-to="11" data-suffix="">11</div><div style="font-size:12.5px;color:rgba(255,255,255,.8);font-weight:600;margin-top:5px" data-i18n-en="Travel styles" data-i18n-hi="यात्रा शैलियाँ" data-i18n-gu="પ્રવાસ શૈલીઓ">Travel styles</div></div><div style="text-align:center;min-width:120px"><div class="statv" data-count-to="3" data-suffix="">3</div><div style="font-size:12.5px;color:rgba(255,255,255,.8);font-weight:600;margin-top:5px" data-i18n-en="Languages" data-i18n-hi="भाषाएँ" data-i18n-gu="ભાષાઓ">Languages</div></div></div>
+<div class="fu fu7" style="display:flex;gap:38px;justify-content:center;flex-wrap:wrap;margin-top:38px"><div style="text-align:center;min-width:120px"><div class="statv" data-count-to="16" data-suffix="+">16+</div><div style="font-size:12.5px;color:rgba(255,255,255,.8);font-weight:600;margin-top:5px" data-i18n-en="Indian destinations" data-i18n-hi="भारतीय गंतव्य" data-i18n-gu="ભારતીય સ્થળો">Indian destinations</div></div><div style="text-align:center;min-width:120px"><div class="statv" data-count-to="3" data-suffix="">3</div><div style="font-size:12.5px;color:rgba(255,255,255,.8);font-weight:600;margin-top:5px" data-i18n-en="International getaways" data-i18n-hi="विदेशी गंतव्य" data-i18n-gu="વિદેશી સ્થળો">International getaways</div></div><div style="text-align:center;min-width:120px"><div class="statv" data-count-to="11" data-suffix="">11</div><div style="font-size:12.5px;color:rgba(255,255,255,.8);font-weight:600;margin-top:5px" data-i18n-en="Travel styles" data-i18n-hi="यात्रा शैलियाँ" data-i18n-gu="પ્રવાસ શૈલીઓ">Travel styles</div></div><div style="text-align:center;min-width:120px"><div class="statv" data-count-to="3" data-suffix="">3</div><div style="font-size:12.5px;color:rgba(255,255,255,.8);font-weight:600;margin-top:5px" data-i18n-en="Languages" data-i18n-hi="भाषाएँ" data-i18n-gu="ભાષાઓ">Languages</div></div></div>
   </div>
 </section>
 
-<div class="marq-wrap"><div class="marq"><span>Rajasthan ✈ Himachal Pradesh ✈ Kashmir ✈ Kerala ✈ Goa ✈ Ooty & Nilgiris ✈ Mysuru & Coorg ✈ Agra ✈ Meghalaya ✈ Assam ✈ Arunachal Pradesh ✈ Nagaland ✈ Manipur ✈ Mizoram ✈ Kausani ✈ Thailand ✈ Bali ✈ Maldives ✈ </span><span aria-hidden="true">Rajasthan ✈ Himachal Pradesh ✈ Kashmir ✈ Kerala ✈ Goa ✈ Ooty & Nilgiris ✈ Mysuru & Coorg ✈ Agra ✈ Meghalaya ✈ Assam ✈ Arunachal Pradesh ✈ Nagaland ✈ Manipur ✈ Mizoram ✈ Kausani ✈ Thailand ✈ Bali ✈ Maldives ✈ </span></div></div>
+<div class="marq-wrap"><div class="marq"><span>Rajasthan ✈ Himachal Pradesh ✈ Kashmir ✈ Kerala ✈ Goa ✈ Ooty & Nilgiris ✈ Mysuru & Coorg ✈ Agra ✈ Meghalaya ✈ Assam ✈ Arunachal Pradesh ✈ Nagaland ✈ Manipur ✈ Mizoram ✈ Sikkim ✈ Kausani ✈ Thailand ✈ Bali ✈ Maldives ✈ </span><span aria-hidden="true">Rajasthan ✈ Himachal Pradesh ✈ Kashmir ✈ Kerala ✈ Goa ✈ Ooty & Nilgiris ✈ Mysuru & Coorg ✈ Agra ✈ Meghalaya ✈ Assam ✈ Arunachal Pradesh ✈ Nagaland ✈ Manipur ✈ Mizoram ✈ Sikkim ✈ Kausani ✈ Thailand ✈ Bali ✈ Maldives ✈ </span></div></div>
 
 <!-- ===== POPULAR DESTINATIONS ===== -->
 <section style="max-width: 1280px; margin: 0 auto; padding: 64px 24px 48px">
   <div style="margin-bottom: 32px">
     <span style="color: #0a5fd7; font-weight: 700; font-size: 12px; letter-spacing: .06em; text-transform: uppercase">{{ t_within_india }}</span>
     <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 42px; letter-spacing: -.02em; margin: 8px 0 0">{{ t_popular_destinations }}</h2>
+    <!-- Explorer filter chips (wired by the filter script at the bottom of this file) -->
+    <div class="fchips">
+      <button class="fchip on" data-filter="all" data-i18n-en="All" data-i18n-hi="सभी" data-i18n-gu="બધા">All</button>
+      <button class="fchip" data-filter="mountains" data-i18n-en="Mountains & Hills" data-i18n-hi="पहाड़ और हिल स्टेशन" data-i18n-gu="પર્વતો અને હિલ સ્ટેશન">Mountains & Hills</button>
+      <button class="fchip" data-filter="beaches" data-i18n-en="Beaches & Backwaters" data-i18n-hi="समुद्र तट और बैकवॉटर" data-i18n-gu="દરિયાકિનારા અને બેકવોટર">Beaches & Backwaters</button>
+      <button class="fchip" data-filter="heritage" data-i18n-en="Heritage & Culture" data-i18n-hi="विरासत और संस्कृति" data-i18n-gu="વારસો અને સંસ્કૃતિ">Heritage & Culture</button>
+      <button class="fchip" data-filter="wildlife" data-i18n-en="Wildlife & Nature" data-i18n-hi="वन्यजीव और प्रकृति" data-i18n-gu="વન્યજીવન અને પ્રકૃતિ">Wildlife & Nature</button>
+      <button class="fchip" data-filter="northeast" data-i18n-en="North-East" data-i18n-hi="पूर्वोत्तर" data-i18n-gu="પૂર્વોત્તર">North-East</button>
+    </div>
   </div>
-  
+
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; width: 100%">
       <!-- Rajasthan -->
-      <a href="Domestic Tours.dc.html" class="dcard rv">
+      <a href="Destination.dc.html?dest=rajasthan" class="dcard rv" data-tags="heritage">
         <div class="dbg" style="background-color: #dce6f2; background-image: url('images/dest-rajasthan.jpg')"></div>
         <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgba(26,35,50,.88))"></div>
         <div style="position: relative; z-index: 2; padding: 20px; width: 100%">
           <div style="font-weight: 700; font-size: 17px; color: #fff" data-i18n-en="Rajasthan" data-i18n-hi="राजस्थान" data-i18n-gu="રાજસ્થાન">Rajasthan</div>
-          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="4-7 days" data-i18n-hi="4-7 दिन" data-i18n-gu="4-7 દિવસ">4-7 days</div>
+          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="4-7 days · from ₹18,000" data-i18n-hi="4-7 दिन · ₹18,000 से" data-i18n-gu="4-7 દિવસ · ₹18,000 થી">4-7 days · from ₹18,000</div>
           <span class="dxp"><span data-i18n-en="Explore" data-i18n-hi="देखें" data-i18n-gu="જુઓ">Explore</span>&nbsp;→</span>
         </div>
       </a>
       <!-- Himachal Pradesh -->
-      <a href="Domestic Tours.dc.html" class="dcard rv">
+      <a href="Destination.dc.html?dest=himachal" class="dcard rv" data-tags="mountains">
         <div class="dbg" style="background-color: #dce6f2; background-image: url('images/dest-himachal.avif')"></div>
         <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgba(26,35,50,.88))"></div>
         <div style="position: relative; z-index: 2; padding: 20px; width: 100%">
           <div style="font-weight: 700; font-size: 17px; color: #fff" data-i18n-en="Himachal Pradesh" data-i18n-hi="हिमाचल प्रदेश" data-i18n-gu="હિમાચલ પ્રદેશ">Himachal Pradesh</div>
-          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="5-7 days" data-i18n-hi="5-7 दिन" data-i18n-gu="5-7 દિવસ">5-7 days</div>
+          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="5-7 days · from ₹16,000" data-i18n-hi="5-7 दिन · ₹16,000 से" data-i18n-gu="5-7 દિવસ · ₹16,000 થી">5-7 days · from ₹16,000</div>
           <span class="dxp"><span data-i18n-en="Explore" data-i18n-hi="देखें" data-i18n-gu="જુઓ">Explore</span>&nbsp;→</span>
         </div>
       </a>
       <!-- Kashmir -->
-      <a href="Domestic Tours.dc.html" class="dcard rv">
+      <a href="Destination.dc.html?dest=kashmir" class="dcard rv" data-tags="mountains">
         <div class="dbg" style="background-color: #dce6f2; background-image: url('images/dest-kashmir.webp')"></div>
         <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgba(26,35,50,.88))"></div>
         <div style="position: relative; z-index: 2; padding: 20px; width: 100%">
           <div style="font-weight: 700; font-size: 17px; color: #fff" data-i18n-en="Kashmir" data-i18n-hi="कश्मीर" data-i18n-gu="કાશ્મીર">Kashmir</div>
-          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="5-6 days" data-i18n-hi="5-6 दिन" data-i18n-gu="5-6 દિવસ">5-6 days</div>
+          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="5-6 days · from ₹22,000" data-i18n-hi="5-6 दिन · ₹22,000 से" data-i18n-gu="5-6 દિવસ · ₹22,000 થી">5-6 days · from ₹22,000</div>
           <span class="dxp"><span data-i18n-en="Explore" data-i18n-hi="देखें" data-i18n-gu="જુઓ">Explore</span>&nbsp;→</span>
         </div>
       </a>
       <!-- Kerala -->
-      <a href="Domestic Tours.dc.html" class="dcard rv">
+      <a href="Destination.dc.html?dest=kerala" class="dcard rv" data-tags="beaches wildlife">
         <div class="dbg" style="background-color: #dce6f2; background-image: url('images/dest-kerala.webp')"></div>
         <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgba(26,35,50,.88))"></div>
         <div style="position: relative; z-index: 2; padding: 20px; width: 100%">
           <div style="font-weight: 700; font-size: 17px; color: #fff" data-i18n-en="Kerala" data-i18n-hi="केरल" data-i18n-gu="કેરળ">Kerala</div>
-          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="4-5 days" data-i18n-hi="4-5 दिन" data-i18n-gu="4-5 દિવસ">4-5 days</div>
+          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="4-5 days · from ₹18,000" data-i18n-hi="4-5 दिन · ₹18,000 से" data-i18n-gu="4-5 દિવસ · ₹18,000 થી">4-5 days · from ₹18,000</div>
           <span class="dxp"><span data-i18n-en="Explore" data-i18n-hi="देखें" data-i18n-gu="જુઓ">Explore</span>&nbsp;→</span>
         </div>
       </a>
       <!-- Goa -->
-      <a href="Domestic Tours.dc.html" class="dcard rv">
+      <a href="Destination.dc.html?dest=goa" class="dcard rv" data-tags="beaches">
         <div class="dbg" style="background-color: #dce6f2; background-image: url('images/dest-goa.jpg')"></div>
         <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgba(26,35,50,.88))"></div>
         <div style="position: relative; z-index: 2; padding: 20px; width: 100%">
           <div style="font-weight: 700; font-size: 17px; color: #fff" data-i18n-en="Goa" data-i18n-hi="गोवा" data-i18n-gu="ગોવા">Goa</div>
-          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="3-5 days" data-i18n-hi="3-5 दिन" data-i18n-gu="3-5 દિવસ">3-5 days</div>
+          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="3-5 days · from ₹14,000" data-i18n-hi="3-5 दिन · ₹14,000 से" data-i18n-gu="3-5 દિવસ · ₹14,000 થી">3-5 days · from ₹14,000</div>
           <span class="dxp"><span data-i18n-en="Explore" data-i18n-hi="देखें" data-i18n-gu="જુઓ">Explore</span>&nbsp;→</span>
         </div>
       </a>
       <!-- Ooty & Nilgiris -->
-      <a href="Domestic Tours.dc.html" class="dcard rv">
+      <a href="Destination.dc.html?dest=ooty" class="dcard rv" data-tags="mountains">
         <div class="dbg" style="background-color: #dce6f2; background-image: url('images/dest-ooty.webp')"></div>
         <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgba(26,35,50,.88))"></div>
         <div style="position: relative; z-index: 2; padding: 20px; width: 100%">
           <div style="font-weight: 700; font-size: 17px; color: #fff" data-i18n-en="Ooty & Nilgiris" data-i18n-hi="ऊटी और नीलगिरि" data-i18n-gu="ઊટી અને નીલગિરિ">Ooty & Nilgiris</div>
-          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="3-4 days" data-i18n-hi="3-4 दिन" data-i18n-gu="3-4 દિવસ">3-4 days</div>
+          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="3-4 days · from ₹12,000" data-i18n-hi="3-4 दिन · ₹12,000 से" data-i18n-gu="3-4 દિવસ · ₹12,000 થી">3-4 days · from ₹12,000</div>
           <span class="dxp"><span data-i18n-en="Explore" data-i18n-hi="देखें" data-i18n-gu="જુઓ">Explore</span>&nbsp;→</span>
         </div>
       </a>
       <!-- Mysuru & Coorg -->
-      <a href="Domestic Tours.dc.html" class="dcard rv">
+      <a href="Destination.dc.html?dest=mysuru" class="dcard rv" data-tags="heritage wildlife">
         <div class="dbg" style="background-color: #dce6f2; background-image: url('images/dest-mysuru.jpg')"></div>
         <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgba(26,35,50,.88))"></div>
         <div style="position: relative; z-index: 2; padding: 20px; width: 100%">
           <div style="font-weight: 700; font-size: 17px; color: #fff" data-i18n-en="Mysuru & Coorg" data-i18n-hi="मैसूर और कूर्ग" data-i18n-gu="મૈસૂર અને કૂર્ગ">Mysuru & Coorg</div>
-          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="3-4 days" data-i18n-hi="3-4 दिन" data-i18n-gu="3-4 દિવસ">3-4 days</div>
+          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="3-4 days · from ₹13,000" data-i18n-hi="3-4 दिन · ₹13,000 से" data-i18n-gu="3-4 દિવસ · ₹13,000 થી">3-4 days · from ₹13,000</div>
           <span class="dxp"><span data-i18n-en="Explore" data-i18n-hi="देखें" data-i18n-gu="જુઓ">Explore</span>&nbsp;→</span>
         </div>
       </a>
       <!-- Agra & Taj Mahal -->
-      <a href="Domestic Tours.dc.html" class="dcard rv">
+      <a href="Destination.dc.html?dest=agra" class="dcard rv" data-tags="heritage">
         <div class="dbg" style="background-color: #dce6f2; background-image: url('images/dest-agra.jpg')"></div>
         <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgba(26,35,50,.88))"></div>
         <div style="position: relative; z-index: 2; padding: 20px; width: 100%">
           <div style="font-weight: 700; font-size: 17px; color: #fff" data-i18n-en="Agra & Taj Mahal" data-i18n-hi="आगरा और ताज महल" data-i18n-gu="આગ્રા અને તાજમહેલ">Agra & Taj Mahal</div>
-          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="2-3 days" data-i18n-hi="2-3 दिन" data-i18n-gu="2-3 દિવસ">2-3 days</div>
+          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="2-3 days · from ₹9,000" data-i18n-hi="2-3 दिन · ₹9,000 से" data-i18n-gu="2-3 દિવસ · ₹9,000 થી">2-3 days · from ₹9,000</div>
+          <span class="dxp"><span data-i18n-en="Explore" data-i18n-hi="देखें" data-i18n-gu="જુઓ">Explore</span>&nbsp;→</span>
+        </div>
+      </a>
+      <!-- Sikkim -->
+      <a href="Destination.dc.html?dest=sikkim" class="dcard rv" data-tags="mountains northeast">
+        <div class="dbg" style="background-color: #dce6f2; background-image: url('images/dest-sikkim.jpg')"></div>
+        <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgba(26,35,50,.88))"></div>
+        <div style="position: relative; z-index: 2; padding: 20px; width: 100%">
+          <div style="font-weight: 700; font-size: 17px; color: #fff" data-i18n-en="Sikkim" data-i18n-hi="सिक्किम" data-i18n-gu="સિક્કિમ">Sikkim</div>
+          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="6-7 days · from ₹20,000" data-i18n-hi="6-7 दिन · ₹20,000 से" data-i18n-gu="6-7 દિવસ · ₹20,000 થી">6-7 days · from ₹20,000</div>
           <span class="dxp"><span data-i18n-en="Explore" data-i18n-hi="देखें" data-i18n-gu="જુઓ">Explore</span>&nbsp;→</span>
         </div>
       </a>
       <!-- Meghalaya -->
-      <a href="Domestic Tours.dc.html" class="dcard rv">
+      <a href="Destination.dc.html?dest=meghalaya" class="dcard rv" data-tags="northeast">
         <div class="dbg" style="background-color: #dce6f2; background-image: url('images/dest-meghalaya.jpg')"></div>
         <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgba(26,35,50,.88))"></div>
         <div style="position: relative; z-index: 2; padding: 20px; width: 100%">
           <div style="font-weight: 700; font-size: 17px; color: #fff" data-i18n-en="Meghalaya" data-i18n-hi="मेघालय" data-i18n-gu="મેઘાલય">Meghalaya</div>
-          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="5-7 days" data-i18n-hi="5-7 दिन" data-i18n-gu="5-7 દિવસ">5-7 days</div>
+          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="5-7 days · from ₹20,000" data-i18n-hi="5-7 दिन · ₹20,000 से" data-i18n-gu="5-7 દિવસ · ₹20,000 થી">5-7 days · from ₹20,000</div>
           <span class="dxp"><span data-i18n-en="Explore" data-i18n-hi="देखें" data-i18n-gu="જુઓ">Explore</span>&nbsp;→</span>
         </div>
       </a>
       <!-- Assam · Kaziranga -->
-      <a href="Domestic Tours.dc.html" class="dcard rv">
+      <a href="Destination.dc.html?dest=assam" class="dcard rv" data-tags="northeast wildlife">
         <div class="dbg" style="background-color: #dce6f2; background-image: url('images/dest-assam.jpg')"></div>
         <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgba(26,35,50,.88))"></div>
         <div style="position: relative; z-index: 2; padding: 20px; width: 100%">
           <div style="font-weight: 700; font-size: 17px; color: #fff" data-i18n-en="Assam · Kaziranga" data-i18n-hi="असम · काज़ीरंगा" data-i18n-gu="આસામ · કાઝીરંગા">Assam · Kaziranga</div>
-          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="4-6 days" data-i18n-hi="4-6 दिन" data-i18n-gu="4-6 દિવસ">4-6 days</div>
+          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="4-6 days · from ₹18,000" data-i18n-hi="4-6 दिन · ₹18,000 से" data-i18n-gu="4-6 દિવસ · ₹18,000 થી">4-6 days · from ₹18,000</div>
           <span class="dxp"><span data-i18n-en="Explore" data-i18n-hi="देखें" data-i18n-gu="જુઓ">Explore</span>&nbsp;→</span>
         </div>
       </a>
       <!-- Arunachal Pradesh -->
-      <a href="Domestic Tours.dc.html" class="dcard rv">
+      <a href="Destination.dc.html?dest=arunachal" class="dcard rv" data-tags="northeast mountains">
         <div class="dbg" style="background-color: #dce6f2; background-image: url('images/dest-arunachal.jpg')"></div>
         <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgba(26,35,50,.88))"></div>
         <div style="position: relative; z-index: 2; padding: 20px; width: 100%">
           <div style="font-weight: 700; font-size: 17px; color: #fff" data-i18n-en="Arunachal Pradesh" data-i18n-hi="अरुणाचल प्रदेश" data-i18n-gu="અરુણાચલ પ્રદેશ">Arunachal Pradesh</div>
-          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="6-8 days" data-i18n-hi="6-8 दिन" data-i18n-gu="6-8 દિવસ">6-8 days</div>
+          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="6-8 days · from ₹26,000" data-i18n-hi="6-8 दिन · ₹26,000 से" data-i18n-gu="6-8 દિવસ · ₹26,000 થી">6-8 days · from ₹26,000</div>
           <span class="dxp"><span data-i18n-en="Explore" data-i18n-hi="देखें" data-i18n-gu="જુઓ">Explore</span>&nbsp;→</span>
         </div>
       </a>
       <!-- Nagaland -->
-      <a href="Domestic Tours.dc.html" class="dcard rv">
+      <a href="Destination.dc.html?dest=nagaland" class="dcard rv" data-tags="northeast">
         <div class="dbg" style="background-color: #dce6f2; background-image: url('images/dest-nagaland.jpg')"></div>
         <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgba(26,35,50,.88))"></div>
         <div style="position: relative; z-index: 2; padding: 20px; width: 100%">
           <div style="font-weight: 700; font-size: 17px; color: #fff" data-i18n-en="Nagaland" data-i18n-hi="नागालैंड" data-i18n-gu="નાગાલેન્ડ">Nagaland</div>
-          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="5-7 days" data-i18n-hi="5-7 दिन" data-i18n-gu="5-7 દિવસ">5-7 days</div>
+          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="5-7 days · from ₹22,000" data-i18n-hi="5-7 दिन · ₹22,000 से" data-i18n-gu="5-7 દિવસ · ₹22,000 થી">5-7 days · from ₹22,000</div>
           <span class="dxp"><span data-i18n-en="Explore" data-i18n-hi="देखें" data-i18n-gu="જુઓ">Explore</span>&nbsp;→</span>
         </div>
       </a>
       <!-- Manipur · Loktak -->
-      <a href="Domestic Tours.dc.html" class="dcard rv">
+      <a href="Destination.dc.html?dest=manipur" class="dcard rv" data-tags="northeast wildlife">
         <div class="dbg" style="background-color: #dce6f2; background-image: url('images/dest-manipur.jpg')"></div>
         <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgba(26,35,50,.88))"></div>
         <div style="position: relative; z-index: 2; padding: 20px; width: 100%">
           <div style="font-weight: 700; font-size: 17px; color: #fff" data-i18n-en="Manipur · Loktak" data-i18n-hi="मणिपुर · लोकतक" data-i18n-gu="મણિપુર · લોકતક">Manipur · Loktak</div>
-          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="4-6 days" data-i18n-hi="4-6 दिन" data-i18n-gu="4-6 દિવસ">4-6 days</div>
+          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="4-6 days · from ₹18,000" data-i18n-hi="4-6 दिन · ₹18,000 से" data-i18n-gu="4-6 દિવસ · ₹18,000 થી">4-6 days · from ₹18,000</div>
           <span class="dxp"><span data-i18n-en="Explore" data-i18n-hi="देखें" data-i18n-gu="જુઓ">Explore</span>&nbsp;→</span>
         </div>
       </a>
       <!-- Mizoram -->
-      <a href="Domestic Tours.dc.html" class="dcard rv">
+      <a href="Destination.dc.html?dest=mizoram" class="dcard rv" data-tags="northeast">
         <div class="dbg" style="background-color: #dce6f2; background-image: url('images/dest-mizoram.jpg')"></div>
         <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgba(26,35,50,.88))"></div>
         <div style="position: relative; z-index: 2; padding: 20px; width: 100%">
           <div style="font-weight: 700; font-size: 17px; color: #fff" data-i18n-en="Mizoram" data-i18n-hi="मिज़ोरम" data-i18n-gu="મિઝોરમ">Mizoram</div>
-          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="5-7 days" data-i18n-hi="5-7 दिन" data-i18n-gu="5-7 દિવસ">5-7 days</div>
+          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="5-7 days · from ₹20,000" data-i18n-hi="5-7 दिन · ₹20,000 से" data-i18n-gu="5-7 દિવસ · ₹20,000 થી">5-7 days · from ₹20,000</div>
           <span class="dxp"><span data-i18n-en="Explore" data-i18n-hi="देखें" data-i18n-gu="જુઓ">Explore</span>&nbsp;→</span>
         </div>
       </a>
       <!-- Kausani, Uttarakhand -->
-      <a href="Domestic Tours.dc.html" class="dcard rv">
+      <a href="Destination.dc.html?dest=uttarakhand" class="dcard rv" data-tags="mountains wildlife">
         <div class="dbg" style="background-color: #dce6f2; background-image: url('images/dest-kausani.jpg')"></div>
         <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgba(26,35,50,.88))"></div>
         <div style="position: relative; z-index: 2; padding: 20px; width: 100%">
           <div style="font-weight: 700; font-size: 17px; color: #fff" data-i18n-en="Kausani, Uttarakhand" data-i18n-hi="कौसानी, उत्तराखंड" data-i18n-gu="કૌસાની, ઉત્તરાખંડ">Kausani, Uttarakhand</div>
-          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="5-7 days · Off-beat Kumaon" data-i18n-hi="5-7 दिन · अनोखा कुमाऊं" data-i18n-gu="5-7 દિવસ · અનોખું કુમાઉં">5-7 days · Off-beat Kumaon</div>
+          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px" data-i18n-en="5-7 days · from ₹16,000" data-i18n-hi="5-7 दिन · ₹16,000 से" data-i18n-gu="5-7 દિવસ · ₹16,000 થી">5-7 days · from ₹16,000</div>
           <span class="dxp"><span data-i18n-en="Explore" data-i18n-hi="देखें" data-i18n-gu="જુઓ">Explore</span>&nbsp;→</span>
         </div>
       </a>
@@ -378,7 +425,7 @@
   
   <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; max-width: 680px">
     <sc-for list="{{ international }}" as="i" hint-placeholder-count="0">
-      <a href="Package.dc.html?pkg={{ i.slug }}" class="dcard rv">
+      <a href="Destination.dc.html?dest={{ i.slug }}" class="dcard rv">
         <div class="dbg" style="{{ i.bg }}"></div>
         <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgba(26,35,50,.88))"></div>
         <div style="position: relative; z-index: 2; padding: 20px; width: 100%">
@@ -547,9 +594,9 @@ class Component extends DCLogic {
       { id: 'kaus', slug: 'kausani', name: 'Kausani, Uttarakhand', duration: '5-7 days · Off-beat Kumaon', img: 'images/dest-kausani.jpg' }
     ],
     international: [
-      { id: 'thai', slug: 'thailand', name: 'Thailand', name_hi: 'थाईलैंड', name_gu: 'થાઈલેન્ડ', duration: '5-7 days', duration_hi: '5-7 दिन', duration_gu: '5-7 દિવસ', img: 'images/dest-thailand.jpg' },
-      { id: 'bali', slug: 'bali', name: 'Bali', name_hi: 'बाली', name_gu: 'બાલી', duration: '5-7 days', duration_hi: '5-7 दिन', duration_gu: '5-7 દિવસ', img: 'images/dest-bali.jpg' },
-      { id: 'mal', slug: 'maldives', name: 'Maldives', name_hi: 'मालदीव', name_gu: 'માલદીવ્સ', duration: '4-6 days', duration_hi: '4-6 दिन', duration_gu: '4-6 દિવસ', img: 'images/dest-maldives.webp' }
+      { id: 'thai', slug: 'thailand', name: 'Thailand', name_hi: 'थाईलैंड', name_gu: 'થાઈલેન્ડ', duration: '5-7 days · from ₹42,000', duration_hi: '5-7 दिन · ₹42,000 से', duration_gu: '5-7 દિવસ · ₹42,000 થી', img: 'images/dest-thailand.jpg' },
+      { id: 'bali', slug: 'bali', name: 'Bali', name_hi: 'बाली', name_gu: 'બાલી', duration: '5-7 days · from ₹46,000', duration_hi: '5-7 दिन · ₹46,000 से', duration_gu: '5-7 દિવસ · ₹46,000 થી', img: 'images/dest-bali.jpg' },
+      { id: 'mal', slug: 'maldives', name: 'Maldives', name_hi: 'मालदीव', name_gu: 'માલદીવ્સ', duration: '4-6 days · from ₹58,000', duration_hi: '4-6 दिन · ₹58,000 से', duration_gu: '4-6 દિવસ · ₹58,000 થી', img: 'images/dest-maldives.webp' }
     ],
     styles: [
       { icon: '👨‍👩‍👧‍👦', name: 'Family' },
@@ -698,7 +745,7 @@ class Component extends DCLogic {
         t_chat: 'ચેટ કરો',
         t_customize_btn: 'મારી ટ્રીપ કસ્ટમાઇઝ કરો',
         t_hero_headline: 'સ્કાયલાઇન ટ્રાવેલ પ્લાનર સાથે ભારત અને વિશ્વની શોધ કરો',
-        t_hero_subheading: 'ભારત, થાઈલેન્ડ, બાલી અને માલદીવ્સ માટે ફ્લાઇટ્સ, ટ્રેનો, બસો અને હોટેલો શોધો.',
+        t_hero_subheading: 'ભારત, થાઈલેન્ડ, બાલી અને માલદીવ્સ માટે ફ્લાઇટ્સ, ટ્રેનો, બસો, હોટેલો અને કસ્ટમાઇઝ્ડ હોલિડે પેકેજ શોધો.',
         t_within_india: 'ભારતમાં',
         t_popular_destinations: 'લોકપ્રિય ભારતીય સ્થળો',
         t_beyond_india: 'ભારતની બહાર',
@@ -709,7 +756,7 @@ class Component extends DCLogic {
         t_how_works: 'તે કેવી રીતે કામ કરે છે',
         t_why_us: 'અમને શા માટે પસંદ કરો',
         t_why_choose: 'સ્કાયલાઇન ટ્રાવેલ પ્લાનર શા માટે પસંદ કરો',
-        t_cta_headline: 'તમારી ટ્રીપ તમારી શરતોમાં હોય',
+        t_cta_headline: 'તમારી ટ્રીપ તમારા પ્રમાણે હોય',
         t_cta_subheading: 'તમારી પસંદ, બજેટ અને ટ્રાવેલ તારીખ અનુસાર કસ્ટમાઇઝ્ડ પેકેજની વિનંતી કરો.',
         t_request_quote: 'ક્વોટ માટે વિનંતી કરો',
         t_explore: 'શોધો',
@@ -734,11 +781,19 @@ class Component extends DCLogic {
       },
       siteTitle: t.siteTitle,
       langLabel: lang === 'en' ? 'EN' : lang === 'hi' ? 'हिन्दी' : 'ગુજરાતી',
-      toggleLanguage: () => {
-        const langs = ['en', 'hi', 'gu'];
-        const idx = langs.indexOf(this.state.lang);
-        this.setState({ lang: langs[(idx + 1) % langs.length] });
-      },
+      langOptions: [
+        { code: 'en', name: 'English' },
+        { code: 'hi', name: 'हिन्दी' },
+        { code: 'gu', name: 'ગુજરાતી' }
+      ].map((o) => ({
+        name: o.name,
+        mark: lang === o.code ? '✓' : '',
+        style: lang === o.code ? { background: '#eaf3ff', color: '#0a5fd7', fontWeight: 700 } : {},
+        pick: () => {
+          try { if (document.activeElement) document.activeElement.blur(); } catch (e) {}
+          this.setState({ lang: o.code });
+        }
+      })),
       goToFlights: (e) => { e.preventDefault(); alert('Redirect to flights'); },
       goToTrains: (e) => { e.preventDefault(); alert('Redirect to trains'); },
       goBuses: (e) => { e.preventDefault(); alert('Redirect to buses'); },
@@ -789,6 +844,31 @@ class Component extends DCLogic {
   setTimeout(forceFu,1800); setTimeout(forceFu,4000);
   window.addEventListener('scroll', function(){ sweep(); }, {passive:true});
   hook();
+})();
+</script>
+<script>
+/* Skyline — destination explorer filter chips (progressive enhancement; cards stay visible if JS is off).
+   The MutationObserver re-applies the active filter after the DC runtime re-renders (e.g. language toggle). */
+(function(){
+  var current='all';
+  function apply(){
+    document.querySelectorAll('.fchip').forEach(function(b){
+      b.classList.toggle('on', b.getAttribute('data-filter')===current);
+    });
+    document.querySelectorAll('[data-tags]').forEach(function(card){
+      var show = current==='all' || (card.getAttribute('data-tags')||'').split(/\s+/).indexOf(current)!==-1;
+      card.style.display = show ? '' : 'none';
+    });
+  }
+  document.addEventListener('click', function(e){
+    var b = e.target && e.target.closest ? e.target.closest('.fchip') : null;
+    if(!b) return;
+    e.preventDefault();
+    current = b.getAttribute('data-filter')||'all';
+    apply();
+  });
+  try{ new MutationObserver(function(){ apply(); }).observe(document.documentElement,{childList:true,subtree:true}); }catch(e){}
+  apply();
 })();
 </script>
 </body>

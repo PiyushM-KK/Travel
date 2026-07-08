@@ -39,6 +39,17 @@
     .sky-burger { display: none; align-items: center; justify-content: center; width: 44px; height: 40px; background: rgba(255,255,255,.72); border: 1px solid #e5ecf5; border-radius: 10px; cursor: pointer; flex-shrink: 0 }
     @media (min-width: 860px) { .sky-nav { display: flex } }
     @media (max-width: 859px) { .sky-burger { display: flex } .sky-hide-mobile { display: none !important } }
+    /* Language dropdown (opens on hover/focus; animated fade + slide) */
+    .sky-langwrap { position: relative }
+    .sky-langmenu { position: absolute; top: calc(100% + 8px); right: 0; z-index: 3000; min-width: 172px; background: #fff; border: 1px solid #e5ecf5; border-radius: 12px; box-shadow: 0 18px 40px -16px rgba(10,95,215,.45); padding: 6px; opacity: 0; visibility: hidden; transform: translateY(-8px) scale(.96); transform-origin: top right; transition: opacity .18s ease .25s, transform .18s cubic-bezier(.2,.8,.2,1) .25s, visibility 0s linear .43s }
+    /* invisible bridge over the button→menu gap so hover isn't lost in transit */
+    .sky-langmenu::before { content: ''; position: absolute; top: -12px; left: -8px; right: -8px; height: 12px }
+    .sky-langwrap:hover .sky-langmenu, .sky-langwrap:focus-within .sky-langmenu { opacity: 1; visibility: visible; transform: translateY(0) scale(1); transition: opacity .22s ease, transform .22s cubic-bezier(.2,.8,.2,1) }
+    .sky-caret { transition: transform .25s ease }
+    .sky-langwrap:hover .sky-caret, .sky-langwrap:focus-within .sky-caret { transform: rotate(180deg) }
+    .sky-langitem { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; border: none; background: transparent; cursor: pointer; font-family: inherit; font-weight: 600; font-size: 13.5px; color: #1a2332; padding: 9px 12px; border-radius: 8px; text-align: left; transition: background .15s, color .15s }
+    .sky-langitem:hover { background: #f0f7ff; color: #0a5fd7 }
+    @media (prefers-reduced-motion: reduce) { .sky-langmenu, .sky-caret { transition: none } }
     /* Clickable destination cards with hover zoom + lift */
     .destcard { transition: transform .3s ease, box-shadow .3s ease }
     .destcard:hover { transform: translateY(-6px); box-shadow: 0 22px 44px -22px rgba(10,95,215,.45) }
@@ -60,6 +71,8 @@
   <meta name="ext-resource-dependency" content="images/uttarakhand-ridge.jpg">
   <meta name="ext-resource-dependency" content="images/uttarakhand-waterfall.jpg">
   <meta name="ext-resource-dependency" content="images/header-banner.jpg">
+  <meta name="ext-resource-dependency" content="images/dest-sikkim.jpg">
+  <meta name="ext-resource-dependency" content="images/dest-sikkim-tsomgo.jpg">
   <meta name="ext-resource-dependency" content="images/dest-thailand.jpg">
   <meta name="ext-resource-dependency" content="images/dest-bali.jpg">
   <meta name="ext-resource-dependency" content="images/dest-maldives.webp">
@@ -92,9 +105,21 @@
 
     <!-- Right Controls -->
     <div style="display: flex; align-items: center; gap: 12px; flex-shrink: 0">
-      <button onClick="{{ toggleLanguage }}" style="border: 1px solid #e5ecf5; background: #fff; cursor: pointer; font-family: inherit; font-weight: 600; font-size: 13px; color: #1a2332; padding: 8px 12px; border-radius: 8px; transition: all .2s" style-hover="background: #f5f9ff; border-color: #0a5fd7">
-        {{ langLabel }}
-      </button>
+      <div class="sky-langwrap">
+        <button aria-haspopup="true" style="display: flex; align-items: center; gap: 7px; border: 1px solid #e5ecf5; background: #fff; cursor: pointer; font-family: inherit; font-weight: 600; font-size: 13px; color: #1a2332; padding: 8px 12px; border-radius: 8px; transition: all .2s" style-hover="background: #f5f9ff; border-color: #0a5fd7">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.7 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.7-3.8-9S9.5 5.6 12 3z" stroke="currentColor" stroke-width="1.8"/></svg>
+          {{ langLabel }}
+          <svg class="sky-caret" width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="sky-langmenu" role="menu">
+          <sc-for list="{{ langOptions }}" as="lo" hint-placeholder-count="3">
+            <button class="sky-langitem" role="menuitem" onClick="{{ lo.pick }}" style="{{ lo.style }}">
+              <span>{{ lo.name }}</span>
+              <span style="font-size: 12px; font-weight: 700">{{ lo.mark }}</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
       <a class="sky-hide-mobile" href="https://wa.me/918866050291?text=Hi%20Skyline%20Travel%20Planner%2C%20I%27d%20like%20help%20planning%20a%20trip." target="_blank" rel="noopener" style="display: flex; align-items: center; gap: 6px; background: #25d366; color: #fff; font-weight: 700; font-size: 13px; padding: 10px 14px; border-radius: 8px; transition: all .2s" style-hover="background: #1da852; transform: translateY(-1px)">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.54.36 3 .97 4.29L2 22l6.29-.97C9.01 21.64 10.46 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 18c-1.41 0-2.73-.36-3.88-.97l-.28-.14-2.89.44.44-2.89-.14-.28C4.36 14.73 4 13.41 4 12c0-4.41 3.59-8 8-8s8 3.59 8 8-3.59 8-8 8z"/></svg>
         {{ t_chat }}
@@ -180,36 +205,33 @@
   <div style="margin-bottom: 32px">
     <span style="color: #0a5fd7; font-weight: 700; font-size: 12px; letter-spacing: .06em; text-transform: uppercase">{{ t_within_india }}</span>
     <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 42px; letter-spacing: -.02em; margin: 8px 0 0">{{ t_popular_destinations }}</h2>
+    <!-- Explorer filter chips -->
+    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px">
+      <sc-for list="{{ filters }}" as="f" hint-placeholder-count="6">
+        <button onClick="{{ f.set }}" style="{{ f.style }}">{{ f.label }}</button>
+      </sc-for>
+    </div>
   </div>
-  
+
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; width: 100%">
     <sc-for list="{{ destinations }}" as="d" hint-placeholder-count="0">
-      <a href="{{ d.href }}" class="destcard" style="position: relative; aspect-ratio: 4/3; border-radius: 16px; overflow: hidden; display: flex; align-items: flex-end; text-decoration: none">
-        <div class="destimg" style="{{ d.bg }}"></div>
+      <a href="{{ d.href }}" class="destcard sky-cyc" style="position: relative; aspect-ratio: 4/3; border-radius: 16px; overflow: hidden; display: flex; align-items: flex-end; text-decoration: none">
+        <sc-for list="{{ d.layers }}" as="L" hint-placeholder-count="0">
+          <div class="destimg sky-cyc-layer" style="{{ L.style }}"></div>
+        </sc-for>
         <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 45%, rgba(26,35,50,.85))"></div>
+        <sc-if value="{{ d.hasSpots }}" hint-placeholder-val="{{ false }}">
+          <span class="sky-cyc-label" style="position: absolute; top: 14px; left: 14px; z-index: 2; background: rgba(20,30,48,.35); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,.22); color: rgba(255,255,255,.92); font-weight: 600; font-size: 12px; letter-spacing: .02em; padding: 5px 13px; border-radius: 999px; transition: opacity 1s ease">{{ d.spot0 }}</span>
+        </sc-if>
         <div style="position: relative; z-index: 2; padding: 20px; width: 100%; display: flex; align-items: flex-end; justify-content: space-between; gap: 10px">
           <div>
             <div style="font-weight: 700; font-size: 16px; color: #fff">{{ d.name }}</div>
-            <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px">{{ d.duration }}</div>
+            <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px">{{ d.meta }}</div>
           </div>
-          <span class="destview" style="flex-shrink: 0; background: rgba(255,255,255,.16); backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,.3); color: #fff; font-weight: 700; font-size: 12px; padding: 7px 12px; border-radius: 999px; transition: background .3s, border-color .3s">Explore →</span>
+          <span class="destview" style="flex-shrink: 0; background: rgba(255,255,255,.16); backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,.3); color: #fff; font-weight: 700; font-size: 12px; padding: 7px 12px; border-radius: 999px; transition: background .3s, border-color .3s">{{ t_explore_btn }} →</span>
         </div>
       </a>
     </sc-for>
-    <a href="Destination.dc.html?dest=uttarakhand" class="destcard" style="position: relative; aspect-ratio: 4/3; border-radius: 16px; overflow: hidden; display: flex; align-items: flex-end; text-decoration: none">
-      <div class="sky-uk-layer" style="position: absolute; inset: 0; z-index: 0; background-color: #0a3a78; background-image: url('images/dest-uttarakhand.jpg'); background-size: cover; background-position: center; opacity: 1; transition: opacity 2.8s ease"></div>
-      <div class="sky-uk-layer" style="position: absolute; inset: 0; z-index: 0; background-color: #0a3a78; background-image: url('images/uttarakhand-pine.jpg'); background-size: cover; background-position: center; opacity: 0; transition: opacity 2.8s ease"></div>
-      <div class="sky-uk-layer" style="position: absolute; inset: 0; z-index: 0; background-color: #0a3a78; background-image: url('images/uttarakhand-ridge.jpg'); background-size: cover; background-position: center; opacity: 0; transition: opacity 2.8s ease"></div>
-      <div class="sky-uk-layer" style="position: absolute; inset: 0; z-index: 0; background-color: #0a3a78; background-image: url('images/uttarakhand-waterfall.jpg'); background-size: cover; background-position: center; opacity: 0; transition: opacity 2.8s ease"></div>
-      <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgba(26,35,50,.78))"></div>
-      <div style="position: relative; z-index: 2; padding: 20px; width: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 10px">
-        <span class="sky-uk-label" style="background: rgba(255,255,255,.08); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,.22); color: rgba(255,255,255,.82); font-weight: 600; font-size: 12px; letter-spacing: .02em; padding: 5px 13px; border-radius: 999px; transition: opacity 1s ease">Kausani</span>
-        <div>
-          <div style="font-weight: 700; font-size: 16px; color: #fff">Uttarakhand</div>
-          <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px">5-7 days · Off-beat Kumaon</div>
-        </div>
-      </div>
-    </a>
   </div>
   <p style="font-size: 11px; color: #8aa0b5; margin: 16px 0 0; line-height: 1.7">
     North-East photo credits (via Wikimedia Commons): Nohkalikai Falls © Vikramjit Kakati · Kaziranga © Diganta Talukdar · Nuranang Falls © Sdasamdabad · Dzükou Valley © Dhrubazaanphotography · Loktak Lake © Sudiptorana — all CC&nbsp;BY-SA&nbsp;4.0; Vantawng Falls © Lpachuau — CC&nbsp;BY&nbsp;3.0.
@@ -231,9 +253,9 @@
         <div style="position: relative; z-index: 2; padding: 20px; width: 100%; display: flex; align-items: flex-end; justify-content: space-between; gap: 10px">
           <div>
             <div style="font-weight: 700; font-size: 16px; color: #fff">{{ i.name }}</div>
-            <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px">{{ i.duration }}</div>
+            <div style="font-size: 13px; color: rgba(255,255,255,.85); margin-top: 4px">{{ i.meta }}</div>
           </div>
-          <span class="destview" style="flex-shrink: 0; background: rgba(255,255,255,.16); backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,.3); color: #fff; font-weight: 700; font-size: 12px; padding: 7px 12px; border-radius: 999px; transition: background .3s, border-color .3s">Explore →</span>
+          <span class="destview" style="flex-shrink: 0; background: rgba(255,255,255,.16); backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,.3); color: #fff; font-weight: 700; font-size: 12px; padding: 7px 12px; border-radius: 999px; transition: background .3s, border-color .3s">{{ t_explore_btn }} →</span>
         </div>
       </a>
     </sc-for>
@@ -390,26 +412,29 @@ class Component extends DCLogic {
       'images/dest-thailand.jpg',
       'images/dest-goa.jpg'
     ],
+    destFilter: 'all',
     destinations: [
-      { id: 'raj', slug: 'rajasthan', name: 'Rajasthan', duration: '4-7 days', img: 'images/dest-rajasthan.jpg' },
-      { id: 'him', slug: 'himachal', name: 'Himachal Pradesh', duration: '5-7 days', img: 'images/dest-himachal.avif' },
-      { id: 'kash', slug: 'kashmir', name: 'Kashmir', duration: '5-6 days', img: 'images/dest-kashmir.webp' },
-      { id: 'ker', slug: 'kerala', name: 'Kerala', duration: '4-5 days', img: 'images/dest-kerala.webp' },
-      { id: 'goa', slug: 'goa', name: 'Goa', duration: '3-5 days', img: 'images/dest-goa.jpg' },
-      { id: 'oot', slug: 'ooty', name: 'Ooty & Nilgiris', duration: '3-4 days', img: 'images/dest-ooty.webp' },
-      { id: 'mys', slug: 'mysuru', name: 'Mysuru & Coorg', duration: '3-4 days', img: 'images/dest-mysuru.jpg' },
-      { id: 'agr', slug: 'agra', name: 'Agra & Taj Mahal', duration: '2-3 days', img: 'images/dest-agra.jpg' },
-      { id: 'megh', slug: 'meghalaya', name: 'Meghalaya', duration: '5-7 days', img: 'images/dest-meghalaya.jpg' },
-      { id: 'asm', slug: 'assam', name: 'Assam · Kaziranga', duration: '4-6 days', img: 'images/dest-assam.jpg' },
-      { id: 'arun', slug: 'arunachal', name: 'Arunachal Pradesh', duration: '6-8 days', img: 'images/dest-arunachal.jpg' },
-      { id: 'naga', slug: 'nagaland', name: 'Nagaland', duration: '5-7 days', img: 'images/dest-nagaland.jpg' },
-      { id: 'mani', slug: 'manipur', name: 'Manipur · Loktak', duration: '4-6 days', img: 'images/dest-manipur.jpg' },
-      { id: 'mizo', slug: 'mizoram', name: 'Mizoram', duration: '5-7 days', img: 'images/dest-mizoram.jpg' }
+      { id: 'raj', slug: 'rajasthan', name: 'Rajasthan', duration: '4-7 days', price: '₹18,000', tags: ['heritage'], img: 'images/dest-rajasthan.jpg' },
+      { id: 'him', slug: 'himachal', name: 'Himachal Pradesh', duration: '5-7 days', price: '₹16,000', tags: ['mountains'], img: 'images/dest-himachal.avif' },
+      { id: 'kash', slug: 'kashmir', name: 'Kashmir', duration: '5-6 days', price: '₹22,000', tags: ['mountains'], img: 'images/dest-kashmir.webp' },
+      { id: 'ker', slug: 'kerala', name: 'Kerala', duration: '4-5 days', price: '₹18,000', tags: ['beaches', 'wildlife'], img: 'images/dest-kerala.webp' },
+      { id: 'goa', slug: 'goa', name: 'Goa', duration: '3-5 days', price: '₹14,000', tags: ['beaches'], img: 'images/dest-goa.jpg' },
+      { id: 'oot', slug: 'ooty', name: 'Ooty & Nilgiris', duration: '3-4 days', price: '₹12,000', tags: ['mountains'], img: 'images/dest-ooty.webp' },
+      { id: 'mys', slug: 'mysuru', name: 'Mysuru & Coorg', duration: '3-4 days', price: '₹13,000', tags: ['heritage', 'wildlife'], img: 'images/dest-mysuru.jpg' },
+      { id: 'agr', slug: 'agra', name: 'Agra & Taj Mahal', duration: '2-3 days', price: '₹9,000', tags: ['heritage'], img: 'images/dest-agra.jpg' },
+      { id: 'uk', slug: 'uttarakhand', name: 'Uttarakhand', duration: '5-7 days', price: '₹16,000', tags: ['mountains', 'wildlife'], img: 'images/dest-uttarakhand.jpg', imgs: ['images/dest-uttarakhand.jpg', 'images/uttarakhand-pine.jpg', 'images/uttarakhand-ridge.jpg', 'images/uttarakhand-waterfall.jpg'], spots: ['Kausani', 'Mukteshwar', 'Binsar', 'Bhalu Gaad Falls'] },
+      { id: 'sik', slug: 'sikkim', name: 'Sikkim', duration: '6-7 days', price: '₹20,000', tags: ['mountains', 'northeast'], img: 'images/dest-sikkim.jpg', imgs: ['images/dest-sikkim.jpg', 'images/dest-sikkim-tsomgo.jpg'], spots: ['Gangtok', 'Tsomgo Lake'] },
+      { id: 'megh', slug: 'meghalaya', name: 'Meghalaya', duration: '5-7 days', price: '₹20,000', tags: ['northeast'], img: 'images/dest-meghalaya.jpg' },
+      { id: 'asm', slug: 'assam', name: 'Assam · Kaziranga', duration: '4-6 days', price: '₹18,000', tags: ['northeast', 'wildlife'], img: 'images/dest-assam.jpg' },
+      { id: 'arun', slug: 'arunachal', name: 'Arunachal Pradesh', duration: '6-8 days', price: '₹26,000', tags: ['northeast', 'mountains'], img: 'images/dest-arunachal.jpg' },
+      { id: 'naga', slug: 'nagaland', name: 'Nagaland', duration: '5-7 days', price: '₹22,000', tags: ['northeast'], img: 'images/dest-nagaland.jpg' },
+      { id: 'mani', slug: 'manipur', name: 'Manipur · Loktak', duration: '4-6 days', price: '₹18,000', tags: ['northeast', 'wildlife'], img: 'images/dest-manipur.jpg' },
+      { id: 'mizo', slug: 'mizoram', name: 'Mizoram', duration: '5-7 days', price: '₹20,000', tags: ['northeast'], img: 'images/dest-mizoram.jpg' }
     ],
     international: [
-      { id: 'thai', slug: 'thailand', name: 'Thailand', duration: '5-7 days', img: 'images/dest-thailand.jpg' },
-      { id: 'bali', slug: 'bali', name: 'Bali', duration: '5-7 days', img: 'images/dest-bali.jpg' },
-      { id: 'mal', slug: 'maldives', name: 'Maldives', duration: '4-6 days', img: 'images/dest-maldives.webp' }
+      { id: 'thai', slug: 'thailand', name: 'Thailand', duration: '5-7 days', price: '₹42,000', img: 'images/dest-thailand.jpg' },
+      { id: 'bali', slug: 'bali', name: 'Bali', duration: '5-7 days', price: '₹46,000', img: 'images/dest-bali.jpg' },
+      { id: 'mal', slug: 'maldives', name: 'Maldives', duration: '4-6 days', price: '₹58,000', img: 'images/dest-maldives.webp' }
     ],
     styles: [
       { icon: '👨‍👩‍👧‍👦', name: 'Family' },
@@ -463,31 +488,39 @@ class Component extends DCLogic {
     if (window.__skyHeroTimer) clearInterval(window.__skyHeroTimer);
     window.__skyHeroTimer = this._heroTimer = setInterval(apply, 600);
 
-    // Uttarakhand card slideshow (place labels change with each photo)
-    const ukNames = ['Kausani', 'Mukteshwar', 'Binsar', 'Bhalu Gaad Falls'];
-    this._uk = -1;
-    const ukApply = () => {
-      const layers = document.querySelectorAll('.sky-uk-layer');
-      const label = document.querySelector('.sky-uk-label');
-      if (!layers.length) return;
-      const idx = Math.floor(Date.now() / 7000) % layers.length;
-      if (idx === this._uk) return;
-      this._uk = idx;
-      layers.forEach((el, i) => { el.style.opacity = i === idx ? '1' : '0'; });
-      if (label) {
-        label.style.opacity = '0';
-        setTimeout(() => { label.textContent = ukNames[idx]; label.style.opacity = '1'; }, 900);
-      }
+    // Multi-photo destination cards: crossfade layers + a place-label chip.
+    // Any destination with an imgs[] array cycles automatically (spots[] gives the labels).
+    const spotsBySlug = {};
+    this.state.destinations.forEach((d) => { if (d.spots && d.spots.length) spotsBySlug[d.slug] = d.spots; });
+    const cycApply = () => {
+      const cards = document.querySelectorAll('.sky-cyc');
+      cards.forEach((card, ci) => {
+        const layers = card.querySelectorAll('.sky-cyc-layer');
+        if (layers.length < 2) return;
+        const idx = (Math.floor(Date.now() / 7000) + ci) % layers.length;
+        if (String(idx) === card.dataset.cycIdx) return;
+        card.dataset.cycIdx = String(idx);
+        layers.forEach((el, i) => { el.style.opacity = i === idx ? '1' : '0'; });
+        const label = card.querySelector('.sky-cyc-label');
+        if (label) {
+          const m = (card.getAttribute('href') || '').match(/dest=([a-z]+)/);
+          const spots = m && spotsBySlug[m[1]];
+          if (spots) {
+            label.style.opacity = '0';
+            setTimeout(() => { label.textContent = spots[idx % spots.length]; label.style.opacity = '1'; }, 900);
+          }
+        }
+      });
     };
-    if (window.__skyUkTimer) clearInterval(window.__skyUkTimer);
-    window.__skyUkTimer = this._ukTimer = setInterval(ukApply, 500);
+    if (window.__skyCycTimer) clearInterval(window.__skyCycTimer);
+    window.__skyCycTimer = this._cycTimer = setInterval(cycApply, 500);
   }
 
   componentWillUnmount() {
     if (this._heroTimer) clearInterval(this._heroTimer);
     if (window.__skyHeroTimer) { clearInterval(window.__skyHeroTimer); window.__skyHeroTimer = null; }
-    if (this._ukTimer) clearInterval(this._ukTimer);
-    if (window.__skyUkTimer) { clearInterval(window.__skyUkTimer); window.__skyUkTimer = null; }
+    if (this._cycTimer) clearInterval(this._cycTimer);
+    if (window.__skyCycTimer) { clearInterval(window.__skyCycTimer); window.__skyCycTimer = null; }
   }
 
   renderVals() {
@@ -511,6 +544,12 @@ class Component extends DCLogic {
         t_hero_subheading: 'Explore flights, trains, buses, hotels and customized holiday packages across India, Thailand, Bali and the Maldives.',
         t_within_india: 'Within India',
         t_popular_destinations: 'Popular Indian destinations',
+        t_f_all: 'All',
+        t_f_mountains: 'Mountains & Hills',
+        t_f_beaches: 'Beaches & Backwaters',
+        t_f_heritage: 'Heritage & Culture',
+        t_f_wildlife: 'Wildlife & Nature',
+        t_f_northeast: 'North-East',
         t_beyond_india: 'Beyond India',
         t_international: 'International destinations',
         t_ne_kicker: 'The Unexplored East',
@@ -525,6 +564,7 @@ class Component extends DCLogic {
         t_cta_subheading: 'Request a customized package tailored to your preferences, budget and travel dates.',
         t_request_quote: 'Request a Quote',
         t_explore: 'Explore',
+        t_explore_btn: 'Explore',
         t_services: 'Services',
         t_contact_us: 'Contact',
         t_no_payments: 'No payments processed on this website.',
@@ -548,6 +588,12 @@ class Component extends DCLogic {
         t_hero_subheading: 'भारत, थाईलैंड, बाली और मालदीव की उड़ानें, ट्रेनें, बसें, होटल और कस्टमाइज्ड पैकेज देखें।',
         t_within_india: 'भारत में',
         t_popular_destinations: 'लोकप्रिय भारतीय गंतव्य',
+        t_f_all: 'सभी',
+        t_f_mountains: 'पहाड़ और हिल स्टेशन',
+        t_f_beaches: 'समुद्र तट और बैकवॉटर',
+        t_f_heritage: 'विरासत और संस्कृति',
+        t_f_wildlife: 'वन्यजीव और प्रकृति',
+        t_f_northeast: 'पूर्वोत्तर',
         t_beyond_india: 'भारत से बाहर',
         t_international: 'अंतरराष्ट्रीय गंतव्य',
         t_ne_kicker: 'अनदेखा पूर्वोत्तर',
@@ -562,6 +608,7 @@ class Component extends DCLogic {
         t_cta_subheading: 'अपनी पसंद, बजट और यात्रा तारीख के अनुसार कस्टमाइज्ड पैकेज का अनुरोध करें।',
         t_request_quote: 'कोटेशन माँगें',
         t_explore: 'एक्सप्लोर करें',
+        t_explore_btn: 'देखें',
         t_services: 'सेवाएं',
         t_contact_us: 'संपर्क',
         t_no_payments: 'इस वेबसाइट पर कोई भुगतान संसाधित नहीं किया जाता है।',
@@ -582,12 +629,18 @@ class Component extends DCLogic {
         t_chat: 'ચેટ કરો',
         t_customize_btn: 'મારી ટ્રીપ કસ્ટમાઇઝ કરો',
         t_hero_headline: 'સ્કાયલાઇન ટ્રાવેલ પ્લાનર સાથે ભારત અને વિશ્વની શોધ કરો',
-        t_hero_subheading: 'ભારત, થાઈલેન્ડ, બાલી અને માલદીવ્સ માટે ફ્લાઇટ્સ, ટ્રેનો, બસો અને હોટેલો શોધો.',
+        t_hero_subheading: 'ભારત, થાઈલેન્ડ, બાલી અને માલદીવ્સ માટે ફ્લાઇટ્સ, ટ્રેનો, બસો, હોટેલો અને કસ્ટમાઇઝ્ડ હોલિડે પેકેજ શોધો.',
         t_within_india: 'ભારતમાં',
         t_popular_destinations: 'લોકપ્રિય ભારતીય સ્થળો',
+        t_f_all: 'બધા',
+        t_f_mountains: 'પર્વતો અને હિલ સ્ટેશન',
+        t_f_beaches: 'દરિયાકિનારા અને બેકવોટર',
+        t_f_heritage: 'વારસો અને સંસ્કૃતિ',
+        t_f_wildlife: 'વન્યજીવન અને પ્રકૃતિ',
+        t_f_northeast: 'પૂર્વોત્તર',
         t_beyond_india: 'ભારતની બહાર',
         t_international: 'આંતરરાષ્ટ્રીય સ્થળો',
-        t_ne_kicker: 'અન્વેષિત પૂર્વોત્તર',
+        t_ne_kicker: 'વણખેડાયેલો પૂર્વોત્તર',
         t_northeast: 'પૂર્વોત્તર ભારત',
         t_travel_styles: 'ટ્રાવેલ સ્ટાઇલ',
         t_package_styles: 'તમામ ટ્રાવેલ સ્ટાઇલ',
@@ -595,10 +648,11 @@ class Component extends DCLogic {
         t_how_works: 'તે કેવી રીતે કામ કરે છે',
         t_why_us: 'અમને શા માટે પસંદ કરો',
         t_why_choose: 'સ્કાયલાઇન ટ્રાવેલ પ્લાનર શા માટે પસંદ કરો',
-        t_cta_headline: 'તમારી ટ્રીપ તમારી શરતોમાં હોય',
+        t_cta_headline: 'તમારી ટ્રીપ તમારા પ્રમાણે હોય',
         t_cta_subheading: 'તમારી પસંદ, બજેટ અને ટ્રાવેલ તારીખ અનુસાર કસ્ટમાઇઝ્ડ પેકેજની વિનંતી કરો.',
         t_request_quote: 'ક્વોટ માટે વિનંતી કરો',
         t_explore: 'શોધો',
+        t_explore_btn: 'જુઓ',
         t_services: 'સેવાઓ',
         t_contact_us: 'સંપર્ક',
         t_no_payments: 'આ વેબસાઇટ પર કોઈ ચુકવણી કરવામાં આવતી નથી.',
@@ -607,6 +661,14 @@ class Component extends DCLogic {
     };
 
     const t = translations[lang];
+
+    // Card meta line, localized like Home.dc.html: "4-7 days · from ₹18,000" / "4-7 दिन · ₹18,000 से" / "4-7 દિવસ · ₹18,000 થી"
+    const metaOf = (duration, price) => {
+      const dur = lang === 'en' ? duration : duration.replace('days', lang === 'hi' ? 'दिन' : 'દિવસ');
+      return lang === 'hi' ? dur + ' · ' + price + ' से'
+           : lang === 'gu' ? dur + ' · ' + price + ' થી'
+           : dur + ' · from ' + price;
+    };
 
     return {
       year: new Date().getFullYear(),
@@ -623,11 +685,19 @@ class Component extends DCLogic {
       },
       siteTitle: t.siteTitle,
       langLabel: lang === 'en' ? 'EN' : lang === 'hi' ? 'हिन्दी' : 'ગુજરાતી',
-      toggleLanguage: () => {
-        const langs = ['en', 'hi', 'gu'];
-        const idx = langs.indexOf(this.state.lang);
-        this.setState({ lang: langs[(idx + 1) % langs.length] });
-      },
+      langOptions: [
+        { code: 'en', name: 'English' },
+        { code: 'hi', name: 'हिन्दी' },
+        { code: 'gu', name: 'ગુજરાતી' }
+      ].map((o) => ({
+        name: o.name,
+        mark: lang === o.code ? '✓' : '',
+        style: lang === o.code ? { background: '#eaf3ff', color: '#0a5fd7', fontWeight: 700 } : {},
+        pick: () => {
+          try { if (document.activeElement) document.activeElement.blur(); } catch (e) {}
+          this.setState({ lang: o.code });
+        }
+      })),
       goToFlights: (e) => { e.preventDefault(); alert('Redirect to flights'); },
       goToTrains: (e) => { e.preventDefault(); alert('Redirect to trains'); },
       goBuses: (e) => { e.preventDefault(); alert('Redirect to buses'); },
@@ -644,8 +714,49 @@ class Component extends DCLogic {
           transition: 'opacity 1.4s ease, transform 5.5s ease'
         }
       })),
-      destinations: this.state.destinations.map((d) => ({ ...d, href: 'Destination.dc.html?dest=' + d.slug, bg: { position: 'absolute', inset: 0, zIndex: 0, backgroundColor: '#dce6f2', backgroundImage: 'url("' + d.img + '")', backgroundSize: 'cover', backgroundPosition: 'center' } })),
-      international: this.state.international.map((i) => ({ ...i, href: 'Destination.dc.html?dest=' + i.slug, bg: { position: 'absolute', inset: 0, zIndex: 0, backgroundColor: '#dce6f2', backgroundImage: 'url("' + i.img + '")', backgroundSize: 'cover', backgroundPosition: 'center' } })),
+      filters: [
+        ['all', t.t_f_all],
+        ['mountains', t.t_f_mountains],
+        ['beaches', t.t_f_beaches],
+        ['heritage', t.t_f_heritage],
+        ['wildlife', t.t_f_wildlife],
+        ['northeast', t.t_f_northeast]
+      ].map(([key, label]) => {
+        const active = this.state.destFilter === key;
+        return {
+          label,
+          set: () => this.setState({ destFilter: key }),
+          style: {
+            fontFamily: 'inherit', fontWeight: 700, fontSize: '13px', padding: '9px 16px',
+            borderRadius: '999px', cursor: 'pointer', transition: 'all .2s',
+            background: active ? 'linear-gradient(135deg, #0a5fd7, #0d7ae8)' : '#fff',
+            color: active ? '#fff' : '#1a2332',
+            border: active ? '1.5px solid #0a5fd7' : '1.5px solid #e5ecf5',
+            boxShadow: active ? '0 8px 18px -8px rgba(10,95,215,.6)' : 'none'
+          }
+        };
+      }),
+      destinations: this.state.destinations
+        .filter((d) => this.state.destFilter === 'all' || (d.tags || []).includes(this.state.destFilter))
+        .map((d) => ({
+          id: d.id,
+          name: d.name,
+          href: 'Destination.dc.html?dest=' + d.slug,
+          meta: metaOf(d.duration, d.price),
+          hasSpots: !!(d.spots && d.spots.length),
+          spot0: d.spots ? d.spots[0] : '',
+          layers: (d.imgs || [d.img]).map((src, li) => ({
+            style: {
+              position: 'absolute', inset: 0, zIndex: 0,
+              backgroundColor: '#dce6f2',
+              backgroundImage: 'url("' + src + '")',
+              backgroundSize: 'cover', backgroundPosition: 'center',
+              opacity: li === 0 ? 1 : 0,
+              transition: 'opacity 2.8s ease, transform .7s ease'
+            }
+          }))
+        })),
+      international: this.state.international.map((i) => ({ ...i, href: 'Destination.dc.html?dest=' + i.slug, meta: metaOf(i.duration, i.price), bg: { position: 'absolute', inset: 0, zIndex: 0, backgroundColor: '#dce6f2', backgroundImage: 'url("' + i.img + '")', backgroundSize: 'cover', backgroundPosition: 'center' } })),
       styles: this.state.styles,
       steps: this.state.steps,
       reasons: this.state.reasons,

@@ -35,8 +35,11 @@ _Running record of state, decisions, and pending work. See `HANDOVER.md` for ful
 - **Site:** edit files → `git add -A && git commit -m "..." && git push` (token in `.env`) → Pages rebuilds ~1 min → hard-refresh (Ctrl+Shift+R). Pages caches 10 min.
 - **AI (model/prompt):** edit `server/anthropic-chat-worker.js` → Cloudflare dashboard → Worker → Edit code → paste → Deploy (manual, not git).
 
+13. **Destination explorer upgrade (2026-07-06)** — on `index.html`: filter chips (All / Mountains / Beaches / Heritage / Wildlife / North-East, translated en/hi/gu), "from ₹X" prices on every card, new **Sikkim** card, and the cycling-photo card **generalized** — any destination with `imgs[]` + `spots[]` in the `destinations` data crossfades with a place-label chip (Uttarakhand ×4 photos, Sikkim ×2; timer class `sky-cyc`). Ported to `Home.dc.html` in its static-card style (`data-tags` + `.fchip` chips + a plain filter script; **fixed its dead links** — cards pointed at `Domestic Tours.dc.html`, intl cards at a `Package.dc.html?pkg=` slug the Package page doesn't handle; all now go to `Destination.dc.html?dest=<slug>`). `Destination.dc.html`: hero now shows a "From ₹X per person*" chip, North-East + Sikkim entries got `fromPrice`, related links prefer same region.
+
 ## Pending / next
-- **Tomorrow:** update images / background of the website (see `HANDOVER.md` §5). Also planned: **"live" cycling photos per destination card** (generalize the Uttarakhand multi-image card to all cards) — needs the extra photos the user is bringing (~2-4 per destination). Mechanism to add: per-destination `imgs[]` + `spots[]` with a JS crossfade timer + sub-place label chip, like the existing Uttarakhand card.
+- **"Live" cycling photos for more cards:** mechanism is DONE (per-destination `imgs[]` + `spots[]` in `index.html`) — just add the extra photos the user is bringing (~2-4 per destination) to `images/` and list them in the destination's `imgs[]`/`spots[]`.
+- Update remaining images / background of the website (see `HANDOVER.md` §5).
 - Buy custom domain `skylinetravelplanner.com` (Hostinger) + DNS to GitHub Pages.
 - Housekeeping: revoke old GitHub tokens; delete unused `OPENAI_API_KEY` Cloudflare secret + `server/openai-chat-worker.js`; add real Domestic package photos; optional `sitemap.xml`/`robots.txt`.
 

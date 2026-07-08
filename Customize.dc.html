@@ -28,6 +28,17 @@
   *{box-sizing:border-box}
   body{margin:0;background:linear-gradient(180deg, #e9f2fb 0%, #f5efe6 45%, #f3ede3 100%);background-attachment:fixed;color:#0B2440;font-family:'Plus Jakarta Sans',sans-serif;-webkit-font-smoothing:antialiased}
   a{text-decoration:none;color:inherit}
+  /* Language dropdown (opens on hover/focus; animated fade + slide) */
+  .sky-langwrap{position:relative}
+  .sky-langmenu{position:absolute;top:calc(100% + 8px);right:0;z-index:3000;min-width:172px;background:#fff;border:1px solid #E4ECF3;border-radius:12px;box-shadow:0 18px 40px -16px rgba(10,95,215,.45);padding:6px;opacity:0;visibility:hidden;transform:translateY(-8px) scale(.96);transform-origin:top right;transition:opacity .18s ease .25s,transform .18s cubic-bezier(.2,.8,.2,1) .25s,visibility 0s linear .43s}
+  /* invisible bridge over the button→menu gap so hover isn't lost in transit */
+  .sky-langmenu::before{content:'';position:absolute;top:-12px;left:-8px;right:-8px;height:12px}
+  .sky-langwrap:hover .sky-langmenu,.sky-langwrap:focus-within .sky-langmenu{opacity:1;visibility:visible;transform:translateY(0) scale(1);transition:opacity .22s ease,transform .22s cubic-bezier(.2,.8,.2,1)}
+  .sky-caret{transition:transform .25s ease}
+  .sky-langwrap:hover .sky-caret,.sky-langwrap:focus-within .sky-caret{transform:rotate(180deg)}
+  .sky-langitem{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;border:none;background:transparent;cursor:pointer;font-family:inherit;font-weight:600;font-size:13.5px;color:#0B2440;padding:9px 12px;border-radius:8px;text-align:left;transition:background .15s,color .15s}
+  .sky-langitem:hover{background:#EAF5FD;color:#0A84D6}
+  @media (prefers-reduced-motion: reduce){ .sky-langmenu,.sky-caret{transition:none} }
   .opt{transition:border-color .18s,background .18s,transform .18s}
   .opt:hover{border-color:#9FCBEC !important}
   .cbtn:hover{transform:translateY(-2px)}
@@ -51,7 +62,21 @@
         <image-slot id="brand-logo" src="images/logo.png" style="width:200px;height:48px;display:block" shape="rounded" radius="8" fit="contain" position="0% 50%" placeholder="Drop your logo"></image-slot>
       </a>
       <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
-        <button onClick="{{ toggleLang }}" style="border:1px solid #E4ECF3;background:#fff;cursor:pointer;font-family:inherit;font-weight:700;font-size:13px;color:#0B2440;height:38px;padding:0 14px;border-radius:10px">{{ langLabel }}</button>
+        <div class="sky-langwrap">
+          <button aria-haspopup="true" style="display:flex;align-items:center;gap:7px;border:1px solid #E4ECF3;background:#fff;cursor:pointer;font-family:inherit;font-weight:700;font-size:13px;color:#0B2440;height:38px;padding:0 14px;border-radius:10px">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.7 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.7-3.8-9S9.5 5.6 12 3z" stroke="currentColor" stroke-width="1.8"/></svg>
+            {{ langLabel }}
+            <svg class="sky-caret" width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="sky-langmenu" role="menu">
+            <sc-for list="{{ langOptions }}" as="lo" hint-placeholder-count="3">
+              <button class="sky-langitem" role="menuitem" onClick="{{ lo.pick }}" style="{{ lo.style }}">
+                <span>{{ lo.name }}</span>
+                <span style="font-size:12px;font-weight:700">{{ lo.mark }}</span>
+              </button>
+            </sc-for>
+          </div>
+        </div>
         <a href="index.html" style="font-size:13.5px;font-weight:600;color:#5C6F80" data-en="← Back to site" data-hi="← साइट पर वापस" data-gu="← સાઇટ પર પાછા">← Back to site</a>
       </div>
     </div>
@@ -198,7 +223,7 @@
               </sc-for>
             </div>
             <div style="grid-column:span 2;display:flex;gap:9px;align-items:flex-start;background:#F4F8FB;border-radius:12px;padding:13px 15px;font-size:12px;color:#5C6F80;line-height:1.5">
-              <span style="color:#1DA66B;font-size:15px">🔒</span> <span data-en="We only ask for contact details. Never share card, bank, Aadhaar or passport details here. Submitting this form does not create or confirm a booking." data-hi="हम केवल संपर्क विवरण मांगते हैं। यहां कार्ड, बैंक, आधार या पासपोर्ट विवरण कभी साझा न करें। यह फॉर्म भरने से कोई बुकिंग नहीं बनती या पुष्ट होती।" data-gu="અમે ફક્ત સંપર્ક વિગતો પૂછીએ છીએ. અહીં કાર્ડ, બેંક, આધાર કે પાસપોર્ટ વિગતો ક્યારેય શેર કરશો નહીં. આ ફોર્મ ભરવાથી કોઈ બુકિંગ થતી કે પુષ્ટ થતી નથી.">We only ask for contact details. Never share card, bank, Aadhaar or passport details here. Submitting this form does not create or confirm a booking.</span></div>
+              <span style="color:#1DA66B;font-size:15px">🔒</span> <span data-en="We only ask for contact details. Never share card, bank, Aadhaar or passport details here. Submitting this form does not create or confirm a booking." data-hi="हम केवल संपर्क विवरण मांगते हैं। यहां कार्ड, बैंक, आधार या पासपोर्ट विवरण कभी साझा न करें। यह फ़ॉर्म भरने से कोई बुकिंग नहीं बनती और न ही उसकी पुष्टि होती है।" data-gu="અમે ફક્ત સંપર્ક વિગતો પૂછીએ છીએ. અહીં કાર્ડ, બેંક, આધાર કે પાસપોર્ટ વિગતો ક્યારેય શેર કરશો નહીં. આ ફોર્મ ભરવાથી કોઈ બુકિંગ થતી કે પુષ્ટ થતી નથી.">We only ask for contact details. Never share card, bank, Aadhaar or passport details here. Submitting this form does not create or confirm a booking.</span></div>
           </div>
         </sc-if>
       </div>
@@ -705,11 +730,19 @@ class Component extends DCLogic {
     return {
       root: this.setRoot,
       langLabel: this.state.lang === 'en' ? 'EN' : this.state.lang === 'hi' ? 'हिन्दी' : 'ગુજરાતી',
-      toggleLang: () => {
-        const langs = ['en', 'hi', 'gu'];
-        const idx = langs.indexOf(this.state.lang);
-        this.setState({ lang: langs[(idx + 1) % langs.length] });
-      },
+      langOptions: [
+        { code: 'en', name: 'English' },
+        { code: 'hi', name: 'हिन्दी' },
+        { code: 'gu', name: 'ગુજરાતી' }
+      ].map((o) => ({
+        name: o.name,
+        mark: this.state.lang === o.code ? '✓' : '',
+        style: this.state.lang === o.code ? { background: '#EAF5FD', color: '#0A84D6', fontWeight: 700 } : {},
+        pick: () => {
+          try { if (document.activeElement) document.activeElement.blur(); } catch (e) {}
+          this.setState({ lang: o.code });
+        }
+      })),
       formView: !this.state.submitted,
       doneView: this.state.submitted,
       cur: {

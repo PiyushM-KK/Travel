@@ -661,13 +661,8 @@ class Component extends DCLogic {
 
     const t = translations[lang];
 
-    // Card meta line, localized like Home.dc.html: "4-7 days · from ₹18,000" / "4-7 दिन · ₹18,000 से" / "4-7 દિવસ · ₹18,000 થી"
-    const metaOf = (duration, price) => {
-      const dur = lang === 'en' ? duration : duration.replace('days', lang === 'hi' ? 'दिन' : 'દિવસ');
-      return lang === 'hi' ? dur + ' · ' + price + ' से'
-           : lang === 'gu' ? dur + ' · ' + price + ' થી'
-           : dur + ' · from ' + price;
-    };
+    // Card meta line: duration only (no prices on cards), day-word localized: "4-7 days" / "4-7 दिन" / "4-7 દિવસ"
+    const metaOf = (duration) => lang === 'en' ? duration : duration.replace('days', lang === 'hi' ? 'दिन' : 'દિવસ');
 
     return {
       year: new Date().getFullYear(),
@@ -741,7 +736,7 @@ class Component extends DCLogic {
           id: d.id,
           name: d.name,
           href: 'Destination.dc.html?dest=' + d.slug,
-          meta: metaOf(d.duration, d.price),
+          meta: metaOf(d.duration),
           hasSpots: !!(d.spots && d.spots.length),
           spot0: d.spots ? d.spots[0] : '',
           layers: (d.imgs || [d.img]).map((src, li) => ({
@@ -755,7 +750,7 @@ class Component extends DCLogic {
             }
           }))
         })),
-      international: this.state.international.map((i) => ({ ...i, href: 'Destination.dc.html?dest=' + i.slug, meta: metaOf(i.duration, i.price), bg: { position: 'absolute', inset: 0, zIndex: 0, backgroundColor: '#dce6f2', backgroundImage: 'url("' + i.img + '")', backgroundSize: 'cover', backgroundPosition: 'center' } })),
+      international: this.state.international.map((i) => ({ ...i, href: 'Destination.dc.html?dest=' + i.slug, meta: metaOf(i.duration), bg: { position: 'absolute', inset: 0, zIndex: 0, backgroundColor: '#dce6f2', backgroundImage: 'url("' + i.img + '")', backgroundSize: 'cover', backgroundPosition: 'center' } })),
       styles: this.state.styles,
       steps: this.state.steps,
       reasons: this.state.reasons,

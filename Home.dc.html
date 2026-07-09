@@ -80,6 +80,8 @@
     .sky-langitem{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;border:none;background:transparent;cursor:pointer;font-family:inherit;font-weight:600;font-size:13.5px;color:#1a2332;padding:9px 12px;border-radius:8px;text-align:left;transition:background .15s,color .15s}
     .sky-langitem:hover{background:#f0f7ff;color:#0a5fd7}
     @media (prefers-reduced-motion: reduce){ .sky-langmenu,.sky-caret{transition:none} }
+    /* International cards: 3-across on desktop, full-width and prominent on phones */
+    .sky-intl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;max-width:680px}
     /* Destination explorer filter chips */
     .fchips{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
     .fchip{font-family:inherit;font-weight:700;font-size:13px;padding:9px 16px;border-radius:999px;cursor:pointer;transition:all .2s;background:#fff;color:#1a2332;border:1.5px solid #e5ecf5}
@@ -113,6 +115,7 @@
       .hero-grid{margin-top:120px!important}
       .dcard:hover{transform:none}
       .dcard:hover .dbg{transform:none}
+      .sky-intl-grid{grid-template-columns:1fr!important;max-width:100%!important}
     }
     @media (prefers-reduced-motion: reduce){ .hero-photo{animation:none} .xplane{display:none} .hero-anim,.marq,.fu,.dbg{animation:none !important;transition:none !important} .rv,.rv-pre{transition:none !important;opacity:1 !important;transform:none !important} }
   </style>
@@ -429,7 +432,7 @@
     <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 42px; letter-spacing: -.02em; margin: 8px 0 0">{{ t_international }}</h2>
   </div>
   
-  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; max-width: 680px">
+  <div class="sky-intl-grid">
     <sc-for list="{{ international }}" as="i" hint-placeholder-count="0">
       <a href="Destination.dc.html?dest={{ i.slug }}" class="dcard rv">
         <div class="dbg" style="{{ i.bg }}"></div>

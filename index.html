@@ -57,6 +57,9 @@
     .destcard:hover .destimg { transform: scale(1.08) }
     .destcard:hover .destview { background: rgba(255,255,255,.30) !important; border-color: rgba(255,255,255,.5) !important }
     @media (prefers-reduced-motion: reduce) { .destcard, .destimg { transition: none } }
+    /* International cards: 3-across on desktop, full-width and prominent on phones */
+    .sky-intl-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; max-width: 680px }
+    @media (max-width: 768px) { .sky-intl-grid { grid-template-columns: 1fr; max-width: 100% } }
   </style>
   <meta name="ext-resource-dependency" content="images/dest-rajasthan.jpg">
   <meta name="ext-resource-dependency" content="images/dest-himachal.avif">
@@ -245,7 +248,7 @@
     <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 42px; letter-spacing: -.02em; margin: 8px 0 0">{{ t_international }}</h2>
   </div>
   
-  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; max-width: 680px">
+  <div class="sky-intl-grid">
     <sc-for list="{{ international }}" as="i" hint-placeholder-count="0">
       <a href="{{ i.href }}" class="destcard" style="position: relative; aspect-ratio: 4/3; border-radius: 16px; overflow: hidden; display: flex; align-items: flex-end; text-decoration: none">
         <div class="destimg" style="{{ i.bg }}"></div>

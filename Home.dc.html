@@ -485,7 +485,7 @@
   </div>
   
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px">
-    <sc-for list="{{ reasons }}" as="r" hint-placeholder-count="6">
+    <sc-for list="{{ reasons }}" as="r" hint-placeholder-count="5">
       <div style="padding: 24px; border: 1.5px solid #e5ecf5; border-radius: 14px; background: #fff; transition: all .2s" style-hover="border-color: #0a5fd7; box-shadow: 0 8px 20px rgba(10,95,215,.1); transform: translateY(-2px)">
         <div style="font-size: 28px; margin-bottom: 12px">{{ r.icon }}</div>
         <div style="font-weight: 700; font-size: 16px; margin-bottom: 6px; color: #1a2332">{{ r.title }}</div>
@@ -622,8 +622,7 @@ class Component extends DCLogic {
       { icon: '🌍', title: 'Global Reach', title_hi: 'वैश्विक पहुंच', title_gu: 'વૈશ્વિક પહોંચ', desc: 'Domestic and international packages', desc_hi: 'भारतीय और अंतरराष्ट्रीय पैकेज', desc_gu: 'ભારતીય અને આંતરરાષ્ટ્રીય પેકેજ' },
       { icon: '⭐', title: 'Hotel Choice', title_hi: 'होटल विकल्प', title_gu: 'હોટેલ પસંદગી', desc: '3-star, 4-star and 5-star options', desc_hi: '3-स्टार, 4-स्टार और 5-स्टार विकल्प', desc_gu: '3-સ્ટાર, 4-સ્ટાર અને 5-સ્ટાર વિકલ્પો' },
       { icon: '📋', title: 'Customized', title_hi: 'अनुकूलित', title_gu: 'કસ્ટમાઇઝ્ડ', desc: 'Tailored itineraries for every traveller', desc_hi: 'हर यात्री के लिए तैयार यात्रा योजनाएं', desc_gu: 'દરેક પ્રવાસી માટે તૈયાર પ્રવાસ યોજનાઓ' },
-      { icon: '📞', title: 'WhatsApp Support', title_hi: 'व्हाट्सएप सहायता', title_gu: 'વોટ્સએપ સપોર્ટ', desc: 'Direct contact for assistance', desc_hi: 'सहायता के लिए सीधा संपर्क', desc_gu: 'સહાય માટે સીધો સંપર્ક' },
-      { icon: '✅', title: 'No Payments', title_hi: 'कोई भुगतान नहीं', title_gu: 'કોઈ ચુકવણી નહીં', desc: 'Book directly with official providers', desc_hi: 'आधिकारिक प्रदाताओं के साथ सीधे बुक करें', desc_gu: 'અધિકૃત પ્રદાતાઓ સાથે સીધું બુક કરો' }
+      { icon: '📞', title: 'WhatsApp Support', title_hi: 'व्हाट्सएप सहायता', title_gu: 'વોટ્સએપ સપોર્ટ', desc: 'Direct contact for assistance', desc_hi: 'सहायता के लिए सीधा संपर्क', desc_gu: 'સહાય માટે સીધો સંપર્ક' }
     ]
   };
 

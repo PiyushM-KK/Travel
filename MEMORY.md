@@ -2,7 +2,7 @@
 
 _Running record of state, decisions, and pending work. See `HANDOVER.md` for full technical detail._
 
-## Snapshot (as of 2026-07-02)
+## Snapshot (as of 2026-07-08)
 - **Live & launch-ready:** https://piyushm-kk.github.io/Travel/
 - **Repo:** `PiyushM-KK/Travel` (public) · **Host:** GitHub Pages (`main`, root, `.nojekyll`) · entry `index.html`
 - **Owner:** Piyush Mehta (piyushkmehta@yahoo.com) · **Business WhatsApp:** +91 88660 50291
@@ -32,10 +32,13 @@ _Running record of state, decisions, and pending work. See `HANDOVER.md` for ful
 - Site stays client-rendered via `support.js`/unpkg (no build step); pre-compilation deferred (needs the `dc-runtime` build tool that isn't in the repo).
 
 ## How to ship changes (quick)
-- **Site:** edit files → `git add -A && git commit -m "..." && git push` (token in `.env`) → Pages rebuilds ~1 min → hard-refresh (Ctrl+Shift+R). Pages caches 10 min.
+- **Site:** edit files → `git add -A && git commit -m "..." && git push` → Pages rebuilds ~1 min → hard-refresh (Ctrl+Shift+R). Pages caches 10 min.
+  - **Push auth (since 2026-07-08):** `.env` token is gone. Git uses the **gh CLI at `~/.local/bin/gh`** (global `credential.https://github.com.helper`), logged in as `PiyushM-KK`, token in the **macOS keychain**. If the helper breaks, re-download gh to `~/.local/bin` and run `gh auth setup-git` — do NOT install gh into a session scratchpad (a prior session did; the folder was auto-deleted and broke pushes).
 - **AI (model/prompt):** edit `server/anthropic-chat-worker.js` → Cloudflare dashboard → Worker → Edit code → paste → Deploy (manual, not git).
 
 13. **Destination explorer upgrade (2026-07-06)** — on `index.html`: filter chips (All / Mountains / Beaches / Heritage / Wildlife / North-East, translated en/hi/gu), "from ₹X" prices on every card, new **Sikkim** card, and the cycling-photo card **generalized** — any destination with `imgs[]` + `spots[]` in the `destinations` data crossfades with a place-label chip (Uttarakhand ×4 photos, Sikkim ×2; timer class `sky-cyc`). Ported to `Home.dc.html` in its static-card style (`data-tags` + `.fchip` chips + a plain filter script; **fixed its dead links** — cards pointed at `Domestic Tours.dc.html`, intl cards at a `Package.dc.html?pkg=` slug the Package page doesn't handle; all now go to `Destination.dc.html?dest=<slug>`). `Destination.dc.html`: hero now shows a "From ₹X per person*" chip, North-East + Sikkim entries got `fromPrice`, related links prefer same region.
+
+14. **2026-07-07/08 session** — animated **language dropdown** (English/हिन्दी/ગુજરાતી, hover/focus-driven, `.sky-lang*` classes) on index, Home, Customize, Privacy; hi/gu translation fixes (gu "unexplored" mistranslation, gu hero-subheading parity, gu CTA phrasing, Customize hi disclaimer grammar; localized Explore chips). **Owner asked to remove payment mentions from marketing surfaces**: "No Payments" card gone from Why Choose Us, "no payments" footer line gone from both homepages, **prices removed from homepage destination cards** (duration only; Destination detail pages still show "From ₹X per person"). Mobile: plane hero animation restored on `Home.dc.html` (small crossing planes + Ken Burns; multi-layer slideshow stays desktop-only — it caused flicker), international cards full-width under 768px. All pushed live.
 
 ## Pending / next
 - **"Live" cycling photos for more cards:** mechanism is DONE (per-destination `imgs[]` + `spots[]` in `index.html`) — just add the extra photos the user is bringing (~2-4 per destination) to `images/` and list them in the destination's `imgs[]`/`spots[]`.
@@ -44,5 +47,5 @@ _Running record of state, decisions, and pending work. See `HANDOVER.md` for ful
 - Housekeeping: revoke old GitHub tokens; delete unused `OPENAI_API_KEY` Cloudflare secret + `server/openai-chat-worker.js`; add real Domestic package photos; optional `sitemap.xml`/`robots.txt`.
 
 ## Secrets (locations only — never in the repo)
-- GitHub push token → local `.env` (`GITHUB_TOKEN`).
+- GitHub push token → macOS keychain via gh CLI (`~/.local/bin/gh`, account `PiyushM-KK`). The old `.env` file is deleted.
 - Anthropic API key → Cloudflare Worker secret `ANTHROPIC_API_KEY`.

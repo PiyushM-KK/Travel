@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Domestic Tours across India — Rajasthan, Kerala, Kashmir & more | Skyline Travel Planner</title>
-<meta name="description" content="Curated India tour packages by region — Rajasthan, Himachal, Kashmir, Kerala, Goa, Sikkim and South India. Customizable with 3/4/5-star hotels and your own dates. No payments on this website.">
+<meta name="description" content="Curated India tour packages by region — Rajasthan, Himachal, Kashmir, Kerala, Goa, Sikkim, North-East India and South India. Customizable with 3/4/5-star hotels and your own dates. No payments on this website.">
 <link rel="canonical" href="https://piyushm-kk.github.io/Travel/Domestic.dc.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Skyline Travel Planner">
 <meta property="og:title" content="Domestic Tours across India | Skyline Travel Planner">
-<meta property="og:description" content="Curated, customizable India tour packages — Rajasthan, Kerala, Kashmir, Goa and more.">
+<meta property="og:description" content="Curated, customizable India tour packages — Rajasthan, Kerala, Kashmir, Goa, North-East and more.">
 <meta property="og:image" content="https://piyushm-kk.github.io/Travel/images/header-banner.jpg">
 <meta property="og:url" content="https://piyushm-kk.github.io/Travel/Domestic.dc.html">
 <meta name="twitter:card" content="summary_large_image">
@@ -52,8 +52,8 @@
         <a class="navlink" href="Domestic.dc.html" style="color:#0A84D6" data-en="Domestic Tours" data-hi="भारत यात्रा">Domestic Tours</a>
         <a class="navlink" href="International.dc.html" data-en="International" data-hi="विदेश यात्रा">International</a>
         <a class="navlink" href="Customize.dc.html" data-en="Customized" data-hi="अनुकूलित">Customized</a>
-        <a class="navlink" href="Flights.dc.html" data-en="Flights" data-hi="उड़ानें">Flights</a>
-        <a class="navlink" href="Hotels.dc.html" data-en="Hotels" data-hi="होटल">Hotels</a>
+        <a class="navlink" href="index.html#flights" data-en="Flights" data-hi="उड़ानें">Flights</a>
+        <a class="navlink" href="index.html#flights" data-en="Hotels" data-hi="होटल">Hotels</a>
       </nav>
       <div style="margin-left:auto;display:flex;align-items:center;gap:12px;flex-shrink:0">
         <button onClick="{{ toggleLang }}" style="border:1px solid #E4ECF3;background:#fff;cursor:pointer;font-family:inherit;font-weight:700;font-size:13px;color:#0B2440;height:38px;padding:0 14px;border-radius:10px;display:flex;align-items:center;gap:6px">
@@ -103,7 +103,11 @@
               <div style="padding:18px 18px 20px">
                 <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:18px;margin-bottom:5px">{{ p.name }}</div>
                 <div style="font-size:13px;color:#5C6F80;font-weight:600;line-height:1.45;min-height:38px">{{ p.route }}</div>
-                <div style="display:flex;align-items:flex-end;justify-content:flex-end;margin-top:14px;padding-top:14px;border-top:1px solid #F0F4F7">
+                <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-top:14px;padding-top:14px;border-top:1px solid #F0F4F7">
+                  <div>
+                    <div style="font-size:11px;color:#8094A4;font-weight:600">From (3★, per person)</div>
+                    <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:20px;color:#0B2440">{{ p.price }}</div>
+                  </div>
                   <span style="background:#EAF5FD;color:#0A6FB8;font-weight:700;font-size:12.5px;padding:8px 14px;border-radius:10px">View →</span>
                 </div>
               </div>
@@ -123,11 +127,10 @@
   </section>
 
   <footer style="background:#06192C;color:rgba(255,255,255,.55);padding:30px 28px;text-align:center;font-size:12.5px;line-height:1.6">
-    <div style="margin-bottom:12px"><a href="Privacy.dc.html" style="color:#5fc2f0;font-weight:600;margin:0 10px">Privacy Policy</a><a href="Privacy.dc.html#cookies" style="color:#5fc2f0;font-weight:600;margin:0 10px">Cookie Policy</a></div>
     Skyline Travel Planner does not process flight, train, bus or hotel payments through this website. Estimated prices are indicative and subject to travel dates and availability. · WhatsApp 8866050291 · info@skylinetravelplanner.com
   </footer>
 
-  <a href="https://wa.me/918866050291?text=Hello%20Skyline%20Travel%20Planner.%20I%20am%20interested%20in%20a%20domestic%20tour%20package." target="_blank" rel="noopener" class="cbtn" style="position:fixed;right:22px;bottom:22px;z-index:8000;display:flex;align-items:center;gap:10px;background:#25D366;color:#fff;font-weight:700;font-size:14px;padding:14px 20px;border-radius:999px;box-shadow:0 16px 34px -10px rgba(37,211,102,.7)">
+  <a href="WhatsApp.dc.html?msg=Hello%20Skyline%20Travel%20Planner.%20I%20am%20interested%20in%20a%20domestic%20tour%20package." class="cbtn" style="position:fixed;right:22px;bottom:22px;z-index:8000;display:flex;align-items:center;gap:10px;background:#25D366;color:#fff;font-weight:700;font-size:14px;padding:14px 20px;border-radius:999px;box-shadow:0 16px 34px -10px rgba(37,211,102,.7)">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M12 2a10 10 0 00-8.6 15l-1.3 4.8 4.9-1.3A10 10 0 1012 2zm5.6 14.2c-.2.6-1.2 1.2-1.7 1.2-.4 0-1 .1-3-.8a11 11 0 01-4.6-4.1c-.3-.5-.8-1.4-.8-2.2 0-.8.4-1.2.6-1.4.2-.2.4-.2.6-.2h.4c.2 0 .4 0 .6.5l.7 1.7c0 .2.1.4 0 .5l-.3.5-.3.3c-.1.1-.3.3-.1.5.1.3.7 1.1 1.4 1.7 1 .8 1.7 1.1 2 1.2.2.1.4.1.5-.1l.6-.8c.2-.2.3-.2.5-.1l1.6.8c.2.1.4.2.4.3.1.1.1.6 0 .9z"/></svg>
     <span data-en="Chat with us" data-hi="हमसे चैट करें">Chat with us</span>
   </a>
@@ -160,7 +163,8 @@ class Component extends DCLogic {
     const regionDefs = [
       { key: 'north', label: 'North India' },
       { key: 'west', label: 'Western India' },
-      { key: 'east', label: 'East & Northeast' },
+      { key: 'east', label: 'East India' },
+      { key: 'northeast', label: 'Northeast India' },
       { key: 'south', label: 'South India' },
     ];
     const collections = [
@@ -168,16 +172,25 @@ class Component extends DCLogic {
         { id: 't-raj', slug: 'rajasthan', img: 'images/dest-rajasthan.jpg', name: 'Royal Rajasthan', route: 'Jaipur · Jodhpur · Udaipur · Jaisalmer', duration: '7N / 8D', tag: 'Heritage', price: '₹24,900' },
         { id: 't-him', slug: 'himachal', img: 'images/dest-himachal.avif', name: 'Himachal Hills', route: 'Shimla · Manali · Dharamshala', duration: '6N / 7D', tag: 'Family', price: '₹21,500' },
         { id: 't-kash', slug: 'kashmir', img: 'images/dest-kashmir.webp', name: 'Kashmir Valley', route: 'Srinagar · Gulmarg · Pahalgam · Sonamarg', duration: '5N / 6D', tag: 'Honeymoon', price: '₹27,800' },
+        { id: 't-kaus', slug: 'kausani', img: 'images/t-kaus.png', name: 'Kausani & Kumaon', route: 'Kausani · Baijnath · Almora · Bageshwar', duration: '5N / 6D', tag: 'Off-beat', price: '₹19,700' },
       ]},
       { key: 'west', region: 'Western India', accent: '#FF6A3D', note: 'Gujarat · Goa', packages: [
         { id: 't-guj', slug: 'gujarat', img: 'images/dest-rajasthan.jpg', name: 'Gujarat Darshan', route: 'Dwarka · Somnath · Statue of Unity · Kutch', duration: '6N / 7D', tag: 'Religious', price: '₹22,400' },
         { id: 't-goa', slug: 'goa', img: 'images/dest-goa.jpg', name: 'Goa Getaway', route: 'North Goa · South Goa · Beaches', duration: '4N / 5D', tag: 'Couples', price: '₹16,900' },
         { id: 't-up', slug: 'agra', img: 'images/dest-agra.jpg', name: 'Braj & Agra Yatra', route: 'Mathura · Vrindavan · Gokul · Agra', duration: '3N / 4D', tag: 'Spiritual', price: '₹12,500' },
       ]},
-      { key: 'east', region: 'East & Northeast', accent: '#1DA66B', note: 'Sikkim & the Himalayas', packages: [
+      { key: 'east', region: 'East India', accent: '#1DA66B', note: 'Sikkim & the Himalayas', packages: [
         { id: 't-sik', slug: 'sikkim', img: 'images/dest-sikkim.jpg', name: 'Sikkim Discovery', route: 'Gangtok · Pelling · Lachung · North Sikkim', duration: '6N / 7D', tag: 'Mountains', price: '₹25,600' },
         { id: 't-sikh', slug: 'sikkim', img: 'images/dest-sikkim-tsomgo.jpg', name: 'Sikkim Honeymoon', route: 'Gangtok · Tsomgo Lake · Pelling', duration: '5N / 6D', tag: 'Honeymoon', price: '₹23,200' },
         { id: 't-darj', slug: 'sikkim', img: 'images/dest-darjeeling.jpg', name: 'Gangtok & Darjeeling', route: 'Darjeeling · Gangtok · Tea gardens', duration: '6N / 7D', tag: 'Scenic', price: '₹24,100' },
+      ]},
+      { key: 'northeast', region: 'Northeast India', accent: '#0FA3A3', note: 'Meghalaya · Assam · Arunachal · Nagaland · Manipur · Mizoram', packages: [
+        { id: 't-megh', slug: 'meghalaya', img: 'images/t-megh.png', name: 'Meghalaya Wonders', route: 'Shillong · Cherrapunji · Dawki · Mawlynnong', duration: '6N / 7D', tag: 'Scenic', price: '₹28,900' },
+        { id: 't-assam', slug: 'assam', img: 'images/t-assam.png', name: 'Assam & Kaziranga', route: 'Guwahati · Kaziranga · Majuli · Tea gardens', duration: '5N / 6D', tag: 'Wildlife', price: '₹26,400' },
+        { id: 't-arun', slug: 'arunachal', img: 'images/t-arun.png', name: 'Arunachal Explorer', route: 'Tawang · Bomdila · Dirang · Sela Pass', duration: '7N / 8D', tag: 'Adventure', price: '₹34,500' },
+        { id: 't-naga', slug: 'nagaland', img: 'images/t-naga.png', name: 'Nagaland Highlands', route: 'Kohima · Dzukou Valley · Khonoma', duration: '6N / 7D', tag: 'Culture', price: '₹29,800' },
+        { id: 't-mani', slug: 'manipur', img: 'images/t-mani.png', name: 'Manipur & Loktak', route: 'Imphal · Loktak Lake · Kangla · Moirang', duration: '5N / 6D', tag: 'Off-beat', price: '₹27,600' },
+        { id: 't-mizo', slug: 'mizoram', img: 'images/t-mizo.png', name: 'Mizoram Discovery', route: 'Aizawl · Reiek · Hmuifang · Vantawng', duration: '6N / 7D', tag: 'Off-beat', price: '₹30,200' },
       ]},
       { key: 'south', region: 'South India', accent: '#7C5CFF', note: 'Kerala · Karnataka & the Nilgiris · Tamil Nadu', packages: [
         { id: 't-ker', slug: 'kerala', img: 'images/dest-kerala.webp', name: 'Kerala Backwaters', route: 'Kochi · Munnar · Thekkady · Alappuzha', duration: '6N / 7D', tag: 'Family', price: '₹23,900' },

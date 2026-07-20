@@ -163,3 +163,20 @@ After any image/background change: commit + push (§4), then hard-refresh.
 - **Optional polish:** add real Domestic package photos; add `sitemap.xml`/`robots.txt`; pre-compile
   the site to drop the runtime unpkg/Babel dependency (needs the `dc-runtime` build tool, not in this
   repo); wire `Chatbot.dc.html`/`WhatsApp.dc.html` to the Worker if you want to use them.
+
+---
+
+## 10. ⚠️ Single source of truth (added 2026-07-10)
+
+The repo previously drifted into duplicate pages. **Only edit the files marked SOURCE OF TRUTH:**
+
+| Edit this ✅ | Do NOT edit 🔁 (redirect stub) |
+|---|---|
+| `index.html` — the live homepage GitHub Pages serves | `Home.dc.html` |
+| `Domestic.dc.html` — 19 tour packages incl. North-East India | `Domestic Tours.dc.html` |
+
+The stubs redirect (meta-refresh + `location.replace` + `rel=canonical` + `noindex`) so old links keep working. If you add content to a stub it will be invisible to users — put it in the source-of-truth file instead.
+
+Other pages added by later work: `Cabs.dc.html` (cab/taxi section) and `live.html` (local auto-reloading dev preview). Backend helpers: `server/train-api.js` / `server/train-api.py` (live train search), `server/.env.example`.
+
+**Before editing after any gap, always run `git pull` first** — this project is worked on from more than one place.

@@ -49,3 +49,23 @@ _Running record of state, decisions, and pending work. See `HANDOVER.md` for ful
 ## Secrets (locations only — never in the repo)
 - GitHub push token → macOS keychain via gh CLI (`~/.local/bin/gh`, account `PiyushM-KK`). The old `.env` file is deleted.
 - Anthropic API key → Cloudflare Worker secret `ANTHROPIC_API_KEY`.
+
+---
+
+## 2026-07-10 — GitHub sync + duplicate-page reconciliation
+
+**Synced:** pulled 26 commits from GitHub (work done via Copilot/another agent) — fast-forward, nothing lost. Added: `Cabs.dc.html` (new cab section), `live.html` (auto-reload dev preview), animated heroes on Flights/Trains/Buses/Hotels, 5-mode flight search + passenger picker, live train search + `server/train-api.js|.py`, Customize localization + custom date picker + WhatsApp/email notify, AI widget minimise, North-East India destinations, ~40 new images, `screenshots/`, and `uploads/` is now tracked.
+
+**⚠️ Duplicate pages reconciled — READ THIS BEFORE EDITING:**
+The repo had drifted into two homepages and two domestic pages, with the *newest* fixes landing in the duplicates while GitHub Pages served the other. Resolved as follows:
+
+| File | Status |
+|---|---|
+| `index.html` | ✅ **SOURCE OF TRUTH — the live homepage.** Edit this. |
+| `Home.dc.html` | 🔁 **Redirect stub → `index.html`.** Do NOT edit/add content. |
+| `Domestic.dc.html` | ✅ **SOURCE OF TRUTH for domestic tours.** Edit this. Now holds all **19 packages** (incl. North-East: Kausani, Meghalaya, Assam, Arunachal, Nagaland, Manipur, Mizoram) merged in from the duplicate, plus SEO/OG/favicon and the site gradient background. |
+| `Domestic Tours.dc.html` | 🔁 **Redirect stub → `Domestic.dc.html`.** Do NOT edit/add content. |
+
+Stubs use `<meta http-equiv="refresh">` + `location.replace()` + `rel=canonical` + `noindex`, so old links/bookmarks still work without duplicate-content SEO penalties. All internal links across the site were repointed (`Home.dc.html`→`index.html`, `Domestic Tours.dc.html`→`Domestic.dc.html`) and link integrity was verified — 0 broken relative links.
+
+**Note:** a remote branch `copilot/travel-repo-link` exists on GitHub and has NOT been reviewed or merged.

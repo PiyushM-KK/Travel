@@ -129,8 +129,9 @@ After any image/background change: commit + push (§4), then hard-refresh.
 ### WhatsApp bots (not deployed)
 - `server/whatsapp-claude-bot.js` / `server/whatsapp-chatgpt-bot.js` — ready-to-deploy WhatsApp
   Business webhook bots (optional; only if you want automated WhatsApp replies). Not currently used.
-- `server/openai-chat-worker.js` — an earlier OpenAI version of the web-chat Worker; **superseded by
-  the Anthropic one, unused.** Can be deleted.
+- `server/openai-chat-worker.js` — **deleted 2026-07-24** (was an earlier OpenAI version of the
+  web-chat Worker, superseded by the Anthropic one). If the unused `OPENAI_API_KEY` secret still
+  exists in Cloudflare, delete it too.
 
 ---
 
@@ -152,14 +153,20 @@ After any image/background change: commit + push (§4), then hard-refresh.
 ---
 
 ## 9. Pending / next steps
-- **Tomorrow:** update images / background (see §5).
-- **Custom domain** `skylinetravelplanner.com`: buy on Hostinger → add DNS: four A records
-  `185.199.108.153 / .109.153 / .110.153 / .111.153` on `@`, and a `CNAME` `www` →
-  `piyushm-kk.github.io`. Then add a `CNAME` file to the repo + set the domain in GitHub Pages
-  settings + enable "Enforce HTTPS".
-- **Housekeeping:** revoke the old GitHub tokens created earlier (fine-grained + classic); delete the
-  unused `OPENAI_API_KEY` Cloudflare secret; optionally delete `server/openai-chat-worker.js`; you may
-  delete local `.env` when not actively deploying.
+- **Images / background:** update per §5 — needs your photos.
+- **"Live" cycling destination cards:** the mechanism is already built and generalized (any
+  destination in `index.html`'s `destinations` array with an `imgs:[...]` + `spots:[...]` cycles
+  automatically — see Uttarakhand & Sikkim). To light up more cards, drop 2–4 photos per
+  destination in `images/` (e.g. `dest-goa-2.jpg`, `dest-goa-3.jpg`) and add `imgs`/`spots` to
+  that destination's object. Needs your photos.
+- **Custom domain** `skylinetravelplanner.com`: full step-by-step in **`CUSTOM-DOMAIN-SETUP.md`**.
+  Summary: buy on Hostinger → four A records `185.199.108–111.153` on `@` + `CNAME` `www` →
+  `piyushm-kk.github.io` → add `CNAME` file to repo → set domain in Pages → Enforce HTTPS. The AI
+  worker CORS already allows the custom domain.
+- **Housekeeping:** `server/openai-chat-worker.js` deleted 2026-07-24. Still to do by you (dashboard
+  only): revoke the old GitHub tokens (fine-grained + classic); delete the unused `OPENAI_API_KEY`
+  Cloudflare secret; delete the stale remote branch is done. You may delete local `.env` when not
+  actively deploying.
 - **Optional polish:** add real Domestic package photos; add `sitemap.xml`/`robots.txt`; pre-compile
   the site to drop the runtime unpkg/Babel dependency (needs the `dc-runtime` build tool, not in this
   repo); wire `Chatbot.dc.html`/`WhatsApp.dc.html` to the Worker if you want to use them.

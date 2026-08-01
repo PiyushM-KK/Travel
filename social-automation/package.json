@@ -1,0 +1,12 @@
+{
+  "name": "skyline-social-automation",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Skyline Travel Planner — social content generation + publishing (Instagram + Facebook), grounded in Skyline's own packages and fact-checked. Engine vendored from the firm's reusable social engine.",
+  "scripts": {
+    "test": "node tests/check_skyline_social.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.57.0"
+  }
+}

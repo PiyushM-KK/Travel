@@ -1,0 +1,8 @@
+# Keep source PDFs out of the public repo by default.
+# (Tell the assistant if you WANT them committed and it will remove this.)
+*.pdf
+*.PDF
+
+# but keep this folder + its docs tracked
+!.gitignore
+!README.md

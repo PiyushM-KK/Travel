@@ -168,11 +168,14 @@ class Component extends DCLogic {
       { key: 'south', label: 'South India' },
     ];
     const collections = [
-      { key: 'north', region: 'North India', accent: '#0A84D6', note: 'Rajasthan · Himachal · Kashmir · Uttar Pradesh', packages: [
+      { key: 'north', region: 'North India', accent: '#0A84D6', note: 'Rajasthan · Himachal · Uttarakhand · Kashmir · Uttar Pradesh', packages: [
         { id: 't-raj', slug: 'rajasthan', img: 'images/dest-rajasthan.jpg', name: 'Royal Rajasthan', route: 'Jaipur · Jodhpur · Udaipur · Jaisalmer', duration: '7N / 8D', tag: 'Heritage', price: '₹24,900' },
         { id: 't-him', slug: 'himachal', img: 'images/dest-himachal.avif', name: 'Himachal Hills', route: 'Shimla · Manali · Dharamshala', duration: '6N / 7D', tag: 'Family', price: '₹21,500' },
         { id: 't-kash', slug: 'kashmir', img: 'images/dest-kashmir.webp', name: 'Kashmir Valley', route: 'Srinagar · Gulmarg · Pahalgam · Sonamarg', duration: '5N / 6D', tag: 'Honeymoon', price: '₹27,800' },
         { id: 't-kaus', slug: 'kausani', img: 'images/t-kaus.png', name: 'Kausani & Kumaon', route: 'Kausani · Baijnath · Almora · Bageshwar', duration: '5N / 6D', tag: 'Off-beat', price: '₹19,700' },
+        { id: 't-naini', slug: 'nainital-corbett', img: 'images/dest-uttarakhand.jpg', name: 'Nainital · Mussoorie · Corbett', route: 'Mussoorie · Nainital · Jim Corbett', duration: '6N / 7D', tag: 'Wildlife', price: 'On request' },
+        { id: 't-shml', slug: 'shimla-manali', img: 'images/dest-himachal.avif', name: 'Shimla & Manali', route: 'Shimla · Kufri · Kullu · Solang · Manali', duration: '5N / 6D', tag: 'Family', price: 'On request' },
+        { id: 't-spiti', slug: 'spiti-valley', img: 'images/dest-himachal.avif', name: 'Untouched Spiti Valley', route: 'Narkanda · Sangla · Chitkul · Tabo · Kaza · Kalpa', duration: '8N / 9D', tag: 'Adventure', price: 'On request' },
       ]},
       { key: 'west', region: 'Western India', accent: '#FF6A3D', note: 'Gujarat · Goa', packages: [
         { id: 't-guj', slug: 'gujarat', img: 'images/dest-rajasthan.jpg', name: 'Gujarat Darshan', route: 'Dwarka · Somnath · Statue of Unity · Kutch', duration: '6N / 7D', tag: 'Religious', price: '₹22,400' },
@@ -183,6 +186,7 @@ class Component extends DCLogic {
         { id: 't-sik', slug: 'sikkim', img: 'images/dest-sikkim.jpg', name: 'Sikkim Discovery', route: 'Gangtok · Pelling · Lachung · North Sikkim', duration: '6N / 7D', tag: 'Mountains', price: '₹25,600' },
         { id: 't-sikh', slug: 'sikkim', img: 'images/dest-sikkim-tsomgo.jpg', name: 'Sikkim Honeymoon', route: 'Gangtok · Tsomgo Lake · Pelling', duration: '5N / 6D', tag: 'Honeymoon', price: '₹23,200' },
         { id: 't-darj', slug: 'sikkim', img: 'images/dest-darjeeling.jpg', name: 'Gangtok & Darjeeling', route: 'Darjeeling · Gangtok · Tea gardens', duration: '6N / 7D', tag: 'Scenic', price: '₹24,100' },
+        { id: 't-skd', slug: 'sikkim-darjeeling', img: 'images/dest-sikkim-tsomgo.jpg', name: 'Sikkim & Darjeeling', route: 'Gangtok · Tsomgo Lake · Baba Mandir · Darjeeling', duration: '5N / 6D', tag: 'Scenic', price: 'On request' },
       ]},
       { key: 'northeast', region: 'Northeast India', accent: '#0FA3A3', note: 'Meghalaya · Assam · Arunachal · Nagaland · Manipur · Mizoram', packages: [
         { id: 't-megh', slug: 'meghalaya', img: 'images/t-megh.png', name: 'Meghalaya Wonders', route: 'Shillong · Cherrapunji · Dawki · Mawlynnong', duration: '6N / 7D', tag: 'Scenic', price: '₹28,900' },
@@ -196,6 +200,7 @@ class Component extends DCLogic {
         { id: 't-ker', slug: 'kerala', img: 'images/dest-kerala.webp', name: 'Kerala Backwaters', route: 'Kochi · Munnar · Thekkady · Alappuzha', duration: '6N / 7D', tag: 'Family', price: '₹23,900' },
         { id: 't-mys', slug: 'mysuru', img: 'images/dest-mysuru.jpg', name: 'Mysuru–Coorg–Ooty', route: 'Bengaluru · Mysuru · Coorg · Ooty', duration: '6N / 7D', tag: 'Hill stations', price: '₹20,800' },
         { id: 't-temple', slug: 'south-temple', img: 'images/dest-ooty.webp', name: 'South Temple Trail', route: 'Madurai · Rameswaram · Kanyakumari', duration: '5N / 6D', tag: 'Religious', price: '₹19,400' },
+        { id: 't-ocm', slug: 'ooty-coorg-mysore', img: 'images/dest-mysuru.jpg', name: 'Ooty · Coorg · Mysore', route: 'Mysore · Coorg · Ooty · Coonoor', duration: '5N / 6D', tag: 'Hill stations', price: 'On request' },
       ]},
     ];
     collections.forEach((c) => { c.setRef = (el) => { if (el) this.colRefs[c.key] = el; }; });

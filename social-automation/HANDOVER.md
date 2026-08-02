@@ -72,3 +72,34 @@ Gmail app password / Airtable base / WhatsApp / GitHub-Actions secrets set up th
 - This folder is Skyline's; the firm keeps the reusable engine. **Do not merge the two.**
 - Keep improvements to `facts.js`/`calendar.js`/`profile.js` here; when the firm engine
   improves, re-copy `engine/` from upstream.
+
+---
+
+## Update 2026-08-02 — upstream firm engine advanced a LOT (re-vendor when going live)
+
+ADD-ONLY note. Skyline's own files here were NOT changed this window; Skyline
+publishing still runs LIVE on the FIRM's `site` Vercel project (unchanged).
+
+The FullFirm reusable engine + framework (upstream: `SociaMedia_Auto/`) gained a great
+deal since this folder's `engine/` was vendored (2026-08-01). None of it is in this
+vendored copy yet:
+- the full **intake → generate → approve → publish → report** pipeline (one entry
+  `automation/run.js <job>`), dual-runner-safe publishing (claim + post-id +
+  unknown-outcome→held);
+- a senior **agent team**: a Social Media Manager that verifies every draft
+  (pass/revise/reject, no free-text auto-adopt) + a PR Manager for reviews
+  (crisis→owner, never auto-posts);
+- **real transports**: WhatsApp as BOTH the approval channel AND an intake source
+  (send a photo/note → drafts a post; reply "approve <id>" → applies), SMTP email
+  fallback, Gmail IMAP intake with a **sender allow-list**;
+- multi-language drafting (EN/HI/GU/mixed), **encrypted local secrets** (AES-256-GCM
+  `.env.enc`), a **go-live verifier** (`verify-live.js`), and fixes from **two
+  adversarial audits** (Bug Hunter + App Security — double-post, claim race,
+  fail-open endpoint, secret redaction, etc.).
+
+**WHEN Skyline's automation goes live:** re-copy the upstream `engine/` + `automation/`
+from FullFirm `SociaMedia_Auto/` into this folder (overwrite the vendored engine only;
+KEEP Skyline's own `facts.js` / `calendar.js` / `profile.js`). Do NOT merge the repos.
+Follow the FullFirm go-live ladder (`HANDOVER-PROMPT.md` §2b): Airtable → WhatsApp
+approvals → schedulers/Vercel → App Review → first post. FullFirm Rung 1 (Airtable) is
+already proven; Skyline would set its OWN Airtable base + WhatsApp + secrets.

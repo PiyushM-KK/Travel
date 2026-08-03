@@ -89,6 +89,21 @@ function imageOptsFor(opts) {
   return {};
 }
 
+// v2 AI image regenerate (B-22). DORMANT unless an AI provider is configured — then generate
+// can host an AI-enhanced preview for approval. Returns {} (no-op) when no provider is wired,
+// so the default draft path is unchanged.
+function regenerateOptsFor(opts) {
+  const aiEnhancer = opts.aiEnhancer || require("./ai-enhancer").resolveAiEnhancer();
+  if (!aiEnhancer) return {};
+  return {
+    aiEnhancer,
+    enhanceBackend: opts.enhanceBackend || require("../engine/enhance-backends").resolveEnhanceBackend(),
+    hostImageBytes: opts.hostImageBytes || require("./image-host").hostImageBytes,
+    ...(opts.regenerate != null ? { regenerate: opts.regenerate } : {}),
+    ...(opts.enhancePrompt ? { enhancePrompt: opts.enhancePrompt } : {}),
+  };
+}
+
 async function runJob(opts = {}) {
   const job = opts.job || "publish";
   const clientId = opts.clientId || process.env.SOCIAL_CLIENT || "skyline";
@@ -137,6 +152,7 @@ async function runJob(opts = {}) {
       runner,
       now,
       imageOpts: imageOptsFor(opts),
+      ...regenerateOptsFor(opts),
       ...(opts.genOpts ? { genOpts: opts.genOpts } : {}),
       ...(opts.visionOpts ? { visionOpts: opts.visionOpts } : {}),
       ...(opts.vision === false ? { vision: false } : {}),
@@ -170,6 +186,7 @@ async function runJob(opts = {}) {
       generate = await runGenerate(store, {
         facts: client.facts, profile: client.profile, runner, now,
         imageOpts: reader && typeof reader.fetchAttachmentBytes === "function" ? { gmailFetch: (uid) => reader.fetchAttachmentBytes(uid) } : {},
+        ...regenerateOptsFor(opts),
         ...(opts.genOpts ? { genOpts: opts.genOpts } : {}),
         ...(opts.visionOpts ? { visionOpts: opts.visionOpts } : {}),
         ...(opts.vision === false ? { vision: false } : {}),
@@ -235,6 +252,9 @@ async function runJob(opts = {}) {
     runner,
     now,
     imageOpts: imageOptsFor(opts), // publish-time-only hosting: resolve the row's image source
+    // safe-enhance the image before hosting (jimp; null if not installed → publish as-is)
+    enhanceBackend: opts.enhanceBackend || require("../engine/enhance-backends").resolveEnhanceBackend(),
+    ...(opts.useEnhance != null ? { useEnhance: opts.useEnhance } : {}),
     ...(opts.publishFn ? { publishFn: opts.publishFn } : {}),
   });
   return { ok: true, ...base, dryRun: false, summary };

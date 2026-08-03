@@ -52,6 +52,7 @@ const SENSITIVE_ENV = [
   "SMTP_PASS", "SMTP_URL", "GMAIL_APP_PASSWORD", "SECRETS_PASSPHRASE",
   "BLOB_READ_WRITE_TOKEN", // Vercel Blob RW token — arbitrary shape, value-mask only
   "GMAIL_OAUTH_PRIVATE_KEY", "GMAIL_OAUTH_KEY_JSON", "GMAIL_OAUTH_KEY_B64", // service-account key
+  "AI_ENHANCER_KEY", // external AI image-edit provider key (B-22) — arbitrary shape, value-mask only
 ];
 
 function redact(text) {

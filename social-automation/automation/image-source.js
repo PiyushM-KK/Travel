@@ -16,16 +16,22 @@
  * Transports are injectable so this is offline-testable.
  */
 
-const { fetchWhatsAppMedia, fetchWithTimeout, FETCH_TIMEOUT_MS, assertImageBytes } = require("./image-host");
+const { fetchWhatsAppMedia, assertImageBytes } = require("./image-host");
+const { safeFetchBytes, hostAllowListFromEnv } = require("./net-guard");
 
 /** Fetch image bytes from a plain https URL (timeout-guarded). */
+// SSRF-safe (B-23): a row-supplied image URL (from a WhatsApp note / an email link) could
+// point at an internal address, and the fetched bytes are hosted PUBLICLY — so this goes
+// through net-guard, which ALWAYS blocks private/loopback/link-local/metadata IPs and
+// applies the SOCIAL_IMAGE_HOSTS allow-list (if set) + a size cap.
 async function fetchUrlBytes(url, opts = {}) {
-  const fetchImpl = opts.fetchImpl || ((...a) => fetch(...a));
-  const res = await fetchWithTimeout(fetchImpl, url, {}, opts.timeoutMs || FETCH_TIMEOUT_MS);
-  if (!res.ok) throw new Error(`image fetch HTTP ${res.status}`);
-  const buffer = Buffer.from(await res.arrayBuffer());
-  const contentType = (res.headers && res.headers.get && res.headers.get("content-type")) || "image/jpeg";
-  return { buffer, contentType: String(contentType).split(";")[0].trim() };
+  return safeFetchBytes(url, {
+    fetchImpl: opts.fetchImpl,
+    timeoutMs: opts.timeoutMs,
+    maxBytes: opts.maxBytes,
+    lookup: opts.lookup, // injectable DNS lookup for offline tests
+    allowHosts: opts.allowHosts || hostAllowListFromEnv("SOCIAL_IMAGE_HOSTS"),
+  });
 }
 
 /**

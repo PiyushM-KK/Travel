@@ -49,7 +49,18 @@ async function ensureHostedImage(store, claimed, ctx) {
   if (!hasImageSource(claimed.imageSource)) return "";        // text-only post
   const resolve = ctx.resolveImageBytes || ((s) => resolveImageSourceBytes(s, ctx.imageOpts || {}));
   const host = ctx.hostImageBytes || hostImageBytes;
-  const { buffer, contentType } = await resolve(claimed.imageSource);
+  let { buffer, contentType } = await resolve(claimed.imageSource);
+  // SAFE-ENHANCE (deterministic): clean up + resize to the platform aspect BEFORE hosting,
+  // so the published image is post-ready. Deterministic → a retry re-derives the same bytes
+  // (fits publish-time-only hosting). AI regenerate is NOT done here — it's non-deterministic
+  // and must be approved first (B-22); publish only ever safe-enhances. enhanceImage never
+  // throws and returns the original on any failure, so hosting is never blocked.
+  if (ctx.enhanceBackend && ctx.useEnhance !== false) {
+    const { enhanceImage } = require("../engine/enhance-image");
+    const primary = (claimed.platforms && claimed.platforms[0]) || "instagram";
+    const en = await enhanceImage({ buffer, contentType }, { platform: primary, mode: "safe", backend: ctx.enhanceBackend, quality: ctx.enhanceQuality });
+    if (en.enhanced) { buffer = en.buffer; contentType = en.contentType; }
+  }
   const hosted = await host({ buffer, contentType, keyHint: `pub-${claimed.id}` }, ctx.imageOpts || {});
   await store.update(claimed.id, { imageUrl: hosted.url });   // persist so a retry reuses it
   claimed.imageUrl = hosted.url;
@@ -251,6 +262,11 @@ async function runPublish(store, opts = {}) {
     ...(opts.hostImageBytes ? { hostImageBytes: opts.hostImageBytes } : {}),
     ...(opts.deleteHosted ? { deleteHosted: opts.deleteHosted } : {}),
     ...(opts.resolveImageBytes ? { resolveImageBytes: opts.resolveImageBytes } : {}),
+    // safe-enhance the image before hosting (deterministic); null backend → publish the
+    // original image unchanged (never blocks a post).
+    ...(opts.enhanceBackend ? { enhanceBackend: opts.enhanceBackend } : {}),
+    ...(opts.useEnhance != null ? { useEnhance: opts.useEnhance } : {}),
+    ...(opts.enhanceQuality ? { enhanceQuality: opts.enhanceQuality } : {}),
   };
 
   const candidates = await dueRows(store, ctx);

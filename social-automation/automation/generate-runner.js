@@ -30,6 +30,7 @@ const { generateForBrief, describeImage } = require("../engine/generate");
 const { reviewAsSocialMediaManager, reviewAsQualityAnalyst } = require("../engine/review-agents");
 const { redact } = require("../engine/publish");
 const { resolveImageSourceBytes, hasImageSource } = require("./image-source");
+const { enhanceImage, describeEnhancement } = require("../engine/enhance-image");
 
 function nowIso(now) {
   return (now instanceof Date ? now : new Date()).toISOString();
@@ -61,14 +62,38 @@ async function generateOne(store, row, ctx) {
   //    even though it isn't public yet — so QA doesn't think it's missing.
   let photoDescription = "";
   let imageBytes = null;
+  let enhanceFlag = ""; // an AI-altered image raises a reviewer flag for QA + human approval
   const src = claimed.imageSource;
+  const wantRegen = !!(ctx.aiEnhancer && ctx.regenerate && ctx.hostImageBytes);
+  if ((ctx.useVision || wantRegen) && src) {
+    try {
+      const resolve = ctx.resolveImageBytes || ((s) => resolveImageSourceBytes(s, ctx.imageOpts || {}));
+      imageBytes = await resolve(src);
+    } catch (e) { imageBytes = null; }
+  }
+
+  // 1b. OPTIONAL AI regenerate (B-22): if a provider is wired AND regenerate is opted in,
+  //     produce the enhanced image now (for vision + the approval preview). We do NOT host it
+  //     yet — hosting happens ONLY if the row survives fact-check/SMM/QA (see step 7), so a
+  //     held/rejected draft never leaves an orphaned public blob. Any AI failure keeps the
+  //     original source (deterministic safe-enhance still applies at publish); never lost.
+  let regenBytes = null; // enhanced bytes to host as the approval preview IF the row survives
+  if (wantRegen && imageBytes) {
+    try {
+      const en = await enhanceImage(imageBytes, {
+        platform: (claimed.platforms && claimed.platforms[0]) || "instagram",
+        mode: "regenerate", backend: ctx.enhanceBackend, aiEnhancer: ctx.aiEnhancer, prompt: ctx.enhancePrompt,
+      });
+      if (en.enhanced && en.aiAltered) {
+        regenBytes = { buffer: en.buffer, contentType: en.contentType };
+        imageBytes = regenBytes;                                    // vision sees the enhanced image
+        const d = describeEnhancement(en);
+        if (d.reviewFlag) enhanceFlag = d.reviewFlag;
+      }
+    } catch (e) { /* keep the original source — safe-enhance still runs at publish */ }
+  }
+
   if (ctx.useVision) {
-    if (src) {
-      try {
-        const resolve = ctx.resolveImageBytes || ((s) => resolveImageSourceBytes(s, ctx.imageOpts || {}));
-        imageBytes = await resolve(src);
-      } catch (e) { imageBytes = null; }
-    }
     const visionInput = imageBytes || claimed.imageUrl; // bytes preferred, URL back-compat
     if (visionInput) {
       try { photoDescription = await describeImage(visionInput, ctx.visionOpts); }
@@ -154,6 +179,21 @@ async function generateOne(store, row, ctx) {
     }
   }
 
+  // The row SURVIVED fact-check + SMM + QA → now (and only now) host the AI-regenerated
+  // preview so the client approves what will post. Hosting here (not at step 1b) means a
+  // held/rejected draft never orphaned a public blob. A host failure falls back to the
+  // original source (safe-enhance still applies at publish) — the post is never lost.
+  if (regenBytes) {
+    try {
+      const hosted = await ctx.hostImageBytes({ buffer: regenBytes.buffer, contentType: regenBytes.contentType, keyHint: `draft-${claimed.id}` }, ctx.imageOpts || {});
+      claimed.imageUrl = hosted.url;
+    } catch (e) { enhanceFlag = ""; /* couldn't host the AI preview — publish will safe-enhance the source */ }
+  }
+
+  // An AI-altered image MUST be flagged so the human approver (and the digest) can catch a
+  // misleading render before it posts ("never AI-fake real places").
+  if (enhanceFlag) reviewNotes = (reviewNotes ? reviewNotes + " | " : "") + enhanceFlag;
+
   const warnings = primary.warnings || [];
   const status = primary.status === "approved" ? "approved" : "pending_approval";
   await store.update(claimed.id, {
@@ -166,6 +206,7 @@ async function generateOne(store, row, ctx) {
     status,
     photoDescription, // keep the vision hint for the approval digest / audit
     reviewNotes,
+    imageUrl: claimed.imageUrl || "", // persist an AI-regenerated preview (publish reuses it as-is)
     claimToken: null,
     claimedAt: null,
     lastError: warnings.length ? "warnings: " + warnings.join("; ") : "",
@@ -197,6 +238,14 @@ async function runGenerate(store, opts = {}) {
     // a Gmail source needs the attachment re-fetcher (opts.imageOpts.gmailFetch).
     imageOpts: opts.imageOpts || {},
     ...(opts.resolveImageBytes ? { resolveImageBytes: opts.resolveImageBytes } : {}),
+    // v2 AI image regenerate (B-22): DORMANT unless a provider is wired (aiEnhancer) AND
+    // regenerate is opted in. When on, generate produces + hosts the enhanced image so the
+    // client approves what will post. Needs hostImageBytes to host the preview.
+    ...(opts.aiEnhancer ? { aiEnhancer: opts.aiEnhancer } : {}),
+    ...(opts.enhanceBackend ? { enhanceBackend: opts.enhanceBackend } : {}),
+    ...(opts.hostImageBytes ? { hostImageBytes: opts.hostImageBytes } : {}),
+    regenerate: opts.regenerate === true || process.env.SOCIAL_AI_REGENERATE === "true",
+    enhancePrompt: opts.enhancePrompt || process.env.SOCIAL_AI_ENHANCE_PROMPT || "",
     // The Social Media Manager review runs when enabled AND there's a client to
     // call (an injected mock in tests, or a real key). Off via SOCIAL_SMM_REVIEW=off.
     useSmm:

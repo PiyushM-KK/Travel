@@ -59,6 +59,16 @@ async function runApprove(store, opts = {}) {
  * @param opts      { facts, profile } — REQUIRED to approve an edited caption
  *                  (so it can be re-validated). now — injectable clock.
  */
+// An AI-regenerated draft is the ONE image hosted before approval (so the client can see it).
+// If the row is rejected/held, delete that public preview — only OUR own draft-* previews on
+// the Blob store, never a legacy/external imageUrl. Best-effort (an orphan sweep is the backstop).
+async function cleanupDraftPreview(row, opts = {}) {
+  const url = row && row.imageUrl;
+  if (!url || !/blob\.vercel-storage\.com/.test(url) || !/draft-/.test(url)) return;
+  const del = opts.deleteHosted || require("./image-host").deleteHosted;
+  try { await del(url, opts.imageOpts || {}); } catch { /* best-effort */ }
+}
+
 async function applyDecision(store, id, decision, opts = {}) {
   const now = opts.now || new Date();
   const row = await store.get(id);
@@ -71,11 +81,13 @@ async function applyDecision(store, id, decision, opts = {}) {
   const action = String(dec.action || "").toLowerCase();
 
   if (action === "reject") {
-    await store.update(id, { status: "rejected", lastError: dec.reason || "" });
+    await cleanupDraftPreview(row, opts); // an AI-regenerated preview must not linger public
+    await store.update(id, { status: "rejected", imageUrl: "", lastError: dec.reason || "" });
     return { ok: true, status: "rejected" };
   }
   if (action === "hold") {
-    await store.update(id, { status: "held", lastError: dec.reason || "held by owner" });
+    await cleanupDraftPreview(row, opts);
+    await store.update(id, { status: "held", imageUrl: "", lastError: dec.reason || "held by owner" });
     return { ok: true, status: "held" };
   }
   if (action === "approve") {

@@ -47,6 +47,11 @@ const DEPLOY_VARS = [
   "GMAIL_OAUTH_KEY_B64",         // auth (B) service-account OAuth (B-20)
   "GMAIL_OAUTH_SUBJECT",
   "GMAIL_AUTH_MODE",             // optional: force "oauth" / "password"
+  // v2 image-enhance — the OPTIONAL AI regenerate provider (B-22). Absent -> safe-enhance only.
+  "AI_ENHANCER_URL",
+  "AI_ENHANCER_KEY",             // SENSITIVE (in redact() SENSITIVE_ENV)
+  "AI_ENHANCER_RESULT_FIELD",    // optional: JSON path to the result base64
+  "AI_ENHANCER_RESULT_URL_FIELD",// optional: JSON path to a result URL
 ];
 
 function vercel(args, input) {

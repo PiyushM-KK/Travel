@@ -12,6 +12,19 @@
  */
 
 const crypto = require("crypto");
+const { hostAllowListFromEnv } = require("./net-guard");
+
+// B-23 parity with the Gmail reader: a link in a note only becomes an image source if its
+// host is on the SOCIAL_IMAGE_HOSTS allow-list (empty list = any public host allowed; the
+// fetch sink still blocks internal IPs). Rejecting early means a bad link never queues.
+function linkHostAllowed(url) {
+  const list = hostAllowListFromEnv("SOCIAL_IMAGE_HOSTS");
+  if (!list.length) return true;
+  try {
+    const h = new URL(url).hostname.toLowerCase();
+    return list.some((a) => h === a || h.endsWith("." + a));
+  } catch { return false; }
+}
 
 const GRAPH = "https://graph.facebook.com/v21.0";
 
@@ -129,7 +142,7 @@ async function handleInbound(body, ctx = {}) {
   // The image only becomes a public URL at publish (for an approved post).
   let imageSource = null;
   const link = ctx.extractImageUrl ? ctx.extractImageUrl(hint) : "";
-  if (link) imageSource = { kind: "url", url: link };
+  if (link && linkHostAllowed(link)) imageSource = { kind: "url", url: link };
   else if (msg.image && msg.image.id) imageSource = { kind: "whatsapp", mediaId: msg.image.id };
   if (hint || imageSource || msg.image) {
     // msg.id (the WhatsApp wamid) is the dedup key so a redelivered message doesn't

@@ -103,3 +103,30 @@ KEEP Skyline's own `facts.js` / `calendar.js` / `profile.js`). Do NOT merge the 
 Follow the FullFirm go-live ladder (`HANDOVER-PROMPT.md` §2b): Airtable → WhatsApp
 approvals → schedulers/Vercel → App Review → first post. FullFirm Rung 1 (Airtable) is
 already proven; Skyline would set its OWN Airtable base + WhatsApp + secrets.
+
+=====================================================================
+2026-08-03 — RE-VENDORED THE ENGINE (add-only, engine/ refresh)
+=====================================================================
+Re-copied the FullFirm reusable engine (`SociaMedia_Auto/engine/`) into this folder's
+`engine/`, keeping Skyline's own `facts.js` / `calendar.js` / `profile.js` untouched.
+Repos NOT merged. Committed on branch `add-social-automation` (not pushed).
+
+What changed in `engine/`:
+- NEW `social-playbook.js` — the shared playbook that "trains" the caption writer +
+  reviewers on social-media craft.
+- NEW `review-agents.js` — the agent team (Fact-Check → Social Media Manager → **QA
+  safety-net**) + `reviewCreative` (SMM vision: caption a finished design).
+- UPDATED `generate.js` — image **vision** + multi-language helpers (additive exports).
+- UPDATED `publish.js` — `waitForContainer` (IG container poll → fixes Meta `9007`).
+- `brand-profile` / `content-calendar` / `kb-adapter` / `validate-post` — byte-identical
+  to 2026-08-01 (no change).
+
+Verified: `node tests/check_skyline_social.js` **PASSES** unchanged (all guards intact:
+referral-only booking, unhedged prices, visa advice, guarantees, price-locks blocked;
+no secrets in the data files). Engine exports are backward-compatible (additive only).
+
+STILL NOT vendored here (deliberately — the "when going live" step): the `automation/`
+framework (queue, runners, transports, secrets, Gmail/Airtable/WhatsApp/Blob, the v2
+image-hosting + daily-Gmail + card-renderer work). That needs Skyline's OWN Airtable /
+WhatsApp / Gmail / Blob setup and is the next Phase-2 increment once those secrets exist.
+Publishing still runs LIVE on the FIRM `site` Vercel project (unchanged).

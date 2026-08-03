@@ -17,7 +17,9 @@ own instance of it.
 | `facts.js` | Skyline's fact base — 22 packages across 89 destinations, WhatsApp, the price disclaimer, the flight/train/bus/cab **referral-only** list. |
 | `calendar.js` | Skyline's travel-specific content calendar (package feature, off-beat Northeast, place spotlight, customization…). |
 | `profile.js` | Skyline's brand voice + the `vertical: "travel"` switches that turn on visa/guarantee/price-hedge guards. |
-| `tests/` | `check_skyline_social.js` — proves referral-booking claims, unhedged tour prices, visa advice, guarantees and price-locks are all blocked. |
+| `automation/` | **Vendored copy** of the firm's automation framework (Phase 2b, 2026-08-03): the `run.js <job>` runner (intake · generate · approve · publish · report · prep), the Airtable + in-memory stores, WhatsApp + Gmail + SMTP transports, image hosting/source, encrypted secrets, and the `clients.js` registry — here it registers **only `skyline`** (no firm demo). |
+| `api/` | Vendored serverless endpoints for Skyline's OWN Vercel project: `whatsapp-webhook.js`, `cron-prep.js` (daily draft), `cron-publish.js` (gated publish). |
+| `tests/` | `check_skyline_social.js` (guards) + `check_skyline_automation.js` (the framework runs as Skyline, defaults to skyline, and CANNOT publish until `SOCIAL_LIVE` + real creds). |
 
 ## Run
 ```bash
@@ -60,7 +62,23 @@ still runs on the **firm's** Vercel site:
 this project is fully independent. Until then, the firm site hosts it. Do not
 delete those firm-side endpoints without cutting over first.
 
-## Not included here (still firm-side)
-- The automation **framework** (queue, scheduler, approval loop) — being built as
-  the firm's platform; a copy will be vendored here when Skyline's automation goes
-  live, along with Skyline's own Gmail/Airtable/WhatsApp/GitHub-Actions setup.
+## The automation framework is now vendored — but DORMANT until Skyline's own setup
+As of **2026-08-03** the firm's `automation/` + `api/` framework is vendored here and
+wired to the `skyline` client. It runs offline today (`npm test`), but it **cannot
+touch a real account or a real queue** until the owner sets Skyline's OWN secrets —
+this instance is deliberately independent of the firm's (repo-split rule):
+
+1. **Skyline Airtable base** (its own, NOT the firm's) with a `Queue` table carrying
+   the same columns as the firm base, **including `ImageSource` (long text)** and
+   `SourceMessageId`. Set `AIRTABLE_API_KEY` + `AIRTABLE_BASE_ID`.
+2. **Skyline WhatsApp** (approvals + photo intake): `WHATSAPP_*` + the webhook.
+3. **Skyline Gmail** intake (optional): `GMAIL_USER` + `GMAIL_ALLOWED_SENDERS`
+   (real suppliers only) + `GMAIL_SINCE_DAYS=2`, app-password or OAuth.
+4. **Skyline Vercel Blob** store (publish-time image hosting): `BLOB_READ_WRITE_TOKEN`.
+5. **Meta creds** — prefer `SKYLINE_*`; falls back to bare `META_*` (the firm site
+   publishes Skyline under `META_*` today — same IG/Page account).
+6. Encrypt them: copy `env.example` → `.env`, fill in, `node automation/secrets.js
+   encrypt`, delete the plaintext. Then `SOCIAL_LIVE=true` **only** when going live.
+
+Until then, Skyline publishing still runs LIVE on the firm's `site` Vercel project
+(unchanged). See `env.example` for the full list and `HANDOVER.md` for the plan.

@@ -130,3 +130,40 @@ framework (queue, runners, transports, secrets, Gmail/Airtable/WhatsApp/Blob, th
 image-hosting + daily-Gmail + card-renderer work). That needs Skyline's OWN Airtable /
 WhatsApp / Gmail / Blob setup and is the next Phase-2 increment once those secrets exist.
 Publishing still runs LIVE on the FIRM `site` Vercel project (unchanged).
+
+=====================================================================
+2026-08-03 — PHASE 2b: VENDORED THE AUTOMATION FRAMEWORK (add-only, dormant)
+=====================================================================
+Brought the firm's `automation/` + `api/` framework into this folder (add-only, repos
+NOT merged), wired to a `skyline` client. Committed on `add-social-automation` (not pushed).
+
+WHAT LANDED:
+- `automation/` (24 files): `run.js <job>` (intake·generate·approve·publish·report·prep),
+  in-memory + Airtable stores, WhatsApp/Gmail/SMTP transports, image-host/image-source,
+  encrypted secrets (`secrets.js`), go-live helpers (verify-live/queue-peek/wa-subscribe/
+  push-env-to-vercel), the review harness — and a Skyline-only `clients.js`.
+- `api/` (3): whatsapp-webhook, cron-prep (daily draft), cron-publish (gated).
+- `clients.js` REWRITTEN for this repo: registers ONLY `skyline` (loads `../facts.js`
+  BUSINESS + `../profile.js` PROFILE/travel vertical). The firm's restaurant demo is
+  NOT here (and `automation/data/demo.kb.js` was NOT copied). Default `SOCIAL_CLIENT`
+  is `skyline` (run.js + all 3 api endpoints).
+- `package.json` gained the optional deps (imapflow/mailparser/@vercel/blob/
+  google-auth-library/nodemailer) + `prep`/`publish-pass`/`verify-live` scripts;
+  `vercel.json` (crons + maxDuration) + a Skyline-tailored `env.example` added.
+- `.gitignore` (repo root) now ignores `node_modules/` + `social-automation/.env`.
+
+SAFETY PROVEN OFFLINE — `tests/check_skyline_automation.js` (NEW, 15 checks, PASS):
+the registry is skyline-only (no demo leaked), the client loads Skyline's own facts +
+travel voice, the runner defaults to skyline, and — critically — **publish is a DRY RUN**
+that mutates nothing until ALL of SOCIAL_LIVE + client.live + a real page token hold
+(even `live:true` + forced live stays dry without a token). generate skips cleanly with
+no API key; the daily `prep` composite drafts but NEVER publishes. `check_skyline_social.js`
+still passes. The SDK is lazy-loaded, so the offline tests need no `npm install`.
+
+STILL OWNER-GATED to ACTIVATE (this instance is independent of the firm's — repo-split):
+Skyline's OWN Airtable base (Queue w/ ImageSource + SourceMessageId), WhatsApp, Gmail
+(GMAIL_ALLOWED_SENDERS = real suppliers + GMAIL_SINCE_DAYS=2), Vercel Blob, Meta creds
+(SKYLINE_* or fallback META_*), then encrypt via `secrets.js` and set SOCIAL_LIVE=true.
+See README "The automation framework is now vendored — but DORMANT" + env.example.
+Skyline publishing still runs LIVE on the firm `site` project until this instance is
+activated + a Skyline Vercel project is stood up.

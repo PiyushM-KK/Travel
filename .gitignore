@@ -15,3 +15,8 @@ uploads/
 # Local secrets — never commit
 .env
 .claude/
+
+# social-automation (vendored firm platform)
+node_modules/
+social-automation/node_modules/
+social-automation/.env

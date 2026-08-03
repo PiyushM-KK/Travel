@@ -15,7 +15,19 @@
 const fs = require("fs");
 const path = require("path");
 
-const ROOT = path.join(__dirname, "..", "..");
+// Where the local .env(.enc) lives. Prefer the DEPLOYMENT dir (the folder that holds
+// automation/ — SociaMedia_Auto for the firm, social-automation for a vendored client, so a
+// client's secrets stay self-contained beside its code), else fall back to the REPO ROOT
+// (the firm's historical location). secrets.js resolves the SAME base so encrypt/decrypt
+// and the loader always agree.
+const DEPLOY_DIR = path.join(__dirname, "..");
+const REPO_ROOT = path.join(__dirname, "..", "..");
+function envBase() {
+  for (const d of [DEPLOY_DIR, REPO_ROOT]) {
+    if (fs.existsSync(path.join(d, ".env.enc")) || fs.existsSync(path.join(d, ".env"))) return d;
+  }
+  return REPO_ROOT;
+}
 
 /** Parse KEY=VALUE text into process.env, never overriding an existing var. */
 function parseInto(text) {
@@ -42,7 +54,8 @@ function parseInto(text) {
 function loadEnv(file) {
   if (file) { try { return parseInto(fs.readFileSync(file, "utf8")); } catch { return []; } }
 
-  const encPath = path.join(ROOT, ".env.enc");
+  const base = envBase();
+  const encPath = path.join(base, ".env.enc");
   if (fs.existsSync(encPath)) {
     if (!process.env.SECRETS_PASSPHRASE) {
       console.error("[.env.enc found but SECRETS_PASSPHRASE is not set — set it to decrypt your local secrets]");
@@ -57,7 +70,7 @@ function loadEnv(file) {
     }
   }
 
-  try { return parseInto(fs.readFileSync(path.join(ROOT, ".env"), "utf8")); } catch { return []; }
+  try { return parseInto(fs.readFileSync(path.join(base, ".env"), "utf8")); } catch { return []; }
 }
 
 module.exports = { loadEnv, parseInto };

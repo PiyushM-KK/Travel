@@ -28,7 +28,17 @@ const path = require("path");
 
 const ALGO = "aes-256-gcm";
 const PREFIX = "ENCv1:";
-const ROOT = path.join(__dirname, "..", "..");
+// Resolve the .env(.enc) base the SAME way load-env.js does: prefer the deployment dir
+// (self-contained vendored client), else the repo root. Keeps encrypt/decrypt + the loader
+// pointed at the same file.
+const DEPLOY_DIR = path.join(__dirname, "..");
+const REPO_ROOT = path.join(__dirname, "..", "..");
+function envBase() {
+  for (const d of [DEPLOY_DIR, REPO_ROOT]) {
+    if (fs.existsSync(path.join(d, ".env.enc")) || fs.existsSync(path.join(d, ".env"))) return d;
+  }
+  return REPO_ROOT;
+}
 
 function deriveKey(passphrase, salt) {
   // scrypt is deliberately slow -> resists brute-forcing the passphrase.
@@ -69,7 +79,7 @@ function decrypt(blob, passphrase) {
 
 /** Read + decrypt .env.enc into text (for the loader). Returns "" if absent. */
 function decryptEnvFile(passphrase, file) {
-  const p = file || path.join(ROOT, ".env.enc");
+  const p = file || path.join(envBase(), ".env.enc");
   let blob;
   try { blob = fs.readFileSync(p, "utf8"); } catch { return ""; }
   return decrypt(blob, passphrase);
@@ -79,8 +89,8 @@ function decryptEnvFile(passphrase, file) {
 if (require.main === module) {
   const cmd = process.argv[2];
   const pass = process.env.SECRETS_PASSPHRASE;
-  const envPath = path.join(ROOT, ".env");
-  const encPath = path.join(ROOT, ".env.enc");
+  const envPath = path.join(envBase(), ".env");
+  const encPath = path.join(envBase(), ".env.enc");
 
   const die = (m) => { console.error(m); process.exit(1); };
   if (!pass) die("Set SECRETS_PASSPHRASE in your environment first (do NOT pass it as an argument).");

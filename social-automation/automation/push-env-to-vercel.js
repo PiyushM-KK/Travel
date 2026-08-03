@@ -21,9 +21,13 @@ const { spawnSync } = require("child_process");
 const { loadEnv } = require("./load-env");
 const { redact } = require("../engine/publish");
 
-// Point `vercel` at the linked SociaMedia_Auto/ dir (its .vercel/project.json ->
-// fullfirm-social) so this works no matter which directory you run it from.
-const LINKED_DIR = path.join(__dirname, "..");
+// Point `vercel` at a linked dir (its .vercel/project.json picks the target project). Default
+// is SociaMedia_Auto/ (-> fullfirm-social). Pass `--link <dir>` to push THIS repo's encrypted
+// env to ANOTHER project's linked dir — e.g. Skyline's own project:
+//   node SociaMedia_Auto/automation/push-env-to-vercel.js skyline-social --scope full-firm \
+//        --link "…/Skyline Travel Planner Launch/social-automation"
+function _argVal(flag) { const i = process.argv.indexOf(flag); return i >= 0 ? process.argv[i + 1] : null; }
+const LINKED_DIR = _argVal("--link") ? path.resolve(_argVal("--link")) : path.join(__dirname, "..");
 
 // Exactly what the deployed webhook (whatsapp-webhook.js) + crons (cron-publish.js,
 // cron-prep.js) need at runtime. SECRETS_PASSPHRASE is deliberately NOT here — it stays
@@ -38,8 +42,17 @@ const DEPLOY_VARS = [
   "AIRTABLE_API_KEY",
   "AIRTABLE_BASE_ID",
   "SOCIAL_CLIENT",
+  "SOCIAL_CAPTION_MODEL",         // e.g. claude-sonnet-5 for the caption writer
   "CRON_SECRET",
   "ANTHROPIC_API_KEY", // for draft-on-intake (the webhook writes + fact-checks the post)
+  // Publishing creds (the IRREVERSIBLE step). clients.js prefers SKYLINE_*; falls back to
+  // bare META_*. SOCIAL_LIVE is deliberately NOT here — it's the live gate you set by hand.
+  "META_PAGE_ID",
+  "META_IG_USER_ID",
+  "META_PAGE_TOKEN",
+  "SKYLINE_PAGE_ID",
+  "SKYLINE_IG_USER_ID",
+  "SKYLINE_PAGE_TOKEN",
   // v2 Phase 1d — the daily Gmail trigger (cron-prep.js). Optional: absent -> calendar-only.
   "GMAIL_USER",
   "GMAIL_APP_PASSWORD",          // auth (A) app password (B-14)

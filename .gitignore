@@ -20,3 +20,7 @@ uploads/
 node_modules/
 social-automation/node_modules/
 social-automation/.env
+
+# Vercel project link (per-machine)
+.vercel/
+social-automation/.vercel/

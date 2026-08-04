@@ -166,6 +166,14 @@ async function handleInbound(body, ctx = {}) {
     // scheduled generate pass pick it up. A hook failure never loses the intake.
     let note = `Got it — queued to draft a post (id ${row.id}). I'll send it back to you to approve.`;
     if (ctx.draftAndDigest) {
+      // IMMEDIATE ack — drafting (enhance + caption + review) takes ~30s, so tell the
+      // sender it's working instead of leaving them staring at a silent chat.
+      if (ctx.reply) {
+        const ack = (imageSource || msg.image)
+          ? "📸 Got your image — processing it (enhancing where safe) and writing the caption now. I'll send it back for your approval in about 30 seconds."
+          : "✍️ Got it — drafting your post now. Back in a few seconds for your approval.";
+        await ctx.reply(msg.from, ack).catch(() => {});
+      }
       try {
         const drafted = await ctx.draftAndDigest(row);
         if (drafted) note = drafted;

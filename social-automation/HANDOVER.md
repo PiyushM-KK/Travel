@@ -510,6 +510,42 @@ unmasked Blob token). Delete .env.vercel after. To reprocess a read vendor email
 mark it UNSEEN via imapflow messageFlagsRemove(uid,["\\Seen"]) — but it still needs an attachment.
 
 =====================================================================
+2026-08-04 (cont.) — FIRST AI-SCENE POST PUBLISHED + JPEG/vendor/vision fixes
+=====================================================================
+Git HEAD on `main`: 2bf6d94.
+
+✅ FIRST AI-SCENE CARD PUBLISHED LIVE (Himachal Hills, B/AI-scene variant) to:
+  • Facebook: https://www.facebook.com/437743929683019/posts/1553092379851446
+  • Instagram: media id 18120841069876903 (@skylinetravelplanner)
+  Flow: approved variant B (applyDecision) → deployed /api/cron-publish → posted IG+FB. Also
+  retired a stale failing row (recdLQjwqQi9hFpAg).
+
+✅ FIXES (all deployed, all reviewed by Bug Hunter + App Security):
+1. IG PUBLISH FAILED "Instagram accepts JPEG only" — satori renders the card as PNG. email-intake
+   now re-encodes every card (A + B) to JPEG (jimp) before hosting; jimp moved to dependencies.
+2. INLINE VENDOR POSTERS: the B2B senders embed the poster INLINE (cid) with a header logo + tracking
+   pixels. gmail-reader now picks the LARGEST hostable image (the poster), not the first (logo), and
+   keeps attachment size; consistent in fetchNewImagePosts + fetchAttachmentBytes. So NEW vendor
+   emails (which arrive unread) auto-process on the deployed cron. (Reprocessing a READ email via IMAP
+   is unreliable — Gmail keeps re-applying \Seen — but that only affects manual re-tests, not live ops.)
+3. VISION EMPTY ON BIG POSTERS: a 2–3MB poster made describeImage/describeOffer/extractPrices return
+   EMPTY. engine/generate.js imageBlockSource is now async + downscales bytes to <=1568px JPEG before
+   vision (proven: raw Himachal poster → nothing; downscaled → "Himachal & Ladakh — Manali, Shimla,
+   Kasol, Leh…"). SECURITY: a pixel-bomb guard reads dims from the HEADER (imageDims) and refuses to
+   jimp-decode a huge/unknown canvas (>25MP or non-PNG/JPEG/GIF) — sends raw so a decompression bomb
+   can't OOM the fn. Also handles a raw Buffer input + sniffs MIME from magic bytes. All 5 callers +
+   review-agents.js reviewCreative now `await imageBlockSource`.
+
+STATUS: the full email→A/B→publish loop is proven live. A NEW vendor email with an inline poster will,
+on the 7 PM IST cron, auto-produce A/B cards → WhatsApp → your pick → IG+FB. IMAGE_QUALITY=low default
+(~₹1.8/img). All secrets set on Vercel (OPENAI included).
+
+FOLLOW-UP (minor, noted by reviewers, not blocking): a big poster is jimp-decoded once PER vision
+function on the same run (describeOffer + extractPrices in Promise.all, etc.) — bounded + guarded, but
+could be downscaled ONCE upstream and shared. And pickBestImage picks by bytes, so a large decorative
+banner could beat a smaller offer poster (heuristic).
+
+=====================================================================
 2026-08-04 (cont.) — TWO-CANDIDATE A/B CARDS (photo + AI scene, owner picks)
 =====================================================================
 Git HEAD on `main`: b3ff33a. Reviewed by Bug Hunter + App Security + QA (all fixes applied).

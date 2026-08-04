@@ -222,3 +222,95 @@ OWNER OWES: encrypt+delete the plaintext `.env` (`secrets.js encrypt ; Remove-It
 ROTATE the passphrase (leaked in chat); optional B-22 (AI image provider) to enable
 AI-regenerate. AI image-enhance is NOT active — posts publish the image as-is (safe-enhance
 resizes/cleans via jimp at publish; AI restyle is dormant until a provider is wired).
+
+=====================================================================
+2026-08-04 — 🎉 FIRST AUTOMATED POST PUBLISHED LIVE (full product working)
+=====================================================================
+The whole product now runs end-to-end and the FIRST real post is LIVE on the client's
+own accounts:
+  • Instagram: https://www.instagram.com/p/DbnCj46FqDk/   (id 18117051925937614)
+  • Facebook : https://www.facebook.com/1552507453243272/posts/1552507103243307
+It was a Diwali/Himachal PRICE POSTER (client's own art), published WHOLE (padded to 4:5,
+logo + Helpline + all prices intact — not cropped). Airtable row reckgzRHa6ClnJyE7 = published.
+
+PIPELINE PROVEN: WhatsApp photo → instant "processing…" ack → classify photo/graphic →
+enhance (photos, Claid) / skip+report (posters) → grounded caption (fact-check + SMM) →
+send the finished IMAGE back on WhatsApp → approve BY NUMBER → publish whole to IG + FB.
+
+--- BUGS FIXED THIS SESSION (all committed on main; each de-risked the go-live) ---
+1. Deployed AIRTABLE creds were a stale/wrong token → webhook couldn't write the Queue.
+   Re-pushed the correct AIRTABLE_API_KEY + AIRTABLE_BASE_ID (appSzwvIFBzjROooT) to Vercel.
+   LESSON: `vercel redeploy` REUSES the old deployment's env snapshot — to pick up new env
+   you must trigger a FRESH deploy (git push / `vercel deploy`), not `redeploy`.
+2. Webhook Callback URL was still the FIRM's (fullfirm-social). Repointed the Meta WhatsApp
+   app (1058870697004437) → https://skyline-social-nine.vercel.app/api/whatsapp-webhook via
+   the Graph API (POST /{app}/subscriptions). WABA 1331934679097564 already subscribed.
+3. **AirtableStore.create() dropped imageSource + sourceMessageId** (explicit field whitelist
+   omitted them) → every WhatsApp photo lost its image + dedup id. Added both + regression
+   test tests/check_airtable_imagesource.js. THE key bug — the in-memory store hid it.
+4. **Image-post caption reliability** (was intermittently held "no valid draft"): the vision
+   step transcribed a poster's PRICES, which the grounding guard then refused to caption.
+   Fix: describeImage now describes the VISUAL SCENE only + IGNORES text/prices/logos (+ retry
+   on empty, escalate to caption model); briefFromRow reframes image posts (image carries the
+   offer → mood+CTA, never restate prices). 0/5 → 5/5 drafts on the real poster.
+
+--- FEATURES ADDED THIS SESSION ---
+5. Claid image ENHANCEMENT (B-22) wired + LIVE: automation/ai-enhancer.js makeClaidEnhancer
+   (hosts input to Blob → POST /v1/image/edit smart_enhance+polish → fetch result URL via the
+   SSRF guard → delete temp input). resolveAiEnhancer routes claid.ai URLs to it. Env on Vercel:
+   AI_ENHANCER_URL + AI_ENHANCER_KEY (Claid). FINDING (proven on the real poster): AI enhancement
+   GARBLES text on posters → a TEXT-SAFETY GATE (engine classifyImageForEnhance PHOTO vs GRAPHIC,
+   defaults to graphic on doubt) only enhances text-free PHOTOS; posters skip. Enhancement value
+   is modest on a good photo, real on a low-res one, ZERO/harmful on a poster.
+6. Enhance ERROR/credit-limit REPORTING: enhance failures (incl. a Claid credit limit) surface
+   in the WhatsApp approval note ("⚠️ Image enhancement failed — … Posting your original").
+7. Enhanced image is SENT BACK on WhatsApp (automation/whatsapp.js sendImage) so the client
+   approves the VISUAL, not just text. Immediate "processing… ~30s" ack on intake.
+8. APPROVE BY NUMBER: each pending post gets a stable 4-digit code (whatsapp.shortCode). Reply
+   "approve 2429", or just "approve"/"yes" when one is waiting; several waiting → the bot lists
+   the numbers. parseDecision accepts a bare verb + short code; the webhook resolves code/blank
+   → the real row. Digest shows "POST #<code>".
+9. NEVER-CROP GRAPHICS at publish: a poster is 2:3 (taller than IG's 4:5) — cover-fit was
+   slicing off the headline/logo. New "pad" fit in enhance-backends (whole image on a blurred
+   bg); publish-runner classifies the image and PADs graphics / cover-fits photos (safe default
+   = pad). This is why the poster published whole.
+
+--- HOW THE PUBLISH WAS DONE (supervised, one-off) ---
+Ran locally: node script → runJob({job:"publish", live:true}) with SOCIAL_LIVE=true FOR THAT RUN
+only (Vercel SOCIAL_LIVE stays OFF → no standing auto-publish). BLOB_READ_WRITE_TOKEN pulled
+from Vercel (it's NOT sensitive, so `vercel env pull` gets it); the real META page token derived
+at run time (see below). After publishing, the gate stayed off.
+
+--- ⚠️ META TOKEN (the one gotcha — PENDING for the deployed pipeline) ---
+Both the LOCAL .env and the Vercel META_PAGE_TOKEN were an invalid "[SENSITIVE]" placeholder
+("Cannot parse access token"). The owner then added a token, but it was a short-lived USER token
+(type USER, "Bhavik Banker", expires ~2026-08-04T09:00Z) — a user token CANNOT post as a Page.
+FIX USED: exchange it for a PAGE token at run time — GET /437743929683019?fields=access_token&
+access_token=<user token> → returns the Page token (type PAGE, me→Skyline Page). That worked for
+this publish. BUT it's still SHORT-LIVED (expires ~09:00). 
+PENDING — LONG-LIVED TOKEN: for the DEPLOYED pipeline (cron-publish) to keep publishing, install
+a LONG-LIVED page token on Vercel (META_PAGE_TOKEN) + local .env. Needs the app secret for app
+1711772623363887: exchange short user token → long-lived user token (GET /oauth/access_token?
+grant_type=fb_exchange_token&client_id=1711772623363887&client_secret=<APP_SECRET>&fb_exchange_
+token=<user token>) → then GET /{PAGE}?fields=access_token → a page token that never expires.
+The owner needs to paste META_APP_SECRET into .env; then mint + push it to Vercel (sensitive).
+Key IDs: app 1711772623363887, Page 437743929683019, IG user 17841404608201511.
+
+--- NEXT FEATURE: EMAIL (GMAIL) INTAKE ---
+The 2nd of the owner's three intake ways: search Gmail for a new VENDOR email → take its image →
+same pipeline (enhance photos / pad posters) → approve → publish. The plumbing largely exists
+(gmail-reader.js IMAP + attachment fetch, the `prep`/cron-prep daily job, GMAIL_ALLOWED_SENDERS,
+GMAIL_SINCE_DAYS=2). Owner-gate: a WORKING Gmail auth for info@skylinetravelplanner.com — it's a
+Google WORKSPACE mailbox (app passwords often blocked → the OAuth service-account path B-20 may
+be needed). Wire the same enhance/gate/approve-by-number/send-image-back flow into the Gmail path.
+
+--- PENDING / OWED ---
+• LONG-LIVED Meta page token on Vercel + .env (needs app secret) — see above. Until then the
+  DEPLOYED cron can't publish; a supervised local run works while a token is fresh.
+• EMAIL (Gmail) intake — the next feature.
+• Propagate this session's fixes UPSTREAM to FullFirm SociaMedia_Auto (the reusable engine):
+  airtable-store create fix, generate.js describeImage scene-only + classifyImageForEnhance,
+  generate-runner briefFromRow reframe + enhance gate + error note, enhance-image/enhance-backends
+  pad fit, publish-runner classify+pad, ai-enhancer Claid adapter, whatsapp sendImage +
+  parseDecision bare/short-code + shortCode, approval-channel POST #code, webhook wiring.
+• Encrypt + delete the plaintext .env; ROTATE the leaked passphrase (still owed from before).

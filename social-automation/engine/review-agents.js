@@ -119,7 +119,7 @@ async function reviewCreative(image, context = {}, opts = {}) {
   if (!facts) throw new Error("reviewCreative needs context.facts");
   // Accept a public URL (string) OR raw bytes ({buffer, contentType}) — the publish-time-
   // only model reviews the design from BYTES so it isn't hosted publicly before approval.
-  const source = imageBlockSource(image);
+  const source = await imageBlockSource(image); // async (downscales large images before vision)
   if (!source) throw new Error("reviewCreative needs an image (url string or {buffer, contentType})");
   const client = opts.client || newClient();
   const language = opts.language || profile.language || "en";

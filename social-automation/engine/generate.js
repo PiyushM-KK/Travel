@@ -221,16 +221,71 @@ function extractPosts(message) {
  * ({buffer, contentType}). Kept in the engine so it has no automation/ dependency.
  * Returns null when there's no image.
  */
-function imageBlockSource(image) {
+// Read an image's pixel dimensions straight from its HEADER — cheap, no decode/allocation. Covers
+// PNG / GIF / JPEG (the formats email posters use); returns null for anything else (incl. WebP).
+function imageDims(buf) {
+  if (!buf || buf.length < 24) return null;
+  if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) return { w: buf.readUInt32BE(16), h: buf.readUInt32BE(20) }; // PNG IHDR
+  if (buf[0] === 0x47 && buf[1] === 0x49 && buf[2] === 0x46) return { w: buf.readUInt16LE(6), h: buf.readUInt16LE(8) }; // GIF
+  if (buf[0] === 0xff && buf[1] === 0xd8) { // JPEG — walk to a Start-Of-Frame marker
+    let o = 2;
+    while (o + 9 < buf.length) {
+      if (buf[o] !== 0xff) { o++; continue; }
+      const marker = buf[o + 1];
+      if (marker >= 0xc0 && marker <= 0xcf && marker !== 0xc4 && marker !== 0xc8 && marker !== 0xcc) return { h: buf.readUInt16BE(o + 5), w: buf.readUInt16BE(o + 7) };
+      const len = buf.readUInt16BE(o + 2); if (len < 2) break; o += 2 + len;
+    }
+  }
+  return null;
+}
+
+// Large images (e.g. a 2–3 MB vendor poster) can make the vision model return an EMPTY reading, so
+// downscale to <=1568px (Anthropic's recommended max edge) as JPEG. SECURITY: never decode an image
+// whose HEADER declares a huge or unknown canvas — jimp would allocate w*h*4 bytes and can OOM the
+// serverless fn (an OOM is NOT a catchable throw). Those are sent raw for Anthropic to bound safely.
+// Sniff the real media type from the magic bytes (a caller may pass bytes with no/incorrect type).
+function sniffImageMime(buf, fallback) {
+  if (buf && buf.length > 3) {
+    if (buf[0] === 0xff && buf[1] === 0xd8) return "image/jpeg";
+    if (buf[0] === 0x89 && buf[1] === 0x50) return "image/png";
+    if (buf[0] === 0x47 && buf[1] === 0x49) return "image/gif";
+    if (buf[0] === 0x52 && buf[1] === 0x49) return "image/webp";
+  }
+  return String(fallback || "image/jpeg").split(";")[0].trim();
+}
+
+const MAX_DECODE_PIXELS = 25 * 1000 * 1000; // 25 MP ceiling before we ever allocate a bitmap
+async function downscaleForVision(buffer, contentType) {
+  const mt = sniffImageMime(buffer, contentType);
+  if (!buffer || buffer.length <= 1024 * 1024) return { buffer, media_type: mt }; // small enough already
+  const dims = imageDims(buffer);
+  if (!dims) return { buffer, media_type: mt };                                   // unknown format → don't risk a decode
+  if (dims.w * dims.h > MAX_DECODE_PIXELS) return { buffer, media_type: mt };      // pixel-bomb guard (send raw)
+  if (dims.w <= 1568 && dims.h <= 1568) return { buffer, media_type: mt };         // already within the edge → no decode
+  try {
+    const { Jimp } = require("jimp");
+    const img = await Jimp.read(buffer);
+    const out = await img.scaleToFit({ w: 1568, h: 1568 }).getBuffer("image/jpeg", { quality: 85 });
+    return { buffer: out, media_type: "image/jpeg" };
+  } catch (e) { return { buffer, media_type: mt }; }
+}
+
+async function imageBlockSource(image) {
   if (!image) return null;
   if (typeof image === "string") return { type: "url", url: image };
-  if (image.buffer) return { type: "base64", media_type: String(image.contentType || "image/jpeg").split(";")[0].trim(), data: Buffer.from(image.buffer).toString("base64") };
+  // Accept a raw Node Buffer OR { buffer, contentType }. (A raw Buffer also has a `.buffer`
+  // ArrayBuffer property, so check Buffer.isBuffer FIRST or we'd read the wrong bytes.)
+  const bytes = Buffer.isBuffer(image) ? image : (image.buffer ? Buffer.from(image.buffer) : null);
+  if (bytes) {
+    const { buffer, media_type } = await downscaleForVision(bytes, image.contentType);
+    return { type: "base64", media_type, data: Buffer.from(buffer).toString("base64") };
+  }
   if (image.data && image.media_type) return image; // already a source block
   return null;
 }
 
 async function describeImage(image, opts = {}) {
-  const source = imageBlockSource(image);
+  const source = await imageBlockSource(image);
   if (!source) return "";
   const client = opts.client || newClient();
   // The light vision model (REPLY_MODEL) occasionally returns an EMPTY description on a
@@ -278,7 +333,7 @@ async function describeImage(image, opts = {}) {
  * side: a doubtful image is posted as-is rather than risk garbling text).
  */
 async function classifyImageForEnhance(image, opts = {}) {
-  const source = imageBlockSource(image);
+  const source = await imageBlockSource(image);
   if (!source) return "graphic";
   const client = opts.client || newClient();
   try {
@@ -311,7 +366,7 @@ async function classifyImageForEnhance(image, opts = {}) {
  * price so the brief can't drag a competitor's brand or an unverifiable price into our caption.
  */
 async function describeOffer(image, opts = {}) {
-  const source = imageBlockSource(image);
+  const source = await imageBlockSource(image);
   if (!source) return "";
   const client = opts.client || newClient();
   try {
@@ -340,7 +395,7 @@ async function describeOffer(image, opts = {}) {
  * numbers (empty on none/error). Filters out phone numbers, years, etc. by magnitude.
  */
 async function extractPrices(image, opts = {}) {
-  const source = imageBlockSource(image);
+  const source = await imageBlockSource(image);
   if (!source) return [];
   const client = opts.client || newClient();
   try {
@@ -375,7 +430,7 @@ async function extractPrices(image, opts = {}) {
  * error → { foreign:false } (don't block on a flaky call; the human still approves).
  */
 async function detectForeignBrand(image, opts = {}) {
-  const source = imageBlockSource(image);
+  const source = await imageBlockSource(image);
   if (!source) return { foreign: false, brand: "" };
   const clientName = String(opts.clientName || "the client").trim();
   const client = opts.client || newClient();

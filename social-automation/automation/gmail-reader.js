@@ -77,6 +77,15 @@ function isHostableImageAttachment(a) {
   return !!(a && Buffer.isBuffer(a.content) && a.content.length && extFromType(a.contentType));
 }
 
+// Pick the BEST image among a message's parts (attachments AND inline/cid images both land here via
+// mailparser). Vendor B2B mailers embed the offer poster INLINE, often alongside a small header logo
+// and tracking pixels — so choose the LARGEST hostable image (the poster), not just the first one.
+function pickBestImage(attachments) {
+  const imgs = (attachments || []).filter(isHostableImageAttachment);
+  if (!imgs.length) return null;
+  return imgs.slice().sort((a, b) => (b.size || (b.content && b.content.length) || 0) - (a.size || (a.content && a.content.length) || 0))[0];
+}
+
 /**
  * Build a reader over a small IMAP interface:
  *   imap.unseen() -> [{ uid, subject, from, source? , text? }]   (source = raw MIME)
@@ -126,7 +135,7 @@ function makeGmailReader(opts = {}) {
         //   (1) the email's OWN attachment -> re-fetchable by uid
         //   (2) an image LINK in the body/subject (allow-list guarded)
         let imageSource = null;
-        const att = (parsed.attachments || []).find(isHostableImageAttachment);
+        const att = pickBestImage(parsed.attachments); // largest image = the poster (not a logo/pixel)
         let link = "";
         if (att) {
           imageSource = { kind: "gmail", uid: m.uid, contentType: att.contentType };
@@ -158,7 +167,7 @@ function makeGmailReader(opts = {}) {
       const src = await imap.fetchSource(uid);
       if (!src) throw new Error(`gmail attachment uid=${uid}: message not found (may have moved/been deleted)`);
       const parsed = await parseEmail(src);
-      const att = (parsed.attachments || []).find(isHostableImageAttachment);
+      const att = pickBestImage(parsed.attachments); // MUST match fetchNewImagePosts' choice (largest)
       if (!att) throw new Error(`gmail attachment uid=${uid}: no image attachment found`);
       return { buffer: att.content, contentType: att.contentType };
     },
@@ -183,6 +192,7 @@ async function realParseEmail(source) {
       filename: a.filename || "",
       contentType: (a.contentType || "").split(";")[0].trim(),
       content: a.content,
+      size: a.size || (Buffer.isBuffer(a.content) ? a.content.length : 0), // for pickBestImage (poster = largest)
     })),
   };
 }
@@ -330,4 +340,4 @@ function realImap(opts = {}) {
   };
 }
 
-module.exports = { makeGmailReader, extractImageUrl, allowedImageHost, allowedSender, emailOf, realImap, realParseEmail, isHostableImageAttachment };
+module.exports = { makeGmailReader, extractImageUrl, allowedImageHost, allowedSender, emailOf, realImap, realParseEmail, isHostableImageAttachment, pickBestImage };

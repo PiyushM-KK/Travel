@@ -54,12 +54,16 @@ async function makeCard(opts = {}) {
   const fMed = await loadFont(F.SANS_32_WHITE);
   const fSml = await loadFont(F.SANS_16_WHITE);
   const M = 60;
-  let y = H - 540;
+  let y = H - 560;
   if (opts.headline) { printShadowed(bg, fBig, M, y, opts.headline); y += 84; }
-  if (opts.subtitle) { printShadowed(bg, fMed, M, y, opts.subtitle); y += 58; }
-  if (opts.price)    { printShadowed(bg, fBig, M, y + 14, opts.price); y += 98; }
-  if (opts.cta)      { printShadowed(bg, fMed, M, y + 16, opts.cta); y += 58; }
-  printShadowed(bg, fSml, M, H - 66, opts.handle || "@skylinetravelplanner");
+  if (opts.subtitle) { printShadowed(bg, fMed, M, y, opts.subtitle); y += 56; }
+  if (opts.price)    { printShadowed(bg, fBig, M, y + 12, opts.price); y += 96; }
+  if (opts.cta)      { printShadowed(bg, fMed, M, y + 14, opts.cta); y += 60; }
+  // Trust badges + 24x7 helpline (from Skyline's own poster footer). ASCII font → " | ".
+  const benefits = opts.benefits || "Best Price  |  Comfortable Stays  |  Trusted & Reliable  |  24x7 Helpline";
+  if (benefits) { printShadowed(bg, fSml, M, y + 18, benefits); }
+  // Footer: handle + Skyline promise tagline.
+  printShadowed(bg, fSml, M, H - 66, (opts.handle || "@skylinetravelplanner") + "   |   " + (opts.tagline || "Your journey, our promise"));
   if (opts.credit) { try { printShadowed(bg, await loadFont(F.SANS_8_WHITE), W - 300, H - 22, "photo: " + String(opts.credit).slice(0, 34)); } catch (e) { /* */ } }
 
   return await bg.getBuffer("image/jpeg", { quality: 88 });

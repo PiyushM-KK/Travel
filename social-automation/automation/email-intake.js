@@ -1,38 +1,39 @@
 /**
- * email-intake.js — GMAIL vendor intake, the "IDEA, not the poster" flow (owner decision
- * 2026-08-04, option #3 + the #2 guardrail).
+ * email-intake.js — GMAIL vendor intake → a SKYLINE-BRANDED CARD post (the reseller flow).
  *
- * A vendor's B2B email is a SUPPLIER's branded poster (their logo/phone/website) — posting it
- * to the client's feed would advertise the SUPPLIER. So we do NOT post the vendor image. Instead:
- *   search Gmail for a new allow-listed vendor email → read ONLY the destinations/season from
- *   its image (describeOffer — excludes any brand/phone/price) → draft a SKYLINE post about
- *   planning a custom trip to those places, in Skyline's voice, grounded in Skyline's packages
- *   → send the IDEA to the owner on WhatsApp: attach a Skyline photo to post to IG+FB, or
- *   approve for a Facebook text post, or reject.
+ * Owner model (2026-08-04): resell a supplier's package under Skyline's brand at the vendor's
+ * price +10%. We NEVER post the vendor's poster. For each new allow-listed vendor email:
+ *   1. read the offer's destinations (describeOffer) + prices (extractPrices) from its image
+ *   2. match it to the closest SKYLINE package (packages.matchPackage) — no match ⇒ HELD
+ *      (Skyline can't sell it), so we never invent a destination
+ *   3. reprice: vendor's price +10% (or Skyline's own catalogue price if the poster has none)
+ *   4. build a SKYLINE CARD (engine/card.js): our logo + a real destination photo + the
+ *      package name/route/repriced price — clean code-rendered text, no vendor traces
+ *   5. write a grounded Skyline caption, host the card, and SEND THE CARD to the owner on
+ *      WhatsApp with the full details (vendor From/Subject/Received, package, price, photo) +
+ *      an approve number → on approval it posts to Instagram + Facebook.
  *
- * The #2 guardrail (detectForeignBrand) lives in generate-runner and fires whenever an image IS
- * attached (e.g. the owner replies a photo, or the WhatsApp intake) — it HOLDS any image that
- * carries another company's branding. Here we simply never attach the vendor's image.
- *
- * Everything is injectable (reader, sendText, store) so it's testable without markSeen'ing the
- * real inbox or sending a real WhatsApp.
+ * Everything is injectable (reader, sendImage/sendText, store) so it's testable offline.
  */
 
+const path = require("path");
 const { generateOne } = require("./generate-runner");
 const { resolveImageSourceBytes } = require("./image-source");
-const { describeOffer, describeImage } = require("../engine/generate");
+const { describeOffer, extractPrices } = require("../engine/generate");
+const { matchPackage, repricedLine } = require("./packages");
+const { makeCard, pickPhoto } = require("../engine/card");
 const { shortCode } = require("./whatsapp");
 
-/**
- * @param store  the queue store
- * @param ctx    { reader, facts, profile, sendText, notifyTo, notify(default true),
- *                 client, clientName }
- * @returns { considered, notified:[{id,code,offer}], held:[...], skipped:[...] }
- */
+const ASSETS = path.join(__dirname, "..", "assets");
+const PHOTOS = path.join(ASSETS, "destinations");
+const LOGO = path.join(ASSETS, "Skyline_Logo.jpg");
+
 async function runEmailIntake(store, ctx = {}) {
   const reader = ctx.reader;
   if (!reader) throw new Error("runEmailIntake needs a Gmail `reader`");
+  const fs = ctx.fs || require("fs");
   const gmailFetch = (uid) => reader.fetchAttachmentBytes(uid);
+  const hostImageBytes = ctx.hostImageBytes || require("./image-host").hostImageBytes;
   const to = ctx.notifyTo || process.env.WHATSAPP_TO;
   const notify = ctx.notify !== false;
 
@@ -42,70 +43,79 @@ async function runEmailIntake(store, ctx = {}) {
   for (const m of items) {
     if (!m || !m.messageId) continue;
     const smid = `gmail-${m.messageId}`;
-    // Dedup — a re-fetched email must not queue twice (publish-time-only = no URL to dedup on).
     if (typeof store.findBySourceMessageId === "function") {
       const existing = await store.findBySourceMessageId(smid);
-      if (existing) { try { await reader.markSeen && reader.markSeen(m.messageId); } catch (e) { /* */ } skipped.push(smid); continue; }
+      if (existing) { try { reader.markSeen && (await reader.markSeen(m.messageId)); } catch (e) { /* */ } skipped.push(smid); continue; }
     }
 
-    // Read the vendor image for (a) a short OFFER LABEL to show the owner and (b) the SCENE/theme
-    // to brief the caption. We brief from the SCENE (not the destination list) + constrain to
-    // "only what Skyline offers", so the model grounds to Skyline's own packages instead of
-    // inventing a route the client doesn't sell (e.g. a Himachal+Ladakh combo). No brand/price.
-    let offer = (m.subject || "").replace(/[^\w\s&,-]/g, " ").replace(/\s+/g, " ").trim();
-    let scene = "";
-    try {
-      if (m.imageSource) {
+    // 1. Read the vendor image → destinations + prices (brand/phone excluded by the prompts).
+    let offer = (m.subject || ""), prices = [];
+    if (m.imageSource) {
+      try {
         const bytes = await resolveImageSourceBytes(m.imageSource, { gmailFetch });
-        const [d, s] = await Promise.all([describeOffer(bytes, ctx.offerOpts || {}), describeImage(bytes, ctx.sceneOpts || {})]);
+        const [d, p] = await Promise.all([describeOffer(bytes, ctx.offerOpts || {}), extractPrices(bytes, ctx.priceOpts || {})]);
         if (d) offer = d;
-        if (s) scene = s;
-      }
-    } catch (e) { /* keep the subject-derived offer */ }
+        prices = p || [];
+      } catch (e) { /* keep subject-derived offer */ }
+    }
 
-    // A SKYLINE idea post — text only (no vendor image). The brief forbids naming the supplier,
-    // its prices, or any other brand, AND tells the model to reference ONLY destinations Skyline
-    // actually offers — the fact-check + SMM keep it grounded in Skyline's own packages.
-    const hint =
-      `A travel supplier is promoting mountain/hill travel right now (scene: ${scene || offer}). ` +
-      `Write a SHORT, warm SKYLINE post that invites people to plan a CUSTOM hill/mountain trip WITH ` +
-      `SKYLINE. Reference ONLY destinations/regions that appear in your own packages — do NOT name ` +
-      `any place you don't offer, the supplier, any prices, or any other brand. End with a WhatsApp CTA.`;
+    // 2. Match to a Skyline package. No match ⇒ Skyline doesn't sell it → skip (silent).
+    const match = matchPackage(offer + " " + (m.subject || ""));
+    if (!match) { try { reader.markSeen && (await reader.markSeen(m.messageId)); } catch (e) { /* */ } held.push({ from: m.from, subject: m.subject, reason: "no Skyline package matches this offer" }); continue; }
+    const pkg = match.pkg;
+    const rp = repricedLine(prices, pkg); // vendor min +10%, or Skyline's own price
+
+    // 3. Build the Skyline card (our logo + real photo + package + repriced price).
+    let cardUrl = "";
+    try {
+      const photo = pickPhoto(fs, PHOTOS, match.slug);
+      const cardBuf = await makeCard({
+        photoPath: photo, logoPath: LOGO,
+        headline: pkg.item, subtitle: String(pkg.route || "").replace(/·/g, "-"),
+        price: rp.line, cta: "WhatsApp us to plan your trip",
+        handle: "@skylinetravelplanner", credit: "Wikimedia CC",
+      });
+      const hosted = await hostImageBytes({ buffer: cardBuf, contentType: "image/jpeg", keyHint: `card-${smid}` });
+      cardUrl = hosted.url;
+    } catch (e) { held.push({ from: m.from, subject: m.subject, reason: "card render/host failed: " + String((e && e.message) || e) }); continue; }
+
+    // 4. Create the row with the CARD as its image, then draft a grounded caption (no vision —
+    //    the card IS the image; the caption complements it and must NOT restate the price).
+    const hint = `Write a SHORT, warm Skyline post about the ${pkg.item} trip (${pkg.route}). Invite people to plan a CUSTOM trip with Skyline and message us on WhatsApp. Do NOT state any price (it's already on the image) and do not name any other company.`;
     const row = await store.create({
       status: "planned", source: "gmail", sourceMessageId: smid, client: ctx.client || "skyline",
       subject: (m.subject || "").slice(0, 80), hint, language: "en",
-      platforms: ["facebook"], // text-only idea → Facebook; IG needs an image the owner attaches
+      platforms: ["instagram", "facebook"], imageUrl: cardUrl, imageSource: { kind: "url", url: cardUrl },
     });
-    try { await reader.markSeen && reader.markSeen(m.messageId); } catch (e) { /* dedup covers a re-fetch */ }
+    try { reader.markSeen && (await reader.markSeen(m.messageId)); } catch (e) { /* dedup covers re-fetch */ }
 
-    // Draft (no image → useVision:false, no enhance). SMM verifies; fact-check keeps it grounded.
     const res = await generateOne(store, row, {
-      runner: "email-idea", facts: ctx.facts, profile: ctx.profile,
-      clientName: ctx.clientName, useVision: false, useSmm: true,
+      runner: "email-card", facts: ctx.facts, profile: ctx.profile, clientName: ctx.clientName,
+      useVision: false, useSmm: true,
     });
     const fresh = await store.get(row.id);
-    if (res.outcome !== "pending" && res.outcome !== "approved") {
-      held.push({ id: fresh.id, outcome: res.outcome, reason: res.reason || fresh.lastError || "" });
-      continue;
-    }
+    // keep the card as the image even if generate cleared/normalised imageUrl
+    if (fresh.imageUrl !== cardUrl) { await store.update(fresh.id, { imageUrl: cardUrl, imageSource: { kind: "url", url: cardUrl } }); fresh.imageUrl = cardUrl; }
+    if (res.outcome !== "pending" && res.outcome !== "approved") { held.push({ id: fresh.id, reason: res.reason || fresh.lastError || "" }); continue; }
+
+    // 5. Send the CARD + full details to the owner on WhatsApp with an approve number.
     const code = shortCode(fresh.id);
-    if (notify && to && ctx.sendText) {
-      // Show WHICH email this came from — subject + when it arrived (IST) — so the owner
-      // can place it at a glance.
-      let received = "";
-      if (m.date) { try { received = new Date(m.date).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", hour: "numeric", minute: "2-digit", hour12: true }) + " IST"; } catch (e) { received = String(m.date); } }
-      const msg =
-        `📧 Vendor email\n` +
-        `   From: ${m.from || "(unknown sender)"}\n` +
-        `   Subject: ${(m.subject || "(no subject)").slice(0, 100)}\n` +
-        (received ? `   Received: ${received}\n` : "") +
-        `   Promoting: ${offer.slice(0, 80)}\n\n` +
-        `Here's a SKYLINE post idea (your brand, not theirs):\n\n${(fresh.caption || "").trim()}\n\n` +
-        `${(fresh.hashtags || []).join(" ")}\n\n` +
-        `✅ approve ${code}  → Facebook text post   |   reject ${code}`;
-      try { await ctx.sendText(to, msg); } catch (e) { /* best-effort */ }
+    let received = "";
+    if (m.date) { try { received = new Date(m.date).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", hour: "numeric", minute: "2-digit", hour12: true }) + " IST"; } catch (e) { received = String(m.date); } }
+    const cap =
+      `🧳 Skyline card ready — from a vendor offer\n` +
+      `   From: ${m.from || "(unknown)"}\n` +
+      `   Subject: ${(m.subject || "(no subject)").slice(0, 90)}\n` +
+      (received ? `   Received: ${received}\n` : "") +
+      `   Package: ${pkg.item} — ${pkg.route}\n` +
+      `   Price on card: ${rp.line}${prices.length ? ` (vendor ${Math.min(...prices).toLocaleString("en-IN")} +10%)` : " (Skyline rate)"}\n\n` +
+      `Caption:\n${(fresh.caption || "").trim()}\n\n` +
+      `✅ approve ${code}  → posts to Instagram + Facebook   |   reject ${code}`;
+    if (notify && to) {
+      try { if (cardUrl && ctx.sendImage) await ctx.sendImage(to, cardUrl, cap.slice(0, 1024)); else if (ctx.sendText) await ctx.sendText(to, cap); }
+      catch (e) { /* best-effort */ }
     }
-    notified.push({ id: fresh.id, code, offer });
+    notified.push({ id: fresh.id, code, package: pkg.item, price: rp.line });
   }
   return { considered: items.length, notified, held, skipped };
 }

@@ -128,7 +128,7 @@ async function runEmailIntake(store, ctx = {}) {
 
     // 4. Create the row (A is the default image). BOTH option URLs ride inside imageSource so the
     //    owner's A/B/both reply can choose which to publish — no Airtable schema change needed.
-    const hint = `Write a SHORT, warm Skyline post about the ${pkg.item} trip (${pkg.route}). Invite people to plan a CUSTOM trip with Skyline and message us on WhatsApp. Do NOT state any price (it's already on the image) and do not name any other company.`;
+    const hint = `Write a SHORT, warm Skyline post inviting people to plan a CUSTOM ${pkg.item} trip with Skyline and message us on WhatsApp. You may name ONLY the destinations in this route: ${pkg.route}. Do NOT invent specific attractions, activities, sights, hotels, meals or day-by-day itinerary — none of those are provided, so they read as fabricated. Keep it about the FEELING/mood + the invitation to plan a custom trip. Do NOT state any price (it's already on the image) and do not name any other company.`;
     const row = await store.create({
       status: "planned", source: "gmail", sourceMessageId: smid, client: ctx.client || "skyline",
       subject: (m.subject || "").slice(0, 80), hint, language: "en",

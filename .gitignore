@@ -24,3 +24,7 @@ social-automation/.env
 # Vercel project link (per-machine)
 .vercel/
 social-automation/.vercel/
+
+# encrypted secrets — never commit (public repo)
+.env.enc
+social-automation/.env.enc

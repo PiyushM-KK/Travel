@@ -80,6 +80,20 @@ module.exports = async (req, res) => {
   let body;
   try { body = JSON.parse(raw || "{}"); } catch { res.status(200).json({ ok: true, ignored: "unparseable" }); return; }
 
+  // TEMP DIAG (remove after image-intake debug): redacted shape only — no message content.
+  try {
+    const { extractIncomingMessage } = require("../automation/whatsapp");
+    const _m = extractIncomingMessage(body);
+    const _v = (body && body.entry && body.entry[0] && body.entry[0].changes && body.entry[0].changes[0] && body.entry[0].changes[0].value) || {};
+    console.log("WH-DIAG " + JSON.stringify({
+      hasMessages: !!_v.messages, hasStatuses: !!_v.statuses,
+      type: _m && _m.type, hasImage: !!(_m && _m.image), imageId: (_m && _m.image && _m.image.id) ? "present" : "absent",
+      textLen: ((_m && _m.text) || "").length,
+      fromLast4: (_m && _m.from) ? String(_m.from).replace(/\D/g, "").slice(-4) : null,
+      authLast4: (process.env.WHATSAPP_TO || "").replace(/\D/g, "").slice(-4),
+    }));
+  } catch (e) { console.log("WH-DIAG-ERR " + String((e && e.message) || e)); }
+
   try {
     const client = loadClient(process.env.SOCIAL_CLIENT || "skyline");
     const { store } = makeStore();
@@ -122,6 +136,7 @@ module.exports = async (req, res) => {
       // hosted at publish time (for an approved post). Publish-time-only hosting.
     });
     // Always 200 to WhatsApp (a non-200 makes Meta retry the delivery repeatedly).
+    console.log("WH-DIAG-OUT " + JSON.stringify(out)); // TEMP DIAG (remove after)
     res.status(200).json({ ok: true, ...out });
   } catch (e) {
     const { redact } = require("../engine/publish");

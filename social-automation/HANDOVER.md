@@ -394,3 +394,41 @@ engine/generate.js (extractPrices/describeOffer/detectForeignBrand/classifyImage
 automation/email-intake.js (card flow) · api/cron-email.js + cron-prep.js · run.js "email" ·
 assets/{Skyline_Logo.jpg, destinations/, fonts/}. Meta: app 1711772623363887, Page
 437743929683019, IG 17841404608201511, never-expiring token in .env+Vercel.
+
+=====================================================================
+2026-08-04 (cont.) — VERCEL RENDER VERIFIED ✅ + DECORATIVE CARD VARIANT
+=====================================================================
+Git HEAD on `main`: 5c628c8 (decor variant + render self-test).
+
+✅ DONE + VERIFIED:
+• DEPLOYED CARD RENDER **VERIFIED ON VERCEL** (the long-open WIP). New guarded endpoint
+  `api/render-selftest.js` (CRON_SECRET Bearer, same auth as the crons) renders a sample card
+  ON the server and reports which renderer fired. Live result on prod:
+  {platform:linux, arch:x64, node v24, satori:{ok:true,~2.16MB,~1s}, makeCard.renderer:"satori(png)"}
+  → the native @resvg/resvg-js linux-x64-gnu binary LOADS + renders on Vercel; the jimp fallback
+  did NOT need to fire; committed destination seeds are readable by the fn. Card generation on the
+  deployed pipeline is proven. Endpoint stays as a permanent health check (fail-closed).
+  Verify anytime: curl -H "Authorization: Bearer $CRON_SECRET" \
+    https://skyline-social-nine.vercel.app/api/render-selftest   (add ?img=1 to get the PNG).
+• DECORATIVE CARD VARIANT (card.js opts.decor): a BRANDED designed backdrop — warm gradient
+  (brown #3D1810 → chili red #E0451F → saffron #F4A21E) + a low-opacity sun/compass motif +
+  legibility gradient — NO real photo, NO AI-faked place. Same overlay (logo, price badge,
+  headline, service icons, WhatsApp button, tagline). decorBackgroundUri() exported; jimp
+  fallback fills warm-brand. This is the honest answer to the owner's "use AI image gen" ask:
+  we do NOT AI-fake real destinations (misleading for a real travel brand); the decor variant
+  gives a photo-free branded look, and an AI *abstract* texture could later drop into it.
+
+🔧 AWAITING OWNER — CARD-STYLE PICK (this is the open item):
+• Owner asked to compare BOTH real-photo and decorative and approve which per destination.
+  Published a comparison Artifact (photo card vs decor card for Royal Rajasthan, Kerala
+  Backwaters, Kashmir Valley, Himachal Hills) with tap-to-pick + copy-picks:
+  https://claude.ai/code/artifact/35dcd0d2-c150-4d9c-aff3-d72ab0f783d5
+  NEXT: when the owner sends picks, wire per-slug style into the card flow (email-intake makeCard
+  passes {decor:true} for decor-picked packages; photo-picked keep photoPath). Consider a small
+  per-slug style map (e.g. in packages.js or a styles.js) that email-intake reads.
+• If owner keeps any REAL-photo slugs: upgrade those seeds to nicer licensed photos (Kerala/
+  Kashmir seeds are a bit dull/overcast; himachal already upgraded). Wikimedia CC / Unsplash /
+  Pexels; keep CREDITS.md updated. Local render helper: scratchpad/render_compare.js.
+
+STILL OWED (unchanged): owner re-encrypt .env (`node automation/secrets.js encrypt`) + ROTATE
+the leaked passphrase; transparent-PNG logo; propagate fixes upstream to FullFirm.

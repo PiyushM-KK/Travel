@@ -475,3 +475,41 @@ pickDecorPhoto(theme) → photoPath path in email-intake once decor images + per
 BETTER LOGO AVAILABLE: Skyline's real logo (buildings+wave+plane, "Your Journey, Our Passion") is on
 the owner's posters — cleaner than the current white-chip assets/Skyline_Logo.jpg. Extract a
 transparent PNG when possible.
+
+=====================================================================
+2026-08-04 (cont.) — TWO-CANDIDATE A/B CARDS (photo + AI scene, owner picks)
+=====================================================================
+Git HEAD on `main`: b3ff33a. Reviewed by Bug Hunter + App Security + QA (all fixes applied).
+
+WHAT SHIPPED (owner path B): each vendor-email offer now produces TWO IG/FB cards from the same
+branded template and WhatsApps BOTH to the owner:
+  • A = real destination photo (assets/destinations seed).
+  • B = a DECORATIVE scene GENERATED per post by OpenAI gpt-image-1 (automation/image-gen.js) from
+    the Skyline scene prompt (scene-prompts.promptForSlug), composited under the Skyline overlay.
+    No key / failure / over the per-run cap ⇒ B falls back to the code-drawn gradient decor.
+Owner replies "A" / "B" / "both" (bare, or with the 4-digit code): A/B sets which card publishes;
+"both" approves A + CLONES an approved B row (dedup-guarded). Plain "approve" = A. All offline-tested
+(tests/check_ab_selection.js, 19 checks). Deployed; render self-test still satori(png) on Vercel.
+
+KEY FILES: automation/image-gen.js (gpt-image-1; timeout; size/magic validation; key redaction),
+engine/card.js (opts.photoBytes background + MIME sniff; opts.badges; DEFAULT_BADGES), email-intake.js
+(A+B build, imageSource.options carrier, per-run cost cap, held-path blob sweep), whatsapp.js
+(parseDecision A/B/both), approve-runner.js (variant apply + clone + blob sweeps), whatsapp-webhook.js
+(tightened code resolver). Data model: both card URLs ride in imageSource.options {A,B} — NO Airtable
+schema change. publish reads imageUrl directly, so options are ignored at publish.
+
+⏳ OWNER SETUP TO ACTIVATE AI SCENES (until then B = gradient, everything else works):
+  • Add OPENAI_API_KEY (SENSITIVE) to .env + Vercel (env.example documents IMAGE_MODEL/SIZE/QUALITY/
+    TIMEOUT + IMAGE_GEN_MAX_PER_RUN cap default 8). Cost: gpt-image-1 ~a few cents/image, one per
+    vendor email (capped/run). Then re-encrypt .env.
+  • MAYBE bump cron-prep/cron-email maxDuration if image-gen (default 45s timeout) + a busy run
+    exceeds 60s. Left at 60 (unsure of Vercel plan cap — raising to 300 risks a deploy error). Vendor
+    emails are rare (0-1/day) so one gen fits 60s; extras fall back to gradient on the time budget.
+
+⚠️ QA DECISION TO CONFIRM WITH OWNER: the card badges USED to say Hotels/Transport/Sightseeing/Meals
+(owner's earlier design). QA flagged Meals/Transport as UNVERIFIABLE on a resold package (and Transport
+brushes the referralOnly rule). Changed the default to GROUNDED Skyline services:
+Hotels · Sightseeing · Custom Trips · 24/7 Support (all on Skyline's own posters). Badges are now
+configurable (card.js opts.badges) — if the owner confirms meals/transport are always included, pass
+them back. Also fixed: Meghalaya scene was a Kerala houseboat (now hills); "photo: AI scene" credit
+(now "AI-generated scene · illustrative" for B, "Photo: <src>" for A).

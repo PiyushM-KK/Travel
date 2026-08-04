@@ -477,6 +477,39 @@ the owner's posters — cleaner than the current white-chip assets/Skyline_Logo.
 transparent PNG when possible.
 
 =====================================================================
+2026-08-04 (cont.) — A/B FLOW LIVE-TESTED END TO END + OpenAI ON
+=====================================================================
+Git HEAD on `main`: 3e19222. OPENAI_API_KEY is set on Vercel + .env (owner). Org verified + project
+model-access enabled for gpt-image-1.
+
+✅ AI SCENES WORKING + LIVE-TESTED. Ran the REAL email→A/B pipeline (real Airtable + WhatsApp + Blob +
+OpenAI) with a Himachal vendor offer → generated the AI scene, built A (real photo) + B (AI scene)
+cards, passed SMM, and SENT BOTH to the owner's WhatsApp (row recv8kepT51rB9dPh, code 1319). The row
+is a real pending_approval, so the owner's A/B/both reply flows through the DEPLOYED webhook → publishes.
+• COST (metered, exact): low quality portrait 1024x1536 = ~$0.0199 (~₹1.8)/image; medium ~$0.067 (~₹5.9);
+  high ~$0.25. **Owner picked LOW** → set as the code default (image-gen.js). One image per vendor email,
+  capped IMAGE_GEN_MAX_PER_RUN=8/run.
+
+✅ TWO REAL FIXES this session (both deployed):
+1. run.js email job did NOT wire sendImage → the A/B card IMAGES never reached WhatsApp (text-only).
+   Fixed (run.js passes sendImage). This was a latent gap in the whole email-card flow, not just A/B.
+2. email-intake caption brief let the writer invent specifics (e.g. "colonial streets, monastery walks")
+   not in facts → the SMM safety-net (correctly) rejected/held it. Tightened the brief to name ONLY the
+   route destinations + mood + invitation, no invented sights/activities/hotels/meals. Now passes SMM.
+
+⚠️ DEPLOYED cron-email LIMITATION (follow-up): the reader only picks up emails with image ATTACHMENTS.
+The current B2B vendor senders (ops11.h2h@gmail.com, holidays.atozholidays.in@proddy.in,
+reservation@resortdecoracao.com, noreply@thesamsaraholidays.in) embed the poster as an INLINE HTML
+image, so /api/cron-email returns considered:0 (nothing to process). THAT is why the live demo was run
+locally (real services) instead of via the deployed trigger. FOLLOW-UP: extend gmail-reader to also
+accept the first substantial INLINE image (skip logos/tracking pixels) so the deployed cron works with
+these vendors. Until then, the deployed path needs a vendor email that ATTACHES its poster.
+LOCAL-DEMO NOTE: BLOB_READ_WRITE_TOKEN isn't in local .env; pull it with `vercel env pull .env.vercel`
+(Sensitive vars come back masked as "[SENSITIVE]" — keep local .env authoritative, take only the
+unmasked Blob token). Delete .env.vercel after. To reprocess a read vendor email for a deployed test:
+mark it UNSEEN via imapflow messageFlagsRemove(uid,["\\Seen"]) — but it still needs an attachment.
+
+=====================================================================
 2026-08-04 (cont.) — TWO-CANDIDATE A/B CARDS (photo + AI scene, owner picks)
 =====================================================================
 Git HEAD on `main`: b3ff33a. Reviewed by Bug Hunter + App Security + QA (all fixes applied).

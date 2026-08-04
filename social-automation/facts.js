@@ -25,6 +25,10 @@ const BUSINESS = {
   name: "Skyline Travel Planner",
   kind: "customized tour operator — India and beyond",
   tagline: "Customized Tours Across India & Beyond",
+  slogan: "Your Journey, Our Passion", // the brand slogan printed on Skyline's own posters
+  positioning: "Domestic Tour Operator", // per Skyline's official marketing material
+  email: "Info@skylinetravelplanner.com",
+  instagram: "@skylinetravelplanner",
 
   // Not shopfronts — the channels a customer actually reaches. The adapter's
   // "locations" shape is reused so the validator can check contact details.

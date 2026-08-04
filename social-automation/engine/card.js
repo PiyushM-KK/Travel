@@ -138,11 +138,15 @@ async function renderSatori(opts) {
         img(whatsappIcon("white"), { width: "34px", height: "34px", marginRight: "12px" }),
         txt({ fontSize: "28px", fontWeight: 600, color: "white" }, opts.cta),
       ]) : box({}),
-      // footer
-      box({ alignItems: "center" }, [
+      // footer — handle + slogan, then the real contact line
+      box({ alignItems: "center", marginBottom: "6px" }, [
         txt({ fontSize: "24px", fontWeight: 600, color: "white" }, opts.handle || "@skylinetravelplanner"),
-        txt({ fontSize: "24px", fontWeight: 400, color: CREAM, marginLeft: "14px" }, "| " + (opts.tagline || "Your journey, our promise")),
+        txt({ fontSize: "24px", fontWeight: 400, color: CREAM, marginLeft: "14px" }, "| " + (opts.tagline || "Your Journey, Our Passion")),
       ]),
+      opts.phone ? box({ alignItems: "center" }, [
+        img(whatsappIcon("#25D366"), { width: "22px", height: "22px", marginRight: "8px" }),
+        txt({ fontSize: "22px", fontWeight: 600, color: CREAM }, opts.phone),
+      ]) : box({}),
     ]),
     opts.credit ? txt({ position: "absolute", right: "16px", bottom: "10px", fontSize: "14px", color: "rgba(255,255,255,0.6)" }, "photo: " + String(opts.credit).slice(0, 30)) : box({}),
   ]);

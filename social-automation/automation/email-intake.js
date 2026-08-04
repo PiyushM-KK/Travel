@@ -23,6 +23,7 @@ const { describeOffer, extractPrices } = require("../engine/generate");
 const { matchPackage, repricedLine } = require("./packages");
 const { makeCard, pickPhoto } = require("../engine/card");
 const { shortCode } = require("./whatsapp");
+const { BUSINESS } = require("../facts");
 
 const ASSETS = path.join(__dirname, "..", "assets");
 const PHOTOS = path.join(ASSETS, "destinations");
@@ -73,8 +74,10 @@ async function runEmailIntake(store, ctx = {}) {
         photoPath: photo, logoPath: LOGO,
         headline: pkg.item, subtitle: pkg.route || "",
         price: rp.main, priceSuffix: rp.suffix, priceShort: rp.short,
-        cta: "WhatsApp us to plan", handle: "@skylinetravelplanner",
-        tagline: "Your journey, our promise", credit: "Wikimedia CC",
+        cta: "WhatsApp us to plan", handle: BUSINESS.instagram || "@skylinetravelplanner",
+        tagline: BUSINESS.slogan || "Your Journey, Our Passion",
+        phone: (BUSINESS.locations && BUSINESS.locations[0] && BUSINESS.locations[0].phone) || "",
+        credit: "Wikimedia CC",
       });
       const hosted = await hostImageBytes({ buffer: cardBuf, contentType: "image/jpeg", keyHint: `card-${smid}` });
       cardUrl = hosted.url;

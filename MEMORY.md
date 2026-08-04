@@ -69,3 +69,27 @@ The repo had drifted into two homepages and two domestic pages, with the *newest
 Stubs use `<meta http-equiv="refresh">` + `location.replace()` + `rel=canonical` + `noindex`, so old links/bookmarks still work without duplicate-content SEO penalties. All internal links across the site were repointed (`Home.dc.html`→`index.html`, `Domestic Tours.dc.html`→`Domestic.dc.html`) and link integrity was verified — 0 broken relative links.
 
 **Note:** a remote branch `copilot/travel-repo-link` exists on GitHub and has NOT been reviewed or merged.
+
+---
+
+## Social Media Automation added (2026-08-01) — see `social-automation/`
+
+A new **`social-automation/`** folder was ADDED to this project (nothing else in the
+Skyline project was changed). It is Skyline's own Instagram + Facebook content
+automation, grounded in Skyline's real packages and fact-checked. Read
+`social-automation/HANDOVER.md` and `social-automation/README.md` first.
+
+- **LIVE:** first real posts (Royal Rajasthan) published on **@skylinetravelplanner**
+  and the Skyline **Facebook Page**. Meta app **1711772623363887** under the Skyline
+  business portfolio. Page ID **437743929683019**, IG user ID **17841404608201511**
+  (≠ business portfolio ID 710114242690946).
+- **`social-automation/engine/`** is a **vendored copy** of the firm's reusable social
+  engine (upstream: FullFirm `SociaMedia_Auto/engine`). Skyline's own logic is only in
+  `facts.js` / `calendar.js` / `profile.js`. Tests: `node social-automation/tests/check_skyline_social.js`.
+- **Live publishing plumbing currently runs on the FIRM's Vercel site + env vars**
+  (OAuth callback + publish endpoints + Skyline's tokens). Migration to Skyline's own
+  infra is planned — until then don't delete the firm-side endpoints.
+- **Pending:** Meta App Review submission (both required calls already made); the
+  automation framework (queue/approval/scheduler/reporting) to be vendored here later.
+- This folder was committed on branch **`add-social-automation`** (not yet merged/pushed).
+- Kept separate from the FullFirm repo on purpose — the two projects are not merged.

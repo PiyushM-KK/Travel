@@ -1,0 +1,24 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [
+    {
+      "path": "/api/cron-prep",
+      "schedule": "0 13 * * *"
+    },
+    {
+      "path": "/api/cron-publish",
+      "schedule": "30 15 * * *"
+    }
+  ],
+  "functions": {
+    "api/cron-prep.js": {
+      "maxDuration": 60
+    },
+    "api/cron-publish.js": {
+      "maxDuration": 60
+    },
+    "api/whatsapp-webhook.js": {
+      "maxDuration": 60
+    }
+  }
+}

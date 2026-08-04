@@ -99,7 +99,10 @@ function regenerateOptsFor(opts) {
     aiEnhancer,
     enhanceBackend: opts.enhanceBackend || require("../engine/enhance-backends").resolveEnhanceBackend(),
     hostImageBytes: opts.hostImageBytes || require("./image-host").hostImageBytes,
-    ...(opts.regenerate != null ? { regenerate: opts.regenerate } : {}),
+    // Enhance is ON by default whenever a provider is wired — the text-safety gate in
+    // generate-runner protects posters (never enhanced/garbled), so it's safe to default on
+    // for every draft path (webhook, Gmail prep, calendar). opts.regenerate:false forces off.
+    regenerate: opts.regenerate != null ? opts.regenerate : true,
     ...(opts.enhancePrompt ? { enhancePrompt: opts.enhancePrompt } : {}),
   };
 }

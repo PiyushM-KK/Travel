@@ -53,6 +53,7 @@ const SENSITIVE_ENV = [
   "BLOB_READ_WRITE_TOKEN", // Vercel Blob RW token — arbitrary shape, value-mask only
   "GMAIL_OAUTH_PRIVATE_KEY", "GMAIL_OAUTH_KEY_JSON", "GMAIL_OAUTH_KEY_B64", // service-account key
   "AI_ENHANCER_KEY", // external AI image-edit provider key (B-22) — arbitrary shape, value-mask only
+  "OPENAI_API_KEY", "IMAGE_API_KEY", // decor scene image-gen key — value-mask + the sk- shape rule below
 ];
 
 function redact(text) {
@@ -73,6 +74,7 @@ function redact(text) {
     .replace(/\b(access_token|fb_exchange_token|client_secret|password|pass)=[^&\s"']+/gi, "$1=[REDACTED]")
     .replace(/EAA[A-Za-z0-9_-]{20,}/g, "[REDACTED_TOKEN]")
     .replace(/sk-ant-[A-Za-z0-9_-]{10,}/g, "[REDACTED_KEY]")
+    .replace(/sk-(?:proj-)?[A-Za-z0-9_-]{20,}/g, "[REDACTED_KEY]") // OpenAI sk-… / sk-proj-… keys
     .replace(/\b(?:pat|key)[A-Za-z0-9]{14,}(?:\.[A-Za-z0-9]+)?\b/g, "[REDACTED_KEY]") // Airtable pat<id>.<secret>
     .replace(/ya29\.[A-Za-z0-9_-]{10,}/g, "[REDACTED_TOKEN]") // Google OAuth2 access token
     .replace(/-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----/g, "[REDACTED_PRIVATE_KEY]")

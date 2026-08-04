@@ -76,7 +76,8 @@ const SCENES = [
 // Map a Skyline destination slug (from packages.photoSlug) to the best-fitting scene theme.
 const SLUG_THEME = {
   "himachal-hills": "hills", "kausani-kumaon": "hills", "sikkim": "hills", "kashmir-valley": "hills",
-  "meghalaya-wonders": "backwaters", "kerala-backwaters": "backwaters",
+  "meghalaya-wonders": "hills", // Meghalaya = hills/waterfalls (NOT Kerala-style backwaters) — QA fix
+  "kerala-backwaters": "backwaters",
   "goa": "beaches", "royal-rajasthan": "heritage", "generic": "generic",
 };
 

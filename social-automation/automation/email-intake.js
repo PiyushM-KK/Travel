@@ -29,14 +29,29 @@ const ASSETS = path.join(__dirname, "..", "assets");
 const PHOTOS = path.join(ASSETS, "destinations");
 const LOGO = path.join(ASSETS, "Skyline_Logo.jpg");
 
+// satori renders PNG, the jimp fallback renders JPEG — label the hosted bytes correctly.
+function ctFor(buf) { return buf && buf.length > 1 && buf[0] === 0x89 && buf[1] === 0x50 ? "image/png" : "image/jpeg"; }
+
 async function runEmailIntake(store, ctx = {}) {
   const reader = ctx.reader;
   if (!reader) throw new Error("runEmailIntake needs a Gmail `reader`");
   const fs = ctx.fs || require("fs");
   const gmailFetch = (uid) => reader.fetchAttachmentBytes(uid);
   const hostImageBytes = ctx.hostImageBytes || require("./image-host").hostImageBytes;
+  const deleteHosted = ctx.deleteHosted || require("./image-host").deleteHosted;
   const to = ctx.notifyTo || process.env.WHATSAPP_TO;
   const notify = ctx.notify !== false;
+
+  // Best-effort sweep of hosted card blobs when a post never reaches an approve/reject decision
+  // (generate held it, etc.) — the email-card flow hosts A+B at DRAFT time, so an abandoned row
+  // would otherwise orphan them. (An orphan sweep is the backstop; this just keeps it tidy.)
+  async function sweepCards(urls) { for (const u of urls) { if (u) { try { await deleteHosted(u, ctx.imageOpts || {}); } catch { /* best-effort */ } } } }
+
+  // COST CAP: generating a fresh gpt-image-1 scene per email is a paid call. Bound how many we
+  // generate per run (the rest fall back to the free gradient decor) so a burst of allow-listed
+  // vendor mail can't run up an unbounded image bill. Gmail already caps items/run (25).
+  const imageGenMax = Number(ctx.imageGenMaxPerRun || process.env.IMAGE_GEN_MAX_PER_RUN || 8);
+  let imageGenUsed = 0;
 
   const items = (await reader.fetchNewImagePosts()) || [];
   const notified = [], held = [], skipped = [];
@@ -66,30 +81,58 @@ async function runEmailIntake(store, ctx = {}) {
     const pkg = match.pkg;
     const rp = repricedLine(prices, pkg); // vendor min +10%, or Skyline's own price
 
-    // 3. Build the Skyline card (our logo + real photo + package + repriced price).
-    let cardUrl = "";
+    // 3. Build BOTH Skyline cards from the SAME branded template:
+    //      A = real destination photo (licensed).
+    //      B = decorative — a FRESHLY GENERATED scene (owner path B, via OPENAI_API_KEY + the
+    //          scene-prompt engine) if an image generator is configured; otherwise the code-drawn
+    //          gradient decor. B is optional: if it fails we still offer A alone.
+    const baseCard = {
+      logoPath: LOGO, headline: pkg.item, subtitle: pkg.route || "",
+      price: rp.main, priceSuffix: rp.suffix, priceShort: rp.short,
+      cta: "WhatsApp us to plan", handle: BUSINESS.instagram || "@skylinetravelplanner",
+      tagline: BUSINESS.slogan || "Your Journey, Our Passion",
+      phone: (BUSINESS.locations && BUSINESS.locations[0] && BUSINESS.locations[0].phone) || "",
+    };
+    let cardUrlA = "";
     try {
       const photo = pickPhoto(fs, PHOTOS, match.slug);
-      const cardBuf = await makeCard({
-        photoPath: photo, logoPath: LOGO,
-        headline: pkg.item, subtitle: pkg.route || "",
-        price: rp.main, priceSuffix: rp.suffix, priceShort: rp.short,
-        cta: "WhatsApp us to plan", handle: BUSINESS.instagram || "@skylinetravelplanner",
-        tagline: BUSINESS.slogan || "Your Journey, Our Passion",
-        phone: (BUSINESS.locations && BUSINESS.locations[0] && BUSINESS.locations[0].phone) || "",
-        credit: "Wikimedia CC",
-      });
-      const hosted = await hostImageBytes({ buffer: cardBuf, contentType: "image/jpeg", keyHint: `card-${smid}` });
-      cardUrl = hosted.url;
-    } catch (e) { held.push({ from: m.from, subject: m.subject, reason: "card render/host failed: " + String((e && e.message) || e) }); continue; }
+      const bufA = await makeCard({ ...baseCard, photoPath: photo, credit: "Photo: Wikimedia CC" });
+      cardUrlA = (await hostImageBytes({ buffer: bufA, contentType: ctFor(bufA), keyHint: `card-a-${smid}` })).url;
+    } catch (e) { held.push({ from: m.from, subject: m.subject, reason: "card A render/host failed: " + String((e && e.message) || e) }); continue; }
 
-    // 4. Create the row with the CARD as its image, then draft a grounded caption (no vision —
-    //    the card IS the image; the caption complements it and must NOT restate the price).
+    let cardUrlB = "", bStyle = "";
+    try {
+      const imageGen = ctx.imageGen || require("./image-gen").resolveImageGen();
+      let bufB;
+      if (imageGen && imageGenUsed < imageGenMax) {
+        const { promptForSlug } = require("./scene-prompts");
+        imageGenUsed++;
+        const gen = await imageGen(promptForSlug(match.slug), ctx.imageGenOpts || {});
+        bufB = await makeCard({ ...baseCard, photoBytes: gen.buffer, credit: "AI-generated scene · illustrative" });
+        bStyle = "AI scene";
+      } else {
+        bufB = await makeCard({ ...baseCard, decor: true });
+        bStyle = "decorative";
+      }
+      cardUrlB = (await hostImageBytes({ buffer: bufB, contentType: ctFor(bufB), keyHint: `card-b-${smid}` })).url;
+    } catch (e) {
+      // B is best-effort. If the generator failed, fall back to the gradient decor; if THAT fails, offer A only.
+      try {
+        const bufB = await makeCard({ ...baseCard, decor: true });
+        cardUrlB = (await hostImageBytes({ buffer: bufB, contentType: ctFor(bufB), keyHint: `card-b-${smid}` })).url;
+        bStyle = "decorative";
+      } catch (e2) { cardUrlB = ""; bStyle = ""; }
+    }
+
+    const options = { A: cardUrlA }; if (cardUrlB) options.B = cardUrlB;
+
+    // 4. Create the row (A is the default image). BOTH option URLs ride inside imageSource so the
+    //    owner's A/B/both reply can choose which to publish — no Airtable schema change needed.
     const hint = `Write a SHORT, warm Skyline post about the ${pkg.item} trip (${pkg.route}). Invite people to plan a CUSTOM trip with Skyline and message us on WhatsApp. Do NOT state any price (it's already on the image) and do not name any other company.`;
     const row = await store.create({
       status: "planned", source: "gmail", sourceMessageId: smid, client: ctx.client || "skyline",
       subject: (m.subject || "").slice(0, 80), hint, language: "en",
-      platforms: ["instagram", "facebook"], imageUrl: cardUrl, imageSource: { kind: "url", url: cardUrl },
+      platforms: ["instagram", "facebook"], imageUrl: cardUrlA, imageSource: { kind: "url", url: cardUrlA, options },
     });
     try { reader.markSeen && (await reader.markSeen(m.messageId)); } catch (e) { /* dedup covers re-fetch */ }
 
@@ -98,28 +141,34 @@ async function runEmailIntake(store, ctx = {}) {
       useVision: false, useSmm: true,
     });
     const fresh = await store.get(row.id);
-    // keep the card as the image even if generate cleared/normalised imageUrl
-    if (fresh.imageUrl !== cardUrl) { await store.update(fresh.id, { imageUrl: cardUrl, imageSource: { kind: "url", url: cardUrl } }); fresh.imageUrl = cardUrl; }
-    if (res.outcome !== "pending" && res.outcome !== "approved") { held.push({ id: fresh.id, reason: res.reason || fresh.lastError || "" }); continue; }
+    // keep card A as the default image even if generate cleared/normalised imageUrl (options preserved)
+    if (fresh.imageUrl !== cardUrlA) { await store.update(fresh.id, { imageUrl: cardUrlA, imageSource: { kind: "url", url: cardUrlA, options } }); fresh.imageUrl = cardUrlA; }
+    if (res.outcome !== "pending" && res.outcome !== "approved") { await sweepCards([cardUrlA, cardUrlB]); held.push({ id: fresh.id, reason: res.reason || fresh.lastError || "" }); continue; }
 
-    // 5. Send the CARD + full details to the owner on WhatsApp with an approve number.
+    // 5. Send BOTH cards + a selection prompt (A / B / both / reject) to the owner on WhatsApp.
     const code = shortCode(fresh.id);
     let received = "";
     if (m.date) { try { received = new Date(m.date).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", hour: "numeric", minute: "2-digit", hour12: true }) + " IST"; } catch (e) { received = String(m.date); } }
-    const cap =
+    const details =
       `🧳 Skyline card ready — from a vendor offer\n` +
       `   From: ${m.from || "(unknown)"}\n` +
       `   Subject: ${(m.subject || "(no subject)").slice(0, 90)}\n` +
       (received ? `   Received: ${received}\n` : "") +
       `   Package: ${pkg.item} — ${pkg.route}\n` +
-      `   Price on card: ${rp.line}${prices.length ? ` (vendor ${Math.min(...prices).toLocaleString("en-IN")} +10%)` : " (Skyline rate)"}\n\n` +
-      `Caption:\n${(fresh.caption || "").trim()}\n\n` +
-      `✅ approve ${code}  → posts to Instagram + Facebook   |   reject ${code}`;
+      `   Price on card: ${rp.line}${prices.length ? ` (vendor ${Math.min(...prices).toLocaleString("en-IN")} +10%)` : " (Skyline rate)"}`;
+    const instr = cardUrlB
+      ? `\n\nReply:\n🅰️ A ${code} → post the real-photo card\n🅱️ B ${code} → post the ${bStyle} card\n➕ both ${code} → post both\n❌ reject ${code}`
+      : `\n\n✅ approve ${code} → posts to Instagram + Facebook   |   ❌ reject ${code}`;
     if (notify && to) {
-      try { if (cardUrl && ctx.sendImage) await ctx.sendImage(to, cardUrl, cap.slice(0, 1024)); else if (ctx.sendText) await ctx.sendText(to, cap); }
-      catch (e) { /* best-effort */ }
+      try {
+        if (ctx.sendImage && cardUrlA) await ctx.sendImage(to, cardUrlA, (details + "\n\n🅰️ REAL PHOTO").slice(0, 1024));
+        if (ctx.sendImage && cardUrlB) await ctx.sendImage(to, cardUrlB, `🅱️ ${bStyle.toUpperCase()} — ${pkg.item} ${pkg.route || ""}`.trim().slice(0, 1024));
+        const tail = `Caption:\n${(fresh.caption || "").trim()}${instr}`;
+        if (ctx.sendText) await ctx.sendText(to, tail.slice(0, 4000));
+        else if (!cardUrlA && ctx.sendImage) { /* nothing to send */ }
+      } catch (e) { /* best-effort */ }
     }
-    notified.push({ id: fresh.id, code, package: pkg.item, price: rp.line });
+    notified.push({ id: fresh.id, code, package: pkg.item, price: rp.line, options: Object.keys(options).join("/"), bStyle });
   }
   return { considered: items.length, notified, held, skipped };
 }

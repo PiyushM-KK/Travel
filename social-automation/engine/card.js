@@ -38,6 +38,17 @@ function dataUri(file, mime) {
   catch (e) { return ""; }
 }
 
+// Sniff an image buffer's MIME from its magic bytes so a data: URI is labelled correctly
+// (satori/resvg won't decode a JPEG mislabelled as PNG → a blank background).
+function bytesMime(buf) {
+  if (!buf || buf.length < 4) return "image/png";
+  if (buf[0] === 0xff && buf[1] === 0xd8) return "image/jpeg";
+  if (buf[0] === 0x89 && buf[1] === 0x50) return "image/png";
+  if (buf[0] === 0x47 && buf[1] === 0x49) return "image/gif";
+  if (buf[0] === 0x52 && buf[1] === 0x49 && buf.length > 11 && buf[8] === 0x57 && buf[9] === 0x45) return "image/webp";
+  return "image/png";
+}
+
 // Line-icons (SVG data URIs). Colour is a param so we can tint per use (white on the photo,
 // dark on the saffron CTA). Each icon MATCHES its label (owner: symbols per meaning).
 function icon(svgInner, stroke) {
@@ -83,14 +94,28 @@ function decorBackgroundUri() {
   return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
 }
 
-// Service icons — each matches what Skyline actually provides (grounded in the package inclusions).
+// Icons for the capability badges. Each matches its label; badges describe SKYLINE'S SERVICES
+// (grounded in Skyline's own marketing), NOT the inclusions of a specific resold package.
 const ICONS = {
   hotel: icon('<path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h.01M9 13h.01M9 17h.01M15 9h.01M15 13h.01M15 17h.01"/>'),   // hotel building
   transport: icon('<path d="M5 17a2 2 0 1 0 4 0 2 2 0 0 0-4 0M15 17a2 2 0 1 0 4 0 2 2 0 0 0-4 0M5 17H3v-6l2-5h9l4 5h1a2 2 0 0 1 2 2v4h-2M9 17h6"/>'),  // car
   sightseeing: icon('<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>'),  // camera
   meals: icon('<path d="M4 3v6a3 3 0 0 0 6 0V3M7 9v12M18 3c-1.5 0-2.5 1.8-2.5 4s1 4 2.5 4v6"/>'),  // fork + knife
+  custom: icon('<circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>'),  // compass — custom trips
+  support: icon('<path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-3v-6h5z"/><path d="M3 19a2 2 0 0 0 2 2h3v-6H3z"/>'),  // headset — 24/7 support
   help: icon('<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.94.36 1.85.7 2.73a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.35-1.35a2 2 0 0 1 2.11-.45c.88.34 1.79.57 2.73.7A2 2 0 0 1 22 16.92z"/>'),  // phone
 };
+
+// Default capability badges = GROUNDED Skyline services (Skyline's own posters: hotels, custom
+// itineraries, sightseeing, 24/7 support). We deliberately DON'T print "Meals" or "Transport": a
+// RESOLD package's inclusions are unverified, and flights/transport refer out (referralOnly). A
+// caller with verified inclusions can override via opts.badges = [{ icon, label }, …].
+const DEFAULT_BADGES = [
+  { icon: ICONS.hotel, label: "Hotels" },
+  { icon: ICONS.sightseeing, label: "Sightseeing" },
+  { icon: ICONS.custom, label: "Custom Trips" },
+  { icon: ICONS.support, label: "24/7 Support" },
+];
 
 /** div helper for the satori element tree. */
 function box(style, children) { return { type: "div", props: { style: { display: "flex", ...style }, ...(children != null ? { children } : {}) } }; }
@@ -107,8 +132,10 @@ function badge(iconSrc, label) {
 async function renderSatori(opts) {
   const satori = require("satori").default || require("satori");
   const { Resvg } = require("@resvg/resvg-js");
-  // decor variant = a branded designed backdrop (no real photo); else the real destination photo.
-  const photo = opts.decor ? decorBackgroundUri() : dataUri(opts.photoPath, "image/jpeg");
+  // background: decor gradient, else in-memory photo bytes (a generated scene), else a photo file.
+  const photo = opts.decor
+    ? decorBackgroundUri()
+    : (opts.photoBytes ? `data:${bytesMime(opts.photoBytes)};base64,${Buffer.from(opts.photoBytes).toString("base64")}` : dataUri(opts.photoPath, "image/jpeg"));
   const logo = dataUri(opts.logoPath, "image/jpeg");
 
   const tree = box({ position: "relative", width: `${W}px`, height: `${H}px`, fontFamily: "Poppins" }, [
@@ -128,11 +155,9 @@ async function renderSatori(opts) {
         txt({ fontSize: "56px", fontWeight: 700, color: SAFFRON, lineHeight: 1 }, opts.price),
         opts.priceSuffix ? txt({ fontSize: "26px", fontWeight: 400, color: CREAM, marginLeft: "10px", marginBottom: "8px" }, opts.priceSuffix) : box({}),
       ]) : box({}),
-      // service badges (what Skyline provides) — icon matches each label
-      box({ marginBottom: "22px", flexWrap: "wrap" }, [
-        badge(ICONS.hotel, "Hotels"), badge(ICONS.transport, "Transport"),
-        badge(ICONS.sightseeing, "Sightseeing"), badge(ICONS.meals, "Meals"),
-      ]),
+      // capability badges — Skyline's services (grounded, not per-package inclusions). Override
+      // per-card with opts.badges = [{ icon, label }, …]; default = DEFAULT_BADGES.
+      box({ marginBottom: "22px", flexWrap: "wrap" }, (opts.badges && opts.badges.length ? opts.badges : DEFAULT_BADGES).map((b) => badge(b.icon, b.label))),
       // WhatsApp CTA button (real WhatsApp green + logo)
       opts.cta ? box({ backgroundColor: "#25D366", borderRadius: "40px", padding: "16px 30px 16px 24px", alignSelf: "flex-start", alignItems: "center", marginBottom: "20px" }, [
         img(whatsappIcon("white"), { width: "34px", height: "34px", marginRight: "12px" }),
@@ -148,7 +173,7 @@ async function renderSatori(opts) {
         txt({ fontSize: "22px", fontWeight: 600, color: CREAM }, opts.phone),
       ]) : box({}),
     ]),
-    opts.credit ? txt({ position: "absolute", right: "16px", bottom: "10px", fontSize: "14px", color: "rgba(255,255,255,0.6)" }, "photo: " + String(opts.credit).slice(0, 30)) : box({}),
+    opts.credit ? txt({ position: "absolute", right: "16px", bottom: "10px", fontSize: "14px", color: "rgba(255,255,255,0.6)" }, String(opts.credit).slice(0, 40)) : box({}),
   ]);
 
   const svg = await satori(tree, { width: W, height: H, fonts: loadFonts() });
@@ -162,7 +187,10 @@ async function renderFallback(opts) {
   const F = require("jimp/fonts");
   let bg;
   if (opts.decor) { bg = new Jimp({ width: W, height: H, color: 0xe0451fff }); } // warm brand fill (rare fallback path)
-  else { try { bg = (await Jimp.read(opts.photoPath)).cover({ w: W, h: H }); } catch (e) { bg = new Jimp({ width: W, height: H, color: 0x1b2a4aff }); } }
+  else {
+    const src = opts.photoBytes || opts.photoPath;
+    try { bg = (await Jimp.read(src)).cover({ w: W, h: H }); } catch (e) { bg = new Jimp({ width: W, height: H, color: 0x1b2a4aff }); }
+  }
   bg.composite(new Jimp({ width: W, height: 600, color: 0x000000b0 }), 0, H - 600);
   const fBig = await loadFont(F.SANS_64_WHITE), fMed = await loadFont(F.SANS_32_WHITE);
   if (opts.headline) bg.print({ font: fBig, x: 60, y: H - 480, text: opts.headline });

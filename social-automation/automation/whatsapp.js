@@ -90,6 +90,18 @@ function shortCode(id) {
 
 function parseDecision(text) {
   const t = String(text || "").trim();
+  // VARIANT selection for two-candidate CARD posts (A = real photo, B = decorative scene). The
+  // owner replies "A"/"B"/"both" (or "photo"/"scene"/"decor"), bare or with a code: "B 4821".
+  // These are APPROVALS that also choose which image publishes; a plain "approve" defaults to A.
+  const vm = t.match(/^\s*(a|b|both|photo|scene|decor)\b[\s:]*(\S+)?\s*$/i);
+  if (vm) {
+    const variant = { a: "A", photo: "A", b: "B", scene: "B", decor: "B", both: "both" }[vm[1].toLowerCase()];
+    const vid = vm[2];
+    if (!vid) return { id: null, decision: { action: "approve", variant } };
+    // Only treat a following token as a queue ref when it looks like one (rec… id or a code w/ digit).
+    if (/^rec[A-Za-z0-9]{4,}$/i.test(vid) || /[_\d]/.test(vid)) return { id: vid, decision: { action: "approve", variant } };
+    return null; // a word follows ("scene of the crime") — not a command
+  }
   const m = t.match(/^\s*(approve|reject|hold|edit|yes|no|ok)\b[\s:]*(\S+)?\s*([\s\S]*)$/i);
   if (!m) return null;
   let verb = m[1].toLowerCase();
@@ -160,8 +172,8 @@ async function handleInbound(body, ctx = {}) {
   if (parsed) {
     const result = await ctx.applyDecision(parsed.id, parsed.decision);
     const note = result.ok
-      ? `✅ ${parsed.id} → ${result.status}`
-      : `⚠️ ${parsed.id}: ${result.error || (result.errors || []).join("; ")}`;
+      ? `✅ ${parsed.id || "post"} → ${result.status}${result.variant ? ` (${result.variant === "both" ? "posting both A + B" : "option " + result.variant})` : ""}${result.warn ? `\n⚠️ ${result.warn}` : ""}`
+      : `⚠️ ${parsed.id || ""}: ${result.error || (result.errors || []).join("; ")}`;
     if (ctx.reply) await ctx.reply(msg.from, note);
     return { action: "decision", id: parsed.id, result };
   }

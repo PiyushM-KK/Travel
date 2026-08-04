@@ -96,7 +96,9 @@ module.exports = async (req, res) => {
         try { pending = (await store.listByStatus("pending_approval")) || []; } catch { pending = []; }
         let realId = null;
         if (id && /^rec[A-Za-z0-9]{4,}$/i.test(id)) realId = id;
-        else if (id) { const hit = pending.find((r) => shortCode(r.id) === String(id).trim() || String(r.id).toLowerCase().endsWith(String(id).toLowerCase())); realId = hit && hit.id; }
+        // Match ONLY the exact 4-digit shortCode — a loose endsWith on the typed digits could
+        // resolve a fat-fingered number ("42") to an unrelated rec…42 row and act on it.
+        else if (id) { const hit = pending.find((r) => shortCode(r.id) === String(id).trim()); realId = hit && hit.id; }
         else if (pending.length === 1) realId = pending[0].id;
         else if (pending.length > 1) {
           const list = pending.map((r) => `• ${shortCode(r.id)} — ${String(r.caption || r.subject || r.hint || "post").slice(0, 40)}`).join("\n");

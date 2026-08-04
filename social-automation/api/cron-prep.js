@@ -45,7 +45,14 @@ module.exports = async (req, res) => {
   try {
     const clientId = process.env.SOCIAL_CLIENT || "skyline";
     const out = await runJob({ job: "prep", clientId, runner: "vercel-prep" });
-    res.status(out.ok ? 200 : 500).json({ runner: "vercel", ...out });
+    // Also run the #3 VENDOR-EMAIL idea flow in the same daily pass (folded in so we don't
+    // need a 3rd Vercel cron on the Hobby plan). It turns new vendor offers into Skyline post
+    // IDEAS and WhatsApps them to the owner; it never publishes and never posts a vendor poster.
+    // A failure here must not fail the prep response — surface it as email.error.
+    let email;
+    try { email = (await runJob({ job: "email", clientId, runner: "vercel-email" })).email; }
+    catch (e) { email = { error: redact(String((e && e.message) || e)) }; }
+    res.status(out.ok ? 200 : 500).json({ runner: "vercel", ...out, email });
   } catch (e) {
     // Never leak a secret in an error surfaced to the caller (all shapes).
     res.status(500).json({ runner: "vercel", ok: false, error: redact(String((e && e.message) || e)) });

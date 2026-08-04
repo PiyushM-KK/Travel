@@ -77,6 +77,17 @@ async function sendImage(to, link, caption, opts = {}) {
  *   edit <id> <new caption>   (an edit is an approve with a new caption)
  * Returns null if it isn't a recognised command.
  */
+/**
+ * shortCode — a stable, easy-to-type 4-digit approval code derived from a row id, so the
+ * owner can reply "approve 4821" instead of a long Airtable id. Deterministic: the same row
+ * always maps to the same code (the webhook re-derives it over the pending rows to resolve it).
+ */
+function shortCode(id) {
+  let h = 0; const s = String(id || "");
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return String(1000 + (h % 9000));
+}
+
 function parseDecision(text) {
   const t = String(text || "").trim();
   const m = t.match(/^\s*(approve|reject|hold|edit|yes|no|ok)\b[\s:]*(\S+)?\s*([\s\S]*)$/i);
@@ -84,16 +95,23 @@ function parseDecision(text) {
   let verb = m[1].toLowerCase();
   const id = m[2];
   const rest = (m[3] || "").trim();
-  if (!id) return null;
-  // Guard against an ordinary sentence that happens to open with a command word
-  // ("no rush, post the diwali pic", "hold on a sec", "yes this one"): only treat
-  // it as a command when the token after the verb actually looks like a queue id —
-  // an Airtable rec… id, or an in-memory id that carries a digit/underscore. A real
-  // id always matches one of those; an English word doesn't. Otherwise it falls
-  // through to INTAKE so the note/photo is still queued rather than mis-parsed.
+  const norm = (v) => (v === "yes" || v === "ok" ? "approve" : v === "no" ? "reject" : v);
+  // BARE decision — the message is just "approve" / "yes" / "hold" / "reject" (no target).
+  // It applies to the single post awaiting approval (the webhook resolves id=null). "edit"
+  // always needs a target + new text, so it can't be bare.
+  if (!id) {
+    verb = norm(verb);
+    if (verb === "edit") return null;
+    if (verb === "approve") return { id: null, decision: { action: "approve" } };
+    if (verb === "reject") return { id: null, decision: { action: "reject", reason: "" } };
+    if (verb === "hold") return { id: null, decision: { action: "hold", reason: "" } };
+    return null;
+  }
+  // A token follows the verb. Only treat it as a queue REF when it looks like one — an
+  // Airtable rec… id, or a short code carrying a digit/underscore (our 4-digit codes do).
+  // An English word ("no rush…", "hold on a sec", "yes this one") is NOT a ref → not a command.
   if (!/^rec[A-Za-z0-9]{4,}$/i.test(id) && !/[_\d]/.test(id)) return null;
-  if (verb === "yes" || verb === "ok") verb = "approve";
-  if (verb === "no") verb = "reject";
+  verb = norm(verb);
   if (verb === "edit") return { id, decision: { action: "approve", caption: rest } };
   if (verb === "approve") return { id, decision: { action: "approve" } };
   if (verb === "reject") return { id, decision: { action: "reject", reason: rest } };
@@ -203,4 +221,4 @@ function sameNumber(a, b) {
   return !!da && !!db && da.slice(-10) === db.slice(-10);
 }
 
-module.exports = { waSend, sendText, sendImage, parseDecision, extractIncomingMessage, handleInbound, verifySignature, sameNumber };
+module.exports = { waSend, sendText, sendImage, parseDecision, shortCode, extractIncomingMessage, handleInbound, verifySignature, sameNumber };

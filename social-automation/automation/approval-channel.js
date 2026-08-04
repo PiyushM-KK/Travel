@@ -11,9 +11,12 @@
  */
 
 /** Render one queue row into the fields a human needs to decide. */
+const { shortCode } = require("./whatsapp");
+
 function digestItem(row) {
   return {
     id: row.id,
+    code: shortCode(row.id), // friendly 4-digit approval number (easy to type)
     client: row.client || "",
     language: row.language || "en",
     caption: row.caption || "",
@@ -29,12 +32,14 @@ function digestItem(row) {
 function renderDigestText(items) {
   const lines = [`${items.length} post${items.length === 1 ? "" : "s"} awaiting your approval:`, ""];
   items.forEach((it, i) => {
-    lines.push(`${i + 1}. [${it.id}] (${it.language}) -> ${(it.platforms || []).join(", ")}`);
+    const code = it.code || it.id;
+    lines.push(`📌 POST #${code}  (${it.language}) → ${(it.platforms || []).join(", ")}`);
     if (it.photoDescription) lines.push(`   photo: ${it.photoDescription}`);
     lines.push(`   ${it.caption}`);
     if (it.hashtags && it.hashtags.length) lines.push(`   ${it.hashtags.join(" ")}`);
     if (it.warnings) lines.push(`   ⚠ ${it.warnings}`);
-    lines.push(`   reply: approve ${it.id} | edit ${it.id} <new caption> | reject ${it.id}`);
+    lines.push(`   ✅ Reply:  approve ${code}   |   reject ${code}   |   edit ${code} <new caption>`);
+    if (items.length === 1) lines.push(`   (or just reply "approve" — this is the only one waiting)`);
     lines.push("");
   });
   return lines.join("\n");

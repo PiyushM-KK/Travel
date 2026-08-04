@@ -85,7 +85,26 @@ module.exports = async (req, res) => {
     const { store } = makeStore();
     const out = await handleInbound(body, {
       authorizedNumber: process.env.WHATSAPP_TO,
-      applyDecision: (id, decision) => applyDecision(store, id, decision, { facts: client.facts, profile: client.profile }),
+      // Resolve a friendly reference to the real row id, THEN apply the decision:
+      //   • no id ("approve"/"yes")  -> the single post awaiting approval
+      //   • a 4-digit code ("4821")  -> the matching pending post (shortCode)
+      //   • a full rec… id           -> used directly
+      // Ambiguous (bare word + several waiting) -> list the numbers, apply nothing.
+      applyDecision: async (id, decision) => {
+        const { shortCode } = require("../automation/whatsapp");
+        let pending = [];
+        try { pending = (await store.listByStatus("pending_approval")) || []; } catch { pending = []; }
+        let realId = null;
+        if (id && /^rec[A-Za-z0-9]{4,}$/i.test(id)) realId = id;
+        else if (id) { const hit = pending.find((r) => shortCode(r.id) === String(id).trim() || String(r.id).toLowerCase().endsWith(String(id).toLowerCase())); realId = hit && hit.id; }
+        else if (pending.length === 1) realId = pending[0].id;
+        else if (pending.length > 1) {
+          const list = pending.map((r) => `• ${shortCode(r.id)} — ${String(r.caption || r.subject || r.hint || "post").slice(0, 40)}`).join("\n");
+          return { ok: false, error: `You have ${pending.length} posts waiting. Reply with the number, e.g. "approve ${shortCode(pending[0].id)}":\n${list}` };
+        }
+        if (!realId) return { ok: false, error: id ? `No waiting post matches "${id}". Reply "approve <number>".` : "Nothing is waiting for approval right now." };
+        return applyDecision(store, realId, decision, { facts: client.facts, profile: client.profile });
+      },
       intake: (item) => intakeDirect(store, { client: client.id, ...item }),
       // DRAFT-ON-INTAKE: with an API key, Claude writes + fact-checks the post right
       // away and we send it straight back to approve. Without a key, returns null and

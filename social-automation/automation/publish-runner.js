@@ -58,9 +58,19 @@ async function ensureHostedImage(store, claimed, ctx) {
   if (ctx.enhanceBackend && ctx.useEnhance !== false) {
     const { enhanceImage } = require("../engine/enhance-image");
     const primary = (claimed.platforms && claimed.platforms[0]) || "instagram";
-    const en = await enhanceImage({ buffer, contentType }, { platform: primary, mode: "safe", backend: ctx.enhanceBackend, quality: ctx.enhanceQuality });
+    // A GRAPHIC/poster must NEVER be cropped (it would slice off the headline, prices or logo)
+    // → PAD it (whole image on a blurred bg). A PHOTO fills the frame (cover). Classify the
+    // bytes; classifyImageForEnhance returns "graphic" on any doubt/no-API-key, so the safe
+    // default is pad (never crop). Enhanced photos already carry imageUrl and skip this path.
+    let fit = "pad";
+    try {
+      const { classifyImageForEnhance } = require("../engine/generate");
+      fit = (await classifyImageForEnhance({ buffer, contentType }, ctx.classifyOpts || {})) === "photo" ? "cover" : "pad";
+    } catch { fit = "pad"; }
+    const en = await enhanceImage({ buffer, contentType }, { platform: primary, mode: "safe", backend: ctx.enhanceBackend, quality: ctx.enhanceQuality, fit });
     if (en.enhanced) { buffer = en.buffer; contentType = en.contentType; }
   }
+
   const hosted = await host({ buffer, contentType, keyHint: `pub-${claimed.id}` }, ctx.imageOpts || {});
   await store.update(claimed.id, { imageUrl: hosted.url });   // persist so a retry reuses it
   claimed.imageUrl = hosted.url;

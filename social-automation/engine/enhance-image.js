@@ -200,10 +200,13 @@ async function enhanceImage(input, opts = {}) {
       return passthrough(note + `image too large to enhance safely (${dims.width}×${dims.height} > ${maxMp}MP) — original used`);
     }
 
-    // 3) DETERMINISTIC safe-enhance (always): cover-fit + normalize + jpeg (+ sharpen where
-    //    supported). The backend reports what it ACTUALLY did; we never over-claim an op.
+    // 3) DETERMINISTIC safe-enhance (always). The caller chooses the FIT: a PHOTO cover-fits
+    //    (fills the 4:5 frame, a small crop is fine); a GRAPHIC/poster uses "pad" so its
+    //    headline/prices/logo are never cropped. Default is cover; the publish path classifies
+    //    the image and passes fit:"pad" for graphics.
+    const fit = opts.fit || target.fit || "cover";
     const res = await backend.transform(working, {
-      width: target.width, height: target.height, fit: target.fit || "cover",
+      width: target.width, height: target.height, fit,
       sharpen: true, normalize: true, quality, format: "jpeg", maxMegapixels: maxMp,
     });
     const buffer = Buffer.isBuffer(res) ? res : res && res.buffer;

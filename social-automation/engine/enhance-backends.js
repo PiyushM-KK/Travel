@@ -20,18 +20,34 @@ function jimpBackend() {
       const img = await Jimp.read(buffer);
       const opsApplied = [];
       const w = Number(opts.width), h = Number(opts.height);
+      const fit = opts.fit || "cover";
+      let work = img;
       if (w && h) {
-        if ((opts.fit || "cover") === "cover") { img.cover({ w, h }); opsApplied.push("cover-fit"); }
+        if (fit === "pad") {
+          // PAD (contain over a blurred, cover-scaled copy of itself) — shows the WHOLE image
+          // with no cropping, so a poster/graphic keeps its headline, prices and logo. The
+          // blurred fill looks clean (vs black bars). Used for images whose aspect is far from
+          // the target, where cover-fit would crop off real content.
+          const bg = img.clone().cover({ w, h }).blur(18);
+          const fg = img.clone().scaleToFit({ w, h });
+          const x = Math.round((w - fg.bitmap.width) / 2), y = Math.round((h - fg.bitmap.height) / 2);
+          bg.composite(fg, x, y);
+          work = bg;
+          opsApplied.push("pad-fit");
+        } else if (fit === "cover") { img.cover({ w, h }); opsApplied.push("cover-fit"); }
         else { img.contain({ w, h }); opsApplied.push("contain-fit"); }
       }
-      if (opts.normalize && typeof img.normalize === "function") { img.normalize(); opsApplied.push("normalize"); }
-      // sharpen is best-effort: jimp v1 core has no .sharpen(); apply a mild unsharp via
-      // convolute if available, else skip (and don't claim it).
-      if (opts.sharpen && typeof img.convolute === "function") {
-        try { img.convolute([[0, -0.2, 0], [-0.2, 1.8, -0.2], [0, -0.2, 0]]); opsApplied.push("sharpen"); } catch { /* skip */ }
+      // For a PADDED graphic, don't normalize/sharpen — preserve the design exactly.
+      if (fit !== "pad") {
+        if (opts.normalize && typeof work.normalize === "function") { work.normalize(); opsApplied.push("normalize"); }
+        // sharpen is best-effort: jimp v1 core has no .sharpen(); apply a mild unsharp via
+        // convolute if available, else skip (and don't claim it).
+        if (opts.sharpen && typeof work.convolute === "function") {
+          try { work.convolute([[0, -0.2, 0], [-0.2, 1.8, -0.2], [0, -0.2, 0]]); opsApplied.push("sharpen"); } catch { /* skip */ }
+        }
       }
       const quality = Math.max(1, Math.min(100, Number(opts.quality) || 82));
-      const out = await img.getBuffer("image/jpeg", { quality });
+      const out = await work.getBuffer("image/jpeg", { quality });
       opsApplied.push("jpeg");
       return { buffer: out, opsApplied };
     },

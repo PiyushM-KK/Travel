@@ -96,6 +96,7 @@ async function runEmailIntake(store, ctx = {}) {
       if (m.date) { try { received = new Date(m.date).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", hour: "numeric", minute: "2-digit", hour12: true }) + " IST"; } catch (e) { received = String(m.date); } }
       const msg =
         `📧 Vendor email\n` +
+        `   From: ${m.from || "(unknown sender)"}\n` +
         `   Subject: ${(m.subject || "(no subject)").slice(0, 100)}\n` +
         (received ? `   Received: ${received}\n` : "") +
         `   Promoting: ${offer.slice(0, 80)}\n\n` +

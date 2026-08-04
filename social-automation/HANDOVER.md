@@ -432,3 +432,46 @@ Git HEAD on `main`: 5c628c8 (decor variant + render self-test).
 
 STILL OWED (unchanged): owner re-encrypt .env (`node automation/secrets.js encrypt`) + ROTATE
 the leaked passphrase; transparent-PNG logo; propagate fixes upstream to FullFirm.
+
+=====================================================================
+2026-08-04 (cont.) — GROUNDED BRAND FIX + SCENE-PROMPT ENGINE
+=====================================================================
+Git HEAD on `main`: 32520b5. Owner sent Skyline's OWN 4 posters (mascot illustrations + a real
+Kerala photo poster) + a master image-gen prompt, and said: decor cards are too basic (make richer
+like the posters), enhance the real photos, and MODIFY the master prompt so its Scene is a variable.
+
+✅ DONE:
+• GROUNDED BRAND on every card (from Skyline's real posters): facts.js gained slogan
+  "Your Journey, Our Passion", positioning "Domestic Tour Operator", email Info@skylinetravelplanner.com,
+  instagram @skylinetravelplanner. card.js footer now shows the real slogan + the contact number
+  (WhatsApp glyph + "+91 88660 50291", already grounded in facts.locations[0].phone). email-intake
+  passes BUSINESS.slogan/phone/instagram. (Old card said "Your journey, our promise" — WRONG, fixed.)
+• SCENE-PROMPT ENGINE — automation/scene-prompts.js: the owner's ultra-realistic master prompt,
+  MODIFIED so the SCENE is a rotating VARIABLE. MASTER_TEMPLATE (photographic-quality spec, tuned to
+  4:5 with negative space for the overlay, no text/logos in-image) + SCENES (13 generic, aspirational,
+  themed scenes) + SLUG_THEME + composePrompt/pickScene/promptForSlug → a fresh on-brand prompt EVERY
+  time. Human-readable copy: assets/Master-Prompt-Skyline-Decor.md. Original owner prompt kept at
+  assets/Master Prompt — Ultra-Realistic T.txt (still UNTRACKED — owner may commit it).
+  HONESTY GUARDRAIL baked in: scenes are generic travel MOOD, NOT a specific identifiable real
+  landmark passed off as a real photo (project rule "never AI-fake a real place"). Specific
+  destinations → REAL licensed photo; generated scenes → decorative backdrops only.
+• assets/decor/ drop-folder + README (naming <theme>-NN.jpg) for generated scenes.
+
+🔧 OPEN (owner):
+• STYLE PICKS still pending — the photo-vs-decor comparison Artifact:
+  https://claude.ai/code/artifact/35dcd0d2-c150-4d9c-aff3-d72ab0f783d5  (decor there = the plain
+  gradient; the richer generated-scene decor comes from the scene-prompt engine once images exist).
+• GENERATE DECOR IMAGES — two paths (owner's call): (A) MANUAL prompt-pack (ready now): run the
+  composed prompts in ChatGPT/image tool, save to assets/decor/<theme>-NN.jpg. (B) AUTO image-API:
+  wire a provider (e.g. OpenAI gpt-image-1) into the card flow to auto-generate per post — needs an
+  image API key + per-image cost. NOTE: I cannot generate images inside this tool.
+• ENHANCE REAL PHOTOS: upgrade the seed destination photos (Kerala/Kashmir seeds are dull) to
+  higher-quality licensed shots like the owner's Kerala aerial poster.
+
+NOT YET WIRED (blocked on picks + images existing): using an assets/decor/<theme>-NN.jpg generated
+scene as a real-photo-quality decorative card background (falls back to the gradient decor). Add a
+pickDecorPhoto(theme) → photoPath path in email-intake once decor images + per-slug style choices land.
+
+BETTER LOGO AVAILABLE: Skyline's real logo (buildings+wave+plane, "Your Journey, Our Passion") is on
+the owner's posters — cleaner than the current white-chip assets/Skyline_Logo.jpg. Extract a
+transparent PNG when possible.

@@ -28,3 +28,5 @@ social-automation/.vercel/
 # encrypted secrets — never commit (public repo)
 .env.enc
 social-automation/.env.enc
+.vercel
+.env*

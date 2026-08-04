@@ -167,3 +167,58 @@ Skyline's OWN Airtable base (Queue w/ ImageSource + SourceMessageId), WhatsApp, 
 See README "The automation framework is now vendored — but DORMANT" + env.example.
 Skyline publishing still runs LIVE on the firm `site` project until this instance is
 activated + a Skyline Vercel project is stood up.
+
+=====================================================================
+2026-08-03 — DEPLOYED LIVE (its own instance) — resume at Step 4
+=====================================================================
+Skyline's social automation now runs on ITS OWN Vercel project (Path A, repo-split honoured).
+It is DEPLOYED and DRY-RUN (nothing publishes until SOCIAL_LIVE is set).
+
+WHAT'S LIVE:
+- Code re-vendored to the current firm pipeline (enhance-image/enhance-backends/ai-enhancer/
+  net-guard + all fixes). Code is on **`main`** (merged from `add-social-automation`), pushed
+  to GitHub PiyushM-KK/Travel. PUBLIC repo — NO secrets committed (`.env.enc` is gitignored +
+  untracked; verified). package-lock.json present.
+- Vercel project **`skyline-social`** (team full-firm) → deploys from GitHub **main**, **Root
+  Directory = `social-automation`**, Application Preset = Other. Production:
+  **https://skyline-social-nine.vercel.app**. Functions live: /api/whatsapp-webhook,
+  /api/cron-prep, /api/cron-publish (all 403 without auth = up + fail-closed). Daily crons
+  from vercel.json (0 13 / 30 15 UTC).
+- **Own Airtable base `appSzwvIFBzjROooT`** ("Skyline Social", Queue+Runs schema verified
+  field-by-field, tables emptied). Scoped Airtable PAT (data r/w + schema, Skyline base only).
+- **Own public Blob store `skyline-social-images`** (store_zmVl8VStnUNTZ9rL, iad1) connected →
+  BLOB_READ_WRITE_TOKEN auto-injected.
+- **All 17 env vars set** on the project: AIRTABLE_API_KEY, AIRTABLE_BASE_ID, ANTHROPIC_API_KEY,
+  SOCIAL_CLIENT=skyline, META_PAGE_ID/IG_USER_ID/PAGE_TOKEN (reused from the firm `site`
+  project — same Skyline IG @skylinetravelplanner + FB Page), WHATSAPP_* (5), GMAIL_USER/
+  APP_PASSWORD/ALLOWED_SENDERS, GMAIL_SINCE_DAYS=2, CRON_SECRET (random, generated),
+  BLOB_READ_WRITE_TOKEN. **SOCIAL_LIVE is ABSENT on purpose** (the live gate — set to "true"
+  ONLY at the supervised first publish, then decide whether to keep it).
+- verify-live PASSED Airtable (round-trip) + WhatsApp (a test message was sent to the owner).
+
+LOCAL DEV NOTES for the next agent:
+- `.env(.enc)` lives in `social-automation/` (the deployment dir) — load-env/secrets were
+  fixed to look there (not the website repo root). Local runs need SECRETS_PASSPHRASE.
+- The env-push tool: from `social-automation`, `vercel link` (pick skyline-social) then
+  `node automation/push-env-to-vercel.js skyline-social`. (Fixed: it no longer uses a
+  `--cwd` flag, which broke on the spaced path.)
+- To redeploy WITHOUT a local .vercel: `vercel redeploy <prod-deployment-url>` (rebuilds from
+  GitHub + current env). Do NOT `vercel --prod` from a stray linked dir.
+
+PENDING — RESUME HERE (Step 4 → Step 5):
+- **Step 4 (intake):** repoint the Meta WhatsApp webhook (app 1058870697004437) →
+  Callback URL `https://skyline-social-nine.vercel.app/api/whatsapp-webhook`, Verify Token =
+  Skyline's WHATSAPP_VERIFY_TOKEN, subscribe messages. Then a photo → a Skyline draft →
+  reply "approve <id>". (Alt: Gmail — the daily cron-prep reads GMAIL_ALLOWED_SENDERS.) A
+  PUBLISHABLE post needs a REAL image (WhatsApp photo / Gmail attachment); calendar ideas are
+  photo-BRIEFS and QA holds them by design.
+- **Step 5 (supervised first publish):** one image post → approved → set SOCIAL_LIVE=true →
+  publish (run.js publish, or cron-publish with CRON_SECRET, or the daily cron) → verify it
+  posts to @skylinetravelplanner IG + FB → decide on leaving SOCIAL_LIVE on.
+- NOT YET TESTED LIVE: the deployed intake→generate→approve→publish pipeline. Offline tests
+  green. First live exercise is Step 4/5.
+
+OWNER OWES: encrypt+delete the plaintext `.env` (`secrets.js encrypt ; Remove-Item .env`);
+ROTATE the passphrase (leaked in chat); optional B-22 (AI image provider) to enable
+AI-regenerate. AI image-enhance is NOT active — posts publish the image as-is (safe-enhance
+resizes/cleans via jimp at publish; AI restyle is dormant until a provider is wired).

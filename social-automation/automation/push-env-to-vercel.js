@@ -70,8 +70,10 @@ const DEPLOY_VARS = [
 function vercel(args, input) {
   // shell:true so Windows resolves `vercel` (a .cmd); the secret goes via stdin,
   // never as an argument, so shell metacharacters in a value can't matter.
-  // --cwd pins the target project via SociaMedia_Auto/.vercel.
-  return spawnSync("vercel", [...args, "--cwd", LINKED_DIR], { input, encoding: "utf8", shell: true });
+  // Run vercel IN the linked dir (spawn cwd option) so it targets that dir's .vercel
+  // project — NOT a `--cwd <path>` flag, which breaks on paths containing spaces
+  // (e.g. "…\Skyline Travel Planner Launch\…" -> "at set cwd" error).
+  return spawnSync("vercel", args, { input, encoding: "utf8", shell: true, cwd: LINKED_DIR });
 }
 
 function main() {

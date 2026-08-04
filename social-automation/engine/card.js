@@ -49,6 +49,40 @@ function whatsappIcon(fill) {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 24 24" fill="${fill || "#25D366"}"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.263.489 1.694.625.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12.05 21.785h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.885-9.885 9.885zM20.463 3.488A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>`;
   return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
 }
+/**
+ * A BRANDED DECORATIVE background (data URI) for the "no real photo" card variant. It is a
+ * DESIGNED graphic in Skyline's warm palette (brown → chili red → saffron) with a sun/compass
+ * travel motif — NOT a depiction of any real place, so it never AI-fakes a destination. The
+ * headline + branding still name the real package; only the backdrop is decorative. If the owner
+ * later prefers an AI abstract texture, it can be dropped into the same variant.
+ */
+function decorBackgroundUri() {
+  const cx = 864, cy = 243; // sun anchor, upper-right
+  let rays = "";
+  for (let i = 0; i < 24; i++) {
+    const a = (i / 24) * Math.PI * 2;
+    rays += `<line x1="${cx}" y1="${cy}" x2="${(cx + Math.cos(a) * 1500).toFixed(0)}" y2="${(cy + Math.sin(a) * 1500).toFixed(0)}"/>`;
+  }
+  let arcs = "";
+  for (const r of [150, 300, 470, 650, 850]) arcs += `<circle cx="${cx}" cy="${cy}" r="${r}"/>`;
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">` +
+    `<defs>` +
+    `<linearGradient id="g" x1="0" y1="0" x2="1" y2="1">` +
+    `<stop offset="0" stop-color="#3D1810"/><stop offset="0.5" stop-color="#E0451F"/><stop offset="1" stop-color="#F4A21E"/>` +
+    `</linearGradient>` +
+    `<radialGradient id="sun" cx="0.8" cy="0.18" r="0.55">` +
+    `<stop offset="0" stop-color="#F7C645" stop-opacity="0.6"/><stop offset="1" stop-color="#F7C645" stop-opacity="0"/>` +
+    `</radialGradient>` +
+    `</defs>` +
+    `<rect width="${W}" height="${H}" fill="url(#g)"/>` +
+    `<rect width="${W}" height="${H}" fill="url(#sun)"/>` +
+    `<g stroke="#FFF7EC" stroke-opacity="0.07" stroke-width="2" fill="none">${rays}</g>` +
+    `<g stroke="#FFF7EC" stroke-opacity="0.10" stroke-width="3" fill="none">${arcs}</g>` +
+    `</svg>`;
+  return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
+}
+
 // Service icons — each matches what Skyline actually provides (grounded in the package inclusions).
 const ICONS = {
   hotel: icon('<path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h.01M9 13h.01M9 17h.01M15 9h.01M15 13h.01M15 17h.01"/>'),   // hotel building
@@ -73,7 +107,8 @@ function badge(iconSrc, label) {
 async function renderSatori(opts) {
   const satori = require("satori").default || require("satori");
   const { Resvg } = require("@resvg/resvg-js");
-  const photo = dataUri(opts.photoPath, "image/jpeg");
+  // decor variant = a branded designed backdrop (no real photo); else the real destination photo.
+  const photo = opts.decor ? decorBackgroundUri() : dataUri(opts.photoPath, "image/jpeg");
   const logo = dataUri(opts.logoPath, "image/jpeg");
 
   const tree = box({ position: "relative", width: `${W}px`, height: `${H}px`, fontFamily: "Poppins" }, [
@@ -121,7 +156,9 @@ async function renderSatori(opts) {
 async function renderFallback(opts) {
   const { Jimp, loadFont } = require("jimp");
   const F = require("jimp/fonts");
-  let bg; try { bg = (await Jimp.read(opts.photoPath)).cover({ w: W, h: H }); } catch (e) { bg = new Jimp({ width: W, height: H, color: 0x1b2a4aff }); }
+  let bg;
+  if (opts.decor) { bg = new Jimp({ width: W, height: H, color: 0xe0451fff }); } // warm brand fill (rare fallback path)
+  else { try { bg = (await Jimp.read(opts.photoPath)).cover({ w: W, h: H }); } catch (e) { bg = new Jimp({ width: W, height: H, color: 0x1b2a4aff }); } }
   bg.composite(new Jimp({ width: W, height: 600, color: 0x000000b0 }), 0, H - 600);
   const fBig = await loadFont(F.SANS_64_WHITE), fMed = await loadFont(F.SANS_32_WHITE);
   if (opts.headline) bg.print({ font: fBig, x: 60, y: H - 480, text: opts.headline });
@@ -156,4 +193,4 @@ function pickPhoto(fsMod, dir, slug) {
   return path.join(dir, pool[Math.floor(Math.random() * pool.length)]);
 }
 
-module.exports = { makeCard, pickPhoto, W, H };
+module.exports = { makeCard, pickPhoto, renderSatori, renderFallback, decorBackgroundUri, W, H };

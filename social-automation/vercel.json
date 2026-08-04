@@ -19,6 +19,9 @@
     },
     "api/whatsapp-webhook.js": {
       "maxDuration": 60
+    },
+    "api/render-selftest.js": {
+      "maxDuration": 30
     }
   }
 }

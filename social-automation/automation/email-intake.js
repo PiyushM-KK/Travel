@@ -71,9 +71,10 @@ async function runEmailIntake(store, ctx = {}) {
       const photo = pickPhoto(fs, PHOTOS, match.slug);
       const cardBuf = await makeCard({
         photoPath: photo, logoPath: LOGO,
-        headline: pkg.item, subtitle: String(pkg.route || "").replace(/·/g, "-"),
-        price: rp.line, cta: "WhatsApp us to plan your trip",
-        handle: "@skylinetravelplanner", credit: "Wikimedia CC",
+        headline: pkg.item, subtitle: pkg.route || "",
+        price: rp.main, priceSuffix: rp.suffix, priceShort: rp.short,
+        cta: "WhatsApp us to plan", handle: "@skylinetravelplanner",
+        tagline: "Your journey, our promise", credit: "Wikimedia CC",
       });
       const hosted = await hostImageBytes({ buffer: cardBuf, contentType: "image/jpeg", keyHint: `card-${smid}` });
       cardUrl = hosted.url;

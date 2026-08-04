@@ -61,9 +61,10 @@ function repricedLine(vendorPrices, pkg) {
   let amount = null;
   if (Array.isArray(vendorPrices) && vendorPrices.length) amount = Math.min(...vendorPrices) * 1.10;
   else if (pkg) amount = priceNum(pkg);
-  if (!amount) return { line: "", amount: null };
+  if (!amount) return { line: "", amount: null, main: "", suffix: "", short: "" };
   const rounded = Math.round(amount / 100) * 100; // clean round to nearest 100
-  return { line: "From Rs " + rounded.toLocaleString("en-IN") + " / person", amount: rounded };
+  const n = "Rs " + rounded.toLocaleString("en-IN");
+  return { line: "From " + n + " / person", amount: rounded, main: n, suffix: "/ person", short: "From " + n };
 }
 
 module.exports = { allPackages, matchPackage, photoSlug, priceNum, repricedLine };

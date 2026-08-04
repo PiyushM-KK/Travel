@@ -90,11 +90,17 @@ async function runEmailIntake(store, ctx = {}) {
     }
     const code = shortCode(fresh.id);
     if (notify && to && ctx.sendText) {
+      // Show WHICH email this came from — subject + when it arrived (IST) — so the owner
+      // can place it at a glance.
+      let received = "";
+      if (m.date) { try { received = new Date(m.date).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", hour: "numeric", minute: "2-digit", hour12: true }) + " IST"; } catch (e) { received = String(m.date); } }
       const msg =
-        `📧 A supplier is promoting: ${offer.slice(0, 90)}\n\n` +
+        `📧 Vendor email\n` +
+        `   Subject: ${(m.subject || "(no subject)").slice(0, 100)}\n` +
+        (received ? `   Received: ${received}\n` : "") +
+        `   Promoting: ${offer.slice(0, 80)}\n\n` +
         `Here's a SKYLINE post idea (your brand, not theirs):\n\n${(fresh.caption || "").trim()}\n\n` +
         `${(fresh.hashtags || []).join(" ")}\n\n` +
-        `📎 Reply a SKYLINE photo to attach it + post to IG + FB\n` +
         `✅ approve ${code}  → Facebook text post   |   reject ${code}`;
       try { await ctx.sendText(to, msg); } catch (e) { /* best-effort */ }
     }

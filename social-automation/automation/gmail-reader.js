@@ -138,7 +138,7 @@ function makeGmailReader(opts = {}) {
 
         if (imageSource) {
           // A postable email — the RUNNER marks it seen after it creates the row.
-          out.push({ messageId: m.uid, subject: m.subject || "", body, from: m.from || "", imageSource });
+          out.push({ messageId: m.uid, subject: m.subject || "", body, from: m.from || "", imageSource, date: m.date || null });
         } else {
           dbg(`uid=${m.uid} -> DROPPED + marked seen (no image attachment or usable link).`);
           // Examined, trusted sender, but nothing to post — mark it seen so we don't
@@ -302,7 +302,7 @@ function realImap(opts = {}) {
             // Hand the RAW MIME to the reader; it parses clean text + attachments.
             const source = msg.source ? msg.source.toString() : "";
             const from = (msg.envelope && msg.envelope.from && msg.envelope.from[0] && msg.envelope.from[0].address) || "";
-            out.push({ uid: msg.uid, subject, source, from });
+            out.push({ uid: msg.uid, subject, source, from, date: dt || null });
           }
         } finally {
           lock.release();

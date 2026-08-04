@@ -209,11 +209,14 @@ async function runJob(opts = {}) {
     const reader = resolveGmailReader(opts);
     if (!reader) return { ok: true, ...base, email: { skipped: "no Gmail reader — set GMAIL_USER + GMAIL_APP_PASSWORD (or OAuth)" } };
     const { runEmailIntake } = require("./email-intake");
-    const { sendText } = require("./whatsapp");
+    const { sendText, sendImage } = require("./whatsapp");
     const out = await runEmailIntake(store, {
       reader, facts: client.facts, profile: client.profile,
       clientName: client.label || client.id, client: client.id,
       sendText: opts.sendText || ((to, body) => sendText(to, body)),
+      // sendImage is REQUIRED for the A/B card flow — the owner must SEE both cards, not just the
+      // text. Without it, email-intake can only send the caption/instructions (was the case before).
+      sendImage: opts.sendImage || ((to, link, caption) => sendImage(to, link, caption)),
       notifyTo: opts.notifyTo || process.env.WHATSAPP_TO,
       ...(opts.notify != null ? { notify: opts.notify } : {}),
     });

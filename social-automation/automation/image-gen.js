@@ -29,7 +29,7 @@ async function generateSceneImage(prompt, opts = {}) {
   if (!key) throw new Error("image-gen needs OPENAI_API_KEY (owner-gated)");
   const model = opts.model || process.env.IMAGE_MODEL || "gpt-image-1";
   const size = opts.size || process.env.IMAGE_SIZE || "1024x1536"; // portrait ~2:3 (card is cover-fit to 4:5)
-  const quality = opts.quality || process.env.IMAGE_QUALITY || "medium"; // low|medium|high|auto
+  const quality = opts.quality || process.env.IMAGE_QUALITY || "low"; // low|medium|high|auto (owner picked low — ~₹1.8/img, looks great)
   const timeoutMs = opts.timeoutMs || Number(process.env.IMAGE_TIMEOUT_MS) || 45000;
   const endpoint = opts.endpoint || process.env.IMAGE_API_URL || OPENAI_IMAGES;
   const fetchImpl = opts.fetchImpl || ((...a) => fetch(...a));

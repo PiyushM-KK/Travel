@@ -57,6 +57,19 @@ async function sendText(to, body, opts = {}) {
 }
 
 /**
+ * Send an IMAGE by public URL, with an optional caption (the approval digest). This is how
+ * the owner SEES the finished/enhanced image on their phone before approving — the client
+ * approves what will actually post, not just the words. `link` must be a public https URL
+ * (our hosted draft preview). Caption cap is WhatsApp's 1024 chars.
+ */
+async function sendImage(to, link, caption, opts = {}) {
+  return waSend(
+    { messaging_product: "whatsapp", to, type: "image", image: { link: String(link), caption: String(caption || "").slice(0, 1024) } },
+    opts
+  );
+}
+
+/**
  * Parse an owner's WhatsApp reply into { id, decision }. Understands:
  *   approve <id> | yes <id> | ok <id>
  *   reject <id> [reason] | no <id> [reason]
@@ -182,4 +195,4 @@ function sameNumber(a, b) {
   return !!da && !!db && da.slice(-10) === db.slice(-10);
 }
 
-module.exports = { waSend, sendText, parseDecision, extractIncomingMessage, handleInbound, verifySignature, sameNumber };
+module.exports = { waSend, sendText, sendImage, parseDecision, extractIncomingMessage, handleInbound, verifySignature, sameNumber };

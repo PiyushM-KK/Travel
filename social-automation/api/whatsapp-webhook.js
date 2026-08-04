@@ -13,7 +13,7 @@
  * rejected). Nothing here posts to a social account.
  */
 
-const { handleInbound, verifySignature, sendText } = require("../automation/whatsapp");
+const { handleInbound, verifySignature, sendText, sendImage } = require("../automation/whatsapp");
 const { applyDecision } = require("../automation/approve-runner");
 const { intakeDirect } = require("../automation/intake-runner");
 const { extractImageUrl } = require("../automation/gmail-reader");
@@ -115,7 +115,15 @@ module.exports = async (req, res) => {
         if (res.outcome === "pending") {
           // mark digested so the scheduled approve pass won't re-send the same post
           await store.update(fresh.id, { digestedAt: new Date().toISOString() });
-          return renderDigestText([digestItem(fresh)]);
+          const digest = renderDigestText([digestItem(fresh)]);
+          // SEND THE IMAGE BACK so the owner SEES what will post (esp. an AI-enhanced photo)
+          // and approves the visual, not just the words. Only when we have a hosted preview
+          // (an enhanced photo); an as-is post keeps the exact image the owner already sent.
+          if (fresh.imageUrl) {
+            try { await sendImage(process.env.WHATSAPP_TO, fresh.imageUrl, "✨ Here's the enhanced image that will post — caption + how to approve below 👇"); }
+            catch (e) { /* image send is best-effort; the text digest still carries the approval */ }
+          }
+          return digest;
         }
         if (res.outcome === "approved") {
           return `Drafted & auto-approved (id ${fresh.id}):\n\n${fresh.caption}\n\nIt'll publish on the next run. Reply: hold ${fresh.id} to stop it.`;

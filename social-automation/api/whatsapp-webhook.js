@@ -95,12 +95,21 @@ module.exports = async (req, res) => {
         if (row.status !== "planned") return null; // a dedup hit / already drafted
         const { generateOne } = require("../automation/generate-runner");
         const { digestItem, renderDigestText } = require("../automation/approval-channel");
+        // v2 image-enhance (B-22): if an AI enhancer is configured (AI_ENHANCER_*), enhance a
+        // text-free PHOTO before approval. The runner text-gates it (posters skip, never
+        // garbled) and reports the outcome (incl. a Claid credit-limit) in the approval note.
+        const aiEnhancer = require("../automation/ai-enhancer").resolveAiEnhancer();
         const res = await generateOne(store, row, {
           runner: "whatsapp-webhook",
           facts: client.facts, profile: client.profile,
           // Vision runs on the image bytes (re-fetched from the source) — no public URL.
           useVision: !!(row.imageSource || row.imageUrl), useSmm: true,
           imageOpts: {}, // whatsapp media re-fetch uses WHATSAPP_TOKEN from env
+          ...(aiEnhancer ? {
+            aiEnhancer, regenerate: true,
+            hostImageBytes: require("../automation/image-host").hostImageBytes,
+            enhanceBackend: require("../engine/enhance-backends").resolveEnhanceBackend(),
+          } : {}),
         });
         const fresh = await store.get(row.id);
         if (res.outcome === "pending") {

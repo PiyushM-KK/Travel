@@ -132,10 +132,78 @@ function makeAiEnhancer(config = {}) {
   };
 }
 
-/** Return the AI enhancer if configured (owner set the provider env), else null (dormant). */
-function resolveAiEnhancer() {
-  if (!process.env.AI_ENHANCER_URL || !process.env.AI_ENHANCER_KEY) return null;
-  try { return makeAiEnhancer(); } catch { return null; }
+/**
+ * makeClaidEnhancer — Claid.ai adapter (docs.claid.ai /v1/image/edit).
+ *
+ * Claid does NOT accept base64; `input` must be a PUBLIC URL. So we host the bytes to our
+ * OWN Blob (temporary), let Claid fetch them, then DELETE the temp copy right after (keeps
+ * the publish-time-only-hosting privacy model — no un-approved image lingers public). The
+ * result lands on Claid's own 24h temp URL, which we fetch back through the SSRF guard.
+ *
+ * Content-preserving by default (upscale "smart_enhance" + polish + mild sharpen). NOTE: AI
+ * enhancement GARBLES text on posters — the caller must gate this to text-free photos (see
+ * the enhance text-gate in generate-runner). The result is still flagged aiAltered so the
+ * WhatsApp approval + QA are the final safety net.
+ *
+ * @param {object} cfg { url, key, hostBytes, deleteHosted, fetchImpl, timeoutMs, operations, resultAllowHosts, lookup }
+ * @returns {{ enhance(buffer,{contentType}) -> Promise<{buffer,contentType}> }}
+ */
+function makeClaidEnhancer(cfg = {}) {
+  const url = cfg.url || process.env.AI_ENHANCER_URL;
+  const key = cfg.key || process.env.AI_ENHANCER_KEY;
+  if (!url || !key) throw new Error("Claid enhancer needs AI_ENHANCER_URL + AI_ENHANCER_KEY");
+  const hostBytes = cfg.hostBytes || require("./image-host").hostImageBytes;
+  const deleteHosted = cfg.deleteHosted || require("./image-host").deleteHosted;
+  const fetchImpl = cfg.fetchImpl || ((...a) => fetch(...a));
+  const timeoutMs = cfg.timeoutMs || AI_TIMEOUT_MS;
+  // Content-preserving ops. Overridable via AI_ENHANCER_CLAID_OPERATIONS (JSON) if ever needed.
+  let operations = cfg.operations;
+  if (!operations) {
+    try { operations = process.env.AI_ENHANCER_CLAID_OPERATIONS ? JSON.parse(process.env.AI_ENHANCER_CLAID_OPERATIONS) : null; } catch { operations = null; }
+  }
+  if (!operations) operations = { restorations: { upscale: "smart_enhance", polish: true }, adjustments: { sharpness: 15 } };
+  // Claid delivers results on its own CDN; only fetch the result from these hosts (SSRF guard).
+  const resultAllowHosts = cfg.resultAllowHosts || hostAllowListFromEnv("AI_ENHANCER_RESULT_HOSTS") || [];
+  const allowHosts = resultAllowHosts.length ? resultAllowHosts : ["dl.claid.ai", "storage.googleapis.com"];
+  const safe = (m) => { let s = String(m == null ? "" : m); if (key) s = s.split(key).join("[REDACTED_AI_KEY]"); return redact(s); };
+
+  return {
+    async enhance(buffer, opts = {}) {
+      let hosted = null;
+      try {
+        hosted = await hostBytes({ buffer, contentType: opts.contentType || "image/jpeg", keyHint: "claid-in" });
+        if (!hosted || !hosted.url) throw new Error("could not host input for Claid");
+        const body = JSON.stringify({ input: hosted.url, operations, output: { format: { type: "jpeg", quality: Number(opts.quality) || 90 } } });
+        const res = await fetchWithTimeout(fetchImpl, url, {
+          method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" }, body,
+        }, timeoutMs);
+        if (!res.ok) { let d = ""; try { d = ": " + (await res.text()).slice(0, 200); } catch { /* */ } throw new Error(safe(`Claid HTTP ${res.status}${d}`)); }
+        const json = await res.json();
+        const outUrl = atPath(json, "data.output.tmp_url");
+        if (typeof outUrl !== "string" || !/^https?:\/\//i.test(outUrl)) throw new Error("Claid response had no data.output.tmp_url");
+        const got = await safeFetchBytes(outUrl, { fetchImpl, timeoutMs, allowHosts, maxBytes: MAX_RESULT_BYTES, lookup: cfg.lookup });
+        return { buffer: got.buffer, contentType: got.contentType || "image/jpeg" };
+      } catch (e) {
+        throw new Error(safe("Claid enhance failed: " + String((e && e.message) || e)));
+      } finally {
+        // Always remove the temporary input copy — even on failure (privacy + no orphan blobs).
+        if (hosted && hosted.url) { try { await deleteHosted(hosted.url); } catch { /* best-effort */ } }
+      }
+    },
+  };
 }
 
-module.exports = { makeAiEnhancer, resolveAiEnhancer, atPath };
+/**
+ * Return the AI enhancer if configured (owner set the provider env), else null (dormant).
+ * A Claid URL gets the Claid adapter (URL-input + host/delete); anything else the generic one.
+ */
+function resolveAiEnhancer(opts = {}) {
+  const url = process.env.AI_ENHANCER_URL, key = process.env.AI_ENHANCER_KEY;
+  if (!url || !key) return null;
+  try {
+    if (/claid\.ai|letsenhance\.io/i.test(url)) return makeClaidEnhancer(opts);
+    return makeAiEnhancer(opts);
+  } catch { return null; }
+}
+
+module.exports = { makeAiEnhancer, makeClaidEnhancer, resolveAiEnhancer, atPath };

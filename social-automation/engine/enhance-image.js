@@ -180,7 +180,9 @@ async function enhanceImage(input, opts = {}) {
           }
         } catch (e) {
           // AI failed/timed out — DON'T fail the post; fall back to safe-enhance on the original.
-          note = "AI regenerate failed — fell back to safe-enhance; ";
+          // Keep the REASON (redacted) so the owner is TOLD why (e.g. a Claid credit limit),
+          // not left guessing — the caller surfaces this note in the approval message.
+          note = "AI enhance failed (" + redact(String((e && e.message) || e)) + ") — fell back to original; ";
         }
       } else {
         note = "regenerate requested but no AI enhancer configured (B-22) — safe-enhance only; ";

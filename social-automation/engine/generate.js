@@ -272,6 +272,39 @@ async function describeImage(image, opts = {}) {
 }
 
 /**
+ * classifyImageForEnhance — is this a text-free PHOTOGRAPH, or a GRAPHIC (poster/flyer/ad
+ * with text or prices)? AI image enhancement GARBLES text, so the enhance stage must only
+ * touch photos. Returns "photo" | "graphic" (defaults to "graphic" on any doubt — the SAFE
+ * side: a doubtful image is posted as-is rather than risk garbling text).
+ */
+async function classifyImageForEnhance(image, opts = {}) {
+  const source = imageBlockSource(image);
+  if (!source) return "graphic";
+  const client = opts.client || newClient();
+  try {
+    const msg = await client.messages.create({
+      model: opts.model || REPLY_MODEL,
+      max_tokens: 8,
+      messages: [{
+        role: "user",
+        content: [
+          { type: "image", source },
+          { type: "text", text:
+            "Is this a plain PHOTOGRAPH (a real photo of a place/scene/food/people with little or no overlaid text), " +
+            "or a GRAPHIC (a poster, flyer, advertisement, or any image with significant text, prices, or logos on it)? " +
+            "Answer with exactly one word: PHOTO or GRAPHIC." },
+        ],
+      }],
+    });
+    const block = (msg.content || []).find((b) => b.type === "text");
+    const ans = block ? String(block.text || "").toUpperCase() : "";
+    return /\bPHOTO\b/.test(ans) && !/\bGRAPHIC\b/.test(ans) ? "photo" : "graphic";
+  } catch (e) {
+    return "graphic"; // safe default — don't enhance if we can't be sure it's text-free
+  }
+}
+
+/**
  * Generate + validate the posts for one calendar brief.
  *
  * @returns {{brief, posts:Array, rejected:Array, needsHuman:boolean}}
@@ -427,6 +460,7 @@ module.exports = {
   generateForBrief,
   generateReviewReply,
   describeImage,
+  classifyImageForEnhance,
   imageBlockSource,
   buildSystemPrompt,
   userPromptFor,

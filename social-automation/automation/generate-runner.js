@@ -26,7 +26,7 @@
  * of the row's platforms. Per-platform captions are a later enhancement.
  */
 
-const { generateForBrief, describeImage } = require("../engine/generate");
+const { generateForBrief, describeImage, classifyImageForEnhance } = require("../engine/generate");
 const { reviewAsSocialMediaManager, reviewAsQualityAnalyst } = require("../engine/review-agents");
 const { redact } = require("../engine/publish");
 const { resolveImageSourceBytes, hasImageSource } = require("./image-source");
@@ -100,19 +100,35 @@ async function generateOne(store, row, ctx) {
   //     held/rejected draft never leaves an orphaned public blob. Any AI failure keeps the
   //     original source (deterministic safe-enhance still applies at publish); never lost.
   let regenBytes = null; // enhanced bytes to host as the approval preview IF the row survives
+  let enhanceNote = "";  // a plain line surfaced to the OWNER in the approval message (success / skip / failure incl. Claid credit limit)
   if (wantRegen && imageBytes) {
-    try {
-      const en = await enhanceImage(imageBytes, {
-        platform: (claimed.platforms && claimed.platforms[0]) || "instagram",
-        mode: "regenerate", backend: ctx.enhanceBackend, aiEnhancer: ctx.aiEnhancer, prompt: ctx.enhancePrompt,
-      });
-      if (en.enhanced && en.aiAltered) {
-        regenBytes = { buffer: en.buffer, contentType: en.contentType };
-        imageBytes = regenBytes;                                    // vision sees the enhanced image
-        const d = describeEnhancement(en);
-        if (d.reviewFlag) enhanceFlag = d.reviewFlag;
+    // TEXT-SAFETY GATE: AI enhancement GARBLES text on posters/flyers. Only enhance a
+    // text-free PHOTOGRAPH; a graphic/poster is posted as-is (and we tell the owner why).
+    let kind = "graphic";
+    try { kind = await classifyImageForEnhance(imageBytes, ctx.visionOpts); } catch { kind = "graphic"; }
+    if (kind !== "photo") {
+      enhanceNote = "🖼️ Enhancement skipped — this looks like a poster/graphic with text (AI would garble it). Posting your original image.";
+    } else {
+      try {
+        const en = await enhanceImage(imageBytes, {
+          platform: (claimed.platforms && claimed.platforms[0]) || "instagram",
+          mode: "regenerate", backend: ctx.enhanceBackend, aiEnhancer: ctx.aiEnhancer, prompt: ctx.enhancePrompt,
+        });
+        if (en.enhanced && en.aiAltered) {
+          regenBytes = { buffer: en.buffer, contentType: en.contentType };
+          imageBytes = regenBytes;                                    // vision sees the enhanced image
+          const d = describeEnhancement(en);
+          if (d.reviewFlag) enhanceFlag = d.reviewFlag;
+          enhanceNote = "✨ Image AI-enhanced — please check it still looks like the real place before approving.";
+        } else {
+          // Enhance was requested but produced no AI-altered image — REPORT WHY (en.note
+          // carries the reason, e.g. a Claid credit limit / HTTP error) so the owner knows.
+          enhanceNote = "⚠️ Image enhancement didn't apply — " + String(en.note || "provider returned no enhanced image").trim() + " Posting your original image.";
+        }
+      } catch (e) {
+        enhanceNote = "⚠️ Image enhancement failed — " + redact(String((e && e.message) || e)) + ". Posting your original image.";
       }
-    } catch (e) { /* keep the original source — safe-enhance still runs at publish */ }
+    }
   }
 
   if (ctx.useVision) {
@@ -212,6 +228,9 @@ async function generateOne(store, row, ctx) {
     } catch (e) { enhanceFlag = ""; /* couldn't host the AI preview — publish will safe-enhance the source */ }
   }
 
+  // Tell the owner what happened to the IMAGE (enhanced / skipped-because-poster / failed
+  // incl. a Claid credit limit) in the approval message — never silently swallow it.
+  if (enhanceNote) reviewNotes = enhanceNote + (reviewNotes ? " | " + reviewNotes : "");
   // An AI-altered image MUST be flagged so the human approver (and the digest) can catch a
   // misleading render before it posts ("never AI-fake real places").
   if (enhanceFlag) reviewNotes = (reviewNotes ? reviewNotes + " | " : "") + enhanceFlag;

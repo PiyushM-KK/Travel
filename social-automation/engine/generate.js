@@ -233,27 +233,42 @@ async function describeImage(image, opts = {}) {
   const source = imageBlockSource(image);
   if (!source) return "";
   const client = opts.client || newClient();
-  const msg = await client.messages.create({
-    model: opts.model || REPLY_MODEL,
-    max_tokens: 200,
-    messages: [
-      {
-        role: "user",
-        content: [
-          { type: "image", source },
-          {
-            type: "text",
-            text:
-              "Describe ONLY what is literally visible in this photo in one plain sentence — the food, drink, place or scene. " +
-              "Do NOT guess brand names, prices, ingredients, or anything you cannot actually see. " +
-              "This is a factual hint for a caption writer, not the caption.",
-          },
-        ],
-      },
-    ],
-  });
-  const block = (msg.content || []).find((b) => b.type === "text");
-  return block ? String(block.text || "").trim() : "";
+  // The light vision model (REPLY_MODEL) occasionally returns an EMPTY description on a
+  // dense / text-heavy / multilingual image (e.g. a promo poster). That empty then
+  // cascades into a hold when the post has no caption hint to fall back on. So: retry on
+  // empty, and on the final attempt escalate to the stronger caption model. Latency/cost
+  // only grows on the rare empty; the common case still returns on the first call.
+  const models = [opts.model || REPLY_MODEL];
+  if (!opts.model && CAPTION_MODEL && CAPTION_MODEL !== REPLY_MODEL) models.push(CAPTION_MODEL);
+  const attempts = Math.max(1, opts.attempts || 3);
+  const prompt =
+    "Describe the VISUAL SCENE, colours and mood of this image in one or two plain sentences — the places, landscapes, food, " +
+    "or subjects actually shown (e.g. snow-capped peaks, a lake at dusk, a festive table). " +
+    "IGNORE and do NOT transcribe any text, prices, package names, logos, phone numbers or contact details printed on it — " +
+    "describe only what the picture SHOWS, not what it says. Do NOT guess anything you cannot see. " +
+    "Reply with just the sentence(s), no headings or markdown. This is a factual scene hint for a caption writer.";
+  let lastText = "";
+  for (let i = 0; i < attempts; i++) {
+    const model = models[Math.min(i, models.length - 1)];
+    let msg;
+    try {
+      msg = await client.messages.create({
+        model,
+        max_tokens: 300,
+        messages: [{ role: "user", content: [{ type: "image", source }, { type: "text", text: prompt }] }],
+      });
+    } catch (e) { continue; } // transient API error -> retry (next attempt may escalate the model)
+    // Join ALL text blocks (the model may split), strip a stray markdown heading.
+    const text = (msg.content || [])
+      .filter((b) => b.type === "text")
+      .map((b) => String(b.text || ""))
+      .join(" ")
+      .replace(/^#+\s.*$/gm, "")
+      .trim();
+    if (text) return text;
+    lastText = text;
+  }
+  return lastText; // "" only if every attempt (incl. the escalated model) came back empty
 }
 
 /**

@@ -39,11 +39,24 @@ function nowIso(now) {
 /** Build a generateForBrief brief from a queue row (+ optional vision hint). */
 function briefFromRow(row, photoDescription) {
   const hint = photoDescription || row.hint || "";
-  const subject = row.subject || (hint ? hint.slice(0, 60) : "our kitchen");
+  const subject = row.subject || (hint ? hint.slice(0, 60) : "something worth sharing");
+  const hasImage = !!(photoDescription || row.imageSource || row.imageUrl);
+  // When a post carries an IMAGE, reframe the task. A finished promo/poster (a common
+  // vendor intake) already shows prices + package names — the strict grounding guard then
+  // refuses to write a post at all (it won't restate un-verifiable prices), so photo posts
+  // intermittently produced NO draft and got held. This tells the model the image carries
+  // the offer: write a mood + CTA caption, never restate the image's prices/specifics, and
+  // still ground everything in Skyline's own facts. A plain scene/destination photo still
+  // gets an evocative, grounded caption. The owner's own note (row.hint) is honoured first.
+  const angle = hasImage
+    ? (row.hint
+        ? `${row.hint}. The attached image already shows any offer, prices and package details — do NOT repeat those specifics; set the mood and invite people to message us. Ground everything in Skyline's real offerings; never state a price that isn't in your facts.`
+        : "This post has an attached image. Write a short, warm caption grounded in what Skyline actually offers. If the image is a finished promo/poster that already shows prices, package names or contact details, do NOT repeat those specifics — set the mood and invite people to message us to plan their trip. If it is a place or scene, evoke it and connect it to how Skyline plans custom trips there. Never state a price or detail that isn't in your facts.")
+    : (row.hint || "share something genuine and specific about it");
   return {
     label: row.source === "calendar" ? "Calendar post" : "Photo post",
     subject,
-    angle: row.hint || "share something genuine and specific about it",
+    angle,
     suggestedItems: Array.isArray(row.suggestedItems) ? row.suggestedItems : [],
     photoCaption: hint,
     language: row.language || "en",
@@ -66,10 +79,19 @@ async function generateOne(store, row, ctx) {
   const src = claimed.imageSource;
   const wantRegen = !!(ctx.aiEnhancer && ctx.regenerate && ctx.hostImageBytes);
   if ((ctx.useVision || wantRegen) && src) {
-    try {
-      const resolve = ctx.resolveImageBytes || ((s) => resolveImageSourceBytes(s, ctx.imageOpts || {}));
-      imageBytes = await resolve(src);
-    } catch (e) { imageBytes = null; }
+    const resolve = ctx.resolveImageBytes || ((s) => resolveImageSourceBytes(s, ctx.imageOpts || {}));
+    // Retry the media fetch on a transient failure (a WhatsApp/Graph 429 or a CDN blip):
+    // losing the image bytes here silently strips the post of its photo and, with no caption
+    // hint, cascades into a "no valid draft" hold. A couple of backed-off retries make the
+    // single-shot draft-on-intake resilient without masking a genuine bad/expired source.
+    const tries = Math.max(1, ctx.imageResolveRetries || 3);
+    for (let i = 0; i < tries; i++) {
+      try { imageBytes = await resolve(src); break; }
+      catch (e) {
+        imageBytes = null;
+        if (i < tries - 1) await new Promise((r) => setTimeout(r, 400 * (i + 1)));
+      }
+    }
   }
 
   // 1b. OPTIONAL AI regenerate (B-22): if a provider is wired AND regenerate is opted in,

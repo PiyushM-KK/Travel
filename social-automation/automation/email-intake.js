@@ -29,8 +29,13 @@ const ASSETS = path.join(__dirname, "..", "assets");
 const PHOTOS = path.join(ASSETS, "destinations");
 const LOGO = path.join(ASSETS, "Skyline_Logo.jpg");
 
-// satori renders PNG, the jimp fallback renders JPEG — label the hosted bytes correctly.
-function ctFor(buf) { return buf && buf.length > 1 && buf[0] === 0x89 && buf[1] === 0x50 ? "image/png" : "image/jpeg"; }
+// Instagram's Graph API accepts JPEG ONLY, and satori renders the card as PNG — so every hosted
+// card is re-encoded to JPEG before it goes to Blob (and thus to IG/FB and the WhatsApp preview).
+async function toJpeg(buffer) {
+  if (buffer && buffer[0] === 0xff && buffer[1] === 0xd8) return buffer; // already JPEG (jimp fallback path)
+  try { const { Jimp } = require("jimp"); return await (await Jimp.read(buffer)).getBuffer("image/jpeg", { quality: 90 }); }
+  catch (e) { return buffer; } // last resort: host as-is (should not happen — jimp is a dependency)
+}
 
 async function runEmailIntake(store, ctx = {}) {
   const reader = ctx.reader;
@@ -39,6 +44,8 @@ async function runEmailIntake(store, ctx = {}) {
   const gmailFetch = (uid) => reader.fetchAttachmentBytes(uid);
   const hostImageBytes = ctx.hostImageBytes || require("./image-host").hostImageBytes;
   const deleteHosted = ctx.deleteHosted || require("./image-host").deleteHosted;
+  // Re-encode the card to JPEG (IG requirement) then host it. One place so A + B are always JPEG.
+  const hostCard = async (buffer, keyHint) => (await hostImageBytes({ buffer: await toJpeg(buffer), contentType: "image/jpeg", keyHint })).url;
   const to = ctx.notifyTo || process.env.WHATSAPP_TO;
   const notify = ctx.notify !== false;
 
@@ -97,7 +104,7 @@ async function runEmailIntake(store, ctx = {}) {
     try {
       const photo = pickPhoto(fs, PHOTOS, match.slug);
       const bufA = await makeCard({ ...baseCard, photoPath: photo, credit: "Photo: Wikimedia CC" });
-      cardUrlA = (await hostImageBytes({ buffer: bufA, contentType: ctFor(bufA), keyHint: `card-a-${smid}` })).url;
+      cardUrlA = await hostCard(bufA, `card-a-${smid}`);
     } catch (e) { held.push({ from: m.from, subject: m.subject, reason: "card A render/host failed: " + String((e && e.message) || e) }); continue; }
 
     let cardUrlB = "", bStyle = "";
@@ -114,12 +121,12 @@ async function runEmailIntake(store, ctx = {}) {
         bufB = await makeCard({ ...baseCard, decor: true });
         bStyle = "decorative";
       }
-      cardUrlB = (await hostImageBytes({ buffer: bufB, contentType: ctFor(bufB), keyHint: `card-b-${smid}` })).url;
+      cardUrlB = await hostCard(bufB, `card-b-${smid}`);
     } catch (e) {
       // B is best-effort. If the generator failed, fall back to the gradient decor; if THAT fails, offer A only.
       try {
         const bufB = await makeCard({ ...baseCard, decor: true });
-        cardUrlB = (await hostImageBytes({ buffer: bufB, contentType: ctFor(bufB), keyHint: `card-b-${smid}` })).url;
+        cardUrlB = await hostCard(bufB, `card-b-${smid}`);
         bStyle = "decorative";
       } catch (e2) { cardUrlB = ""; bStyle = ""; }
     }

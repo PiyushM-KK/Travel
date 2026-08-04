@@ -15,13 +15,13 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.57.0",
     "@resvg/resvg-js": "^2.6.2",
+    "jimp": "^1.6.1",
     "satori": "^0.29.0"
   },
   "optionalDependencies": {
     "@vercel/blob": "^2.6.1",
     "google-auth-library": "^11.0.0",
     "imapflow": "^1.0.0",
-    "jimp": "^1.6.1",
     "mailparser": "^3.6.0",
     "nodemailer": "^9.0.3"
   }

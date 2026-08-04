@@ -170,6 +170,7 @@ class AirtableStore {
       claimedPrices: row.claimedPrices || [],
       language: row.language || "en",
       imageUrl: row.imageUrl || "",
+      imageSource: row.imageSource || null, // publish-time-only hosting: re-fetchable image ref (was dropped)
       platforms: row.platforms || ["instagram", "facebook"],
       status: row.status || "planned",
       scheduledAt: row.scheduledAt || null,
@@ -181,6 +182,7 @@ class AirtableStore {
       claimToken: null,
       claimedAt: null,
       source: row.source || "",
+      sourceMessageId: row.sourceMessageId || "", // dedup key (WhatsApp wamid) — B-18 (was dropped)
       createdAt: nowIso(this.clock),
       updatedAt: nowIso(this.clock),
     };

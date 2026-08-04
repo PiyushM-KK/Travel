@@ -19,3 +19,7 @@ All photos from Wikimedia Commons under the license noted. Keep attribution when
 - **kashmir-valley-01.jpg** — Dal Lake, Srinagar, July 2012.jpg · Vineetmbbs · CC BY-SA 3.0 · https://commons.wikimedia.org/wiki/File%3ADal%20Lake%2C%20Srinagar%2C%20July%202012.jpg
 - **kashmir-valley-02.jpg** — Pahalgam Valley.jpg · KennyOMG · CC BY-SA 3.0 · https://commons.wikimedia.org/wiki/File%3APahalgam%20Valley.jpg
 - **generic-01.jpg** — ISS-43 Himalaya range near the China–India border.jpg · NASA · Public domain · https://commons.wikimedia.org/wiki/File%3AISS-43%20Himalaya%20range%20near%20the%20China%E2%80%93India%20border.jpg
+
+## Updated 2026-08-04 (replaced weak Himachal photos)
+- **himachal-hills-01.jpg** — Kullu Valley, Mountains, India · CC BY 4.0 · https://commons.wikimedia.org/wiki/File:Kullu_Valley,_Mountains,_India.jpg
+- **himachal-hills-02.jpg** — NH505 Spiti Kaza Losar · CC BY-SA 4.0 · Wikimedia Commons

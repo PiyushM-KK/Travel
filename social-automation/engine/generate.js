@@ -335,6 +335,39 @@ async function describeOffer(image, opts = {}) {
 }
 
 /**
+ * extractPrices — read the PER-PERSON package prices from a vendor's offer image (for the
+ * reseller card: we mark these up +10% to get Skyline's price). Returns an array of INR
+ * numbers (empty on none/error). Filters out phone numbers, years, etc. by magnitude.
+ */
+async function extractPrices(image, opts = {}) {
+  const source = imageBlockSource(image);
+  if (!source) return [];
+  const client = opts.client || newClient();
+  try {
+    const msg = await client.messages.create({
+      model: opts.model || REPLY_MODEL,
+      max_tokens: 60,
+      messages: [{
+        role: "user",
+        content: [
+          { type: "image", source },
+          { type: "text", text:
+            "List EVERY per-person package PRICE shown in this image as plain numbers in INR, " +
+            "comma-separated (e.g. 10750,12400,14700). Ignore phone numbers, years, pincodes, and " +
+            "any non-price number. If there are no prices, reply exactly NONE." },
+        ],
+      }],
+    });
+    const block = (msg.content || []).find((b) => b.type === "text");
+    const t = block ? String(block.text || "") : "";
+    if (/\bNONE\b/i.test(t)) return [];
+    return (t.match(/\d[\d,]{2,}/g) || [])
+      .map((s) => Number(s.replace(/,/g, "")))
+      .filter((n) => Number.isFinite(n) && n >= 1000 && n <= 1000000);
+  } catch (e) { return []; }
+}
+
+/**
  * detectForeignBrand — does this image show a brand/logo/phone/website that is NOT the
  * client's own? A vendor's B2B poster carries the SUPPLIER's branding, and posting it to the
  * client's feed would advertise the supplier — so we HOLD it (the #2 approval guardrail).
@@ -530,6 +563,7 @@ module.exports = {
   classifyImageForEnhance,
   detectForeignBrand,
   describeOffer,
+  extractPrices,
   imageBlockSource,
   buildSystemPrompt,
   userPromptFor,

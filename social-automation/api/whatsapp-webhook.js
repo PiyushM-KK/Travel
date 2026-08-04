@@ -121,6 +121,8 @@ module.exports = async (req, res) => {
         const res = await generateOne(store, row, {
           runner: "whatsapp-webhook",
           facts: client.facts, profile: client.profile,
+          // #2 guardrail: hold an image that carries ANOTHER company's branding (a supplier poster).
+          checkForeignBrand: true, clientName: client.label || "Skyline Travel Planner",
           // Vision runs on the image bytes (re-fetched from the source) — no public URL.
           useVision: !!(row.imageSource || row.imageUrl), useSmm: true,
           imageOpts: {}, // whatsapp media re-fetch uses WHATSAPP_TOKEN from env

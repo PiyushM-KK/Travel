@@ -32,7 +32,7 @@ const { redact } = require("../engine/publish");
 const { mockChannel } = require("./approval-channel");
 const { loadClient } = require("./clients");
 
-const JOBS = ["intake", "generate", "approve", "publish", "report", "pr", "prep"];
+const JOBS = ["intake", "generate", "approve", "publish", "report", "pr", "prep", "email"];
 
 function makeStore(injected) {
   if (injected) return { store: injected, kind: "injected" };
@@ -198,6 +198,27 @@ async function runJob(opts = {}) {
     const channel = resolveApprovalChannel(opts);
     const approve = await runApprove(store, { channel, runner, now });
     return { ok: true, ...base, prep: { intake, generate, approve } };
+  }
+
+  // -------------------------------------------------------------- EMAIL (Gmail vendor idea)
+  if (job === "email") {
+    // Owner decision #3: a vendor email becomes a SKYLINE post IDEA. Read the offer's
+    // destinations/scene, draft a grounded Skyline post (NO vendor image, no other brand,
+    // only what Skyline offers), and WhatsApp it to the owner to approve / attach a Skyline
+    // photo. It NEVER posts the supplier's poster (the #2 guardrail catches branded images).
+    const reader = resolveGmailReader(opts);
+    if (!reader) return { ok: true, ...base, email: { skipped: "no Gmail reader — set GMAIL_USER + GMAIL_APP_PASSWORD (or OAuth)" } };
+    const { runEmailIntake } = require("./email-intake");
+    const { sendText } = require("./whatsapp");
+    const out = await runEmailIntake(store, {
+      reader, facts: client.facts, profile: client.profile,
+      clientName: client.label || client.id, client: client.id,
+      sendText: opts.sendText || ((to, body) => sendText(to, body)),
+      notifyTo: opts.notifyTo || process.env.WHATSAPP_TO,
+      ...(opts.notify != null ? { notify: opts.notify } : {}),
+    });
+    await store.heartbeat("email", { runner, considered: out.considered, notified: out.notified.length, held: out.held.length });
+    return { ok: true, ...base, email: out };
   }
 
   // -------------------------------------------------------------- REPORT

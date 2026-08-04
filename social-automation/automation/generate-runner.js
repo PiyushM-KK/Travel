@@ -26,7 +26,7 @@
  * of the row's platforms. Per-platform captions are a later enhancement.
  */
 
-const { generateForBrief, describeImage, classifyImageForEnhance } = require("../engine/generate");
+const { generateForBrief, describeImage, classifyImageForEnhance, detectForeignBrand } = require("../engine/generate");
 const { reviewAsSocialMediaManager, reviewAsQualityAnalyst } = require("../engine/review-agents");
 const { redact } = require("../engine/publish");
 const { resolveImageSourceBytes, hasImageSource } = require("./image-source");
@@ -139,6 +139,21 @@ async function generateOne(store, row, ctx) {
     }
   }
   const hasImage = !!(imageBytes || claimed.imageUrl || hasImageSource(src));
+
+  // 1c. #2 GUARDRAIL — never post an image carrying ANOTHER company's brand (a vendor/supplier
+  //     poster would advertise them, not us). Hold it for the owner with a clear reason. Opt-in
+  //     (ctx.checkForeignBrand) and only when we have bytes to inspect; the client's OWN branding
+  //     passes. A detector failure must never sink the draft.
+  if (ctx.checkForeignBrand && imageBytes) {
+    try {
+      const fb = await detectForeignBrand(imageBytes, { clientName: ctx.clientName || (ctx.profile && ctx.profile.name) || "the client" });
+      if (fb.foreign) {
+        const note = `🚫 Held — the image shows another company's branding/contact (${fb.brand || "a supplier/competitor"}), not ${ctx.clientName || "your"} branding. Not posted.`;
+        await store.update(claimed.id, { status: "held", claimToken: null, claimedAt: null, reviewNotes: note, lastError: note });
+        return { id: claimed.id, outcome: "held", reason: "foreign brand in image", reviewNotes: note };
+      }
+    } catch (e) { /* detector failure must not sink the draft */ }
+  }
 
   // 2. Draft + fact-check.
   const brief = briefFromRow(claimed, photoDescription);

@@ -1,96 +1,106 @@
 /**
- * email-intake.js — the GMAIL vendor intake (the owner's 2nd of three intake ways).
+ * email-intake.js — GMAIL vendor intake, the "IDEA, not the poster" flow (owner decision
+ * 2026-08-04, option #3 + the #2 guardrail).
  *
- * Flow (mirrors the WhatsApp webhook, but the trigger is a NEW vendor email):
- *   search Gmail for a new allow-listed vendor email → take its image → same pipeline
- *   (classify photo/graphic → enhance photos, pad+skip posters → grounded caption →
- *   fact-check + SMM) → SEND THE IMAGE to the owner on WhatsApp for approval BY NUMBER →
- *   (owner replies "approve <code>") → publish.
+ * A vendor's B2B email is a SUPPLIER's branded poster (their logo/phone/website) — posting it
+ * to the client's feed would advertise the SUPPLIER. So we do NOT post the vendor image. Instead:
+ *   search Gmail for a new allow-listed vendor email → read ONLY the destinations/season from
+ *   its image (describeOffer — excludes any brand/phone/price) → draft a SKYLINE post about
+ *   planning a custom trip to those places, in Skyline's voice, grounded in Skyline's packages
+ *   → send the IDEA to the owner on WhatsApp: attach a Skyline photo to post to IG+FB, or
+ *   approve for a Facebook text post, or reject.
  *
- * WHY the image is sent: unlike a WhatsApp photo the owner took, the owner has NOT seen
- * the vendor's email image — so approval must show it. We host a preview (the enhanced
- * image for a photo, or the padded-whole image for a poster) and send it. The preview
- * blob is keyed `draft-<id>` so publish reuses it and reject cleans it up.
+ * The #2 guardrail (detectForeignBrand) lives in generate-runner and fires whenever an image IS
+ * attached (e.g. the owner replies a photo, or the WhatsApp intake) — it HOLDS any image that
+ * carries another company's branding. Here we simply never attach the vendor's image.
  *
- * Everything is injectable (reader, notify) so it's testable without markSeen'ing the real
- * inbox or sending a real WhatsApp — see check_email_intake / the dry-run flags.
+ * Everything is injectable (reader, sendText, store) so it's testable without markSeen'ing the
+ * real inbox or sending a real WhatsApp.
  */
 
-const { intakeFromGmail } = require("./intake-runner");
 const { generateOne } = require("./generate-runner");
 const { resolveImageSourceBytes } = require("./image-source");
-const { classifyImageForEnhance } = require("../engine/generate");
+const { describeOffer, describeImage } = require("../engine/generate");
 const { shortCode } = require("./whatsapp");
-const { digestItem, renderDigestText } = require("./approval-channel");
-
-/** Host a preview of what will POST (enhanced photo, or padded-whole poster) for approval. */
-async function hostPreview(row, deps) {
-  if (row.imageUrl) return row.imageUrl; // an enhanced photo already hosted its preview
-  if (!row.imageSource) return "";
-  let { buffer, contentType } = await resolveImageSourceBytes(row.imageSource, { gmailFetch: deps.gmailFetch });
-  const backend = deps.enhanceBackend;
-  if (backend) {
-    let fit = "pad"; // safe default: never crop
-    try { fit = (await classifyImageForEnhance({ buffer, contentType }, deps.classifyOpts || {})) === "photo" ? "cover" : "pad"; } catch { fit = "pad"; }
-    const en = await deps.enhanceImage({ buffer, contentType }, { platform: "instagram", mode: "safe", backend, fit });
-    if (en.enhanced) { buffer = en.buffer; contentType = en.contentType; }
-  }
-  const hosted = await deps.hostImageBytes({ buffer, contentType, keyHint: `draft-${row.id}` });
-  return hosted.url;
-}
 
 /**
  * @param store  the queue store
- * @param ctx    { reader, facts, profile, aiEnhancer, enhanceBackend, hostImageBytes,
- *                 sendImage, sendText, notifyTo, notify (default true), client }
- * @returns { intakeCreated, drafted, notified:[{id,code,outcome}], held:[...] }
+ * @param ctx    { reader, facts, profile, sendText, notifyTo, notify(default true),
+ *                 client, clientName }
+ * @returns { considered, notified:[{id,code,offer}], held:[...], skipped:[...] }
  */
 async function runEmailIntake(store, ctx = {}) {
   const reader = ctx.reader;
   if (!reader) throw new Error("runEmailIntake needs a Gmail `reader`");
   const gmailFetch = (uid) => reader.fetchAttachmentBytes(uid);
-  const enhanceImage = ctx.enhanceImage || require("../engine/enhance-image").enhanceImage;
-  const hostImageBytes = ctx.hostImageBytes || require("./image-host").hostImageBytes;
-  const enhanceBackend = ctx.enhanceBackend || require("../engine/enhance-backends").resolveEnhanceBackend();
-  const aiEnhancer = ctx.aiEnhancer || require("./ai-enhancer").resolveAiEnhancer();
-  const notify = ctx.notify !== false;
   const to = ctx.notifyTo || process.env.WHATSAPP_TO;
+  const notify = ctx.notify !== false;
 
-  // 1. Pull new allow-listed vendor emails with an image into the queue (deduped, markSeen).
-  const { created } = await intakeFromGmail(store, { reader, client: ctx.client || "skyline", language: "en" });
+  const items = (await reader.fetchNewImagePosts()) || [];
+  const notified = [], held = [], skipped = [];
 
-  const notified = [], held = [];
-  for (const planned of created) {
-    // 2. Draft it — same pipeline as WhatsApp (vision scene-only → caption → SMM), with
-    //    enhancement gated to photos. gmailFetch re-fetches the attachment for vision/enhance.
-    const res = await generateOne(store, planned, {
-      runner: "email-intake", facts: ctx.facts, profile: ctx.profile,
-      useVision: true, useSmm: true, imageOpts: { gmailFetch },
-      ...(aiEnhancer ? { aiEnhancer, regenerate: true, hostImageBytes, enhanceBackend } : {}),
+  for (const m of items) {
+    if (!m || !m.messageId) continue;
+    const smid = `gmail-${m.messageId}`;
+    // Dedup — a re-fetched email must not queue twice (publish-time-only = no URL to dedup on).
+    if (typeof store.findBySourceMessageId === "function") {
+      const existing = await store.findBySourceMessageId(smid);
+      if (existing) { try { await reader.markSeen && reader.markSeen(m.messageId); } catch (e) { /* */ } skipped.push(smid); continue; }
+    }
+
+    // Read the vendor image for (a) a short OFFER LABEL to show the owner and (b) the SCENE/theme
+    // to brief the caption. We brief from the SCENE (not the destination list) + constrain to
+    // "only what Skyline offers", so the model grounds to Skyline's own packages instead of
+    // inventing a route the client doesn't sell (e.g. a Himachal+Ladakh combo). No brand/price.
+    let offer = (m.subject || "").replace(/[^\w\s&,-]/g, " ").replace(/\s+/g, " ").trim();
+    let scene = "";
+    try {
+      if (m.imageSource) {
+        const bytes = await resolveImageSourceBytes(m.imageSource, { gmailFetch });
+        const [d, s] = await Promise.all([describeOffer(bytes, ctx.offerOpts || {}), describeImage(bytes, ctx.sceneOpts || {})]);
+        if (d) offer = d;
+        if (s) scene = s;
+      }
+    } catch (e) { /* keep the subject-derived offer */ }
+
+    // A SKYLINE idea post — text only (no vendor image). The brief forbids naming the supplier,
+    // its prices, or any other brand, AND tells the model to reference ONLY destinations Skyline
+    // actually offers — the fact-check + SMM keep it grounded in Skyline's own packages.
+    const hint =
+      `A travel supplier is promoting mountain/hill travel right now (scene: ${scene || offer}). ` +
+      `Write a SHORT, warm SKYLINE post that invites people to plan a CUSTOM hill/mountain trip WITH ` +
+      `SKYLINE. Reference ONLY destinations/regions that appear in your own packages — do NOT name ` +
+      `any place you don't offer, the supplier, any prices, or any other brand. End with a WhatsApp CTA.`;
+    const row = await store.create({
+      status: "planned", source: "gmail", sourceMessageId: smid, client: ctx.client || "skyline",
+      subject: (m.subject || "").slice(0, 80), hint, language: "en",
+      platforms: ["facebook"], // text-only idea → Facebook; IG needs an image the owner attaches
     });
-    const fresh = await store.get(planned.id);
+    try { await reader.markSeen && reader.markSeen(m.messageId); } catch (e) { /* dedup covers a re-fetch */ }
+
+    // Draft (no image → useVision:false, no enhance). SMM verifies; fact-check keeps it grounded.
+    const res = await generateOne(store, row, {
+      runner: "email-idea", facts: ctx.facts, profile: ctx.profile,
+      clientName: ctx.clientName, useVision: false, useSmm: true,
+    });
+    const fresh = await store.get(row.id);
     if (res.outcome !== "pending" && res.outcome !== "approved") {
       held.push({ id: fresh.id, outcome: res.outcome, reason: res.reason || fresh.lastError || "" });
       continue;
     }
-    // 3. Host the preview + SEND THE IMAGE to the owner on WhatsApp with an approve number.
-    let url = "";
-    try {
-      url = await hostPreview(fresh, { gmailFetch, enhanceBackend, enhanceImage, hostImageBytes, classifyOpts: ctx.classifyOpts });
-      if (url && fresh.imageUrl !== url) { await store.update(fresh.id, { imageUrl: url }); fresh.imageUrl = url; }
-    } catch (e) { /* preview host failed — still notify with text */ }
     const code = shortCode(fresh.id);
-    if (notify && to) {
-      const from = (planned.hint || planned.subject || "").slice(0, 0); // provenance kept minimal
-      const cap = `📧 New draft from a vendor email — please review.\n\n${(fresh.caption || "").trim()}\n\n${(fresh.hashtags || []).join(" ")}\n\n✅ Reply:  approve ${code}   |   reject ${code}   |   edit ${code} <new caption>`;
-      try {
-        if (url && ctx.sendImage) await ctx.sendImage(to, url, cap.slice(0, 1024));
-        else if (ctx.sendText) await ctx.sendText(to, renderDigestText([digestItem(fresh)]));
-      } catch (e) { /* best-effort notify */ }
+    if (notify && to && ctx.sendText) {
+      const msg =
+        `📧 A supplier is promoting: ${offer.slice(0, 90)}\n\n` +
+        `Here's a SKYLINE post idea (your brand, not theirs):\n\n${(fresh.caption || "").trim()}\n\n` +
+        `${(fresh.hashtags || []).join(" ")}\n\n` +
+        `📎 Reply a SKYLINE photo to attach it + post to IG + FB\n` +
+        `✅ approve ${code}  → Facebook text post   |   reject ${code}`;
+      try { await ctx.sendText(to, msg); } catch (e) { /* best-effort */ }
     }
-    notified.push({ id: fresh.id, code, outcome: res.outcome, hasImage: !!url });
+    notified.push({ id: fresh.id, code, offer });
   }
-  return { intakeCreated: created.length, notified, held };
+  return { considered: items.length, notified, held, skipped };
 }
 
-module.exports = { runEmailIntake, hostPreview };
+module.exports = { runEmailIntake };

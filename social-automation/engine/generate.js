@@ -305,6 +305,73 @@ async function classifyImageForEnhance(image, opts = {}) {
 }
 
 /**
+ * describeOffer — pull ONLY the travel destinations/places + season/theme from a vendor's
+ * offer image, for the #3 "idea, not poster" flow: we use it to brief a SKYLINE post, and we
+ * do NOT post the vendor's image. Deliberately EXCLUDES any company name, phone, website, or
+ * price so the brief can't drag a competitor's brand or an unverifiable price into our caption.
+ */
+async function describeOffer(image, opts = {}) {
+  const source = imageBlockSource(image);
+  if (!source) return "";
+  const client = opts.client || newClient();
+  try {
+    const msg = await client.messages.create({
+      model: opts.model || REPLY_MODEL,
+      max_tokens: 120,
+      messages: [{
+        role: "user",
+        content: [
+          { type: "image", source },
+          { type: "text", text:
+            "List ONLY the travel destinations/places and the season or theme this travel offer features " +
+            "(e.g. 'Himachal & Ladakh — Manali, Shimla, Leh, Pangong; winter'). Do NOT include any company " +
+            "name, logo, phone number, website, or price. Reply as a short phrase, no sentences." },
+        ],
+      }],
+    });
+    const block = (msg.content || []).find((b) => b.type === "text");
+    return block ? String(block.text || "").replace(/^#+\s.*$/gm, "").trim() : "";
+  } catch (e) { return ""; }
+}
+
+/**
+ * detectForeignBrand — does this image show a brand/logo/phone/website that is NOT the
+ * client's own? A vendor's B2B poster carries the SUPPLIER's branding, and posting it to the
+ * client's feed would advertise the supplier — so we HOLD it (the #2 approval guardrail).
+ * The client's OWN branding is fine. Returns { foreign:bool, brand:string }. On any doubt or
+ * error → { foreign:false } (don't block on a flaky call; the human still approves).
+ */
+async function detectForeignBrand(image, opts = {}) {
+  const source = imageBlockSource(image);
+  if (!source) return { foreign: false, brand: "" };
+  const clientName = String(opts.clientName || "the client").trim();
+  const client = opts.client || newClient();
+  try {
+    const msg = await client.messages.create({
+      model: opts.model || REPLY_MODEL,
+      max_tokens: 40,
+      messages: [{
+        role: "user",
+        content: [
+          { type: "image", source },
+          { type: "text", text:
+            `The account posting this image is "${clientName}". Does the image show a BUSINESS brand name, logo, ` +
+            `phone number, or website that belongs to a DIFFERENT company (a competitor/supplier), NOT "${clientName}"? ` +
+            `Ignore generic place names and the client's own branding. Answer strictly as: "NONE" if there is no ` +
+            `other-company branding, or "FOREIGN: <the other brand/name/number you see>".` },
+        ],
+      }],
+    });
+    const block = (msg.content || []).find((b) => b.type === "text");
+    const ans = block ? String(block.text || "").trim() : "";
+    if (/^\s*FOREIGN\b/i.test(ans)) return { foreign: true, brand: ans.replace(/^\s*FOREIGN:\s*/i, "").slice(0, 120) };
+    return { foreign: false, brand: "" };
+  } catch (e) {
+    return { foreign: false, brand: "" };
+  }
+}
+
+/**
  * Generate + validate the posts for one calendar brief.
  *
  * @returns {{brief, posts:Array, rejected:Array, needsHuman:boolean}}
@@ -461,6 +528,8 @@ module.exports = {
   generateReviewReply,
   describeImage,
   classifyImageForEnhance,
+  detectForeignBrand,
+  describeOffer,
   imageBlockSource,
   buildSystemPrompt,
   userPromptFor,

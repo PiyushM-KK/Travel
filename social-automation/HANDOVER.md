@@ -314,3 +314,83 @@ be needed). Wire the same enhance/gate/approve-by-number/send-image-back flow in
   pad fit, publish-runner classify+pad, ai-enhancer Claid adapter, whatsapp sendImage +
   parseDecision bare/short-code + shortCode, approval-channel POST #code, webhook wiring.
 • Encrypt + delete the plaintext .env; ROTATE the leaked passphrase (still owed from before).
+
+=====================================================================
+2026-08-04 (cont.) — AUTOMATED, AUTO-PUBLISHING, + the CARD GENERATOR
+=====================================================================
+Big session. The product is now a fully automated, approval-gated, self-publishing pipeline
+across TWO intake channels, plus a professional branded-card generator. Latest git HEAD on
+`main`: card generator (satori+resvg). Everything below is on Skyline `main` + deployed to the
+Vercel project `skyline-social` (prod https://skyline-social-nine.vercel.app).
+
+--- ✅ DONE + VERIFIED (worked) ---
+• FIRST POST LIVE (earlier): Diwali poster → @skylinetravelplanner IG + FB (padded whole).
+• WhatsApp photo intake: instant "processing" ack → classify photo/graphic → ENHANCE photos
+  (Claid, AI_ENHANCER_* on Vercel) / SKIP+report posters (text-safety gate) → grounded caption
+  → SEND THE IMAGE BACK on WhatsApp → APPROVE BY NUMBER (whatsapp.shortCode; "approve 2429" or
+  bare "approve"; multiple → lists numbers).
+• #2 FOREIGN-BRAND GUARDRAIL: engine detectForeignBrand + generate-runner (checkForeignBrand)
+  HOLDS any image carrying ANOTHER company's brand/phone/website. Wired into the webhook.
+• EMAIL (GMAIL) INTAKE #3 (reseller model): daily, a vendor email → read destinations
+  (describeOffer) + prices (extractPrices) → match a SKYLINE package (packages.matchPackage; no
+  match ⇒ held) → REPRICE vendor +10% (repricedLine; else Skyline's own price) → build a SKYLINE
+  CARD → host → WhatsApp the card + details (From/Subject/Received IST, package, price) with an
+  approve number → post IG+FB. Never posts the vendor's poster. run.js job "email";
+  api/cron-email.js (manual) + FOLDED into api/cron-prep.js (runs email FIRST, then calendar).
+• LONG-LIVED META TOKEN: minted a NEVER-EXPIRING page token (app 1711772623363887, Page
+  437743929683019). Flow: short user token + META_APP_SECRET → fb_exchange_token (long-lived
+  user token) → GET /{page}?fields=access_token → page token (expires:never). Installed in .env
+  + Vercel META_PAGE_TOKEN. IG/FB publish verified.
+• AUTO-PUBLISH ON: SOCIAL_LIVE=true on Vercel; cron-publish confirmed live (dryRun:false, 0
+  published because nothing approved). Daily publish cron 15:30 UTC. cron-prep DAILY at 13:30
+  UTC = 7 PM IST (owner's choice).
+• CARD GENERATOR (engine/card.js) — REBUILT with **satori + @resvg/resvg-js** (NO Chromium;
+  runs in the serverless fn) + Poppins fonts (assets/fonts/*.ttf). Designed template: hero
+  destination photo + gradient, Skyline logo chip, RED "From Rs X" price badge, bold headline +
+  route, saffron price, SERVICE BADGES with matching icons (Hotels/Transport/Sightseeing/Meals),
+  a real green WhatsApp BUTTON + logo CTA, tagline footer, photo credit. jimp fallback
+  (renderFallback) on any render error so a post is never blocked. Verified rendering LOCALLY
+  (card_v5.png) — looks professional.
+• ASSETS on GitHub (PiyushM-KK/Travel → social-automation/assets/): Skyline_Logo.jpg (JPG, white
+  bg — a transparent PNG would be cleaner), destinations/<slug>-NN.jpg (16 CC seeds from
+  Wikimedia; README = naming <slug>-NN.jpg + slug table; CREDITS.md = attribution), fonts/Poppins.
+• Deps added to package.json: satori ^0.29, @resvg/resvg-js ^2.6 (native prebuilt binary).
+
+--- 🔧 WORK IN PROGRESS ---
+• CARD DESIGN: v5 sent to the owner's WhatsApp for approval — AWAITING design feedback (they
+  iterated a lot: clean photo, footer badges, semantic icons, WhatsApp logo). Tweak card.js.
+• DEPLOYED CARD RENDER NOT YET VERIFIED: satori+resvg render works LOCALLY; the DEPLOY BUILT OK
+  with the deps, but a card has NOT been rendered ON VERCEL yet. RISK: @resvg/resvg-js native
+  binary on Vercel (should be fine — the linux-x64-gnu binary is in package-lock optionalDeps;
+  if not, the jimp fallback renders a simpler card). TO VERIFY: mark a vendor email unseen + clear
+  its gmail-<uid> Airtable row + trigger the deployed /api/cron-email → confirm a satori card is
+  generated + sent (or that the jimp fallback fired). Fonts + logo + photos are committed so the
+  fn can read them.
+
+--- ⏳ PENDING / OWNER ---
+• OWNER: re-encrypt .env → `node automation/secrets.js encrypt` (plaintext .env currently holds
+  META_PAGE_TOKEN, META_APP_SECRET, AI_ENHANCER_KEY, etc. — re-lock it). ROTATE the leaked
+  passphrase (owed from earlier).
+• VERIFY the deployed card render end-to-end (above) → then a real vendor email at 7 PM IST
+  should auto-produce a card → approve → auto-publish IG+FB.
+• Better DESTINATION PHOTOS: owner to upload clean/owned photos per slug (some seeds are basic;
+  himachal-hills replaced with clean Kullu Valley + Spiti already).
+• Skyline WhatsApp NUMBER on the card (owner to confirm the number to print, if wanted).
+
+--- 🔮 FUTURE ---
+• Broaden email to TEXT-ONLY vendor emails (currently image-emails only; #3 doesn't need an
+  image — the offer text suffices, but off-catalogue offers create noise/held rows).
+• Show MULTI-TIER pricing on the card (vendor often lists 3 tiers; currently we take min+10%).
+• Transparent PNG logo (current JPG shows a white chip).
+• More card templates / seasonal variants; per-package hero-photo curation.
+• Propagate this whole session's fixes UPSTREAM to FullFirm SociaMedia_Auto (store fix,
+  vision/caption reliability, Claid enhancer, sendImage, approve-by-number, pad-fit, foreign-
+  brand, card generator, packages, email-intake). FullFirm is the reusable engine; Skyline
+  vendored + extended it. Repos NOT merged.
+
+--- KEY FILES (for the next agent) ---
+engine/card.js (satori card + jimp fallback) · automation/packages.js (match+reprice) ·
+engine/generate.js (extractPrices/describeOffer/detectForeignBrand/classifyImageForEnhance) ·
+automation/email-intake.js (card flow) · api/cron-email.js + cron-prep.js · run.js "email" ·
+assets/{Skyline_Logo.jpg, destinations/, fonts/}. Meta: app 1711772623363887, Page
+437743929683019, IG 17841404608201511, never-expiring token in .env+Vercel.

@@ -614,3 +614,17 @@ Hotels · Sightseeing · Custom Trips · 24/7 Support (all on Skyline's own post
 configurable (card.js opts.badges) — if the owner confirms meals/transport are always included, pass
 them back. Also fixed: Meghalaya scene was a Kerala houseboat (now hills); "photo: AI scene" credit
 (now "AI-generated scene · illustrative" for B, "Photo: <src>" for A).
+
+=====================================================================
+2026-08-05 — DOMAIN LIVE: skylinetravelplanner.com (Cloudflare + GitHub Pages)
+=====================================================================
+The Skyline WEBSITE is now on its OWN domain: https://skylinetravelplanner.com (valid HTTPS).
+- DNS moved to CLOUDFLARE (registrar stays Squarespace; NS jakub/vivienne.ns.cloudflare.com).
+- Website served by GITHUB PAGES from PiyushM-KK/Travel (apex A → 185.199.108–111.153 + www CNAME →
+  piyushm-kk.github.io, DNS-only; CNAME file in repo; Enforce HTTPS ON; Let's Encrypt cert).
+- EMAIL PRESERVED: Google Workspace MX + SPF + DKIM + the q4fu6efzycup verification CNAME were carried
+  over untouched — Info@skylinetravelplanner.com + the vendor-email intake (GMAIL_*) are unaffected.
+- facts.js `website` + the site's canonical/og meta tags now point to https://skylinetravelplanner.com.
+- Gotcha: Windows curl reports a false SEC_E_WRONG_PRINCIPAL on the cert (schannel quirk); openssl
+  confirms a valid CN=skylinetravelplanner.com Let's Encrypt cert. Browsers are fine.
+- A scoped Cloudflare DNS-edit token was used once (via .env) then revoked by the owner.

@@ -68,9 +68,14 @@ async function resolveAirport(env, code) {
   const hit = cacheGet(key);
   if (hit) return hit;
   const out = await rapid(env, FLIGHT_HOST, `/api/v1/flights/searchAirport?query=${encodeURIComponent(code)}&locale=en-US`);
-  const first = out.ok && out.json && Array.isArray(out.json.data) ? out.json.data[0] : null;
-  if (!first || !first.skyId || !first.entityId) return null;
-  const val = { skyId: first.skyId, entityId: first.entityId };
+  const list = out.ok && out.json && Array.isArray(out.json.data) ? out.json.data : [];
+  // skyId/entityId live under navigation.relevantFlightParams (not top-level).
+  const params = list.map((x) => x && x.navigation && x.navigation.relevantFlightParams).filter(Boolean);
+  if (!params.length) return null;
+  const want = code.toUpperCase();
+  const pick = params.find((p) => String(p.skyId || '').toUpperCase() === want) || params[0];
+  if (!pick.skyId || !pick.entityId) return null;
+  const val = { skyId: pick.skyId, entityId: pick.entityId };
   cacheSet(key, val, 24 * 60 * 60 * 1000);
   return val;
 }

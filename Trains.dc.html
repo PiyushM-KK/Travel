@@ -3,7 +3,6 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script>window.SKYLINE_TRAIN_API='https://skyline-api.skyline-dev.workers.dev';</script>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -426,42 +425,38 @@ class Component extends DCLogic {
   }
 
   var ctx={from:'',to:'',date:''};
-  async function searchTrains(){
+  // Skyline shows train SEARCH only — no in-page fares/availability (that data is
+  // unofficial + rate-limited). On search we hand off to the team to check
+  // availability + book, with optional self-check on IRCTC / ixigo.
+  function searchTrains(){
     var fi=document.getElementById('fromInput'), ti=document.getElementById('toInput'), di=document.getElementById('journeyDate');
     var status=document.getElementById('searchStatus'), results=document.getElementById('trainResults');
-    var from=(fi&&fi.dataset.stationCode)||'', to=(ti&&ti.dataset.stationCode)||'', date=(di&&di.value)||'';
-    if(!from||!to){ if(status) status.textContent='Please pick both stations from the suggestions.'; return; }
+    var fromCode=(fi&&fi.dataset.stationCode)||'', toCode=(ti&&ti.dataset.stationCode)||'';
+    var fromName=(fi&&fi.value)||fromCode, toName=(ti&&ti.value)||toCode, date=(di&&di.value)||'';
+    if(!fromCode||!toCode){ if(status) status.textContent='Please pick both stations from the suggestions.'; return; }
     if(!date){ if(status) status.textContent='Please choose a date.'; return; }
-    ctx={from:from,to:to,date:date};
-    if(status) status.textContent='Searching trains…'; if(results) results.innerHTML='';
-    try{
-      var r=await fetch(API_BASE+'/api/trains?from='+encodeURIComponent(from)+'&to='+encodeURIComponent(to)+'&date='+encodeURIComponent(date),{mode:'cors'});
-      var j=await r.json();
-      if(!r.ok){ if(status) status.textContent=(j.status===429||/quota/i.test(j.detail||'')) ? 'Live train data unavailable — your RapidAPI plan monthly quota is exhausted. Upgrade the plan or wait for the reset.' : ('Could not fetch trains ('+(j.error||r.status)+'). Is the train-api proxy running?'); return; }
-      var trains=j.trains||[];
-      if(!trains.length){ if(status) status.textContent='No direct trains found for this route/date.'; return; }
-      if(status) status.textContent=trains.length+' train'+(trains.length>1?'s':'')+' found · tap a class for live availability & fare';
-      if(results) results.innerHTML='<h2 class="sky-h2">Available Trains</h2>'+trains.map(renderTrain).join('');
-    }catch(e){ if(status) status.textContent='Live train availability is coming soon. Meanwhile, share your route on WhatsApp (+91 88660 50291) or the Customize My Trip form and we’ll help.'; }
+    var wamsg='Hi Skyline Travel Planner! Train enquiry: '+fromName+' ('+fromCode+') → '+toName+' ('+toCode+') on '+date+'. Please share train options, availability and help me book.';
+    var wa='https://wa.me/918866050291?text='+encodeURIComponent(wamsg);
+    var irctc='https://www.irctc.co.in/nget/train-search';
+    var ixigo='https://www.ixigo.com/trains';
+    if(status) status.textContent='';
+    var btn='display:inline-block;padding:12px 18px;border-radius:10px;font-weight:700;color:#fff;text-decoration:none;font-size:14px';
+    if(results) results.innerHTML='<h2 class="sky-h2">'+esc(fromName)+' → '+esc(toName)+'</h2>'
+      +'<div style="background:#eef4ff;border:1px solid #d5e4fb;border-radius:14px;padding:18px;margin:14px 0">'
+        +'<div style="font-weight:800;font-size:16px;color:#0a2540;margin-bottom:6px">Book this train with us 🚆</div>'
+        +'<div style="color:#41546b;font-size:14px;line-height:1.6;margin-bottom:14px">Our team checks live availability, waitlist chances and fares, and books it for you. Send your route and we\'ll take it from there.</div>'
+        +'<div style="display:flex;flex-wrap:wrap;gap:10px">'
+          +'<a style="'+btn+';background:#25D366" href="'+esc(wa)+'" target="_blank" rel="noopener">💬 Get train options on WhatsApp</a>'
+          +'<a style="'+btn+';background:#0a5fd7" href="Customize.dc.html">✍️ Customize My Trip</a>'
+        +'</div></div>'
+      +'<div style="color:#5c6f80;font-size:13px;margin-top:6px">Or check availability yourself:</div>'
+      +'<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px">'
+        +'<a style="'+btn+';background:#213a8f" href="'+esc(irctc)+'" target="_blank" rel="noopener">IRCTC (official) ↗</a>'
+        +'<a style="'+btn+';background:#ff5c1a" href="'+esc(ixigo)+'" target="_blank" rel="noopener">ixigo Trains ↗</a>'
+      +'</div>';
   }
 
-  async function checkSeat(btn){
-    if(btn.dataset.loading==='1') return;
-    var train=btn.getAttribute('data-train'), cls=btn.getAttribute('data-class');
-    if(!ctx.from||!ctx.date){ return; }
-    btn.dataset.loading='1'; btn.textContent=cls+' · …';
-    try{
-      var r=await fetch(API_BASE+'/api/seat?from='+encodeURIComponent(ctx.from)+'&to='+encodeURIComponent(ctx.to)+'&train='+encodeURIComponent(train)+'&date='+encodeURIComponent(ctx.date)+'&class='+encodeURIComponent(cls),{mode:'cors'});
-      var j=await r.json(); var a=j.availability;
-      if(!r.ok||!a){ btn.textContent=cls+' · n/a'; btn.dataset.loading=''; return; }
-      var col=statusColor(a.status||a.statusRaw);
-      btn.classList.add('sky-cls-done'); btn.style.borderColor=col;
-      btn.innerHTML='<b>'+esc(cls)+'</b> · <span style="color:'+col+'">'+esc(a.status||a.statusRaw||'—')+'</span>'
-        +(a.fare?' · '+inr(a.fare):'')
-        +(a.prob?' · <span style="color:'+col+'">'+esc(a.prob)+'% '+esc(a.probLabel||'')+'</span>':'');
-      btn.dataset.loading='';
-    }catch(e){ btn.textContent=cls+' · retry'; btn.dataset.loading=''; }
-  }
+  function checkSeat(){ /* seat/availability check removed — trains are refer-out now */ }
 
   function initDate(){ var d=document.getElementById('journeyDate'); if(d&&!d.value){ try{ d.value=new Date().toISOString().slice(0,10); d.min=d.value; }catch(e){} } }
   var tries=0;(function ready(){ if(document.getElementById('journeyDate')){ initDate(); return; } if(tries++>100) return; setTimeout(ready,120); })();

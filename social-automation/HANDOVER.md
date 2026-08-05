@@ -546,6 +546,38 @@ could be downscaled ONCE upstream and shared. And pickBestImage picks by bytes, 
 banner could beat a smaller offer poster (heuristic).
 
 =====================================================================
+2026-08-04 (cont.) — 3rd INTAKE: CALENDAR AUTO-IDEAS → PUBLISHABLE CARDS
+=====================================================================
+Git HEAD on `main`: 9606254. The THREE intake channels are now all live:
+  1. WhatsApp (owner sends a photo/note → draft).
+  2. Vendor email (Gmail → Skyline reseller A/B card).
+  3. Calendar auto-ideas → **publishable** A/B card (NEW — this entry).
+
+✅ automation/calendar-cards.js (runCalendarCards) + run.js job "calendar-cards" + wired into
+api/cron-prep.js (runs once/day after email). One Skyline package/day (stateless rotation
+packageForDay = featurablePackages[floor(now/86400000) % N]) → A (real photo) + B (AI scene/gradient)
+card, hosted JPEG → pending row (source "calendar-card", options{A,B}) → grounded caption (useSmm)
+→ WhatsApp A/B → owner picks → cron-publish posts IG+FB. Skyline's OWN package + OWN price (no markup).
+LIVE-PROVEN: ran the job → featured Royal Rajasthan → A/B sent to owner WhatsApp (row rec4RHOZfMSE0DoIq,
+code 6877). tests/check_calendar_cards.js (5 checks).
+
+Reviewed by Bug Hunter + QA; fixes applied:
+- QA[HIGH]: only feature packages with a REAL matching photo (photoSlug != "generic"). The other ~12
+  packages (Maldives/Bali/Thailand/Gujarat/…) fell back to the "generic" seed = a HIMALAYAS-FROM-SPACE
+  photo under the wrong headline, credited "Photo: Wikimedia CC" — a real photo of the WRONG place that
+  NO agent catches (card A isn't vision-reviewed). Now rotates the 10 photo-backed packages only.
+  (To add more: drop real CC photos into assets/destinations/<slug>-NN.jpg and add the slug to
+  packages.js SLUG_MAP; they auto-join the rotation.)
+- BugHunter[MED]: create the row FIRST (before the paid image-gen) so a cron retry/re-trigger dedups on
+  it (smid calendar-<slug>-<YYYY-MM-DD>); guard generateOne against throwing (sweep blobs + hold, not strand).
+
+KNOWN/NOTED (not blocking, shared with email-intake): no orphan-sweep job exists, so a card the owner
+never decides leaks its 2 Blob JPEGs (rejecting/approving sweeps them); undecided cards accumulate in
+pending_approval (bare "approve" then needs a code); QA agent (useQa) not wired (SMM is the gate, and it
+runs blind to the image — image honesty rests on the owner's A/B approval + the photo-backed-only gate).
+facts.js DESTINATIONS_WITH_IMAGES list is stale (lists photos not on disk) — reconcile someday.
+
+=====================================================================
 2026-08-04 (cont.) — TWO-CANDIDATE A/B CARDS (photo + AI scene, owner picks)
 =====================================================================
 Git HEAD on `main`: b3ff33a. Reviewed by Bug Hunter + App Security + QA (all fixes applied).

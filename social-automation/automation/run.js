@@ -32,7 +32,7 @@ const { redact } = require("../engine/publish");
 const { mockChannel } = require("./approval-channel");
 const { loadClient } = require("./clients");
 
-const JOBS = ["intake", "generate", "approve", "publish", "report", "pr", "prep", "email"];
+const JOBS = ["intake", "generate", "approve", "publish", "report", "pr", "prep", "email", "calendar-cards"];
 
 function makeStore(injected) {
   if (injected) return { store: injected, kind: "injected" };
@@ -222,6 +222,25 @@ async function runJob(opts = {}) {
     });
     await store.heartbeat("email", { runner, considered: out.considered, notified: out.notified.length, held: out.held.length });
     return { ok: true, ...base, email: out };
+  }
+
+  // -------------------------------------------------------------- CALENDAR-CARDS (auto package feature)
+  if (job === "calendar-cards") {
+    // The 3rd intake: one Skyline package/day → a publishable A/B card → WhatsApp to approve → IG+FB.
+    // Skyline's OWN packages, Skyline's OWN price. Never publishes here; the owner approves + cron-publish posts.
+    const { runCalendarCards } = require("./calendar-cards");
+    const { sendText, sendImage } = require("./whatsapp");
+    const out = await runCalendarCards(store, {
+      facts: client.facts, profile: client.profile, clientName: client.label || client.id, client: client.id,
+      sendText: opts.sendText || ((to, body) => sendText(to, body)),
+      sendImage: opts.sendImage || ((to, link, caption) => sendImage(to, link, caption)),
+      notifyTo: opts.notifyTo || process.env.WHATSAPP_TO,
+      ...(opts.notify != null ? { notify: opts.notify } : {}),
+      ...(opts.now ? { now: opts.now } : {}),
+      ...(opts.pkg ? { pkg: opts.pkg } : {}),
+    });
+    await store.heartbeat("calendar-cards", { runner, considered: out.considered, notified: out.notified.length, held: out.held.length });
+    return { ok: true, ...base, calendarCards: out };
   }
 
   // -------------------------------------------------------------- REPORT

@@ -52,8 +52,13 @@ module.exports = async (req, res) => {
     let email;
     try { email = (await runJob({ job: "email", clientId, runner: "vercel-email" })).email; }
     catch (e) { email = { error: redact(String((e && e.message) || e)) }; }
+    // 3rd intake: feature ONE Skyline package/day as a publishable A/B card (own packages, own price).
+    // Also light + owner-priority; a failure must not fail the whole run.
+    let calendarCards;
+    try { calendarCards = (await runJob({ job: "calendar-cards", clientId, runner: "vercel-calendar" })).calendarCards; }
+    catch (e) { calendarCards = { error: redact(String((e && e.message) || e)) }; }
     const out = await runJob({ job: "prep", clientId, runner: "vercel-prep" });
-    res.status(out.ok ? 200 : 500).json({ runner: "vercel", ...out, email });
+    res.status(out.ok ? 200 : 500).json({ runner: "vercel", ...out, email, calendarCards });
   } catch (e) {
     // Never leak a secret in an error surfaced to the caller (all shapes).
     res.status(500).json({ runner: "vercel", ok: false, error: redact(String((e && e.message) || e)) });

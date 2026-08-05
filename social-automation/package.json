@@ -7,7 +7,7 @@
     "node": ">=18"
   },
   "scripts": {
-    "test": "node tests/check_skyline_social.js && node tests/check_skyline_automation.js && node tests/check_airtable_imagesource.js && node tests/check_ab_selection.js",
+    "test": "node tests/check_skyline_social.js && node tests/check_skyline_automation.js && node tests/check_airtable_imagesource.js && node tests/check_ab_selection.js && node tests/check_calendar_cards.js",
     "prep": "node automation/run.js prep",
     "publish-pass": "node automation/run.js publish",
     "verify-live": "node automation/verify-live.js"

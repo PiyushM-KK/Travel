@@ -30,3 +30,6 @@ social-automation/.vercel/
 social-automation/.env.enc
 .vercel
 .env*
+
+# Private security audit reports — documents live vulns; NEVER commit to this PUBLIC repo
+SECURITY-AUDIT-*.md

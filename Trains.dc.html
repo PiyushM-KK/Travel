@@ -441,7 +441,7 @@ class Component extends DCLogic {
       if(!trains.length){ if(status) status.textContent='No direct trains found for this route/date.'; return; }
       if(status) status.textContent=trains.length+' train'+(trains.length>1?'s':'')+' found · tap a class for live availability & fare';
       if(results) results.innerHTML='<h2 class="sky-h2">Available Trains</h2>'+trains.map(renderTrain).join('');
-    }catch(e){ if(status) status.textContent='Network error — is the proxy running at '+API_BASE+'?'; }
+    }catch(e){ if(status) status.textContent='Live train availability is coming soon. Meanwhile, share your route on WhatsApp (+91 88660 50291) or the Customize My Trip form and we’ll help.'; }
   }
 
   async function checkSeat(btn){

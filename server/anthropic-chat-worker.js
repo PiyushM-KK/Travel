@@ -35,15 +35,41 @@ const ALLOWED_ORIGINS = [
 // previews (VS Code, Live Server, the Ruby server, etc.). Production stays locked.
 const LOCAL_ORIGIN_RE = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
+function isAllowedOrigin(origin) {
+  return ALLOWED_ORIGINS.includes(origin) || LOCAL_ORIGIN_RE.test(origin);
+}
+
 function corsHeaders(origin) {
-  const allowed = ALLOWED_ORIGINS.includes(origin) || LOCAL_ORIGIN_RE.test(origin);
-  const allow = allowed ? origin : ALLOWED_ORIGINS[0];
+  const allow = isAllowedOrigin(origin) ? origin : ALLOWED_ORIGINS[0];
   return {
     'Access-Control-Allow-Origin': allow,
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
     'Vary': 'Origin',
   };
+}
+
+// Best-effort per-IP rate limit (defence-in-depth against Anthropic cost abuse).
+// NOTE: this lives in an isolate's memory, so it is NOT a hard global cap — a
+// distributed flood can hit multiple isolates. The REAL control is a Cloudflare
+// Rate Limiting rule on this Worker's route + an Anthropic console spend cap.
+// This just stops a lazy single-source loop cheaply.
+const RATE_MAX = 15; // requests
+const RATE_WINDOW_MS = 60 * 1000; // per minute per IP
+const rateHits = new Map(); // ip -> number[] (recent request timestamps)
+
+function isRateLimited(ip) {
+  const now = Date.now();
+  const recent = (rateHits.get(ip) || []).filter((t) => now - t < RATE_WINDOW_MS);
+  recent.push(now);
+  rateHits.set(ip, recent);
+  // Bound memory: occasionally evict stale IPs so the Map can't grow unbounded.
+  if (rateHits.size > 5000) {
+    for (const [k, v] of rateHits) {
+      if (!v.length || now - v[v.length - 1] > RATE_WINDOW_MS) rateHits.delete(k);
+    }
+  }
+  return recent.length > RATE_MAX;
 }
 
 export default {
@@ -61,6 +87,24 @@ export default {
     }
     if (request.method !== 'POST') {
       return new Response('Method Not Allowed', { status: 405, headers: cors });
+    }
+
+    // Server-side origin gate: the browser widget always sends an allow-listed
+    // Origin on this cross-origin POST, so this blocks no-Origin bots and calls
+    // from other sites. (Origin is spoofable, so this is a speed bump, not a
+    // wall — pair it with the Cloudflare rate-limit rule + Anthropic spend cap.)
+    if (!isAllowedOrigin(origin)) {
+      return new Response(JSON.stringify({ error: 'forbidden origin' }),
+        { status: 403, headers: { 'Content-Type': 'application/json', ...cors } });
+    }
+
+    // Best-effort per-IP throttle (see note on isRateLimited).
+    const clientIp = request.headers.get('CF-Connecting-IP') || 'unknown';
+    if (isRateLimited(clientIp)) {
+      return new Response(
+        JSON.stringify({ reply: "You're sending messages very quickly — please wait a moment and try again. 🙏" }),
+        { status: 429, headers: { 'Content-Type': 'application/json', ...cors } }
+      );
     }
 
     try {
@@ -93,6 +137,7 @@ export default {
         body: JSON.stringify({
           model: MODEL,
           max_tokens: 400,
+          temperature: 0.2, // rules-bound assistant — keep refusals consistent
           system: SYSTEM_PROMPT,
           messages: convo,
         }),
@@ -121,6 +166,13 @@ export default {
       // even if the model forgot to add it. Skipped if a similar note is already present.
       if (/[₹]|\bRs\.?\b|\bINR\b/i.test(reply) && !/indicative|subject to change|can change with/i.test(reply)) {
         reply += '\n\nNote: Prices are indicative starting-from estimates and can change with season, hotel availability and current rates.';
+      }
+
+      // Deterministic safety backstop (do not rely on the prompt alone): if the model
+      // ever asserts a CONFIRMED booking, a GUARANTEED/locked price, or a visa outcome,
+      // append a correction. These claims are real business/legal liability.
+      if (/\b(booking\s+(is\s+)?confirmed|confirmed\s+your\s+booking|guarantee[ds]?\s+(the\s+|your\s+)?price|price\s+(is\s+)?(locked|guaranteed)|locked[-\s]?in\s+price|visa\s+(is\s+)?(approved|guaranteed|confirmed)|guarantee[ds]?\s+(your\s+)?visa)\b/i.test(reply)) {
+        reply += '\n\n(To be clear: I can\'t confirm bookings, guarantee prices, or guarantee visa outcomes — our team or the official provider confirms those. Please message us on WhatsApp at +91 88660 50291 for an exact quote.)';
       }
 
       return new Response(

@@ -82,8 +82,35 @@ async function resolveAirport(env, code) {
 const CABIN_MAP = { economy: 'economy', 'premium economy': 'premium_economy', business: 'business', first: 'first' };
 const cabinParam = (c) => CABIN_MAP[String(c || '').toLowerCase()] || 'economy';
 
-function normFlights(json, from, to, date) {
-  const its = (json && json.data && json.data.itineraries) || [];
+// Sky-Scrapper's first searchFlights is often "incomplete" — a small partial set
+// (usually the cheap non-stops of one/two carriers). Poll searchIncomplete with the
+// sessionId to accumulate the full set (all airlines + connecting flights). Capped to
+// protect the free quota: each poll is one API call. MAX_POLLS is tunable via env.
+async function searchFlightsComplete(env, q) {
+  const first = await rapid(env, FLIGHT_HOST, `/api/v1/flights/searchFlights?${q}`);
+  if (!first.ok) return { ok: false, status: first.status, text: first.text };
+  let data = (first.json && first.json.data) || {};
+  let its = data.itineraries || [];
+  const sid = data.context && data.context.sessionId;
+  let status = data.context && data.context.status;
+  // Default OFF: immediate polling returns nothing (Skyscanner is still aggregating)
+  // and each poll burns a call, which the 20/mo free tier can't afford. Set
+  // FLIGHT_MAX_POLLS>0 on a paid tier for fuller multi-airline results.
+  const MAX_POLLS = Math.max(0, Number(env.FLIGHT_MAX_POLLS ?? 0));
+  let polls = 0;
+  while (status === 'incomplete' && sid && polls < MAX_POLLS) {
+    polls++;
+    const p = await rapid(env, FLIGHT_HOST, `/api/v1/flights/searchIncomplete?sessionId=${encodeURIComponent(sid)}&currency=INR`);
+    const pd = p.ok && p.json && p.json.data;
+    if (!pd) break;
+    if (pd.itineraries && pd.itineraries.length >= its.length) its = pd.itineraries; // accumulated set
+    status = pd.context && pd.context.status;
+  }
+  return { ok: true, itineraries: its, status, polls };
+}
+
+function normFlights(its, from, to, date) {
+  its = its || [];
   const ymd = String(date || '').replace(/-/g, '').slice(2);
   return its.map((it) => {
     const leg = (it.legs && it.legs[0]) || {};
@@ -166,19 +193,21 @@ export default {
         const from = (qp.get('from') || '').trim().toUpperCase();
         const to = (qp.get('to') || '').trim().toUpperCase();
         const date = (qp.get('date') || '').trim();
+        const ret = (qp.get('return') || '').trim(); // round-trip return date (optional)
         const cabin = cabinParam(qp.get('cabin'));
         if (!from || !to || !date) return json(400, { error: 'from, to and date are required' });
-        const ckey = `flt:${from}:${to}:${date}:${cabin}`;
+        const ckey = `flt:${from}:${to}:${date}:${ret}:${cabin}`;
         const cached = cacheGet(ckey);
         if (cached) return json(200, { flights: cached, source: 'skyscanner', cached: true });
         const [o, d] = await Promise.all([resolveAirport(env, from), resolveAirport(env, to)]);
         if (!o || !d) return json(200, { flights: [], detail: 'could not resolve one of the airports' });
         const q = `originSkyId=${encodeURIComponent(o.skyId)}&destinationSkyId=${encodeURIComponent(d.skyId)}`
           + `&originEntityId=${encodeURIComponent(o.entityId)}&destinationEntityId=${encodeURIComponent(d.entityId)}`
-          + `&date=${encodeURIComponent(date)}&adults=1&currency=INR&market=en-US&countryCode=IN&cabinClass=${cabin}`;
-        const out = await rapid(env, FLIGHT_HOST, `/api/v1/flights/searchFlights?${q}`);
+          + `&date=${encodeURIComponent(date)}${ret ? `&returnDate=${encodeURIComponent(ret)}` : ''}`
+          + `&adults=1&currency=INR&market=en-US&countryCode=IN&cabinClass=${cabin}`;
+        const out = await searchFlightsComplete(env, q);
         if (!out.ok) return json(502, { error: 'upstream', status: out.status, detail: (out.text || '').slice(0, 300) });
-        const flights = normFlights(out.json, from, to, date);
+        const flights = normFlights(out.itineraries, from, to, date);
         cacheSet(ckey, flights, 30 * 60 * 1000);
         return json(200, { flights, source: 'skyscanner' });
       }

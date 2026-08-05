@@ -2,7 +2,7 @@
  * Skyline Travel Planner — social media fact base.
  *
  * SOURCE OF TRUTH: the live Skyline site, which lives in its OWN repo
- * (PiyushM-KK/Travel, served at https://piyushm-kk.github.io/Travel/) at
+ * (PiyushM-KK/Travel, served at https://skylinetravelplanner.com/) at
  *   C:\Users\PiyushM\OneDrive\Documents\WebSite_looknbooks\Skyline Travel Planner Launch
  *
  * We deliberately do NOT copy that project in here. It has its own git remote,
@@ -41,7 +41,7 @@ const BUSINESS = {
     },
   ],
 
-  website: "https://piyushm-kk.github.io/Travel/",
+  website: "https://skylinetravelplanner.com/",
 
   // How a trip actually gets booked. Note what is NOT here: no online payment,
   // no instant booking. Every package starts as an enquiry.

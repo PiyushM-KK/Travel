@@ -1,6 +1,21 @@
 # Custom Domain Setup — skylinetravelplanner.com
 
-How to point `skylinetravelplanner.com` at the site (currently live at
+> ## ✅ DONE — 2026-08-05. The site is LIVE at **https://skylinetravelplanner.com**.
+> Route A (via Cloudflare) was used. Final state:
+> - **DNS:** moved to **Cloudflare** (nameservers `jakub` + `vivienne.ns.cloudflare.com`; registrar
+>   stays **Squarespace**). Apex `A` → GitHub Pages IPs `185.199.108–111.153` + `www` CNAME →
+>   `piyushm-kk.github.io`, both **DNS-only (grey)**.
+> - **GitHub Pages:** custom domain `skylinetravelplanner.com` set, `CNAME` file committed,
+>   **HTTPS cert = Let's Encrypt (valid), Enforce HTTPS = ON.**
+> - **Email preserved:** all 5 Google MX + SPF + DKIM + the `q4fu6efzycup` Google-verification CNAME
+>   were carried over untouched — `Info@skylinetravelplanner.com` + the vendor-email intake are intact.
+> - Site meta tags (canonical/og) + `social-automation/facts.js` website now point to the custom domain.
+>
+> The steps below are kept as the historical record / re-do guide.
+
+---
+
+How to point `skylinetravelplanner.com` at the site (previously served at
 `https://piyushm-kk.github.io/Travel/`). The site stays reachable on the github.io URL the
 whole time until the final switch, so there's no downtime if you follow the order.
 

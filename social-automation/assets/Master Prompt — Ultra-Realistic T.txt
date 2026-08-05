@@ -1,0 +1,370 @@
+# Master Prompt — Ultra-Realistic Travel Photography Collection
+
+Create a cohesive series of **ultra-photorealistic travel photographs** that appear to have been captured by an experienced professional travel, lifestyle, and aviation photographer.
+
+The final images must look like authentic RAW photographs taken with a full-frame mirrorless camera—not AI-generated artwork, CGI, digital illustration, or a heavily retouched advertising composite.
+
+## Scene
+
+Create the following travel scene:
+
+a family eating breakfast at an airport restaurant
+
+Show a genuine, unscripted travel moment, natural scene, realistic environmental details,realistic nature  details and physically accurate lighting.
+
+## Photographic Style
+
+Professional editorial travel photography combining:
+
+* High-end airline campaign photography
+* Documentary-style family travel photography
+* Premium travel magazine imagery
+* Authentic airport and aviation photography
+* Natural cinematic realism
+* Subtle 35mm film character
+* Minimal commercial retouching
+* Realistic, slightly imperfect photographic detail
+
+The photograph should feel candid and emotionally genuine rather than staged. Preserve small natural imperfections such as slightly wrinkled clothing, subtle skin texture, stray hair, realistic luggage wear, fingerprints on glass, minor reflections, atmospheric haze, and gentle background activity.
+
+## Camera System
+
+Photographed using a:
+
+**Sony Alpha 1, Sony A7R V, Canon EOS R5 Mark II, or Nikon Z8 full-frame mirrorless camera**
+
+Use realistic full-frame camera rendering with:
+
+* 14-bit RAW image characteristics
+* Natural highlight roll-off
+* Realistic dynamic range
+* Accurate white balance
+* True-to-life colour separation
+* Physically correct depth of field
+* Natural lens compression
+* Realistic microcontrast
+* No excessive digital sharpening
+
+## Lens and Focal Length
+
+Choose the focal length according to the scene.
+
+### Wide Environmental Travel Scenes
+
+Use:
+
+* 24mm, 28mm, or 35mm full-frame lens
+* Aperture: f/4 to f/8
+* Camera positioned at natural eye level
+* Straight architectural lines
+* Minimal wide-angle distortion
+* Foreground, subject, and background clearly separated
+
+Best for airport terminals, restaurants, lounges, boarding gates, aircraft cabins, runway views, and destination arrivals.
+
+### Lifestyle and Family Scenes
+
+Use:
+
+* 35mm or 50mm full-frame prime lens
+* Aperture: f/2.8 to f/4
+* Subject distance: approximately 2–5 metres
+* Natural perspective without exaggerated facial features
+* Moderate background separation
+* Environmental context still visible
+
+Best for families walking through airports, eating together, boarding flights, taking photographs, or interacting inside an aircraft.
+
+### Portrait and Emotional Moments
+
+Use:
+
+* 50mm, 85mm, or 105mm portrait lens
+* Aperture: f/1.8 to f/2.8
+* Accurate focus on the nearest eye
+* Smooth but physically realistic background blur
+* Natural lens compression
+* Soft foreground and background separation
+* No artificial blur around hair, hands, clothing, or luggage
+
+Best for children looking through airplane windows, couples watching aircraft, close family interactions, passport moments, and emotional arrival scenes.
+
+### Aviation and Distant Aircraft Scenes
+
+Use:
+
+* 70–200mm or 100–400mm telephoto lens
+* Aperture: f/5.6 to f/8
+* Realistic atmospheric compression
+* Accurate aircraft proportions
+* Natural heat haze where appropriate
+* Physically accurate motion and perspective
+* Aircraft positioned at believable distances
+
+Best for planes crossing near the horizon, aircraft taking off, landing, taxiing, or flying above clouds.
+
+## Exposure Settings
+
+Use technically believable exposure values based on the lighting conditions.
+
+### Golden-Hour Exterior
+
+* ISO 100–200
+* Shutter speed: 1/500 to 1/1250 second for aircraft
+* Shutter speed: 1/250 to 1/500 second for people
+* Aperture: f/4 to f/8
+* Exposure compensation: –0.3 EV to –0.7 EV
+* White balance: 5,500–6,500 K
+* Preserve detail in the brightest part of the sunset
+* Avoid clipped highlights around the sun and clouds
+
+### Bright Airport Interior
+
+* ISO 400–800
+* Shutter speed: 1/160 to 1/320 second
+* Aperture: f/2.8 to f/4
+* White balance: 4,500–5,200 K
+* Use window light as the dominant source
+* Maintain detail both inside the terminal and outside through the windows
+* Avoid unrealistic HDR halos
+
+### Aircraft Cabin
+
+* ISO 800–1600
+* Shutter speed: 1/125 to 1/250 second
+* Aperture: f/2 to f/3.5
+* White balance: 3,800–4,600 K
+* Balance cool window light with warm cabin lighting
+* Preserve realistic shadows in seats and overhead compartments
+* Avoid unnaturally bright or evenly illuminated faces
+
+### Blue Hour or Night Airport Scene
+
+* ISO 800–2000
+* Shutter speed: 1/80 to 1/250 second
+* Aperture: f/2.8 to f/5.6
+* White balance: 3,500–4,300 K
+* Realistic runway and terminal lights
+* Controlled highlights without glowing halos
+* Fine, natural high-ISO grain
+* Deep but detailed shadows
+
+## Lighting
+
+Use physically plausible lighting based on the scene.
+
+Lighting must have a clear direction, intensity, colour temperature, and source. Shadows, reflections, skin highlights, aircraft surfaces, windows, floors, tables, and luggage must respond consistently to the same light.
+
+Preferred lighting characteristics:
+
+* Soft natural window light
+* Warm golden-hour sunlight
+* Gentle backlighting
+* Subtle rim light around people or aircraft
+* Realistic reflected light from floors and windows
+* Natural shadow falloff
+* Soft atmospheric haze
+* Controlled specular highlights
+* No artificial glow around subjects
+* No flat, shadowless illumination
+* No multiple conflicting light directions
+
+For sunset aviation scenes, position the sun low near or slightly outside the frame. Use warm orange-gold highlights, cooler blue-violet shadows, realistic cloud illumination, mild atmospheric haze, and restrained lens flare.
+
+For airport interiors, allow daylight from floor-to-ceiling windows to remain the main light source, supplemented by believable ceiling fixtures and reflected ambient light.
+
+## Human Realism
+
+People must look like real travellers rather than models or synthetic characters.
+
+Include:
+
+* Natural facial asymmetry
+* Visible pores and realistic skin texture
+* Fine facial hair where appropriate
+* Realistic teeth rather than perfectly uniform white teeth
+* Correct eye reflections
+* Natural blinking or slightly varied expressions
+* Genuine laughter and eye contact
+* Realistic hands, fingers, wrists, and joints
+* Correct grip around cups, passports, luggage, phones, and cutlery
+* Natural folds and tension in clothing
+* Believable seated and walking posture
+* Age-appropriate facial proportions
+* Realistic variation between family members
+
+Avoid everyone looking directly into the camera. Some subjects should interact with each other, look through windows, watch aircraft, eat, talk, or focus on their travel activity.
+
+## Aviation Accuracy
+
+Aircraft must have:
+
+* Correct wing geometry
+* Realistic fuselage proportions
+* Proper engine placement
+* Accurate landing gear when visible
+* Consistent window spacing
+* Correct tail and stabilizer structure
+* Believable navigation lights
+* Realistic airline-neutral paintwork
+* Correct reflections from the sky and runway
+* Natural atmospheric perspective
+* No duplicated wings, engines, tails, windows, or landing gear
+
+When two planes cross near the horizon, they must remain safely separated at different altitudes and distances. Their scale, direction, perspective, lighting, and atmospheric softness must match their position in the scene.
+
+## Airport Accuracy
+
+Include believable airport details such as:
+
+* Correctly scaled terminal architecture
+* Realistic seating
+* Functional boarding gates
+* Jet bridges connected logically to aircraft
+* Accurate runway and taxiway markings
+* Natural passenger movement
+* Realistic luggage sizes
+* Believable restaurant furniture and table settings
+* Subtle signage without distorted or unreadable prominent text
+* Accurate reflections in windows and polished floors
+
+The airport should feel active but not overcrowded. Background travellers must have anatomically correct bodies and natural poses.
+
+## Composition
+
+Use strong professional photographic composition:
+
+* Clear primary subject
+* Natural foreground, middle ground, and background
+* Rule of thirds or balanced central framing
+* Leading lines from terminal architecture, tables, runways, windows, or aircraft
+* Realistic negative space
+* Unobstructed facial expressions
+* No awkward crops through joints, hands, heads, or luggage
+* Horizon kept level unless a deliberate aviation tracking angle is used
+* Visual depth created optically rather than through artificial blur
+* Enough clean space for optional website or advertising text
+
+For website hero banners, use a cinematic horizontal composition with the main subjects positioned on one side and generous negative space on the opposite side.
+
+## Focus and Depth of Field
+
+Focus must follow real optical behaviour:
+
+* Sharp focus on the primary subject
+* Gradual focus transition
+* Realistic circle-of-confusion blur
+* Accurate foreground and background separation
+* No cut-out appearance around people
+* No inconsistent sharpness across subjects at the same distance
+* No excessive portrait-mode blur
+* No artificial blur over windows, aircraft, hair, hands, or transparent objects
+
+For group photographs, use f/4 to f/5.6 so all important faces remain acceptably sharp.
+
+## Motion
+
+Use realistic motion behaviour:
+
+* Freeze people at 1/250 second or faster
+* Freeze aircraft at 1/800 second or faster
+* Use subtle directional motion blur only when intentionally showing movement
+* Keep aircraft fuselage and cockpit sharp during panning
+* Avoid blurred faces unless they are distant background passengers
+* Wheels, luggage, hair, clothing, and aircraft movement must follow the correct direction of travel
+
+## Colour Science
+
+Use natural, restrained colour grading:
+
+* Accurate skin tones
+* Warm highlights and slightly cooler shadows
+* Realistic airport neutral colours
+* Natural blue skies
+* Controlled sunset saturation
+* Subtle filmic highlight roll-off
+* Moderate contrast
+* Slightly lifted shadow detail
+* No orange-and-teal exaggeration
+* No oversaturated reds, blues, or yellows
+* No plastic or waxy skin
+* No crushed blacks
+* No fluorescent whites
+
+Apply a subtle Kodak Portra 400 or Kodak Vision3-inspired tonal response without imitating obvious film damage.
+
+## Texture and Detail
+
+Preserve:
+
+* Natural skin texture
+* Individual hair strands
+* Fine fabric weave
+* Realistic food texture
+* Condensation on glasses
+* Steam from coffee
+* Reflections on aircraft windows
+* Fine scratches on luggage
+* Subtle glass fingerprints
+* Runway texture
+* Cloud depth
+* Atmospheric particles visible in sunlight
+
+Details should remain photographic and organic rather than excessively sharp, mathematically perfect, or hyper-detailed.
+
+## Post-Processing
+
+Use restrained professional RAW processing:
+
+* Lens profile correction
+* Mild chromatic aberration correction
+* Natural noise reduction
+* Subtle sharpening
+* Gentle local contrast
+* Highlight recovery
+* Shadow recovery without flattening the image
+* Slight film grain
+* Minimal skin retouching
+* No aggressive clarity
+* No HDR tone-mapping appearance
+* No beauty filter
+* No excessive denoising
+* No artificial edge sharpening
+
+## Authenticity Requirements
+
+The image must resemble a genuine photograph captured during a real trip.
+
+Include subtle photographic imperfections:
+
+* Slight variation in focus
+* Minor motion in distant passengers
+* Natural sensor grain
+* Small exposure variations
+* Realistic lens flare only when facing the light
+* Mild atmospheric haze
+* Imperfect reflections
+* Naturally irregular clothing and hair
+* Slightly uneven table arrangements
+* Non-symmetrical human positioning
+
+Do not create a perfectly arranged or unnaturally polished scene.
+
+## Output
+
+* Ultra-photorealistic
+* Full-frame RAW photography appearance
+* 8K detail
+* High dynamic range without artificial HDR
+* 16:9 horizontal composition for website banners
+* 4:5 vertical composition for social campaigns
+* 3:2 photographic composition for editorial use
+* Realistic optics
+* Natural human emotion
+* Accurate aviation details
+* Premium travel campaign quality
+* No logos, watermarks, captions, or visible brand names
+
+## Negative Prompt
+
+AI-generated appearance, CGI, 3D render, digital illustration, concept art, video-game graphics, cartoon, anime, synthetic skin, waxy skin, plastic faces, over-smoothed faces, beauty filter, perfect facial symmetry, cloned people, duplicated passengers, identical expressions, unnatural smiles, oversized eyes, malformed pupils, cross-eyed subjects, incorrect teeth, extra fingers, missing fingers, fused fingers, broken wrists, distorted hands, extra limbs, duplicated limbs, malformed bodies, floating objects, incorrect shadows, conflicting light sources, fake reflections, glowing edges, cut-out subjects, artificial background blur, excessive bokeh, depth-map errors, warped aircraft, duplicated aircraft engines, incorrect wings, bent fuselage, malformed landing gear, inconsistent windows, impossible aircraft perspective, unsafe overlapping aircraft, distorted airport architecture, curved walls, unreadable prominent text, random letters, fake signs, excessive HDR, oversaturation, crushed blacks, clipped highlights, neon colours, unnatural sharpness, excessive clarity, excessive denoising, painterly clouds, fake sun rays, unrealistic lens flare, low resolution, pixelation, compression artifacts, watermark, logo, caption, border.

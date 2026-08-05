@@ -18,6 +18,9 @@
  *        WHATSAPP_TOKEN        - Meta permanent access token
  *        WHATSAPP_PHONE_ID     - Meta "Phone Number ID"
  *        VERIFY_TOKEN          - any secret word you invent (used once by Meta)
+ *        APP_SECRET            - Meta App Secret (App dashboard -> Settings -> Basic);
+ *                               used to verify inbound webhooks. REQUIRED: the bot
+ *                               rejects ALL webhooks until this is set (fail-closed).
  *   4. Start it:   node whatsapp-chatgpt-bot.js
  *   5. Expose it over HTTPS (e.g. with your domain or ngrok for testing) and
  *      register  https://your-domain.com/webhook  in the Meta app dashboard,
@@ -25,16 +28,54 @@
  * ─────────────────────────────────────────────────────────────────────────── */
 
 const express = require('express');
+const crypto = require('crypto');
 const OpenAI = require('openai');
 
 const app = express();
-app.use(express.json());
+// Capture the raw request body so we can verify Meta's HMAC signature.
+app.use(express.json({ verify: (req, res, buf) => { req.rawBody = buf; } }));
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN;
 const WHATSAPP_PHONE_ID = process.env.WHATSAPP_PHONE_ID;
 const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
+const APP_SECRET = process.env.APP_SECRET; // Meta App Secret — verifies inbound webhooks
+
+// Verify Meta's X-Hub-Signature-256 = HMAC-SHA256(App Secret, raw body). Fails CLOSED:
+// with no APP_SECRET set, every POST is rejected, so forged payloads can't drive the bot.
+function verifyMetaSignature(req) {
+  if (!APP_SECRET) return false;
+  const sig = req.get('X-Hub-Signature-256') || '';
+  if (!sig.startsWith('sha256=') || !req.rawBody) return false;
+  const expected = 'sha256=' + crypto.createHmac('sha256', APP_SECRET).update(req.rawBody).digest('hex');
+  const a = Buffer.from(sig), b = Buffer.from(expected);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+// Per-sender rate limit — stops one number from driving up LLM cost.
+const SENDER_MAX = 12, SENDER_WINDOW_MS = 60 * 1000;
+const senderHits = new Map();
+function senderRateLimited(from) {
+  const now = Date.now();
+  const recent = (senderHits.get(from) || []).filter((t) => now - t < SENDER_WINDOW_MS);
+  recent.push(now);
+  senderHits.set(from, recent);
+  return recent.length > SENDER_MAX;
+}
+
+// Evict stale conversations so in-memory history (which holds PII) can't grow forever.
+const lastSeen = {};
+const HISTORY_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
+function touchAndEvict(from) {
+  const now = Date.now();
+  lastSeen[from] = now;
+  if (Object.keys(lastSeen).length > 500) {
+    for (const k of Object.keys(lastSeen)) {
+      if (now - lastSeen[k] > HISTORY_TTL_MS) { delete lastSeen[k]; delete history[k]; }
+    }
+  }
+}
 
 // The Skyline rules — same limits as the website bot.
 const SYSTEM_PROMPT = `You are the official WhatsApp assistant for "Skyline Travel Planner", an India-based travel-planning service (WhatsApp +91 8866050291, info@skylinetravelplanner.com).
@@ -63,6 +104,8 @@ app.get('/webhook', (req, res) => {
 
 // ── 2. Incoming messages from customers ───────────────────────────────────────
 app.post('/webhook', async (req, res) => {
+  // Reject forged/unsigned webhooks BEFORE any work or acknowledgement.
+  if (!verifyMetaSignature(req)) return res.sendStatus(403);
   res.sendStatus(200); // acknowledge Meta immediately
 
   try {
@@ -72,6 +115,10 @@ app.post('/webhook', async (req, res) => {
 
     const from = msg.from;               // customer's WhatsApp number
     const text = msg.text.body;
+
+    // Drop abusive senders (cost control) + bound in-memory history.
+    if (senderRateLimited(from)) return;
+    touchAndEvict(from);
 
     // Build the conversation for ChatGPT
     if (!history[from]) history[from] = [];

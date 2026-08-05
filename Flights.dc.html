@@ -3,7 +3,6 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script>window.SKYLINE_TRAIN_API='https://skyline-api.skyline-dev.workers.dev';</script>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -457,27 +456,42 @@ class Component extends DCLogic {
   });
 
   /* ---------- search ---------- */
-  async function searchFlights(){
+  // Skyline shows flight SEARCH only — no in-page fares (scraped fares drift from the
+  // live price at checkout). On search we hand off to the team for a tailored quote,
+  // with an optional live-price compare on Skyscanner / Google Flights (pre-filled).
+  function ymmdd(d){ return d?d.slice(2).replace(/-/g,''):''; }
+  function flightReferOut(from,to,dep,ret){
+    var stt=el('flightStatus'), res=el('flightResults'); if(!res) return;
+    var pax=paxTotal();
+    var wamsg='Hi Skyline Travel Planner! Flight enquiry: '+from+' → '+to+' on '+dep+(ret?' (return '+ret+')':'')+' — '+paxSummary()+' ('+pax+' traveller'+(pax!==1?'s':'')+'), '+CABIN+'. Please share the best fares.';
+    var wa='https://wa.me/918866050291?text='+encodeURIComponent(wamsg);
+    var sky='https://www.skyscanner.co.in/transport/flights/'+from.toLowerCase()+'/'+to.toLowerCase()+'/'+ymmdd(dep)+(ret?'/'+ymmdd(ret):'')+'/';
+    var gf='https://www.google.com/travel/flights?q='+encodeURIComponent('flights from '+from+' to '+to+' on '+dep+(ret?' returning '+ret:''));
+    if(stt) stt.textContent='';
+    res.innerHTML='<div class="fh-summary"><h2 class="fh-h2">'+esc(from)+' → '+esc(to)+'</h2><div class="sub">'+esc(dep)+(ret?' – '+esc(ret):'')+' · '+pax+' traveller'+(pax!==1?'s':'')+' · '+esc(CABIN)+'</div></div>'
+      +'<div style="background:#f4f8ff;border:1px solid #dbe7fb;border-radius:14px;padding:18px;margin:14px 0">'
+        +'<div style="font-weight:800;font-size:16px;color:#0a2540;margin-bottom:6px">Get the best fare for this route ✈️</div>'
+        +'<div style="color:#41546b;font-size:14px;line-height:1.6;margin-bottom:14px">We hand-pick flights and handle the booking, often at better-than-online fares. Share your plan and our team will send options quickly.</div>'
+        +'<div style="display:flex;flex-wrap:wrap;gap:10px">'
+          +'<a class="fh-book" style="background:#25D366" href="'+esc(wa)+'" target="_blank" rel="noopener">💬 Get fares on WhatsApp</a>'
+          +'<a class="fh-book" style="background:#0a5fd7" href="Customize.dc.html">✍️ Customize My Trip</a>'
+        +'</div></div>'
+      +'<div class="fh-note" style="color:#5c6f80;margin-top:6px">Or compare live prices yourself:</div>'
+      +'<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px">'
+        +'<a class="fh-book" style="background:#0770e3" href="'+esc(sky)+'" target="_blank" rel="noopener">Skyscanner ↗</a>'
+        +'<a class="fh-book" style="background:#1a73e8" href="'+esc(gf)+'" target="_blank" rel="noopener">Google Flights ↗</a>'
+      +'</div>';
+  }
+  function searchFlights(){
     var fi=el('fromAirport'),ti=el('toAirport');
     var from=(fi&&fi.dataset.iata)||'', to=(ti&&ti.dataset.iata)||'';
     var cabEl=el('cabinSel'); if(cabEl) CABIN=cabEl.value;
     var dep=el('depDate')&&(el('depDate').dataset.value||'');
     var ret=(MODE==='round'&&el('retDate'))?(el('retDate').dataset.value||''):'';
-    var stt=el('flightStatus'), res=el('flightResults');
+    var stt=el('flightStatus');
     if(!from||!to){ if(stt) stt.textContent='Please pick both airports from the suggestions.'; return; }
     if(!dep){ if(stt) stt.textContent='Please choose a departure date.'; return; }
-    if(stt) stt.textContent='Searching live fares…'; if(res) res.innerHTML='';
-    try{
-      var url=API_BASE+'/api/flights?from='+encodeURIComponent(from)+'&to='+encodeURIComponent(to)+'&date='+encodeURIComponent(dep)+(ret?'&return='+encodeURIComponent(ret):'')+'&cabin='+encodeURIComponent(CABIN);
-      var r=await fetch(url,{mode:'cors'}); var j=await r.json();
-      if(!r.ok){ if(stt) stt.textContent = j.error==='flights_not_configured' ? 'Flights API not configured — add your Travelpayouts token in server/.env.' : ('Could not fetch flights: '+(j.detail||j.error||r.status)); return; }
-      var fl=j.flights||[];
-      if(!fl.length){ if(stt) stt.textContent='No fares found for this route/date.'; return; }
-      LAST={flights:fl,from:from,to:to,cabin:CABIN,meta:{roundTripTrimmed:!!j.roundTripTrimmed,fallbackMonth:!!j.fallbackMonth,month:j.month||'',source:j.source||'',enriched:!!j.enriched}};
-      TAB='best'; FILT={stopsExcl:new Set(),airExcl:new Set(),tod:new Set()}; PMAX=null; AIR_EXPANDED=false;
-      if(stt) stt.textContent=fl.length+' flight'+(fl.length!==1?'s':'')+' found';
-      applyView();
-    }catch(e){ if(stt) stt.textContent='Live flight prices are coming soon. Meanwhile, tell us your route on WhatsApp (+91 88660 50291) or the Customize My Trip form and we’ll send fares.'; }
+    flightReferOut(from,to,dep,ret);
   }
 
   /* ---------- results ---------- */
@@ -553,73 +567,49 @@ class Component extends DCLogic {
   function calMonth(y,m){ var t=todayD(),dep=dval('depDate'),M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; var h='<div class="cal-m"><div class="cal-mh">'+M[m-1]+' '+y+'</div><div class="cal-grid">'; ['S','M','T','W','T','F','S'].forEach(function(d){h+='<div class="cal-dow">'+d+'</div>';}); var fd=firstDow(y,m),n=daysIn(y,m),i; for(i=0;i<fd;i++)h+='<div></div>'; for(var d=1;d<=n;d++){ var ds=isoD(y,m,d); var dis=ds<t||(CAL.field==='ret'&&dep&&ds<dep); var pr=CAL.prices[ds]; var tier=dis?'':tierOf(pr); var selv=(CAL.field==='ret'?dval('retDate'):dep)===ds; h+='<button type="button" class="cal-d '+tier+(selv?' sel':'')+'" data-date="'+ds+'"'+(dis?' disabled':'')+'>'+d+((pr&&!dis)?'<small>'+shortInr(pr)+'</small>':'')+'</button>'; } return h+'</div></div>'; }
   function renderCal(){ ensureCal(); calEl.innerHTML='<div class="cal-head"><button type="button" class="cal-nav" data-cal="prev">‹</button><div class="cal-title">Select your '+(CAL.field==='ret'?'return':'departure')+' date</div><button type="button" class="cal-nav" data-cal="next">›</button></div><div class="cal-months">'+calMonth(CAL.y,CAL.mo)+calMonth(nextY(CAL.y,CAL.mo),nextM(CAL.mo))+'</div><div class="cal-legend"><span class="cal-leg"><span class="cal-sw" style="background:#e7f8ec"></span>Low</span><span class="cal-leg"><span class="cal-sw" style="background:#fef3e2"></span>Med</span><span class="cal-leg"><span class="cal-sw" style="background:#fde9ea"></span>High fare</span></div>'; }
   function posCal(a){ if(!a)return; var r=a.getBoundingClientRect(); var w=Math.min(600,window.innerWidth*0.94); var left=Math.min(r.left,window.innerWidth-w-10); calEl.style.left=Math.max(8,left)+'px'; calEl.style.top=(r.bottom+8)+'px'; calEl.style.width=w+'px'; }
-  async function calFetch(){ var from=airVal('fromAirport'),to=airVal('toAirport'); if(!from||!to)return; var months=[monKey(CAL.y,CAL.mo),monKey(nextY(CAL.y,CAL.mo),nextM(CAL.mo))]; try{ var r=await fetch(API_BASE+'/api/flight-calendar?from='+encodeURIComponent(from)+'&to='+encodeURIComponent(to)+'&months='+months.join(','),{mode:'cors'}); var j=await r.json(); CAL.prices=Object.assign(CAL.prices||{},j.prices||{}); calTiers(); renderCal(); }catch(e){} }
+  function calFetch(){ /* fares removed — date picker shows no price heatmap */ }
   function openCal(field){ ensureCal(); CAL.field=field; CAL.prices={}; var start=(field==='ret'&&dval('depDate'))?dval('depDate'):todayD(); var sm=start.match(/^(\d{4})-(\d{2})/); CAL.y=+sm[1]; CAL.mo=+sm[2]; renderCal(); posCal(el(field==='ret'?'retDate':'depDate')); calEl.style.display='block'; calFetch(); }
   function calNav(dir){ if(dir==='prev'){ var pm=prevM(CAL.mo),py=prevY(CAL.y,CAL.mo); if(monKey(py,pm)<todayD().slice(0,7))return; CAL.y=py;CAL.mo=pm; } else { CAL.y=nextY(CAL.y,CAL.mo); CAL.mo=nextM(CAL.mo); } renderCal(); calFetch(); }
   function pickDate(ds){ if(CAL.field==='dep'){ setDate('depDate',ds); if(dval('retDate')&&dval('retDate')<ds) setDate('retDate',''); if(MODE==='round'){ CAL.field='ret'; renderCal(); return; } } else { if(dval('depDate')&&ds<dval('depDate'))return; setDate('retDate',ds); } closeCal(); }
   window.addEventListener('scroll',function(){ if(calEl&&calEl.style.display!=='none') closeCal(); },true);
 
   /* ---------- multi-city ---------- */
-  async function searchMulti(){
+  function searchMulti(){
     syncLegsFromDom();
     var stt=el('flightStatus'), res=el('flightResults');
     var legs=LEGS.filter(function(L){return L.from&&L.to&&L.date;});
     if(legs.length<2){ if(stt) stt.textContent='Fill from, to and date for at least 2 flights (pick airports from the suggestions).'; return; }
-    if(stt) stt.textContent='Searching '+legs.length+' flights…'; if(res) res.innerHTML='';
-    var html='';
-    for(var i=0;i<legs.length;i++){
-      var L=legs[i];
-      html+='<div class="fh-summary" style="margin-top:'+(i?26:0)+'px"><h2 class="fh-h2">Flight '+(i+1)+': '+esc(L.from)+' → '+esc(L.to)+'</h2><div class="sub">'+esc(L.date)+'</div></div>';
-      try{
-        var r=await fetch(API_BASE+'/api/flights?from='+encodeURIComponent(L.from)+'&to='+encodeURIComponent(L.to)+'&date='+encodeURIComponent(L.date)+'&cabin='+encodeURIComponent(CABIN),{mode:'cors'});
-        var j=await r.json();
-        var fl=(j.flights||[]).slice().sort(function(a,b){return (+a.price||1e12)-(+b.price||1e12);}).slice(0,5);
-        if(!r.ok||!fl.length){ html+='<p class="fh-note">No fares found for this flight'+(j.detail?' — '+esc(j.detail):'')+'.</p>'; }
-        else html+=fl.map(function(f){return renderRow(f,'');}).join('');
-      }catch(e){ html+='<p class="fh-note">Could not fetch this flight (is the proxy running?).</p>'; }
-      if(res) res.innerHTML=html;
-    }
-    var tot=0,ok=true;
-    if(stt) stt.textContent='Multi-city results ready — top 5 fares per flight shown.';
-    if(res) res.innerHTML=html+'<p class="fh-note" style="margin-top:12px">Multi-city fares are the cheapest one-way options per leg via Travelpayouts — tap Book on each leg to complete.</p>';
+    var lines=legs.map(function(L,i){return (i+1)+'. '+L.from+' → '+L.to+' on '+L.date;});
+    var wamsg='Hi Skyline Travel Planner! Multi-city flight enquiry ('+CABIN+', '+paxTotal()+' traveller'+(paxTotal()!==1?'s':'')+'):\n'+lines.join('\n')+'\nPlease share the best fares.';
+    var wa='https://wa.me/918866050291?text='+encodeURIComponent(wamsg);
+    if(stt) stt.textContent='';
+    if(res) res.innerHTML='<div class="fh-summary"><h2 class="fh-h2">Multi-city trip</h2><div class="sub">'+legs.length+' flights · '+esc(CABIN)+'</div></div>'
+      +'<div style="background:#f4f8ff;border:1px solid #dbe7fb;border-radius:14px;padding:18px;margin:14px 0">'
+        +legs.map(function(L,i){return '<div style="font-weight:600;color:#0a2540;margin-bottom:4px">'+(i+1)+'. '+esc(L.from)+' → '+esc(L.to)+' <span style="color:#5c6f80;font-weight:400">· '+esc(L.date)+'</span></div>';}).join('')
+        +'<div style="color:#41546b;font-size:14px;line-height:1.6;margin:12px 0">Multi-city itineraries are best priced by our team — we\'ll build the cheapest routing for you.</div>'
+        +'<div style="display:flex;flex-wrap:wrap;gap:10px">'
+          +'<a class="fh-book" style="background:#25D366" href="'+esc(wa)+'" target="_blank" rel="noopener">💬 Get fares on WhatsApp</a>'
+          +'<a class="fh-book" style="background:#0a5fd7" href="Customize.dc.html">✍️ Customize My Trip</a>'
+        +'</div></div>';
   }
 
   /* ---------- inline fare calendar ---------- */
-  async function showFareCalendar(){
+  function showFareCalendar(){
     var fi=el('fromAirport'), ti=el('toAirport');
     var from=(fi&&fi.dataset.iata)||'', to=(ti&&ti.dataset.iata)||'';
     var stt=el('flightStatus'), res=el('flightResults');
-    if(!from||!to){ if(stt) stt.textContent='Pick both airports from the suggestions to see the fare calendar.'; return; }
-    if(stt) stt.textContent='Loading fare calendar…';
-    var now=new Date(), y=now.getFullYear(), mo=now.getMonth()+1;
-    var y2=mo===12?y+1:y, mo2=mo===12?1:mo+1;
-    function mk(yy,mm){ return yy+'-'+(mm<10?'0':'')+mm; }
-    try{
-      var r=await fetch(API_BASE+'/api/flight-calendar?from='+encodeURIComponent(from)+'&to='+encodeURIComponent(to)+'&months='+mk(y,mo)+','+mk(y2,mo2),{mode:'cors'});
-      var j=await r.json(); var prices=j.prices||{};
-      var vals=Object.keys(prices).map(function(k){return +prices[k];}).filter(function(x){return x>0;}).sort(function(a,b){return a-b;});
-      var lo=vals.length?vals[Math.floor(vals.length/3)]:0, hi=vals.length?vals[Math.floor(vals.length*2/3)]:0;
-      function tier(p){ if(!p||!hi) return ''; if(p<=lo) return 'low'; if(p<=hi) return 'med'; return 'high'; }
-      function sh(n){ n=+n; if(n>=100000)return '₹'+(n/100000).toFixed(1)+'L'; if(n>=1000)return '₹'+Math.round(n/1000)+'k'; return '₹'+n; }
-      var t=new Date().toISOString().slice(0,10);
-      var M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-      function month(yy,mm){
-        var h='<div class="cal-m" style="background:#fff;border-radius:14px;padding:14px;border:1px solid #e8edf3"><div class="cal-mh">'+M[mm-1]+' '+yy+'</div><div class="cal-grid">';
-        ['S','M','T','W','T','F','S'].forEach(function(d){h+='<div class="cal-dow">'+d+'</div>';});
-        var fd=new Date(yy,mm-1,1).getDay(), n=new Date(yy,mm,0).getDate();
-        for(var i=0;i<fd;i++)h+='<div></div>';
-        for(var d=1;d<=n;d++){
-          var ds=yy+'-'+(mm<10?'0':'')+mm+'-'+(d<10?'0':'')+d;
-          var dis=ds<t, pr=prices[ds];
-          h+='<button type="button" class="cal-d '+(dis?'':tier(pr))+'" data-fdate="'+ds+'"'+(dis?' disabled':'')+'>'+d+((pr&&!dis)?'<small>'+sh(pr)+'</small>':'')+'</button>';
-        }
-        return h+'</div></div>';
-      }
-      if(res) res.innerHTML='<div class="fh-summary"><h2 class="fh-h2">Fare calendar: '+esc(from)+' → '+esc(to)+'</h2><div class="sub">cheapest fare per day · tap a date to see flights</div></div>'
-        +'<div class="cal-months">'+month(y,mo)+month(y2,mo2)+'</div>'
-        +'<div class="cal-legend" style="margin-top:14px"><span class="cal-leg"><span class="cal-sw" style="background:#e7f8ec"></span>Low</span><span class="cal-leg"><span class="cal-sw" style="background:#fef3e2"></span>Medium</span><span class="cal-leg"><span class="cal-sw" style="background:#fde9ea"></span>High fare</span></div>';
-      if(stt) stt.textContent=Object.keys(prices).length+' days with fares — tap any date to search it.';
-    }catch(e){ if(stt) stt.textContent='Could not load the fare calendar — is the proxy running?'; }
+    if(!from||!to){ if(stt) stt.textContent='Pick both airports from the suggestions first.'; return; }
+    var sky='https://www.skyscanner.co.in/transport/flights/'+from.toLowerCase()+'/'+to.toLowerCase()+'/';
+    var wamsg='Hi Skyline Travel Planner! I\'m flexible on dates for '+from+' → '+to+' ('+CABIN+'). Please suggest the best-value days and fares.';
+    var wa='https://wa.me/918866050291?text='+encodeURIComponent(wamsg);
+    if(stt) stt.textContent='';
+    if(res) res.innerHTML='<div class="fh-summary"><h2 class="fh-h2">Best-value dates: '+esc(from)+' → '+esc(to)+'</h2><div class="sub">flexible on when you fly?</div></div>'
+      +'<div style="background:#f4f8ff;border:1px solid #dbe7fb;border-radius:14px;padding:18px;margin:14px 0">'
+        +'<div style="color:#41546b;font-size:14px;line-height:1.6;margin-bottom:14px">Tell us your travel window and we\'ll find the cheapest days to fly and quote you.</div>'
+        +'<div style="display:flex;flex-wrap:wrap;gap:10px">'
+          +'<a class="fh-book" style="background:#25D366" href="'+esc(wa)+'" target="_blank" rel="noopener">💬 Ask on WhatsApp</a>'
+          +'<a class="fh-book" style="background:#0770e3" href="'+esc(sky)+'" target="_blank" rel="noopener">See the fare calendar on Skyscanner ↗</a>'
+        +'</div></div>';
   }
 
   /* ---------- group booking ---------- */

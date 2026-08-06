@@ -17,7 +17,7 @@ const { handleInbound, verifySignature, sendText, sendImage } = require("../auto
 const { applyDecision } = require("../automation/approve-runner");
 const { intakeDirect } = require("../automation/intake-runner");
 const { extractImageUrl } = require("../automation/gmail-reader");
-const { makeStore } = require("../automation/run");
+const { makeStore, runJob } = require("../automation/run");
 const { loadClient } = require("../automation/clients");
 
 // We need the raw body for the HMAC signature check, so disable Vercel's parser.
@@ -105,7 +105,27 @@ module.exports = async (req, res) => {
           return { ok: false, error: `You have ${pending.length} posts waiting. Reply with the number, e.g. "approve ${shortCode(pending[0].id)}":\n${list}` };
         }
         if (!realId) return { ok: false, error: id ? `No waiting post matches "${id}". Reply "approve <number>".` : "Nothing is waiting for approval right now." };
-        return applyDecision(store, realId, decision, { facts: client.facts, profile: client.profile });
+        const result = await applyDecision(store, realId, decision, { facts: client.facts, profile: client.profile });
+        // PUBLISH-ON-APPROVAL: the moment the owner approves, post to Instagram + Facebook right
+        // away (don't wait for the scheduled publish cron — the owner asked for immediate posting).
+        // Publishing is idempotent + claim-guarded, so this is safe; the crons stay as a backstop.
+        if (result && result.ok && String(result.status).startsWith("approved")) {
+          try {
+            const pub = await runJob({ job: "publish", clientId: client.id, runner: "whatsapp-approve" });
+            const fresh = await store.get(realId);
+            if (fresh && fresh.status === "published") {
+              result.published = "📢 Posted to Instagram + Facebook now ✅";
+            } else if (pub && pub.dryRun) {
+              result.published = "📌 Approved — live posting is off, so it'll go out on the next scheduled run.";
+            } else {
+              result.published = `⚠️ Approved, but the post didn't complete (${(fresh && fresh.status) || "unknown"}${fresh && fresh.lastError ? ": " + fresh.lastError : ""}). It'll retry on the next scheduled run.`;
+            }
+          } catch (e) {
+            const { redact } = require("../engine/publish");
+            result.published = `⚠️ Approved, but publishing hit an error: ${redact(String((e && e.message) || e))}. It'll retry on the next scheduled run.`;
+          }
+        }
+        return result;
       },
       intake: (item) => intakeDirect(store, { client: client.id, ...item }),
       // DRAFT-ON-INTAKE: with an API key, Claude writes + fact-checks the post right

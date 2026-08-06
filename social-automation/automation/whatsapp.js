@@ -171,9 +171,11 @@ async function handleInbound(body, ctx = {}) {
   const parsed = parseDecision(msg.text);
   if (parsed) {
     const result = await ctx.applyDecision(parsed.id, parsed.decision);
-    const note = result.ok
+    let note = result.ok
       ? `✅ ${parsed.id || "post"} → ${result.status}${result.variant ? ` (${result.variant === "both" ? "posting both A + B" : "option " + result.variant})` : ""}${result.warn ? `\n⚠️ ${result.warn}` : ""}`
       : `⚠️ ${parsed.id || ""}: ${result.error || (result.errors || []).join("; ")}`;
+    // PUBLISH-ON-APPROVAL: the applyDecision handler may post immediately and set a note.
+    if (result.published) note += `\n${result.published}`;
     if (ctx.reply) await ctx.reply(msg.from, note);
     return { action: "decision", id: parsed.id, result };
   }

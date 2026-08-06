@@ -67,20 +67,16 @@ async function reapStaleDrafting(store, now, staleMs) {
   catch (e) { return { reaped: 0, ids: [] }; } // a listing failure must never sink the pass
   const ids = [];
   for (const r of stuck) {
-    // Decide staleness so that BOTH failure modes are covered:
-    //  • CLAIMED row (claimedAt present) → age STRICTLY by claimedAt. Never fall back to updatedAt
-    //    here: a partial write that bumped updatedAt on an already-stale crashed row must not be able
-    //    to mask it as "recent" and strand it forever (the silent loss this reaper exists to prevent).
-    //  • STAMPLESS row (no claimedAt) → anomalous (store.claim() co-writes status+claimedAt), so it is
-    //    a legacy orphan OR a row mid-claim if the store ever split that write. Age it by createdAt —
-    //    which is written ONCE at creation and NEVER bumped by any later write. This protects a
-    //    genuinely fresh row (created within the window, so a mid-claim is never stolen) yet cannot be
-    //    masked forever: unlike updatedAt (which a retry/partial write can keep refreshing), createdAt
-    //    is fixed, so an old abandoned orphan is always past the cutoff and gets reaped.
-    let stale;
-    if (r.claimedAt) stale = new Date(r.claimedAt).getTime() <= cutoff;
-    else stale = !r.createdAt || new Date(r.createdAt).getTime() <= cutoff;
-    if (!stale) continue; // still owned by / racing a live pass — leave it
+    // Age by claimedAt — the ONLY field that measures time-in-`drafting` (createdAt/updatedAt measure
+    // row age / last-touch, neither of which tracks how long the row has been stuck in the drafting
+    // state). store.claim() writes status='drafting' + claimedAt in ONE update (locked by
+    // tests/check_claim_atomicity.js), so EVERY row a live pass is drafting carries a claimedAt, and
+    // the floor guarantees a row claimed within any possible worker lifetime is never touched. A
+    // `drafting` row with NO claimedAt therefore did not come from a live claim — it is a legacy/manual
+    // orphan — so it is reaped. (Even in the impossible event a future store split that write, the
+    // blast radius is a wasted re-draft, never a double post: publish is separately idempotent +
+    // claim-guarded and records the platform post-id.)
+    if (r.claimedAt && new Date(r.claimedAt).getTime() > cutoff) continue; // claimed & still in window
     try {
       await store.update(r.id, {
         status: "planned",

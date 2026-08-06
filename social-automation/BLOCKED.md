@@ -6,6 +6,34 @@ the real values live in the local `.env` (gitignored) and the Vercel project env
 
 ---
 
+## B-AIRTABLE — deployed AIRTABLE token is INVALID (⚠️ this is why the crons stopped) — 2026-08-06
+
+**Symptom:** every scheduled run on `skyline-social` 500s at the first Airtable call:
+`airtable GET Queue: Invalid permissions, or the requested model was not found`. So `cron-prep`
+(7 PM IST) and the others do nothing — no cards, no drafts, no publishing. **The LOCAL
+`social-automation/.env` Airtable token reads the same base fine**, so this is a DEPLOYED-ENV problem:
+the prod `AIRTABLE_API_KEY` (3 days old) and/or `AIRTABLE_BASE_ID` (changed 1 day ago) no longer match
+a valid token↔base pair.
+
+**Fix (owner — Vercel dashboard, ~2 min):**
+1. `skyline-social` → Settings → Environment Variables (Production).
+2. Set **`AIRTABLE_API_KEY`** to the valid token — the exact value in `social-automation/.env`
+   (that one is confirmed working). Also confirm **`AIRTABLE_BASE_ID`** equals the `.env` value
+   (`appSzw…`); set it if it differs.
+3. **Redeploy so the new env takes effect** — do a FRESH deploy, not a plain "Redeploy" (that can
+   reuse the old env snapshot): push any commit, or `vercel --prod` from `social-automation/`.
+4. Verify: `curl -H "Authorization: Bearer $CRON_SECRET" https://skyline-social-nine.vercel.app/api/cron-prep`
+   → expect **200** (no `Invalid permissions`). That single call also COMPLETES a missed 7 PM run.
+
+**CLI alternative** (from `social-automation/`, logged in as the project owner):
+`vercel link --yes --project skyline-social` → `vercel env rm AIRTABLE_API_KEY production -y` →
+`printf %s '<valid-token>' | vercel env add AIRTABLE_API_KEY production` → `vercel --prod`.
+
+(An agent attempt to set this via CLI was correctly blocked as a production-secret write — it needs the
+owner's explicit go-ahead.)
+
+---
+
 ## B-IMG — image hosting: VERIFIED WORKING (2026-08-06). Optional hygiene below.
 
 **Status: RESOLVED — no owner action required for hosting.** Tested live: the deployed

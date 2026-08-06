@@ -67,16 +67,23 @@ async function reapStaleDrafting(store, now, staleMs) {
   catch (e) { return { reaped: 0, ids: [] }; } // a listing failure must never sink the pass
   const ids = [];
   for (const r of stuck) {
-    // Age by claimedAt — the ONLY field that measures time-in-`drafting` (createdAt/updatedAt measure
-    // row age / last-touch, neither of which tracks how long the row has been stuck in the drafting
-    // state). store.claim() writes status='drafting' + claimedAt in ONE update (locked by
-    // tests/check_claim_atomicity.js), so EVERY row a live pass is drafting carries a claimedAt, and
-    // the floor guarantees a row claimed within any possible worker lifetime is never touched. A
-    // `drafting` row with NO claimedAt therefore did not come from a live claim — it is a legacy/manual
-    // orphan — so it is reaped. (Even in the impossible event a future store split that write, the
-    // blast radius is a wasted re-draft, never a double post: publish is separately idempotent +
-    // claim-guarded and records the platform post-id.)
-    if (r.claimedAt && new Date(r.claimedAt).getTime() > cutoff) continue; // claimed & still in window
+    // Staleness policy (settled after an adversarial review — this corner has real tension):
+    //  • CLAIMED row (claimedAt present) → age by claimedAt, the only field that measures time-IN-
+    //    drafting. store.claim() co-writes status='drafting' + claimedAt in ONE update (locked by
+    //    tests/check_claim_atomicity.js), so a live pass's row always has claimedAt and the floor keeps
+    //    a row claimed within any possible worker lifetime safe. Never fall back to updatedAt: a bumped
+    //    updatedAt on an already-stale row must not mask it as "recent" forever.
+    //  • STAMPLESS row (no claimedAt) → didn't come from a live claim, so it's a legacy/manual orphan.
+    //    Age it by createdAt as DEFENSE-IN-DEPTH: createdAt is immutable, so an abandoned orphan's
+    //    fixed-old stamp is always past the cutoff (reaped, never masked), while a FRESHLY-created
+    //    orphan is protected one window. (An OLD-created row hit by a split-claim can't be protected by
+    //    any timestamp — only claim() atomicity prevents that, which is why the invariant test is the
+    //    primary guard. Worst case if it ever broke: a wasted re-draft, never a double post — publish
+    //    is separately idempotent + claim-guarded.)
+    const stale = r.claimedAt
+      ? new Date(r.claimedAt).getTime() <= cutoff
+      : (!r.createdAt || new Date(r.createdAt).getTime() <= cutoff);
+    if (!stale) continue; // still owned by / racing a live pass — leave it
     try {
       await store.update(r.id, {
         status: "planned",

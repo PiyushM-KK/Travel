@@ -45,17 +45,26 @@ function ok(cond, label) {
   // A normal planned row must be untouched by the reaper.
   const planned = await store.create({ client: "skyline", subject: "Jaipur", status: "planned" });
 
-  // A drafting row with NO claimedAt did not come from store.claim() (which co-writes claimedAt
-  // atomically — see tests/check_claim_atomicity.js), so it can only be a legacy/manual orphan and is
-  // reaped regardless of any other timestamp (createdAt/updatedAt measure row age, not time-in-draft).
-  const orphan = await store.create({ client: "skyline", subject: "Agra", status: "planned" });
-  await store.update(orphan.id, { status: "drafting", claimToken: "z", claimedAt: null });
+  // A stampless drafting row (no claimedAt) didn't come from store.claim() (which co-writes claimedAt
+  // atomically — see check_claim_atomicity.js). Age it by the IMMUTABLE createdAt (defense-in-depth):
+  //   • FRESHLY created (createdAt recent) → protected this window (guards a hypothetical mid-claim).
+  const stamplessFresh = await store.create({ client: "skyline", subject: "Agra", status: "planned" }); // createdAt = NOW
+  await store.update(stamplessFresh.id, { status: "drafting", claimToken: "z", claimedAt: null });
+  //   • OLD orphan (createdAt old) → reaped; createdAt is immutable so it can never be masked forever.
+  CLOCK = new Date(NOW.getTime() - 60 * 60 * 1000);
+  const orphanOld = await store.create({ client: "skyline", subject: "Delhi", status: "planned" }); // createdAt = NOW-1h
+  await store.update(orphanOld.id, { status: "drafting", claimToken: "w", claimedAt: null });
+  CLOCK = NOW;
+  // Even if that old orphan's updatedAt is freshly bumped (a stuck retry), it STILL reaps — we age by
+  // createdAt, not the refreshable updatedAt.
+  await store.update(orphanOld.id, { lastError: "retry bump" }); // updatedAt = NOW, createdAt stays NOW-1h
 
   const out = await reapStaleDrafting(store, NOW, STALE_MS);
 
   ok(out.ids.includes(stuck.id), "the stale (old claimedAt) drafting row is reaped");
-  ok(out.ids.includes(orphan.id), "a claimedAt-less drafting row is reaped (a true orphan — never a live claim)");
+  ok(out.ids.includes(orphanOld.id), "a stampless row with an OLD createdAt is reaped, even with a freshly-bumped updatedAt (createdAt can't be masked)");
   ok(!out.ids.includes(fresh.id), "a still-in-window drafting row (recent claimedAt) is left for its live pass");
+  ok(!out.ids.includes(stamplessFresh.id), "a stampless row with a RECENT createdAt is protected one window (guards a possible mid-claim)");
   ok(!out.ids.includes(planned.id), "a normal planned row is untouched");
 
   const s = await store.get(stuck.id);

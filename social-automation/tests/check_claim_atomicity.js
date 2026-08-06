@@ -33,10 +33,11 @@ function ok(cond, label) {
   // ---- AirtableStore (offline: capture the PATCH body via injected fetch) ----
   {
     let lastPatch = null;
+    let patchCount = 0;
     const fakeFetch = async (url, opts) => {
       const method = (opts && opts.method) || "GET";
       const body = opts && opts.body ? JSON.parse(opts.body) : null;
-      if (method === "PATCH") { lastPatch = body.fields; return { ok: true, status: 200, json: async () => ({ id: "recX", fields: lastPatch }) }; }
+      if (method === "PATCH") { patchCount++; lastPatch = body.fields; return { ok: true, status: 200, json: async () => ({ id: "recX", fields: lastPatch }) }; }
       // GET: BEFORE the claim writes, the row is `planned` (so claim proceeds to the PATCH); AFTER, echo
       // what we wrote (the re-read arbitration).
       const fields = lastPatch || { Status: "planned" };
@@ -44,8 +45,10 @@ function ok(cond, label) {
     };
     const store = new AirtableStore({ apiKey: "pat.x", baseId: "appX", fetchImpl: fakeFetch, clock: () => new Date("2026-08-06T12:00:00Z") });
     await store.claim("recX", { fromStatus: "planned", toStatus: "drafting", runner: "t" });
-    ok(lastPatch && lastPatch.Status === "drafting", "airtable: claim PATCH sets Status=drafting");
-    ok(lastPatch && !!lastPatch.ClaimedAt, "airtable: the SAME PATCH sets ClaimedAt (single atomic write, not two)");
+    // EXACTLY ONE PATCH, and that one PATCH carries BOTH fields — proving they can't be observed apart.
+    ok(patchCount === 1, "airtable: claim issues exactly ONE PATCH (status+claimedAt can't be seen mid-write)");
+    ok(lastPatch && lastPatch.Status === "drafting", "airtable: that PATCH sets Status=drafting");
+    ok(lastPatch && !!lastPatch.ClaimedAt, "airtable: the SAME PATCH sets ClaimedAt");
   }
 
   if (fails.length) {

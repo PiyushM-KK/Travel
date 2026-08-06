@@ -45,9 +45,11 @@ Two compounding causes, both addressed:
    create a Vercel Blob store on this project + set `BLOB_READ_WRITE_TOKEN`. **500** = a real fault
    (read the JSON `host.error` / `makeCard.error`). Once 200, the daily card flow produces real image
    posts to approve. (See BLOCKED.md → B-IMG.)
-2. **Confirm the fix landed live:** after the next `cron-prep` run, check the `Runs` heartbeat for a
-   `generate` row with `reaped ≥ 1` (the stranded card recovered) and that a calendar-card reached
-   `pending_approval` (not held); `recHbJtwnPvelurID` should no longer be `drafting`.
+2. **Confirm the fix landed live:** after the next `cron-prep` run, verify in the Airtable `Queue`
+   that `recHbJtwnPvelurID` is no longer `drafting` (reaped → re-drafted to `pending_approval`/`held`),
+   and that a calendar-card reached `pending_approval` (not held). The reaper count is surfaced in the
+   cron-prep response JSON (`generate.summary.reaped`) and the function logs — NOT in the Airtable
+   `Runs` heartbeat (its schema is a fixed column set; don't add a `Reaped` column expectation).
 3. Publishing still runs partly on the FIRM's infra (site project + FullFirm GHA) — migration to
    Skyline's own infra still pending (see "Live plumbing runs on the FIRM's infra" below).
 4. A **monitoring dashboard** for this automation is planned on the firm site (buildwise-digital.com).

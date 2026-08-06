@@ -6,8 +6,25 @@ the real values live in the local `.env` (gitignored) and the Vercel project env
 
 ---
 
-## B-AIRTABLE — deployed AIRTABLE token is INVALID (⚠️ this is why the crons stopped) — 2026-08-06
+## B-AIRTABLE — ✅ RESOLVED 2026-08-06 (was: deployed AIRTABLE token invalid = why the crons stopped)
 
+**RESOLVED:** with the owner's go-ahead, the prod `AIRTABLE_API_KEY` + `AIRTABLE_BASE_ID` on
+`skyline-social` were reset to the working values from `social-automation/.env` (via `vercel env`,
+stdin) and a fresh `vercel --prod` deploy shipped them. Verified: `cron-prep` now gets PAST Airtable
+(no more 500) and **built today's calendar card** (`calendar-himachal-hills-2026-08-06`, pending
+approval). If it ever recurs, the steps below still apply.
+
+### ⚠️ FOLLOW-UP (new, 2026-08-06) — `cron-prep` returns 504 (too heavy for the 60s Hobby limit)
+After the token fix, `cron-prep` returns **HTTP 504**: it does email(Gmail IMAP) + calendar-cards
+(image-gen) + the full prep(intake+generate over all planned rows) sequentially, which exceeds Vercel
+Hobby's 60s function cap. The USEFUL work still completes first (email + the daily calendar card run
+before the slow generate tail), so the card is produced — but the generate tail is cut off and can
+strand a `drafting` row (the reaper self-heals it on the next pass). FIX OPTIONS: trim `cron-prep`
+(drop/limit the image-less calendar-brief drafting; it only produces QA-held clutter — or set
+`SOCIAL_CALENDAR_COUNT=0`), split it into two crons, or move to a plan with a higher `maxDuration`.
+Not urgent (the card still gets built), but worth trimming.
+
+### (original diagnosis, kept for reference)
 **Symptom:** every scheduled run on `skyline-social` 500s at the first Airtable call:
 `airtable GET Queue: Invalid permissions, or the requested model was not found`. So `cron-prep`
 (7 PM IST) and the others do nothing — no cards, no drafts, no publishing. **The LOCAL

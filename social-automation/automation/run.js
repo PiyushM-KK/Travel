@@ -107,6 +107,23 @@ function regenerateOptsFor(opts) {
   };
 }
 
+/**
+ * The image-less calendar BRIEF option for intake. `intakeFromCalendar` creates image-less
+ * `planned` rows (a photo brief for the owner to shoot) — which QA then correctly HOLDS, because
+ * Instagram needs an image. Skyline gets its proactive content from the image-bearing
+ * `calendar-cards` job instead, so briefs are redundant clutter (a daily pile of held rows).
+ * Returns the option object, or null to skip briefs entirely.
+ *   SOCIAL_CALENDAR_COUNT=0  -> disable briefs (the old `Number(x) || 8` treated 0 as unset).
+ *   unset                    -> default 8 (unchanged behaviour).
+ */
+function calendarBriefOpt(opts) {
+  if (opts.calendar) return opts.calendar; // explicit (tests / callers)
+  const raw = process.env.SOCIAL_CALENDAR_COUNT;
+  const count = raw != null && raw !== "" ? Number(raw) : 8;
+  if (!Number.isFinite(count) || count <= 0) return null; // 0 / invalid -> briefs off
+  return { count };
+}
+
 async function runJob(opts = {}) {
   const job = opts.job || "publish";
   const clientId = opts.clientId || process.env.SOCIAL_CLIENT || "skyline";
@@ -130,13 +147,14 @@ async function runJob(opts = {}) {
   // -------------------------------------------------------------- INTAKE
   if (job === "intake") {
     const reader = resolveGmailReader(opts);
+    const calOpt = calendarBriefOpt(opts);
     const summary = await runIntake(store, {
       client: client.id,
       facts: client.facts,
       language: client.language,
       runner,
       now,
-      calendar: opts.calendar || { count: Number(process.env.SOCIAL_CALENDAR_COUNT) || 8 },
+      ...(calOpt ? { calendar: calOpt } : {}),
       ...(reader ? { reader } : {}),
     });
     return { ok: true, ...base, summary };
@@ -179,9 +197,10 @@ async function runJob(opts = {}) {
     // trigger (v2 Phase 1d) rides in here: intake pulls new mail → generate writes a
     // post FROM the email's contents → approve sends it to the owner to approve.
     const reader = resolveGmailReader(opts);
+    const calOpt = calendarBriefOpt(opts);
     const intake = await runIntake(store, {
       client: client.id, facts: client.facts, language: client.language, runner, now,
-      calendar: opts.calendar || { count: Number(process.env.SOCIAL_CALENDAR_COUNT) || 8 },
+      ...(calOpt ? { calendar: calOpt } : {}),
       ...(reader ? { reader } : {}),
     });
     let generate = { skipped: "no ANTHROPIC_API_KEY — nothing drafted" };

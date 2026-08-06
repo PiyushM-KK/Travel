@@ -1,0 +1,69 @@
+name: Skyline package-post (twice daily)
+
+# Fallback / redundancy for the twice-daily package-post intake. The skyline-social Vercel project
+# already schedules these two times via vercel.json crons, but Vercel's Hobby plan can cap the number
+# of cron jobs — this GitHub Action drives the same endpoint independently and for free. Running BOTH
+# is safe: the endpoint is idempotent per (package, day, slot) via its dedup smid, so whichever fires
+# second simply skips.
+#
+# SETUP (owner, one-time): add a repository secret named CRON_SECRET (Settings → Secrets and variables
+# → Actions → New repository secret) with the SAME value as the skyline-social project's CRON_SECRET.
+# Without it the job fails fast (never posts). Schedules run only from the default branch.
+
+on:
+  schedule:
+    - cron: '30 3 * * *'   # 03:30 UTC = 09:00 IST — morning  (slot 0)
+    - cron: '30 8 * * *'   # 08:30 UTC = 14:00 IST — afternoon (slot 1)
+  workflow_dispatch:       # manual run (pick the slot)
+    inputs:
+      slot:
+        description: 'Slot to post (0 = morning, 1 = afternoon)'
+        required: true
+        default: '0'
+        type: choice
+        options: ['0', '1']
+
+# Never let two package-post runs overlap.
+concurrency:
+  group: skyline-package-post
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger package-post (slot from the schedule that fired, or the manual input)
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          BASE_URL: https://skyline-social-nine.vercel.app
+          SCHEDULE: ${{ github.event.schedule }}
+          INPUT_SLOT: ${{ github.event.inputs.slot }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::CRON_SECRET repository secret is not set — add it (see the workflow header). Not posting."
+            exit 1
+          fi
+          # Manual input wins; otherwise map the cron that fired to its slot.
+          SLOT="${INPUT_SLOT:-}"
+          if [ -z "$SLOT" ]; then
+            case "$SCHEDULE" in
+              "30 3 * * *") SLOT=0 ;;
+              "30 8 * * *") SLOT=1 ;;
+              *) SLOT=0 ;;
+            esac
+          fi
+          echo "Triggering package-post slot=$SLOT"
+          CODE=$(curl -sS -m 120 -o resp.json -w '%{http_code}' \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${BASE_URL}/api/cron-package-post?slot=${SLOT}") || { echo "::error::curl failed"; exit 1; }
+          echo "HTTP ${CODE}"
+          # Print the (secret-free) response so a failed slot is visible in the run log.
+          cat resp.json || true
+          echo
+          if [ "${CODE}" != "200" ]; then
+            echo "::error::package-post endpoint returned HTTP ${CODE}"
+            exit 1
+          fi
+          echo "package-post slot=${SLOT} OK"

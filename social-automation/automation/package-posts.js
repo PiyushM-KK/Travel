@@ -69,9 +69,18 @@ async function runPackagePosts(store, ctx = {}) {
     // Normalize to `pending_approval`: the draft may have come back auto-`approved` from the engine,
     // and leaving it `approved` would let a later blind publish post it with NO human tap (and a
     // possibly stale caption). `pending_approval` needs the owner's explicit approve and is picked up
-    // by the approval digest — a visible, recoverable state, never a silent auto-post.
+    // by the approval digest — a visible, recoverable state, never a silent auto-post. If this write
+    // FAILS we must NOT tell the owner it's held while the row is still `approved` (that's the exact
+    // silent auto-post we're preventing) — so retry, then abort the hold and surface the failure.
     if (fresh.status !== "pending_approval") {
-      try { await store.update(fresh.id, { status: "pending_approval", imageUrl: cardUrlA, imageSource: { kind: "url", url: cardUrlA, options } }); } catch (e) { /* best-effort */ }
+      let demoted = false;
+      for (let i = 0; i < 2 && !demoted; i++) {
+        try { await store.update(fresh.id, { status: "pending_approval", imageUrl: cardUrlA, imageSource: { kind: "url", url: cardUrlA, options } }); demoted = true; }
+        catch (e) { if (i === 1) { /* give up after the retry */ } }
+      }
+      if (!demoted) {
+        return { considered: 1, slot, published: [], notified: [], held: [{ id: fresh.id, reason: `hold failed — could not demote from '${fresh.status}' to pending_approval; NOT notifying (row may still be publishable)` }], skipped: [] };
+      }
     }
     const details = `📦 Skyline package post — HELD for your OK\n   ${pkg.item} — ${pkg.route}\n   Price on card: ${rp.line} (Skyline rate)\n   ⚠️ ${holdReason}`;
     const instr = cardUrlB

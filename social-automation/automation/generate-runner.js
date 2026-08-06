@@ -67,14 +67,19 @@ async function reapStaleDrafting(store, now, staleMs) {
   catch (e) { return { reaped: 0, ids: [] }; } // a listing failure must never sink the pass
   const ids = [];
   for (const r of stuck) {
-    // Age STRICTLY by claimedAt. store.claim() writes status+claimedAt together in ONE update, so a
-    // LIVE `drafting` row always carries a claimedAt — the floor above then guarantees a claimed row
-    // younger than any possible worker is never touched. A `drafting` row with NO claimedAt can only
-    // be a legacy/manual orphan (never a live claim mid-write), so reap it. We deliberately do NOT
-    // age by updatedAt: a partial write that bumped updatedAt on an already-stale crashed row would
-    // otherwise mask it as "recent" and strand it forever — the exact silent loss this reaper exists
-    // to prevent.
-    if (r.claimedAt && new Date(r.claimedAt).getTime() > cutoff) continue; // claimed & still in window — a live pass may own it
+    // Decide staleness so that BOTH failure modes are covered:
+    //  • CLAIMED row (claimedAt present) → age STRICTLY by claimedAt. Never fall back to updatedAt
+    //    here: a partial write that bumped updatedAt on an already-stale crashed row must not be able
+    //    to mask it as "recent" and strand it forever (the silent loss this reaper exists to prevent).
+    //  • STAMPLESS row (no claimedAt) → anomalous (store.claim() co-writes status+claimedAt), so it is
+    //    a legacy orphan OR a row mid-claim if the store ever split that write. Reap it ONLY if its
+    //    updatedAt is also old (or absent); a recently-touched stampless row is PROTECTED this pass so
+    //    a live mid-claim is never stolen. Its updatedAt ages, so a truly abandoned orphan is reaped a
+    //    pass later — protected, never permanently masked.
+    let stale;
+    if (r.claimedAt) stale = new Date(r.claimedAt).getTime() <= cutoff;
+    else stale = !r.updatedAt || new Date(r.updatedAt).getTime() <= cutoff;
+    if (!stale) continue; // still owned by / racing a live pass — leave it
     try {
       await store.update(r.id, {
         status: "planned",

@@ -86,6 +86,27 @@ async function buildOpsStatus(store, ctx = {}) {
     } catch (e) { tokens.meta = "check failed (network)"; }
   }
 
+  // 7) Workflows — the named scheduled automations, each with its live status (derived from the
+  //    heartbeat of the job it drives). This is the "what's actually running" project-wise view.
+  //    cadenceH = how often it's expected to run; overdue if it's been silent well past that.
+  const OVERDUE_MARGIN_H = 6;
+  const WORKFLOWS = ctx.workflows || [
+    { name: "Prep — draft posts & send for approval", when: "Daily · 7 PM IST", job: "generate", cadenceH: 24 },
+    { name: "Publish approved → Instagram + Facebook", when: "Daily · 9 PM IST + on approval", job: "publish", cadenceH: 24 },
+    { name: "Package post (auto)", when: "Twice daily · 9 AM + 2 PM IST", job: "package-post", cadenceH: 12 },
+    { name: "Vendor-email intake", when: "Daily · 7 PM IST", job: "email", cadenceH: 24 },
+    { name: "Calendar-card feature", when: "Daily · 7 PM IST", job: "calendar-cards", cadenceH: 24 },
+  ];
+  const workflows = WORKFLOWS.map((w) => {
+    const hb = heartbeats[w.job] || {};
+    const age = hb.ageMin;
+    let status;
+    if (age == null) status = "idle";                                   // never recorded a run
+    else if (age <= (w.cadenceH + OVERDUE_MARGIN_H) * 60) status = "ok"; // ran within its window
+    else status = "overdue";                                            // silent well past schedule
+    return { name: w.name, when: w.when, job: w.job, lastRunAt: hb.at || null, lastRunAgeMin: age, status };
+  });
+
   const health = alerts.some((a) => a.level === "red") ? "red" : alerts.some((a) => a.level === "amber") ? "amber" : "green";
 
   return {
@@ -98,6 +119,7 @@ async function buildOpsStatus(store, ctx = {}) {
     published: queue.published || 0,
     lastActivity: newestUpdate,
     lastActivityAgeMin: ageMin(newestUpdate),
+    workflows,
     heartbeats,
     tokens,
     config,

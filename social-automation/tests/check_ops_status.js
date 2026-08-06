@@ -39,6 +39,14 @@ const hasAlert = (s, re) => s.alerts.some((a) => re.test(a.msg));
   ok(a.heartbeats.generate.ageMin >= 118 && a.heartbeats.generate.ageMin <= 122, "generate heartbeat age ~2h");
   ok(a.heartbeats.publish.ageMin > 30 * 60, "publish heartbeat age > 30h (stale)");
 
+  // Workflows — the named, project-wise live status
+  const wf = (job) => a.workflows.find((w) => w.job === job);
+  ok(a.workflows.length >= 4, "workflows list is populated");
+  ok(wf("generate").status === "ok", "'generate' workflow shows OK (ran 2h ago)");
+  ok(wf("publish").status === "overdue", "'publish' workflow shows OVERDUE (40h silent)");
+  ok(wf("package-post").status === "idle", "'package-post' workflow shows IDLE (never ran)");
+  ok(!!wf("generate").when, "each workflow carries its schedule (when)");
+
   // ---- Scenario B: a healthy queue ----
   const store2 = new InMemoryStore({ clock: () => NOW });
   await store2.create({ status: "published", subject: "p" });

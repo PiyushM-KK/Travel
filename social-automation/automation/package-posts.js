@@ -66,6 +66,13 @@ async function runPackagePosts(store, ctx = {}) {
 
   // ---- RISKY or NOT-LIVE → hold for the owner's approval (same A/B WhatsApp flow as the calendar card) ----
   if (holdReason) {
+    // Normalize to `pending_approval`: the draft may have come back auto-`approved` from the engine,
+    // and leaving it `approved` would let a later blind publish post it with NO human tap (and a
+    // possibly stale caption). `pending_approval` needs the owner's explicit approve and is picked up
+    // by the approval digest — a visible, recoverable state, never a silent auto-post.
+    if (fresh.status !== "pending_approval") {
+      try { await store.update(fresh.id, { status: "pending_approval", imageUrl: cardUrlA, imageSource: { kind: "url", url: cardUrlA, options } }); } catch (e) { /* best-effort */ }
+    }
     const details = `📦 Skyline package post — HELD for your OK\n   ${pkg.item} — ${pkg.route}\n   Price on card: ${rp.line} (Skyline rate)\n   ⚠️ ${holdReason}`;
     const instr = cardUrlB
       ? `\n\nReply:\n🅰️ A ${code} → post the real-photo card\n🅱️ B ${code} → post the ${bStyle} card\n➕ both ${code}\n❌ reject ${code}`

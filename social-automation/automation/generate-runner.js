@@ -67,18 +67,20 @@ async function reapStaleDrafting(store, now, staleMs) {
   catch (e) { return { reaped: 0, ids: [] }; } // a listing failure must never sink the pass
   const ids = [];
   for (const r of stuck) {
-    // Age the row by its claim stamp, falling back to updatedAt — so a row JUST written (a legacy row
-    // or the brief write-after-status window where claimedAt isn't set yet) is NOT mistaken for stale
-    // and stolen from the pass currently claiming it. Only when BOTH stamps are absent is the row a
-    // true orphan (it could only have arrived via a crash) and reaped unconditionally.
-    const stamp = r.claimedAt || r.updatedAt || null;
-    if (stamp && new Date(stamp).getTime() > cutoff) continue; // still within the window — a live pass may own it
+    // Age STRICTLY by claimedAt. store.claim() writes status+claimedAt together in ONE update, so a
+    // LIVE `drafting` row always carries a claimedAt — the floor above then guarantees a claimed row
+    // younger than any possible worker is never touched. A `drafting` row with NO claimedAt can only
+    // be a legacy/manual orphan (never a live claim mid-write), so reap it. We deliberately do NOT
+    // age by updatedAt: a partial write that bumped updatedAt on an already-stale crashed row would
+    // otherwise mask it as "recent" and strand it forever — the exact silent loss this reaper exists
+    // to prevent.
+    if (r.claimedAt && new Date(r.claimedAt).getTime() > cutoff) continue; // claimed & still in window — a live pass may own it
     try {
       await store.update(r.id, {
         status: "planned",
         claimToken: null,
         claimedAt: null,
-        lastError: `recovered from a stale draft claim (stranded since ${r.claimedAt || r.updatedAt || "unknown"})`,
+        lastError: `recovered from a stale draft claim (stranded since ${r.claimedAt || "unstamped orphan"})`,
       });
       ids.push(r.id);
     } catch (e) { /* best-effort; a failed reset just retries next pass */ }

@@ -37,19 +37,27 @@ Two compounding causes, both addressed:
   failed." FIXED (defensive): calendar-cards now preflights the host config and skips with ONE clear
   heartbeated reason instead of polluting the queue; `render-selftest` now probes hosting for real.
 
+### 2026-08-06 (later still) — TESTED LIVE ✅ + diagnosis corrected
+Ran the fix against the **live production Airtable + deployed endpoint**:
+- **Reaper works live:** `recHbJtwnPvelurID` (stranded `drafting` ~50h) → **recovered to `planned`**,
+  claim cleared, `lastError` records the recovery. `drafting` queue is now 0. (This also resolved the
+  "unstick the card" item — done.) It will be re-drafted on the next cron-prep.
+- **Hosting is HEALTHY in prod (diagnosis corrected):** the deployed `render-selftest` returns **200**
+  with `host: {configured:true, ok:true}` — render (satori png, ~1s) AND host→public-URL→delete all
+  work. So the earlier "image hosting is the blocker" theory was WRONG; `BLOB_READ_WRITE_TOKEN` IS set.
+- **What the 5 `held` rows really are:** image-less `calendar` **BRIEFS** (`intakeFromCalendar`), which
+  QA CORRECTLY holds ("no image attached" — IG needs an image). Plus one `gmail` row (Himachal) that
+  SMM legitimately rejected. None were a hosting failure. Skyline's real proactive content comes from
+  the image-bearing `calendar-cards` job, so the briefs are redundant clutter.
+- **Fix (commit b3ab8d9):** `SOCIAL_CALENDAR_COUNT=0` now disables the image-less briefs (the old
+  `Number(x)||8` treated 0 as unset — no off-switch existed). Default (unset) stays 8. **OWNER: set
+  `SOCIAL_CALENDAR_COUNT=0` on `skyline-social`** to stop the daily held-pile (optional hygiene; not a
+  blocker — the good cards already flow). The 9 old held/rejected rows can be left as a record or
+  cleared manually.
+
 ### PENDING (next agent — priority)
-1. **OWNER: confirm `BLOB_READ_WRITE_TOKEN` is set on the `skyline-social` Vercel project.** Single
-   most likely remaining blocker. VERIFY in one guarded, safe call (it deletes what it hosts):
-   `curl -H "Authorization: Bearer $CRON_SECRET" https://skyline-social-nine.vercel.app/api/render-selftest`
-   → **200** = render + host both OK (pipeline healthy). **503** = renders but hosting unconfigured →
-   create a Vercel Blob store on this project + set `BLOB_READ_WRITE_TOKEN`. **500** = a real fault
-   (read the JSON `host.error` / `makeCard.error`). Once 200, the daily card flow produces real image
-   posts to approve. (See BLOCKED.md → B-IMG.)
-2. **Confirm the fix landed live:** after the next `cron-prep` run, verify in the Airtable `Queue`
-   that `recHbJtwnPvelurID` is no longer `drafting` (reaped → re-drafted to `pending_approval`/`held`),
-   and that a calendar-card reached `pending_approval` (not held). The reaper count is surfaced in the
-   cron-prep response JSON (`generate.summary.reaped`) and the function logs — NOT in the Airtable
-   `Runs` heartbeat (its schema is a fixed column set; don't add a `Reaped` column expectation).
+1. ~~Image bug / hosting / stuck card~~ — **DONE + verified live** (see the block just above).
+   Optional hygiene: owner sets `SOCIAL_CALENDAR_COUNT=0` to stop image-less brief holds.
 3. Publishing still runs partly on the FIRM's infra (site project + FullFirm GHA) — migration to
    Skyline's own infra still pending (see "Live plumbing runs on the FIRM's infra" below).
 4. A **monitoring dashboard** for this automation is planned on the firm site (buildwise-digital.com).

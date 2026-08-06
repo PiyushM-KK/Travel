@@ -6,28 +6,27 @@ the real values live in the local `.env` (gitignored) and the Vercel project env
 
 ---
 
-## B-IMG — confirm image hosting is configured on `skyline-social` (Vercel Blob)
+## B-IMG — image hosting: VERIFIED WORKING (2026-08-06). Optional hygiene below.
 
-**Why it matters:** a card RENDERS fine but can't publish unless it can be HOSTED — Instagram
-publishes from a public https URL, and hosting needs `BLOB_READ_WRITE_TOKEN` (a Vercel Blob store).
-Without it, every daily calendar-card was created and then held with a buried "card A render/host
-failed," so nothing reached approval — the observed "automation didn't work." (Code now preflights
-this and skips with a clear reason instead of polluting the queue — but the token must still be set
-for real cards to be produced.)
+**Status: RESOLVED — no owner action required for hosting.** Tested live: the deployed
+`render-selftest` returns **200** with `host: {configured:true, ok:true}` — render (satori png) AND
+host→public-URL→delete all work, so `BLOB_READ_WRITE_TOKEN` is set on `skyline-social`. The earlier
+"hosting is the blocker" theory was wrong. The real blocker was a STRANDED draft (fixed by the reaper,
+and the stuck card was recovered live).
 
-**Verify (one guarded call — safe, deletes what it hosts):**
+**Health check (re-run anytime — guarded, safe, deletes what it hosts):**
 ```
 curl -H "Authorization: Bearer $CRON_SECRET" https://skyline-social-nine.vercel.app/api/render-selftest
 ```
-- **200** → render + host both OK. Nothing to do here.
-- **503** → renders but hosting is UNCONFIGURED → do the fix below.
+- **200** → render + host both OK (current state).
+- **503** → hosting became unconfigured → Vercel → project **skyline-social** → **Storage** →
+  create/connect a **Blob** store (adds `BLOB_READ_WRITE_TOKEN`, Production scope) → redeploy → re-check.
 - **500** → a real fault; read the JSON `host.error` / `makeCard.error`.
 
-**Fix (if 503):**
-1. Vercel dashboard → project **skyline-social** → **Storage** → create/connect a **Blob** store.
-2. That adds `BLOB_READ_WRITE_TOKEN` to the project env (confirm it's present, Production scope).
-3. Redeploy (or wait for the next push) and re-run the verify curl → expect **200**.
-4. On the next `cron-prep` run, the daily calendar-card should reach `pending_approval` (not held).
+**Optional hygiene — stop the daily image-less "held" pile:** the `calendar` BRIEF intake creates
+image-less rows that QA correctly holds (Skyline uses the image-bearing `calendar-cards` job instead).
+Set **`SOCIAL_CALENDAR_COUNT=0`** on `skyline-social` to disable briefs (default unset = 8). Not a
+blocker — the real cards already flow to approval.
 
 ---
 

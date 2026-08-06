@@ -6,6 +6,41 @@ structure + provenance.
 
 ## ⭐ 2026-08-06 — READ FIRST (latest changes + open issues)
 
+### NEW: twice-daily PACKAGE-POST intake (4th channel) — auto-publish unless flagged
+A new intake features one Skyline **catalogue** package per slot as the branded A/B card and **auto-
+publishes the clean ones to IG+FB**, holding anything an agent flags for the owner. (Owner chose: local
+catalogue as the source, "auto but hold anything risky", morning + afternoon — evening stays the 7 PM
+calendar card.)
+- Code: `automation/package-posts.js` (`runPackagePosts`, `riskFlags`), the shared card builder
+  `calendar-cards.buildAndDraftCard`, `packageForSlot` (distinct package per slot), job `package-post`
+  in `run.js`, endpoint `api/cron-package-post.js` (CRON_SECRET-guarded), tests `check_package_posts.js`.
+- Schedule: `vercel.json` crons `30 3 * * *` (`?slot=0`, 9 AM IST) + `30 8 * * *` (`?slot=1`, 2 PM IST).
+- Risk gate: a card that passes fact-check + SMM + QA with no flags AND the live gate ON → auto-posts
+  variant A (real photo). Flagged (SMM revise / QA note / caption warning / non-English) OR live gate
+  OFF → held for the owner on WhatsApp (never left silently `approved`).
+- ⚠️ **OWNER — two things to confirm:** (1) This adds 2 crons → **4 total** in `vercel.json`. If the
+  Vercel **Hobby plan caps cron jobs** and the deploy is rejected, either upgrade or drive the two times
+  with an external scheduler / GitHub Action hitting `…/api/cron-package-post?slot=0|1` with the
+  `Authorization: Bearer $CRON_SECRET` header. (2) Auto-posting only happens when `SOCIAL_LIVE=true`
+  (+ creds); otherwise every package-post is held for approval.
+
+### WhatsApp image intake — no keyword needed (owner asked)
+Just send the photo; its caption becomes the note that steers the post. The ONLY caveat: don't caption a
+NEW image with a bare reserved command word (`approve`/`reject`/`hold`/`yes`/`no`/`ok`/`A`/`B`/`both`/
+`photo`/`scene`/`decor`, alone or with a 4-digit code) — those apply to a post already waiting. A normal
+descriptive sentence is always safe. (An optional `POST:` prefix could be added if the owner wants one.)
+
+### Bug Hunter trained + a full EOD adversarial review ran
+The reaper bug escaped review because it was a *missing recovery path* across a crash boundary. The Bug
+Hunter (`automation/review.js`) + `AGENTS.md` now carry a **liveness/orphan-recovery lens** ("if the
+worker dies here, who cleans up?") and the `0 || default` trap. The EOD review of this session's changes
+found + fixed **2 HIGH + several lower** (reaper live-worker race → claimedAt-primary + floor +
+createdAt grace + a **claim-atomicity invariant test**; package-post never left silently `approved`;
+deterministic cron slot; Host-header parse; loud host-unconfigured log). App Security ends **clean**. The
+one residual (an old-created row hit by a *split* claim write) is unfixable by any timestamp and is
+guarded by the claim-atomicity invariant (`tests/check_claim_atomicity.js`) + publish idempotency — a
+documented, accepted design point, not an open bug. Suite: 141 checks, 0 failures.
+
 ### Publish-on-approval is LIVE
 Approving a post on WhatsApp now **posts to Instagram + Facebook immediately** (no waiting for a
 publish cron — the owner found a fixed late-night time too late). How it works: `api/whatsapp-webhook.js`

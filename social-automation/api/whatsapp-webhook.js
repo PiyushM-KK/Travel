@@ -94,17 +94,26 @@ module.exports = async (req, res) => {
         const { shortCode } = require("../automation/whatsapp");
         let pending = [];
         try { pending = (await store.listByStatus("pending_approval")) || []; } catch { pending = []; }
+        const codeOf = (r) => shortCode(r.id);
+        const waiting = () => pending.map((r) => `• ${codeOf(r)} — ${String(r.caption || r.subject || r.hint || "post").slice(0, 40)}`).join("\n");
         let realId = null;
-        if (id && /^rec[A-Za-z0-9]{4,}$/i.test(id)) realId = id;
-        // Match ONLY the exact 4-digit shortCode — a loose endsWith on the typed digits could
-        // resolve a fat-fingered number ("42") to an unrelated rec…42 row and act on it.
-        else if (id) { const hit = pending.find((r) => shortCode(r.id) === String(id).trim()); realId = hit && hit.id; }
-        else if (pending.length === 1) realId = pending[0].id;
-        else if (pending.length > 1) {
-          const list = pending.map((r) => `• ${shortCode(r.id)} — ${String(r.caption || r.subject || r.hint || "post").slice(0, 40)}`).join("\n");
-          return { ok: false, error: `You have ${pending.length} posts waiting. Reply with the number, e.g. "approve ${shortCode(pending[0].id)}":\n${list}` };
+        if (id && /^rec[A-Za-z0-9]{4,}$/i.test(id)) {
+          realId = id; // an explicit rec… id
+        } else if (id) {
+          // Match the typed CODE against EVERY pending post. NEVER silently pick the first on a
+          // collision (that could approve the WRONG post); and if nothing matches — a stale/old code
+          // (e.g. the row was deleted + rebuilt with a new code) — show the codes actually waiting so
+          // the owner just retypes the right one instead of getting a dead-end error.
+          const hits = pending.filter((r) => codeOf(r) === String(id).trim());
+          if (hits.length === 1) realId = hits[0].id;
+          else if (hits.length > 1) return { ok: false, error: `More than one waiting post uses code ${id} — reply with the exact one:\n${waiting()}` };
+          else return { ok: false, error: pending.length ? `No waiting post has code "${id}". Waiting now — reply e.g. "approve ${codeOf(pending[0])}":\n${waiting()}` : "Nothing is waiting for approval right now." };
+        } else if (pending.length === 1) {
+          realId = pending[0].id;
+        } else if (pending.length > 1) {
+          return { ok: false, error: `You have ${pending.length} posts waiting. Reply with the number, e.g. "approve ${codeOf(pending[0])}":\n${waiting()}` };
         }
-        if (!realId) return { ok: false, error: id ? `No waiting post matches "${id}". Reply "approve <number>".` : "Nothing is waiting for approval right now." };
+        if (!realId) return { ok: false, error: "Nothing is waiting for approval right now." };
         const result = await applyDecision(store, realId, decision, { facts: client.facts, profile: client.profile });
         // PUBLISH-ON-APPROVAL: the moment the owner approves, post to Instagram + Facebook right
         // away (don't wait for the scheduled publish cron — the owner asked for immediate posting).
@@ -126,6 +135,16 @@ module.exports = async (req, res) => {
           }
         }
         return result;
+      },
+      // Used by handleInbound's guard: when a reply LOOKS like a mistyped approval, reply with the
+      // exact format + the codes actually waiting (never turn the typo into a new junk post).
+      approvalHelp: async () => {
+        const { shortCode } = require("../automation/whatsapp");
+        let pending = [];
+        try { pending = (await store.listByStatus("pending_approval")) || []; } catch { pending = []; }
+        if (!pending.length) return "Nothing is waiting for approval right now. Send a photo or a note to draft a post.";
+        const list = pending.map((r) => `• ${shortCode(r.id)} — ${String(r.caption || r.subject || r.hint || "post").slice(0, 40)}`).join("\n");
+        return `I couldn't read that as an approval. Reply exactly like "B ${shortCode(pending[0].id)}" or "approve ${shortCode(pending[0].id)}". Waiting now:\n${list}`;
       },
       intake: (item) => intakeDirect(store, { client: client.id, ...item }),
       // DRAFT-ON-INTAKE: with an API key, Claude writes + fact-checks the post right

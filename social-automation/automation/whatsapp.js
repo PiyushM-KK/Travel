@@ -88,30 +88,43 @@ function shortCode(id) {
   return String(1000 + (h % 9000));
 }
 
+// A queue reference is an Airtable rec… id or a 3-6 digit approval code. Kept strict so an English
+// word is never mistaken for a code, but tolerant of the code length (4-digit today, 5 if widened).
+function looksLikeRef(s) {
+  return /^rec[A-Za-z0-9]{4,}$/i.test(s) || /^\d{3,6}$/.test(s);
+}
+
 function parseDecision(text) {
   const t = String(text || "").trim();
-  // VARIANT selection for two-candidate CARD posts (A = real photo, B = decorative scene). The
-  // owner replies "A"/"B"/"both" (or "photo"/"scene"/"decor"), bare or with a code: "B 4821".
-  // These are APPROVALS that also choose which image publishes; a plain "approve" defaults to A.
-  const vm = t.match(/^\s*(a|b|both|photo|scene|decor)\b[\s:]*(\S+)?\s*$/i);
+
+  // VARIANT selection (A / B / both) for two-candidate CARD posts (A = real photo, B = AI/decor
+  // scene). Accept how people ACTUALLY type it: "B 9880", "B9880", "B-9880", "B- 9880", "B: 9880",
+  // "both 9880", or a bare "B". Any separator (space, dash, colon, hash) between the letter and the
+  // code is fine — a stray "-" used to turn a valid approval into a junk post. `(?![a-z])` stops a
+  // real word ("brilliant", "scene of the hills") from being read as a variant.
+  const vm = t.match(/^(both|a|b|photo|scene|decor)(?![a-z])[\s:#\-]*(.*)$/i);
   if (vm) {
     const variant = { a: "A", photo: "A", b: "B", scene: "B", decor: "B", both: "both" }[vm[1].toLowerCase()];
-    const vid = vm[2];
-    if (!vid) return { id: null, decision: { action: "approve", variant } };
-    // Only treat a following token as a queue ref when it looks like one (rec… id or a code w/ digit).
-    if (/^rec[A-Za-z0-9]{4,}$/i.test(vid) || /[_\d]/.test(vid)) return { id: vid, decision: { action: "approve", variant } };
-    return null; // a word follows ("scene of the crime") — not a command
+    const rest = (vm[2] || "").trim();
+    if (!rest) return { id: null, decision: { action: "approve", variant } };
+    const ref = rest.split(/\s+/)[0];
+    if (looksLikeRef(ref)) return { id: ref, decision: { action: "approve", variant } };
+    return null; // a word follows ("scene of the hills") — not a command
   }
-  const m = t.match(/^\s*(approve|reject|hold|edit|yes|no|ok)\b[\s:]*(\S+)?\s*([\s\S]*)$/i);
+
+  // VERB commands: approve / reject / hold / edit / yes / no / ok — same separator tolerance.
+  const m = t.match(/^(approve|reject|hold|edit|yes|no|ok)(?![a-z])[\s:#\-]*(.*)$/i);
   if (!m) return null;
   let verb = m[1].toLowerCase();
-  const id = m[2];
-  const rest = (m[3] || "").trim();
+  const rest = (m[2] || "").trim();
+  const parts = rest ? rest.split(/\s+/) : [];
+  const first = parts[0] || "";
+  const remainder = parts.slice(1).join(" ");
   const norm = (v) => (v === "yes" || v === "ok" ? "approve" : v === "no" ? "reject" : v);
-  // BARE decision — the message is just "approve" / "yes" / "hold" / "reject" (no target).
-  // It applies to the single post awaiting approval (the webhook resolves id=null). "edit"
-  // always needs a target + new text, so it can't be bare.
-  if (!id) {
+
+  // BARE decision — "approve" / "yes" / "hold" / "reject" with no target → the single post awaiting
+  // approval (the webhook resolves id=null). "edit" always needs a target + new text.
+  if (!first) {
     verb = norm(verb);
     if (verb === "edit") return null;
     if (verb === "approve") return { id: null, decision: { action: "approve" } };
@@ -119,16 +132,23 @@ function parseDecision(text) {
     if (verb === "hold") return { id: null, decision: { action: "hold", reason: "" } };
     return null;
   }
-  // A token follows the verb. Only treat it as a queue REF when it looks like one — an
-  // Airtable rec… id, or a short code carrying a digit/underscore (our 4-digit codes do).
-  // An English word ("no rush…", "hold on a sec", "yes this one") is NOT a ref → not a command.
-  if (!/^rec[A-Za-z0-9]{4,}$/i.test(id) && !/[_\d]/.test(id)) return null;
+  // A token follows the verb — treat it as a queue REF only when it looks like one. An English word
+  // ("no rush…", "hold on a sec", "yes this one") is NOT a ref → not a command.
+  if (!looksLikeRef(first)) return null;
   verb = norm(verb);
-  if (verb === "edit") return { id, decision: { action: "approve", caption: rest } };
-  if (verb === "approve") return { id, decision: { action: "approve" } };
-  if (verb === "reject") return { id, decision: { action: "reject", reason: rest } };
-  if (verb === "hold") return { id, decision: { action: "hold", reason: rest } };
+  if (verb === "edit") return { id: first, decision: { action: "approve", caption: remainder } };
+  if (verb === "approve") return { id: first, decision: { action: "approve" } };
+  if (verb === "reject") return { id: first, decision: { action: "reject", reason: remainder } };
+  if (verb === "hold") return { id: first, decision: { action: "hold", reason: remainder } };
   return null;
+}
+
+// True when a reply LOOKS like an approval command (starts with a command word AND carries a number)
+// but parseDecision couldn't read it — so the webhook can ASK for the right format instead of turning
+// the typo into a brand-new junk post (exactly how "B- 9880" became a broken post once).
+function looksLikeApprovalAttempt(text) {
+  const t = String(text || "").trim();
+  return /^(a|b|both|photo|scene|decor|approve|reject|hold|edit|yes|no|ok)\b/i.test(t) && /\d/.test(t) && t.length <= 40;
 }
 
 /** Pull the first inbound message out of a WhatsApp webhook payload. */
@@ -178,6 +198,17 @@ async function handleInbound(body, ctx = {}) {
     if (result.published) note += `\n${result.published}`;
     if (ctx.reply) await ctx.reply(msg.from, note);
     return { action: "decision", id: parsed.id, result };
+  }
+
+  // GUARD: a text-only reply that LOOKS like a mistyped approval (a command word + a number) must
+  // NOT be turned into a new post — that's exactly how "B- 9880" became a broken junk post. Ask for
+  // the exact format instead (and, if the webhook supplied it, list the codes actually waiting).
+  if (looksLikeApprovalAttempt(msg.text) && !(msg.image && msg.image.id)) {
+    let help = "";
+    if (ctx.approvalHelp) { try { help = await ctx.approvalHelp(); } catch { help = ""; } }
+    const fallback = 'That looked like an approval, but I couldn\'t read it. Reply exactly like "B 9880" or "approve 9880" (or just "approve").';
+    if (ctx.reply) await ctx.reply(msg.from, help || fallback);
+    return { action: "approval-help" };
   }
 
   // Not a command → treat it as INTAKE (draft a post from what they sent).
@@ -235,4 +266,4 @@ function sameNumber(a, b) {
   return !!da && !!db && da.slice(-10) === db.slice(-10);
 }
 
-module.exports = { waSend, sendText, sendImage, parseDecision, shortCode, extractIncomingMessage, handleInbound, verifySignature, sameNumber };
+module.exports = { waSend, sendText, sendImage, parseDecision, shortCode, looksLikeApprovalAttempt, looksLikeRef, extractIncomingMessage, handleInbound, verifySignature, sameNumber };

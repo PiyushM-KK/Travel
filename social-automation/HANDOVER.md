@@ -4,6 +4,41 @@ Scope: **only the `social-automation/` folder.** The rest of the Skyline project
 (the travel website) is unchanged and separate. Read `README.md` here first for the
 structure + provenance.
 
+## ⭐ 2026-08-06 — READ FIRST (latest changes + open issues)
+
+### Publish-on-approval is LIVE
+Approving a post on WhatsApp now **posts to Instagram + Facebook immediately** (no waiting for a
+publish cron — the owner found a fixed late-night time too late). How it works: `api/whatsapp-webhook.js`
+— after a successful `approve`, it runs `runJob({ job:"publish" })` (idempotent + claim-guarded) and
+replies with the outcome; `automation/whatsapp.js` appends that outcome (`result.published`) to the
+WhatsApp reply. Deployed to the Vercel project **skyline-social** (skyline-social-nine.vercel.app),
+verified healthy. The scheduled runners stay as a BACKSTOP: Vercel crons (prep 13:30 UTC, publish
+15:30 UTC) + the FullFirm GitHub Action `social-publish.yml` (15:00 UTC). Committed to Travel repo (3cc21d6).
+
+### Diagnosis of "the automation didn't work" (2026-08-06) — the REAL blocker
+- Tokens are FINE — WHATSAPP_TOKEN + META_PAGE_TOKEN both validated live (Graph `/me`): valid.
+- NOT caused by the firm's site/domain changes (firm publish endpoints verified up).
+- **ROOT CAUSE: posts are being HELD by QA for "no image attached."** Captions generate, but the
+  IMAGE step fails, so cards never reach `pending_approval` → nothing to approve → nothing publishes.
+  Live Airtable `Queue`: held(5), rejected(4), one card stuck in `drafting` since Aug 4
+  (`recHbJtwnPvelurID`, "Travel Test" gmail), planned(6), published(3). Last activity Aug 5 16:23 UTC.
+
+### PENDING (next agent — priority)
+1. **FIX THE IMAGE BUG** — the actual "not working." Why do calendar/prep cards end up with no image?
+   Investigate `automation/image-gen.js`, `automation/image-source.js`, `automation/image-host.js`,
+   and the calendar-cards path. QA correctly holds image-less posts; the fix is upstream (attach an
+   image reliably). Until this is fixed, publish-on-approval has nothing to publish.
+2. **Unstick** `recHbJtwnPvelurID` (stale `drafting` claim from Aug 4) — reset to planned/held or delete.
+3. Publishing still runs partly on the FIRM's infra (site project + FullFirm GHA) — migration to
+   Skyline's own infra still pending (see "Live plumbing runs on the FIRM's infra" below).
+4. A **monitoring dashboard** for this automation is planned on the firm site (buildwise-digital.com).
+
+### Diagnostics (inspect state locally)
+The local `.env` (plaintext, this folder — gitignored) holds all creds. `automation/queue-peek.js`
+reads `AIRTABLE_*` from the process env (or set `SECRETS_PASSPHRASE` to decrypt `.env.enc` — value NOT
+recorded here; see the private security notes). Queue: load `.env` → GET the Airtable `Queue` table.
+Tokens: GET `https://graph.facebook.com/v21.0/me?access_token=…`. Keep it read-only; never print tokens.
+
 ## What this is
 Skyline's own social content automation for **Instagram + Facebook** — grounded in
 Skyline's real packages/destinations and **fact-checked** before anything is suggested

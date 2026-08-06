@@ -36,6 +36,40 @@ function nowIso(now) {
   return (now instanceof Date ? now : new Date()).toISOString();
 }
 
+// A generate pass claims a row `planned` -> `drafting`, then drafts + fact-checks it.
+// If that pass DIES mid-draft (a Vercel/GitHub function timeout or crash during the
+// vision or Claude call), the row is left stranded in `drafting` with a stale claim.
+// Nothing re-lists `drafting` rows, so the post never reaches approval — it's lost.
+// (This stranded exactly one Skyline card for days.) The reaper below runs at the top
+// of every generate pass: any `drafting` row whose claim is older than the stale window
+// is definitively dead (a healthy draft finishes in seconds; the function itself times
+// out long before this), so we reset it to `planned` and let this same pass re-draft it.
+const DEFAULT_STALE_MS = 15 * 60 * 1000; // matches store.claim()'s staleMs
+
+async function reapStaleDrafting(store, now, staleMs) {
+  const cutoff = (now instanceof Date ? now : new Date()).getTime() - staleMs;
+  let stuck = [];
+  try { stuck = (await store.listByStatus("drafting")) || []; }
+  catch (e) { return { reaped: 0, ids: [] }; } // a listing failure must never sink the pass
+  const ids = [];
+  for (const r of stuck) {
+    // No claimedAt at all = a row that never got a proper claim stamp; treat it as stale
+    // too (it can only have got here via a crashed/legacy write) rather than leaking it.
+    const claimedMs = r.claimedAt ? new Date(r.claimedAt).getTime() : 0;
+    if (claimedMs && claimedMs > cutoff) continue; // still within the window — a live pass may own it
+    try {
+      await store.update(r.id, {
+        status: "planned",
+        claimToken: null,
+        claimedAt: null,
+        lastError: `recovered from a stale draft claim (stranded since ${r.claimedAt || "unknown"})`,
+      });
+      ids.push(r.id);
+    } catch (e) { /* best-effort; a failed reset just retries next pass */ }
+  }
+  return { reaped: ids.length, ids };
+}
+
 /** Build a generateForBrief brief from a queue row (+ optional vision hint). */
 function briefFromRow(row, photoDescription) {
   const hint = photoDescription || row.hint || "";
@@ -317,8 +351,13 @@ async function runGenerate(store, opts = {}) {
     qaOpts: opts.qaOpts || {},
   };
 
+  // Recover any rows stranded in `drafting` by a crashed/timed-out earlier pass BEFORE we
+  // list `planned`, so a reaped row is re-drafted in this same pass (not a future one).
+  const staleMs = Number(process.env.GENERATE_STALE_MS) || DEFAULT_STALE_MS;
+  const reaped = await reapStaleDrafting(store, now, staleMs);
+
   const planned = await store.listByStatus("planned");
-  const summary = { runner: ctx.runner, at: nowIso(now), considered: planned.length, approved: 0, pending: 0, held: 0, skipped: 0, rows: [] };
+  const summary = { runner: ctx.runner, at: nowIso(now), considered: planned.length, reaped: reaped.reaped, approved: 0, pending: 0, held: 0, skipped: 0, rows: [] };
 
   for (const row of planned) {
     const res = await generateOne(store, row, ctx);
@@ -332,6 +371,7 @@ async function runGenerate(store, opts = {}) {
   await store.heartbeat("generate", {
     runner: ctx.runner,
     considered: summary.considered,
+    reaped: summary.reaped,
     approved: summary.approved,
     pending: summary.pending,
     held: summary.held,
@@ -340,4 +380,4 @@ async function runGenerate(store, opts = {}) {
   return summary;
 }
 
-module.exports = { runGenerate, generateOne, briefFromRow };
+module.exports = { runGenerate, generateOne, briefFromRow, reapStaleDrafting };

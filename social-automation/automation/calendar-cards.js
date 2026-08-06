@@ -69,6 +69,16 @@ async function runCalendarCards(store, ctx = {}) {
     if (existing) return { considered: 1, notified: [], held: [], skipped: [smid] };
   }
 
+  // PREFLIGHT: a card is only useful if we can HOST its image (Instagram publishes from a public
+  // URL). Without BLOB_READ_WRITE_TOKEN, hostCard throws and EVERY daily card would be created and
+  // then held with a buried "card A render/host failed" — the queue fills with dead rows and nothing
+  // reaches approval (the observed failure). Detect the gap here (after the cheap dedup check, before
+  // any row is created or paid image work runs) and skip with one clear reason surfaced in the
+  // heartbeat. Tests inject ctx.hostImageBytes, so their card build path is unaffected.
+  if (!ctx.hostImageBytes && !require("./image-host").isConfigured()) {
+    return { considered: 0, notified: [], held: [], skipped: ["image hosting not configured — set BLOB_READ_WRITE_TOKEN on this Vercel project; no card built (would only be held)"] };
+  }
+
   // Skyline's OWN catalogue price (no markup). Create the ROW FIRST (with the dedup smid, no image
   // yet) so a re-trigger / cron retry finds it via findBySourceMessageId and skips — closing the
   // check-then-create window BEFORE the paid image generation runs.

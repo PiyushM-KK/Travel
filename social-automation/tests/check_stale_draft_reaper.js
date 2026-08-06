@@ -14,7 +14,7 @@
 
 const path = require("path");
 const { InMemoryStore } = require(path.join(__dirname, "..", "automation", "store.js"));
-const { reapStaleDrafting } = require(path.join(__dirname, "..", "automation", "generate-runner.js"));
+const { reapStaleDrafting, runGenerate } = require(path.join(__dirname, "..", "automation", "generate-runner.js"));
 
 const fails = [];
 function ok(cond, label) {
@@ -75,6 +75,20 @@ function ok(cond, label) {
   // (> the serverless function lifetime) prevents stealing a live worker.
   const out0 = await reapStaleDrafting(store, NOW, 0);
   ok(!out0.ids.includes(fresh.id), "staleMs=0 is clamped to the safety floor — a 30s-old live draft is NOT reaped");
+
+  // INTEGRATION: prove the RECOVERY is wired end-to-end — runGenerate() itself must re-list `drafting`
+  // and reap a stranded row (not merely reapStaleDrafting in isolation). Force generateOne to skip by
+  // stubbing claim()->null so no Claude call is made; the assertion is purely that the stranded row
+  // left `drafting`.
+  {
+    const s2 = new InMemoryStore({ clock: () => NOW });
+    const stranded = await s2.create({ client: "skyline", subject: "Shimla", status: "planned" });
+    await s2.update(stranded.id, { status: "drafting", claimToken: "old", claimedAt: new Date(NOW.getTime() - 60 * 60 * 1000).toISOString() });
+    s2.claim = async () => null; // generateOne can't claim the reaped row -> skips, no Claude needed
+    const summary = await runGenerate(s2, { now: NOW, vision: false, smm: false, qa: false });
+    ok(summary.reaped >= 1, "runGenerate() runs the reaper (summary.reaped >= 1)");
+    ok((await s2.get(stranded.id)).status === "planned", "runGenerate() re-lists `drafting` and recovers the stranded row to `planned`");
+  }
 
   if (fails.length) {
     console.error("\nSTALE-DRAFT-REAPER FAIL:\n - " + fails.join("\n - "));

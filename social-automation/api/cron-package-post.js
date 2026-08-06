@@ -35,13 +35,12 @@ module.exports = async (req, res) => {
 
   try {
     const clientId = process.env.SOCIAL_CLIENT || "skyline";
-    // Optional ?slot=0|1 override (else runJob infers it from the run time).
+    // Optional ?slot=0|1 override (else runJob infers it from the run time). Parse ONLY the query
+    // string from req.url — never build a URL from the attacker-controlled Host header.
     let slot;
-    try {
-      const url = new URL(req.url, `https://${req.headers.host}`);
-      const s = url.searchParams.get("slot");
-      if (s === "0" || s === "1") slot = Number(s);
-    } catch { /* ignore — fall back to time-based slot */ }
+    const q = String(req.url || "").split("?")[1] || "";
+    const s = new URLSearchParams(q).get("slot");
+    if (s === "0" || s === "1") slot = Number(s);
     const out = await runJob({ job: "package-post", clientId, runner: "vercel-package", ...(slot != null ? { slot } : {}) });
     res.status(out.ok ? 200 : 500).json({ runner: "vercel", ...out });
   } catch (e) {

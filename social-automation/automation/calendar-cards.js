@@ -102,6 +102,9 @@ async function buildAndDraftCard(store, ctx, { pkg, smid, source }) {
   // buried "card A render/host failed" — so detect the gap here (after the cheap dedup, before any row
   // is created or paid image work runs) and skip with one clear reason. Tests inject ctx.hostImageBytes.
   if (!ctx.hostImageBytes && !require("./image-host").isConfigured()) {
+    // Make the outage LOUD in the logs — a silent considered:0 pass looks identical to a healthy
+    // dormant one, and that indistinguishability is exactly how content can stop for days unnoticed.
+    try { console.warn(JSON.stringify({ evt: "host_unconfigured", source, msg: "BLOB_READ_WRITE_TOKEN not set — no card built; content is stopped until it is configured" })); } catch { /* ignore */ }
     return { status: "skipped", skipped: ["image hosting not configured — set BLOB_READ_WRITE_TOKEN on this Vercel project; no card built (would only be held)"], sweepCards };
   }
 

@@ -50,7 +50,7 @@ function fakeBuilder(store, rowId, freshOverrides) {
   ok(riskFlags({ reviewNotes: "", lastError: "warnings: long caption", language: "en" }).length > 0, "a caption warning is a risk flag");
   ok(riskFlags({ reviewNotes: "", language: "hi" }).length > 0, "a non-English draft is a risk flag (needs a human)");
 
-  // ---- 3. CLEAN card → auto-publishes to IG+FB ----
+  // ---- 3. CLEAN card + LIVE → auto-publishes to IG+FB ----
   {
     const store = new InMemoryStore();
     const row = await store.create({ status: "planned", client: "skyline", subject: "Royal Rajasthan" });
@@ -58,17 +58,34 @@ function fakeBuilder(store, rowId, freshOverrides) {
     let publishCalls = 0;
     const texts = [];
     const out = await runPackagePosts(store, {
-      slot: 0, now: d0, buildAndDraftCard: b.fn, notifyTo: "+1",
+      slot: 0, now: d0, live: true, buildAndDraftCard: b.fn, notifyTo: "+1",
       sendText: async (to, t) => texts.push(t), sendImage: async () => {},
       publishFn: async () => { publishCalls++; await store.update(row.id, { status: "published" }); return { dryRun: false }; },
     });
     const after = await store.get(row.id);
-    ok(publishCalls === 1, "clean card → publishFn was called (auto-publish)");
+    ok(publishCalls === 1, "clean+live card → publishFn was called (auto-publish)");
     ok(after.status === "published", "the row reaches `published`");
     ok(out.published.length === 1 && out.published[0].id === row.id, "result reports it as published");
     ok(b.swept.includes("https://blob/b.jpg"), "the unchosen B card blob is swept");
     ok(b.swept.includes("https://blob/a.jpg"), "the A blob is swept after Meta ingests it (publish-time-only hosting)");
     ok(texts.some((t) => /Auto-posted/i.test(t)), "the owner is told it was auto-posted");
+  }
+
+  // ---- 3b. CLEAN card but LIVE GATE OFF → HELD for approval, NOT auto-approved/posted ----
+  {
+    const store = new InMemoryStore();
+    const row = await store.create({ status: "planned", client: "skyline", subject: "Royal Rajasthan" });
+    const b = fakeBuilder(store, row.id, { caption: "…", reviewNotes: "SMM 9/10 (pass)", lastError: "", language: "en" });
+    let publishCalls = 0;
+    const out = await runPackagePosts(store, {
+      slot: 0, now: d0, /* live omitted → gate off */ buildAndDraftCard: b.fn, notifyTo: "+1",
+      sendText: async () => {}, sendImage: async () => {},
+      publishFn: async () => { publishCalls++; return { dryRun: true }; },
+    });
+    const after = await store.get(row.id);
+    ok(publishCalls === 0, "clean card with the live gate OFF is NOT auto-published");
+    ok(after.status !== "approved", "the row is NOT left silently `approved` (would let a later publish post it unreviewed)");
+    ok(out.notified.length === 1 && /live posting is off/i.test(out.notified[0].heldForApproval), "it's held for the owner with a 'live posting is off' reason");
   }
 
   // ---- 4. RISKY card → HELD for the owner, never auto-posted ----

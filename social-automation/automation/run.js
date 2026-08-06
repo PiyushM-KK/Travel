@@ -274,9 +274,12 @@ async function runJob(opts = {}) {
     const slot = Number.isInteger(opts.slot) ? opts.slot
       : (process.env.SOCIAL_PACKAGE_SLOT != null && process.env.SOCIAL_PACKAGE_SLOT !== "") ? Number(process.env.SOCIAL_PACKAGE_SLOT)
       : (now.getUTCHours() < 6 ? 0 : 1);
+    // The SAME live gate the publish job uses — so a clean card is only AUTO-published when it can
+    // actually go out; otherwise it's held for the owner (never left silently `approved`).
+    const live = (opts.live === true || process.env.SOCIAL_LIVE === "true") && !!client.live && !!(client.creds && client.creds.pageToken);
     const out = await runPackagePosts(store, {
       facts: client.facts, profile: client.profile, clientName: client.label || client.id, client: client.id,
-      slot,
+      slot, live,
       sendText: opts.sendText || ((to, body) => sendText(to, body)),
       sendImage: opts.sendImage || ((to, link, caption) => sendImage(to, link, caption)),
       notifyTo: opts.notifyTo || process.env.WHATSAPP_TO,

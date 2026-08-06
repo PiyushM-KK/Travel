@@ -57,9 +57,16 @@ async function runPackagePosts(store, ctx = {}) {
   const code = shortCode(fresh.id);
   const flags = riskFlags(fresh);
 
-  // ---- RISKY → hold for the owner's approval (same A/B WhatsApp flow as the calendar card) ----
-  if (flags.length) {
-    const details = `📦 Skyline package post — HELD for your OK\n   ${pkg.item} — ${pkg.route}\n   Price on card: ${rp.line} (Skyline rate)\n   ⚠️ ${flags.join("; ")}`;
+  // AUTO-PUBLISH only when (a) no agent flagged the card AND (b) publishing is actually LIVE. If the
+  // live gate is off, auto-approving would leave the row `approved` and a later unrelated publish job
+  // would post it with NO further review (and a possibly stale caption/price) — so instead route a
+  // clean-but-can't-publish card to the owner for approval, exactly like a flagged one.
+  const canPublishLive = ctx.live === true;
+  const holdReason = flags.length ? flags.join("; ") : (!canPublishLive ? "live posting is off — approve to post" : "");
+
+  // ---- RISKY or NOT-LIVE → hold for the owner's approval (same A/B WhatsApp flow as the calendar card) ----
+  if (holdReason) {
+    const details = `📦 Skyline package post — HELD for your OK\n   ${pkg.item} — ${pkg.route}\n   Price on card: ${rp.line} (Skyline rate)\n   ⚠️ ${holdReason}`;
     const instr = cardUrlB
       ? `\n\nReply:\n🅰️ A ${code} → post the real-photo card\n🅱️ B ${code} → post the ${bStyle} card\n➕ both ${code}\n❌ reject ${code}`
       : `\n\n✅ approve ${code} → posts to Instagram + Facebook   |   ❌ reject ${code}`;
@@ -70,10 +77,10 @@ async function runPackagePosts(store, ctx = {}) {
         if (ctx.sendText) await ctx.sendText(to, (`Caption:\n${(fresh.caption || "").trim()}${instr}`).slice(0, 4000));
       } catch (e) { /* best-effort */ }
     }
-    return { considered: 1, slot, published: [], notified: [{ id: fresh.id, code, package: pkg.item, heldForApproval: flags.join("; ") }], held: [], skipped: [] };
+    return { considered: 1, slot, published: [], notified: [{ id: fresh.id, code, package: pkg.item, heldForApproval: holdReason }], held: [], skipped: [] };
   }
 
-  // ---- CLEAN → auto-publish variant A (the real photo). Approve the row, drop the unused B, publish.
+  // ---- CLEAN + LIVE → auto-publish variant A (the real photo). Approve the row, drop the unused B, publish.
   await store.update(fresh.id, { status: "approved", imageUrl: cardUrlA, imageSource: { kind: "url", url: cardUrlA, options }, lastError: "" });
   await sweepCards([cardUrlB]); // keep A, remove the unchosen scene card
 

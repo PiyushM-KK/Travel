@@ -1,12 +1,15 @@
-// REGRESSION (stranded drafts): a generate pass claims a row `planned` -> `drafting`,
-// then drafts it. If that pass DIES mid-draft (a Vercel/GitHub function timeout or crash
-// during the vision/Claude call), the row is left stranded in `drafting` with a stale
-// claim. Nothing ever re-lists `drafting` rows, so the post never reaches approval — it is
-// silently lost. (This stranded a real Skyline card for days.) reapStaleDrafting() runs at
-// the top of every generate pass and resets a stale `drafting` row back to `planned` so the
-// same pass re-drafts it. This locks that self-healing behaviour.
+// REGRESSION (stranded drafts): a generate pass claims a row `planned` -> `drafting`, then drafts
+// it. If that pass DIES mid-draft (a Vercel/GitHub function timeout or crash during the vision/Claude
+// call), the row is left stranded in `drafting` with a stale claim. Nothing ever re-lists `drafting`
+// rows, so the post never reaches approval — it is silently lost. (This stranded a real Skyline card
+// for days.) reapStaleDrafting() runs at the top of every generate pass and resets a stale `drafting`
+// row back to `planned` so the same pass re-drafts it.
 //
-// Offline: in-memory store, injected clock, no network, no creds.
+// SAFETY (added after an adversarial review): the reaper must NEVER dispossess a still-LIVE pass, so
+// (a) it clamps the window to a floor larger than the serverless function's max lifetime, and (b) it
+// ages a row by claimedAt OR updatedAt, so a just-written row is not mistaken for stale.
+//
+// Offline: in-memory store, mutable injected clock, no network, no creds.
 //   node tests/check_stale_draft_reaper.js
 
 const path = require("path");
@@ -21,53 +24,59 @@ function ok(cond, label) {
 
 (async () => {
   const NOW = new Date("2026-08-06T12:00:00Z");
-  const store = new InMemoryStore({ clock: () => NOW });
+  let CLOCK = NOW;
+  const store = new InMemoryStore({ clock: () => CLOCK });
   const STALE_MS = 15 * 60 * 1000;
 
   // A row stuck `drafting` since well past the stale window (a crashed pass).
   const stuck = await store.create({ client: "skyline", subject: "Kerala", status: "planned" });
   await store.update(stuck.id, {
-    status: "drafting",
-    claimToken: "runner-x",
+    status: "drafting", claimToken: "runner-x",
     claimedAt: new Date(NOW.getTime() - 60 * 60 * 1000).toISOString(), // 1h ago
   });
 
-  // A row that a LIVE pass is legitimately drafting right now (claimed 30s ago).
+  // A row a LIVE pass is legitimately drafting right now (claimed 30s ago).
   const fresh = await store.create({ client: "skyline", subject: "Goa", status: "planned" });
   await store.update(fresh.id, {
-    status: "drafting",
-    claimToken: "runner-y",
+    status: "drafting", claimToken: "runner-y",
     claimedAt: new Date(NOW.getTime() - 30 * 1000).toISOString(), // 30s ago
   });
 
   // A normal planned row must be untouched by the reaper.
   const planned = await store.create({ client: "skyline", subject: "Jaipur", status: "planned" });
 
+  // A drafting row with NO claimedAt but a RECENT updatedAt (a claim write-race) must be PROTECTED —
+  // reaping it would steal a row the claiming pass still owns.
+  const noStampFresh = await store.create({ client: "skyline", subject: "Agra", status: "planned" });
+  await store.update(noStampFresh.id, { status: "drafting", claimToken: "z", claimedAt: null }); // updatedAt = NOW
+
+  // A drafting row with NO claimedAt AND an OLD updatedAt is a true orphan → reaped. (Write it in the
+  // past via the mutable clock so its updatedAt is old.)
+  CLOCK = new Date(NOW.getTime() - 60 * 60 * 1000);
+  const orphanOld = await store.create({ client: "skyline", subject: "Delhi", status: "planned" });
+  await store.update(orphanOld.id, { status: "drafting", claimToken: "w", claimedAt: null }); // updatedAt = NOW-1h
+  CLOCK = NOW;
+
   const out = await reapStaleDrafting(store, NOW, STALE_MS);
 
-  ok(out.reaped === 1 && out.ids[0] === stuck.id, "exactly the stale drafting row is reaped");
+  ok(out.ids.includes(stuck.id), "the stale (old claimedAt) drafting row is reaped");
+  ok(out.ids.includes(orphanOld.id), "a no-claimedAt row with an OLD updatedAt is reaped (true orphan)");
+  ok(!out.ids.includes(fresh.id), "a still-in-window drafting row is left for its live pass");
+  ok(!out.ids.includes(noStampFresh.id), "a no-claimedAt row with a RECENT updatedAt is PROTECTED (claim write-race)");
+  ok(!out.ids.includes(planned.id), "a normal planned row is untouched");
 
   const s = await store.get(stuck.id);
-  ok(s.status === "planned", "the stale row is reset to `planned` so a generate pass re-drafts it");
-  ok(!s.claimToken && !s.claimedAt, "the stale claim (token + timestamp) is cleared");
+  ok(s.status === "planned" && !s.claimToken && !s.claimedAt, "the reaped row is reset to `planned` with the claim cleared");
   ok(/stale draft claim/.test(s.lastError || ""), "the recovery is recorded in lastError (not silent)");
 
-  const fr = await store.get(fresh.id);
-  ok(fr.status === "drafting" && fr.claimToken === "runner-y", "a still-in-window drafting row is left for its live pass");
-
-  const p = await store.get(planned.id);
-  ok(p.status === "planned" && !p.claimToken, "a normal planned row is untouched");
-
-  // A missing/never-stamped claimedAt on a drafting row is treated as stale (can only have
-  // arrived via a crash/legacy write) rather than leaked forever.
-  const noStamp = await store.create({ client: "skyline", subject: "Agra", status: "planned" });
-  await store.update(noStamp.id, { status: "drafting", claimToken: "z", claimedAt: null });
-  const out2 = await reapStaleDrafting(store, NOW, STALE_MS);
-  ok(out2.reaped === 1 && out2.ids[0] === noStamp.id, "a drafting row with no claim timestamp is reaped too");
+  // SAFETY FLOOR: even asked to reap with staleMs=0, a 30s-old row must NOT be reaped — the floor
+  // (> the serverless function lifetime) prevents stealing a live worker.
+  const out0 = await reapStaleDrafting(store, NOW, 0);
+  ok(!out0.ids.includes(fresh.id), "staleMs=0 is clamped to the safety floor — a 30s-old live draft is NOT reaped");
 
   if (fails.length) {
     console.error("\nSTALE-DRAFT-REAPER FAIL:\n - " + fails.join("\n - "));
     process.exit(1);
   }
-  console.log("\nSTALE-DRAFT-REAPER PASS: a crashed/timed-out draft self-heals back to `planned`; live and planned rows are untouched.");
+  console.log("\nSTALE-DRAFT-REAPER PASS: crashed drafts self-heal; live/just-claimed/planned rows are protected (incl. a mis-set window).");
 })();

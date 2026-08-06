@@ -45,24 +45,40 @@ function nowIso(now) {
 // is definitively dead (a healthy draft finishes in seconds; the function itself times
 // out long before this), so we reset it to `planned` and let this same pass re-draft it.
 const DEFAULT_STALE_MS = 15 * 60 * 1000; // matches store.claim()'s staleMs
+// Hard floor: NEVER reap a row younger than this. It must exceed the serverless function's max
+// lifetime (Vercel maxDuration is 60s) so a still-LIVE draft pass can never be dispossessed by an
+// overlapping pass — only a row older than any possible live worker is definitively dead. This also
+// caps a mis-set GENERATE_STALE_MS (e.g. 0) from turning the reaper into a live-row thief.
+const MIN_STALE_MS = 90 * 1000;
+
+// Resolve the stale window from env, honouring an explicit 0 (the `Number(x) || N` idiom would treat
+// 0 as unset) and clamping to the safety floor. Returns >= MIN_STALE_MS always.
+function resolveStaleMs() {
+  const raw = process.env.GENERATE_STALE_MS;
+  const n = raw != null && raw !== "" ? Number(raw) : DEFAULT_STALE_MS;
+  return Math.max(MIN_STALE_MS, Number.isFinite(n) ? n : DEFAULT_STALE_MS);
+}
 
 async function reapStaleDrafting(store, now, staleMs) {
-  const cutoff = (now instanceof Date ? now : new Date()).getTime() - staleMs;
+  const window = Math.max(MIN_STALE_MS, Number.isFinite(staleMs) ? staleMs : DEFAULT_STALE_MS);
+  const cutoff = (now instanceof Date ? now : new Date()).getTime() - window;
   let stuck = [];
   try { stuck = (await store.listByStatus("drafting")) || []; }
   catch (e) { return { reaped: 0, ids: [] }; } // a listing failure must never sink the pass
   const ids = [];
   for (const r of stuck) {
-    // No claimedAt at all = a row that never got a proper claim stamp; treat it as stale
-    // too (it can only have got here via a crashed/legacy write) rather than leaking it.
-    const claimedMs = r.claimedAt ? new Date(r.claimedAt).getTime() : 0;
-    if (claimedMs && claimedMs > cutoff) continue; // still within the window — a live pass may own it
+    // Age the row by its claim stamp, falling back to updatedAt — so a row JUST written (a legacy row
+    // or the brief write-after-status window where claimedAt isn't set yet) is NOT mistaken for stale
+    // and stolen from the pass currently claiming it. Only when BOTH stamps are absent is the row a
+    // true orphan (it could only have arrived via a crash) and reaped unconditionally.
+    const stamp = r.claimedAt || r.updatedAt || null;
+    if (stamp && new Date(stamp).getTime() > cutoff) continue; // still within the window — a live pass may own it
     try {
       await store.update(r.id, {
         status: "planned",
         claimToken: null,
         claimedAt: null,
-        lastError: `recovered from a stale draft claim (stranded since ${r.claimedAt || "unknown"})`,
+        lastError: `recovered from a stale draft claim (stranded since ${r.claimedAt || r.updatedAt || "unknown"})`,
       });
       ids.push(r.id);
     } catch (e) { /* best-effort; a failed reset just retries next pass */ }
@@ -353,8 +369,7 @@ async function runGenerate(store, opts = {}) {
 
   // Recover any rows stranded in `drafting` by a crashed/timed-out earlier pass BEFORE we
   // list `planned`, so a reaped row is re-drafted in this same pass (not a future one).
-  const staleMs = Number(process.env.GENERATE_STALE_MS) || DEFAULT_STALE_MS;
-  const reaped = await reapStaleDrafting(store, now, staleMs);
+  const reaped = await reapStaleDrafting(store, now, resolveStaleMs());
 
   const planned = await store.listByStatus("planned");
   const summary = { runner: ctx.runner, at: nowIso(now), considered: planned.length, reaped: reaped.reaped, approved: 0, pending: 0, held: 0, skipped: 0, rows: [] };

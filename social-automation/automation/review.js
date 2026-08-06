@@ -31,6 +31,15 @@ const ROLES = [
     focus:
       "Find REAL bugs: logic errors, edge cases, data loss, idempotency violations, " +
       "race conditions, error-handling gaps, incorrect assumptions, resource leaks. " +
+      "LIVENESS / ORPHAN-RECOVERY (a proven blind spot — a real post was silently lost this way): " +
+      "for every claim/lock/lease or transition into a NON-terminal intermediate status " +
+      "(planned->drafting, ->publishing, ->processing), ask: if the worker CRASHES or TIMES OUT " +
+      "mid-operation, what resets that row, and does ANY code path ever re-list or re-claim rows " +
+      "left in that intermediate status? A scan that only lists the PRIOR status (e.g. generate " +
+      "lists only `planned`) will never revisit a stranded `drafting` row — that is silent data " +
+      "loss, flag it. A stale-recovery guard that EXISTS but is unreachable (nothing ever attempts " +
+      "to claim the stuck status) is DEAD CODE giving false safety — flag it too. Also check the " +
+      "`0 || default` trap: `Number(env) || N` treats a legitimate 0 as unset (no off-switch). " +
       "No style nitpicks.",
   },
   {

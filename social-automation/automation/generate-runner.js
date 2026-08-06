@@ -72,13 +72,14 @@ async function reapStaleDrafting(store, now, staleMs) {
     //    here: a partial write that bumped updatedAt on an already-stale crashed row must not be able
     //    to mask it as "recent" and strand it forever (the silent loss this reaper exists to prevent).
     //  • STAMPLESS row (no claimedAt) → anomalous (store.claim() co-writes status+claimedAt), so it is
-    //    a legacy orphan OR a row mid-claim if the store ever split that write. Reap it ONLY if its
-    //    updatedAt is also old (or absent); a recently-touched stampless row is PROTECTED this pass so
-    //    a live mid-claim is never stolen. Its updatedAt ages, so a truly abandoned orphan is reaped a
-    //    pass later — protected, never permanently masked.
+    //    a legacy orphan OR a row mid-claim if the store ever split that write. Age it by createdAt —
+    //    which is written ONCE at creation and NEVER bumped by any later write. This protects a
+    //    genuinely fresh row (created within the window, so a mid-claim is never stolen) yet cannot be
+    //    masked forever: unlike updatedAt (which a retry/partial write can keep refreshing), createdAt
+    //    is fixed, so an old abandoned orphan is always past the cutoff and gets reaped.
     let stale;
     if (r.claimedAt) stale = new Date(r.claimedAt).getTime() <= cutoff;
-    else stale = !r.updatedAt || new Date(r.updatedAt).getTime() <= cutoff;
+    else stale = !r.createdAt || new Date(r.createdAt).getTime() <= cutoff;
     if (!stale) continue; // still owned by / racing a live pass — leave it
     try {
       await store.update(r.id, {

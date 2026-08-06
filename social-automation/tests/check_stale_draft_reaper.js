@@ -51,18 +51,25 @@ function ok(cond, label) {
   const stamplessFresh = await store.create({ client: "skyline", subject: "Agra", status: "planned" });
   await store.update(stamplessFresh.id, { status: "drafting", claimToken: "z", claimedAt: null }); // updatedAt = NOW
 
-  // A drafting row with NO claimedAt AND an OLD updatedAt is a true abandoned orphan → reaped.
+  // A drafting row with NO claimedAt AND an OLD createdAt is a true abandoned orphan → reaped.
   CLOCK = new Date(NOW.getTime() - 60 * 60 * 1000);
-  const orphanOld = await store.create({ client: "skyline", subject: "Delhi", status: "planned" });
-  await store.update(orphanOld.id, { status: "drafting", claimToken: "w", claimedAt: null }); // updatedAt = NOW-1h
+  const orphanOld = await store.create({ client: "skyline", subject: "Delhi", status: "planned" }); // createdAt = NOW-1h
+  await store.update(orphanOld.id, { status: "drafting", claimToken: "w", claimedAt: null });
+
+  // ANTI-MASKING: an old orphan (createdAt 1h ago) whose updatedAt keeps getting bumped to NOW must
+  // STILL be reaped — we age stampless rows by the immutable createdAt, not the refreshable updatedAt,
+  // so a stuck retry loop that touches the row can't hide it forever.
+  const maskAttempt = await store.create({ client: "skyline", subject: "Lucknow", status: "planned" }); // createdAt = NOW-1h
   CLOCK = NOW;
+  await store.update(maskAttempt.id, { status: "drafting", claimToken: "v", claimedAt: null, lastError: "retry bump" }); // updatedAt = NOW
 
   const out = await reapStaleDrafting(store, NOW, STALE_MS);
 
   ok(out.ids.includes(stuck.id), "the stale (old claimedAt) drafting row is reaped");
-  ok(out.ids.includes(orphanOld.id), "a claimedAt-less row with an OLD updatedAt is reaped (abandoned orphan)");
+  ok(out.ids.includes(orphanOld.id), "a claimedAt-less row with an OLD createdAt is reaped (abandoned orphan)");
+  ok(out.ids.includes(maskAttempt.id), "a claimedAt-less OLD orphan with a freshly-bumped updatedAt is STILL reaped (createdAt can't be masked)");
   ok(!out.ids.includes(fresh.id), "a still-in-window drafting row (recent claimedAt) is left for its live pass");
-  ok(!out.ids.includes(stamplessFresh.id), "a claimedAt-less row with a RECENT updatedAt is PROTECTED (possible mid-claim; not permanently masked)");
+  ok(!out.ids.includes(stamplessFresh.id), "a claimedAt-less row with a RECENT createdAt is PROTECTED (possible mid-claim)");
   ok(!out.ids.includes(planned.id), "a normal planned row is untouched");
 
   const s = await store.get(stuck.id);

@@ -6,6 +6,21 @@ the real values live in the local `.env` (gitignored) and the Vercel project env
 
 ---
 
+## B-CODE — ✅ RESOLVED 2026-08-06 (was: "B- 9880" approval became a junk post / stale-code dead-ends)
+
+**Cause:** the client replied **"B- 9880"** to approve card B, but `parseDecision` only accepted
+`B 9880` — the dash made it fall through to INTAKE, so it created a junk post (`subject:"B- 9880"`, no
+image) that then failed to publish (*"image_url must be a public https URL"*). Also, deleting +
+rebuilding a card changes its short-code, so an old code silently matched nothing.
+**Fix (deployed):** `parseDecision` now accepts the letter/verb + code with ANY separator
+(`B 9880` / `B9880` / `B-9880` / `B- 9880` / `B: 9880`); a reply that looks like a mistyped approval
+is asked-to-reformat instead of becoming a post; and the resolver matches the code against every
+pending post (collision-safe) and, on a stale/unknown code, lists the codes actually waiting so the
+client just retypes. Locked by `tests/check_parse_decision.js`. (Best practice for resends: prefer
+editing the row in place to keep its code, rather than delete+recreate.)
+
+---
+
 ## B-OPENAI — ✅ RESOLVED 2026-08-06 (was: card B always decorative, never the AI scene)
 
 **Cause:** the prod env var was misnamed **`OPEN_API_KEY`** but `image-gen.js` reads **`OPENAI_API_KEY`**

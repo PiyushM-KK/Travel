@@ -2,7 +2,7 @@
  * scene-prompts.js — Skyline's image-generation prompt engine (the owner's "master prompt",
  * modified for our requirement with the SCENE turned into the variable).
  *
- * The owner's master prompt (assets/Master Prompt — Ultra-Realistic T.txt) produces
+ * The owner's master prompt (assets/Master-Prompt-Ultra-Realistic-Travel.txt) produces
  * ultra-photorealistic travel photography with ONE hard-coded scene. Here we keep that whole
  * photographic-quality spec but make the SCENE a swappable option, so we can generate a DIFFERENT
  * on-brand decorative background EVERY time (composePrompt picks/rotates a scene from SCENES).

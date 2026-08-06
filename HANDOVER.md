@@ -1,6 +1,29 @@
 # Skyline Travel Planner — Technical Handover
 
-_Last updated: 2026-07-02. This supersedes the original `README-HANDOFF.md` for current state, deployment, and how-to-update instructions._
+_Last updated: 2026-08-05. This supersedes the original `README-HANDOFF.md` for current state, deployment, and how-to-update instructions._
+
+---
+
+## 0. Current status — 2026-08-05 (progress · pending · future)
+
+**✅ Done / working:**
+- Live on its own domain **https://skylinetravelplanner.com** (Cloudflare DNS + GitHub Pages, valid HTTPS, Enforce HTTPS on; Google Workspace email preserved).
+- New **SKYLINE logo** (S-mark + "SKYLINE TRAVEL PLANNER" lockup) consistent on every page + favicon; hero heading kept on one line (`text-wrap:balance`).
+- **AI trip assistant** live (Cloudflare Worker → Anthropic).
+- **Social automation** working again (WhatsApp approval token + recipient number fixed; social-card logo updated + redeployed).
+- **Flights & Trains are now REFER-OUT** (search-only + contact-sales via WhatsApp/Customize, plus Skyscanner/Google Flights and IRCTC/ixigo links). The Sky-Scrapper flight scraper was **removed** (cached fares drifted from live checkout). Buses→redBus, Cabs→Uber already refer-out.
+
+**⏳ Pending (owner-gated — full detail in `SECURITY-AUDIT-2026-08-05.md`, kept local/gitignored, and the `skyline-pending-tasks` memory):**
+- **AI chat worker (denial-of-wallet):** set an Anthropic monthly spend cap; add a Cloudflare rate-limit rule; **redeploy the worker** to activate the committed hardening (Origin gate + rate limit + temperature + booking/price/visa post-filter). Worker is dashboard-managed (no wrangler) → paste the updated `server/anthropic-chat-worker.js` into the Cloudflare editor.
+- **Rotate leaked keys:** the root `.env` GitHub PAT + Magic key; and the `SECRETS_PASSPHRASE` (was shared in chat — rotate it). Values are NOT recorded here; see the private security audit.
+- **WhatsApp bots:** set `APP_SECRET` before deploying (X-Hub-Signature-256 verify is in code, fail-closed).
+- **Cloudflare hardening:** switch DNS to Proxied (orange) + SSL Full, add security headers/CSP.
+- **Cleanup:** the now-unused `skyline-api` Cloudflare Worker + Sky-Scrapper RapidAPI subscription can be deleted/cancelled (flights & trains are refer-out).
+
+**🔮 Future:**
+- Real live flights/trains data would need a paid/official provider (deferred; refer-out is the current model).
+- Add more destination photos to widen the social content calendar.
+- Firm-wide: AI marketing videos for social (see the firm roadmap).
 
 ---
 

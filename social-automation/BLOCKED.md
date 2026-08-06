@@ -6,6 +6,18 @@ the real values live in the local `.env` (gitignored) and the Vercel project env
 
 ---
 
+## B-OPENAI — ✅ RESOLVED 2026-08-06 (was: card B always decorative, never the AI scene)
+
+**Cause:** the prod env var was misnamed **`OPEN_API_KEY`** but `image-gen.js` reads **`OPENAI_API_KEY`**
+(or `IMAGE_API_KEY`). So `resolveImageGen()` returned null and card B silently fell back to the
+code-drawn **decorative** gradient instead of a gpt-image-1 AI scene — for days, unnoticed.
+**Fix (done, owner-authorized):** added `OPENAI_API_KEY` to `skyline-social` (Production) from the
+working value in `social-automation/.env`, removed the dead `OPEN_API_KEY`, redeployed. Verified the key
+generates locally (gpt-image-1 → 1.9 MB PNG). Also added a `console.warn({evt:"image_gen_unconfigured"})`
+in the decorative-fallback path so a future missing/misnamed key is VISIBLE in the logs, not silent.
+
+---
+
 ## B-AIRTABLE — ✅ RESOLVED 2026-08-06 (was: deployed AIRTABLE token invalid = why the crons stopped)
 
 **RESOLVED:** with the owner's go-ahead, the prod `AIRTABLE_API_KEY` + `AIRTABLE_BASE_ID` on

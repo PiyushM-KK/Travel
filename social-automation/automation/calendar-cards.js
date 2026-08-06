@@ -133,7 +133,14 @@ async function buildAndDraftCard(store, ctx, { pkg, smid, source }) {
     const imageGen = ctx.imageGen || require("./image-gen").resolveImageGen();
     let bufB;
     if (imageGen) { const { promptForSlug } = require("./scene-prompts"); const gen = await imageGen(promptForSlug(slug), ctx.imageGenOpts || {}); bufB = await makeCard({ ...baseCard, photoBytes: gen.buffer, credit: "AI-generated scene · illustrative" }); bStyle = "AI scene"; }
-    else { bufB = await makeCard({ ...baseCard, decor: true }); bStyle = "decorative"; }
+    else {
+      // No image generator resolved → card B is the code-drawn DECORATIVE gradient, NOT an AI scene.
+      // This is silent-by-design (it's a valid fallback), but a MISSING/misnamed OPENAI_API_KEY looks
+      // identical to "intentionally off" — which is exactly how a typo'd env var (OPEN_API_KEY) shipped
+      // decorative B for days unnoticed. Log it so the fallback is visible in the function logs.
+      try { console.warn(JSON.stringify({ evt: "image_gen_unconfigured", note: "OPENAI_API_KEY (or IMAGE_API_KEY) not set — card B is the decorative gradient, not an AI scene" })); } catch { /* ignore */ }
+      bufB = await makeCard({ ...baseCard, decor: true }); bStyle = "decorative";
+    }
     cardUrlB = await hostCard(bufB, `card-b-${smid}`);
   } catch (e) {
     try { cardUrlB = await hostCard(await makeCard({ ...baseCard, decor: true }), `card-b-${smid}`); bStyle = "decorative"; }

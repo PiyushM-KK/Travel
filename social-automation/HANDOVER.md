@@ -23,12 +23,31 @@ verified healthy. The scheduled runners stay as a BACKSTOP: Vercel crons (prep 1
   Live Airtable `Queue`: held(5), rejected(4), one card stuck in `drafting` since Aug 4
   (`recHbJtwnPvelurID`, "Travel Test" gmail), planned(6), published(3). Last activity Aug 5 16:23 UTC.
 
+### 2026-08-06 (later) — IMAGE BUG root-caused + fixed in code (commit a0a945b)
+Two compounding causes, both addressed:
+- **Stranded drafts** (this is `recHbJtwnPvelurID`, stuck `drafting` since Aug 4): `runGenerate`
+  only lists `planned` rows, so a row left in `drafting` by a crashed/timed-out pass was never
+  re-listed → lost forever. FIXED: `reapStaleDrafting()` runs at the top of every generate pass and
+  resets any `drafting` row whose claim is older than the stale window (15 min, `GENERATE_STALE_MS`)
+  back to `planned` to be re-drafted. `recHbJtwnPvelurID` self-heals on the **next generate/prep
+  run** (no manual Airtable edit needed). Locked by `tests/check_stale_draft_reaper.js`.
+- **Image HOSTING gap** (why cards are "held for no image"): a card RENDERS fine but can't publish
+  if it can't be HOSTED — Instagram needs a public URL, hosting needs `BLOB_READ_WRITE_TOKEN`.
+  Without it, every daily calendar-card was created then held with a buried "card A render/host
+  failed." FIXED (defensive): calendar-cards now preflights the host config and skips with ONE clear
+  heartbeated reason instead of polluting the queue; `render-selftest` now probes hosting for real.
+
 ### PENDING (next agent — priority)
-1. **FIX THE IMAGE BUG** — the actual "not working." Why do calendar/prep cards end up with no image?
-   Investigate `automation/image-gen.js`, `automation/image-source.js`, `automation/image-host.js`,
-   and the calendar-cards path. QA correctly holds image-less posts; the fix is upstream (attach an
-   image reliably). Until this is fixed, publish-on-approval has nothing to publish.
-2. **Unstick** `recHbJtwnPvelurID` (stale `drafting` claim from Aug 4) — reset to planned/held or delete.
+1. **OWNER: confirm `BLOB_READ_WRITE_TOKEN` is set on the `skyline-social` Vercel project.** Single
+   most likely remaining blocker. VERIFY in one guarded, safe call (it deletes what it hosts):
+   `curl -H "Authorization: Bearer $CRON_SECRET" https://skyline-social-nine.vercel.app/api/render-selftest`
+   → **200** = render + host both OK (pipeline healthy). **503** = renders but hosting unconfigured →
+   create a Vercel Blob store on this project + set `BLOB_READ_WRITE_TOKEN`. **500** = a real fault
+   (read the JSON `host.error` / `makeCard.error`). Once 200, the daily card flow produces real image
+   posts to approve. (See BLOCKED.md → B-IMG.)
+2. **Confirm the fix landed live:** after the next `cron-prep` run, check the `Runs` heartbeat for a
+   `generate` row with `reaped ≥ 1` (the stranded card recovered) and that a calendar-card reached
+   `pending_approval` (not held); `recHbJtwnPvelurID` should no longer be `drafting`.
 3. Publishing still runs partly on the FIRM's infra (site project + FullFirm GHA) — migration to
    Skyline's own infra still pending (see "Live plumbing runs on the FIRM's infra" below).
 4. A **monitoring dashboard** for this automation is planned on the firm site (buildwise-digital.com).

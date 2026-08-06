@@ -2,6 +2,14 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "crons": [
     {
+      "path": "/api/cron-package-post",
+      "schedule": "30 3 * * *"
+    },
+    {
+      "path": "/api/cron-package-post",
+      "schedule": "30 8 * * *"
+    },
+    {
       "path": "/api/cron-prep",
       "schedule": "30 13 * * *"
     },
@@ -11,6 +19,9 @@
     }
   ],
   "functions": {
+    "api/cron-package-post.js": {
+      "maxDuration": 60
+    },
     "api/cron-prep.js": {
       "maxDuration": 60
     },

@@ -9,6 +9,10 @@
  *
  * It uses Skyline's OWN price (no vendor markup) and stays grounded: the caption may name only the
  * package's route destinations, never invented sights/activities/prices. Injectable for tests.
+ *
+ * The card-build+draft core is factored into `buildAndDraftCard()` and REUSED by the twice-daily
+ * `package-posts.js` intake (auto-publish path). Keep them sharing one builder so a card fix lands
+ * in both.
  */
 
 const path = require("path");
@@ -47,36 +51,58 @@ function packageForDay(now) {
   return pkgs[dayIndex % pkgs.length];
 }
 
+/**
+ * The package for a given SLOT on a given day, for a multi-post-per-day schedule (twice-daily
+ * package-posts). Stateless + deterministic: consecutive (day,slot) pairs walk consecutive packages,
+ * so the two daily slots feature DISTINCT packages (as long as there is >1 featurable package) and the
+ * rotation never repeats a package until the whole list is exhausted. slotsPerDay defaults to 2.
+ */
+function packageForSlot(now, slot = 0, slotsPerDay = 2) {
+  const pkgs = featurablePackages();
+  if (!pkgs.length) return null;
+  const dayIndex = Math.floor((now ? now.getTime() : Date.now()) / 86400000);
+  const s = Math.max(0, Math.min(slotsPerDay - 1, Number(slot) || 0));
+  return pkgs[(dayIndex * slotsPerDay + s) % pkgs.length];
+}
+
 function dateKey(now) { return (now || new Date()).toISOString().slice(0, 10); }
 
-async function runCalendarCards(store, ctx = {}) {
-  const now = ctx.now || new Date();
-  const fs = ctx.fs || require("fs");
+/** hostCard / sweepCards closures over the ctx's (injectable) hosting transport. */
+function makeCardHelpers(ctx) {
   const hostImageBytes = ctx.hostImageBytes || require("./image-host").hostImageBytes;
   const deleteHosted = ctx.deleteHosted || require("./image-host").deleteHosted;
-  const to = ctx.notifyTo || process.env.WHATSAPP_TO;
-  const notify = ctx.notify !== false;
   const hostCard = async (buffer, keyHint) => (await hostImageBytes({ buffer: await toJpeg(buffer), contentType: "image/jpeg", keyHint })).url;
   const sweepCards = async (urls) => { for (const u of urls) { if (u) { try { await deleteHosted(u, ctx.imageOpts || {}); } catch (e) { /* best-effort */ } } } };
+  return { hostCard, sweepCards };
+}
 
-  const pkg = ctx.pkg || packageForDay(now);
-  if (!pkg) return { considered: 0, notified: [], held: [], skipped: ["no packages in catalogue"] };
+/**
+ * Build the TWO-candidate branded card (A = real photo, B = AI/decor scene) for one package and draft
+ * a grounded, fact-checked caption. Shared by the daily calendar-card (approval) flow and the
+ * twice-daily package-post (auto-publish) flow. Idempotent via `smid`. Returns a normalized result:
+ *   { status: "skipped", skipped:[reason], sweepCards }              — dedup hit / hosting not configured
+ *   { status: "held",    held:[{id?,reason}], sweepCards }           — render/host/generate/fact-check hold
+ *   { status: "drafted", fresh, cardUrlA, cardUrlB, bStyle, options, rp, pkg, res, sweepCards }
+ * The caller owns the tail (approval-notify vs auto-publish). `ctx.useQa` gates the QA safety-net.
+ */
+async function buildAndDraftCard(store, ctx, { pkg, smid, source }) {
+  const now = ctx.now || new Date();
+  const fs = ctx.fs || require("fs");
+  const { hostCard, sweepCards } = makeCardHelpers(ctx);
   const slug = photoSlug(pkg.item + " " + (pkg.route || ""));
-  const smid = `calendar-${slug}-${dateKey(now)}`; // one feature per package per day (idempotent re-run)
 
+  // Cheap dedup first (idempotent re-run): one feature per smid.
   if (typeof store.findBySourceMessageId === "function") {
     const existing = await store.findBySourceMessageId(smid);
-    if (existing) return { considered: 1, notified: [], held: [], skipped: [smid] };
+    if (existing) return { status: "skipped", skipped: [smid], sweepCards };
   }
 
   // PREFLIGHT: a card is only useful if we can HOST its image (Instagram publishes from a public
-  // URL). Without BLOB_READ_WRITE_TOKEN, hostCard throws and EVERY daily card would be created and
-  // then held with a buried "card A render/host failed" — the queue fills with dead rows and nothing
-  // reaches approval (the observed failure). Detect the gap here (after the cheap dedup check, before
-  // any row is created or paid image work runs) and skip with one clear reason surfaced in the
-  // heartbeat. Tests inject ctx.hostImageBytes, so their card build path is unaffected.
+  // URL). Without BLOB_READ_WRITE_TOKEN, hostCard throws and the card would only ever be held with a
+  // buried "card A render/host failed" — so detect the gap here (after the cheap dedup, before any row
+  // is created or paid image work runs) and skip with one clear reason. Tests inject ctx.hostImageBytes.
   if (!ctx.hostImageBytes && !require("./image-host").isConfigured()) {
-    return { considered: 0, notified: [], held: [], skipped: ["image hosting not configured — set BLOB_READ_WRITE_TOKEN on this Vercel project; no card built (would only be held)"] };
+    return { status: "skipped", skipped: ["image hosting not configured — set BLOB_READ_WRITE_TOKEN on this Vercel project; no card built (would only be held)"], sweepCards };
   }
 
   // Skyline's OWN catalogue price (no markup). Create the ROW FIRST (with the dedup smid, no image
@@ -86,8 +112,8 @@ async function runCalendarCards(store, ctx = {}) {
   const hint = `Write a SHORT, warm Skyline post inviting people to plan a CUSTOM ${pkg.item} trip with Skyline and message us on WhatsApp. You may name ONLY the destinations in this route: ${pkg.route}. Do NOT invent specific attractions, activities, sights, hotels, meals or day-by-day itinerary — none are provided, so they read as fabricated. Keep it about the FEELING/mood + the invitation to plan a custom trip. Do NOT state any price (it's already on the image) and do not name any other company.`;
   let row;
   try {
-    row = await store.create({ status: "planned", source: "calendar-card", sourceMessageId: smid, client: ctx.client || "skyline", subject: pkg.item, hint, language: "en", platforms: ["instagram", "facebook"] });
-  } catch (e) { return { considered: 1, notified: [], held: [{ pkg: pkg.item, reason: "row create failed: " + String((e && e.message) || e) }], skipped: [] }; }
+    row = await store.create({ status: "planned", source, sourceMessageId: smid, client: ctx.client || "skyline", subject: pkg.item, hint, language: "en", platforms: ["instagram", "facebook"] });
+  } catch (e) { return { status: "held", held: [{ pkg: pkg.item, reason: "row create failed: " + String((e && e.message) || e) }], sweepCards }; }
 
   const baseCard = {
     logoPath: LOGO, headline: pkg.item, subtitle: pkg.route || "",
@@ -99,7 +125,7 @@ async function runCalendarCards(store, ctx = {}) {
   let cardUrlA = "", cardUrlB = "", bStyle = "";
   try {
     cardUrlA = await hostCard(await makeCard({ ...baseCard, photoPath: pickPhoto(fs, PHOTOS, slug), credit: "Photo: Wikimedia CC" }), `card-a-${smid}`);
-  } catch (e) { await store.update(row.id, { status: "held", lastError: "card A render/host failed: " + String((e && e.message) || e) }); return { considered: 1, notified: [], held: [{ id: row.id, reason: "card A render/host failed" }], skipped: [] }; }
+  } catch (e) { await store.update(row.id, { status: "held", lastError: "card A render/host failed: " + String((e && e.message) || e) }); return { status: "held", held: [{ id: row.id, reason: "card A render/host failed" }], sweepCards }; }
   try {
     const imageGen = ctx.imageGen || require("./image-gen").resolveImageGen();
     let bufB;
@@ -114,12 +140,30 @@ async function runCalendarCards(store, ctx = {}) {
   await store.update(row.id, { imageUrl: cardUrlA, imageSource: { kind: "url", url: cardUrlA, options } });
 
   let res;
-  try { res = await generateOne(store, await store.get(row.id), { runner: "calendar-card", facts: ctx.facts, profile: ctx.profile, clientName: ctx.clientName, useVision: false, useSmm: true }); }
-  catch (e) { await sweepCards([cardUrlA, cardUrlB]); await store.update(row.id, { status: "held", imageUrl: "", lastError: "generate threw: " + String((e && e.message) || e) }); return { considered: 1, notified: [], held: [{ id: row.id, reason: "generate threw" }], skipped: [] }; }
+  try { res = await generateOne(store, await store.get(row.id), { runner: source, facts: ctx.facts, profile: ctx.profile, clientName: ctx.clientName, useVision: false, useSmm: true, useQa: ctx.useQa === true }); }
+  catch (e) { await sweepCards([cardUrlA, cardUrlB]); await store.update(row.id, { status: "held", imageUrl: "", lastError: "generate threw: " + String((e && e.message) || e) }); return { status: "held", held: [{ id: row.id, reason: "generate threw" }], sweepCards }; }
   const fresh = await store.get(row.id);
   if (fresh.imageUrl !== cardUrlA) { await store.update(fresh.id, { imageUrl: cardUrlA, imageSource: { kind: "url", url: cardUrlA, options } }); fresh.imageUrl = cardUrlA; }
-  if (res.outcome !== "pending" && res.outcome !== "approved") { await sweepCards([cardUrlA, cardUrlB]); return { considered: 1, notified: [], held: [{ id: fresh.id, reason: res.reason || fresh.lastError || "" }], skipped: [] }; }
+  if (res.outcome !== "pending" && res.outcome !== "approved") { await sweepCards([cardUrlA, cardUrlB]); return { status: "held", held: [{ id: fresh.id, reason: res.reason || fresh.lastError || "" }], sweepCards }; }
 
+  return { status: "drafted", fresh, cardUrlA, cardUrlB, bStyle, options, rp, pkg, res, sweepCards };
+}
+
+async function runCalendarCards(store, ctx = {}) {
+  const now = ctx.now || new Date();
+  const to = ctx.notifyTo || process.env.WHATSAPP_TO;
+  const notify = ctx.notify !== false;
+
+  const pkg = ctx.pkg || packageForDay(now);
+  if (!pkg) return { considered: 0, notified: [], held: [], skipped: ["no packages in catalogue"] };
+  const slug = photoSlug(pkg.item + " " + (pkg.route || ""));
+  const smid = `calendar-${slug}-${dateKey(now)}`; // one feature per package per day (idempotent re-run)
+
+  const built = await buildAndDraftCard(store, ctx, { pkg, smid, source: "calendar-card" });
+  if (built.status === "skipped") return { considered: built.skipped[0] === smid ? 1 : 0, notified: [], held: [], skipped: built.skipped };
+  if (built.status === "held") return { considered: 1, notified: [], held: built.held, skipped: [] };
+
+  const { fresh, cardUrlA, cardUrlB, bStyle, rp, options } = built;
   const code = shortCode(fresh.id);
   const details = `📅 Skyline package feature (auto)\n   Package: ${pkg.item} — ${pkg.route}\n   Price on card: ${rp.line} (Skyline rate)`;
   const instr = cardUrlB
@@ -135,4 +179,4 @@ async function runCalendarCards(store, ctx = {}) {
   return { considered: 1, notified: [{ id: fresh.id, code, package: pkg.item, price: rp.line, options: Object.keys(options).join("/"), bStyle }], held: [], skipped: [] };
 }
 
-module.exports = { runCalendarCards, packageForDay, dateKey, featurablePackages };
+module.exports = { runCalendarCards, buildAndDraftCard, makeCardHelpers, packageForDay, packageForSlot, dateKey, featurablePackages };

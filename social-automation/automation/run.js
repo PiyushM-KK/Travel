@@ -32,7 +32,7 @@ const { redact } = require("../engine/publish");
 const { mockChannel } = require("./approval-channel");
 const { loadClient } = require("./clients");
 
-const JOBS = ["intake", "generate", "approve", "publish", "report", "pr", "prep", "email", "calendar-cards"];
+const JOBS = ["intake", "generate", "approve", "publish", "report", "pr", "prep", "email", "calendar-cards", "package-post"];
 
 function makeStore(injected) {
   if (injected) return { store: injected, kind: "injected" };
@@ -260,6 +260,36 @@ async function runJob(opts = {}) {
     });
     await store.heartbeat("calendar-cards", { runner, considered: out.considered, notified: out.notified.length, held: out.held.length });
     return { ok: true, ...base, calendarCards: out };
+  }
+
+  // -------------------------------------------------------------- PACKAGE-POST (twice-daily auto)
+  if (job === "package-post") {
+    // The 4th intake: feature ONE Skyline package per SLOT (morning + afternoon) as a publishable
+    // card and AUTO-PUBLISH it unless an agent flags it (then it's held for the owner). Skyline's OWN
+    // packages, Skyline's OWN price. The publish still runs behind the live gate below.
+    const { runPackagePosts } = require("./package-posts");
+    const { sendText, sendImage } = require("./whatsapp");
+    // Slot: explicit (opts/env) wins; else infer from the run time — the morning cron fires before
+    // 06:00 UTC (slot 0), the afternoon cron after (slot 1). Avoids a second cron file.
+    const slot = Number.isInteger(opts.slot) ? opts.slot
+      : (process.env.SOCIAL_PACKAGE_SLOT != null && process.env.SOCIAL_PACKAGE_SLOT !== "") ? Number(process.env.SOCIAL_PACKAGE_SLOT)
+      : (now.getUTCHours() < 6 ? 0 : 1);
+    const out = await runPackagePosts(store, {
+      facts: client.facts, profile: client.profile, clientName: client.label || client.id, client: client.id,
+      slot,
+      sendText: opts.sendText || ((to, body) => sendText(to, body)),
+      sendImage: opts.sendImage || ((to, link, caption) => sendImage(to, link, caption)),
+      notifyTo: opts.notifyTo || process.env.WHATSAPP_TO,
+      imageOpts: imageOptsFor(opts),
+      // Auto-publish a clean card via the SAME live-gated publish job, on the SAME store instance so
+      // it sees the row we just approved. A dry run (gate off) leaves it approved for the next live run.
+      publishFn: opts.publishFn || (() => runJob({ job: "publish", clientId, runner, now, store })),
+      ...(opts.notify != null ? { notify: opts.notify } : {}),
+      ...(opts.now ? { now: opts.now } : {}),
+      ...(opts.pkg ? { pkg: opts.pkg } : {}),
+    });
+    await store.heartbeat("package-post", { runner, considered: out.considered, published: (out.published || []).length, notified: (out.notified || []).length, held: (out.held || []).length });
+    return { ok: true, ...base, packagePost: out };
   }
 
   // -------------------------------------------------------------- REPORT

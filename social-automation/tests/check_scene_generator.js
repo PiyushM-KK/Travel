@@ -10,7 +10,7 @@
 
 const path = require("path");
 const assert = require("assert");
-const { generateSceneSpec, recentScenesFromStore, sceneSummary } = require(path.join(__dirname, "..", "automation", "scene-generator.js"));
+const { generateSceneSpec, resolveScenePrompt, recentScenesFromStore, sceneSummary } = require(path.join(__dirname, "..", "automation", "scene-generator.js"));
 const { InMemoryStore } = require(path.join(__dirname, "..", "automation", "store.js"));
 
 let pass = 0;
@@ -92,5 +92,26 @@ function stub(sceneInput) {
     void a;
   }
 
-  console.log(`\nSCENE-GENERATOR PASS: master-as-system + honesty + history-aware; structured concept + render-ready prompt; throws→fallback; history read. (${pass} checks)`);
+  // ---- 5. resolveScenePrompt — the ONE resolver every intake uses (dynamic → static fallback) ----
+  {
+    // dynamic: a scene client is injected → returns the model's imagePrompt + sceneMeta
+    const client = stub(concept);
+    const r = await resolveScenePrompt({ pkg: { item: "Kashmir Valley", route: "Srinagar · Sonamarg" }, slug: "kashmir-valley", sceneGenClient: client });
+    ok(r.dynamic === true && r.prompt.startsWith(concept.imagePrompt) && r.sceneMeta && r.sceneMeta.location === "Sonamarg, Kashmir",
+      "resolveScenePrompt returns the DYNAMIC prompt + sceneMeta when a scene client is available");
+
+    // fallback: generator off → the static SCENES-pool prompt, no sceneMeta
+    const prev = process.env.SOCIAL_SCENE_GEN;
+    process.env.SOCIAL_SCENE_GEN = "off";
+    const f = await resolveScenePrompt({ pkg: { item: "Goa", route: "North Goa" }, slug: "goa", sceneGenClient: client });
+    if (prev === undefined) delete process.env.SOCIAL_SCENE_GEN; else process.env.SOCIAL_SCENE_GEN = prev;
+    ok(f.dynamic === false && f.sceneMeta === null && /photorealistic/i.test(f.prompt), "resolveScenePrompt falls back to the static pool when SOCIAL_SCENE_GEN=off (never throws)");
+
+    // resilient: a scene client that throws → still returns a usable static prompt (never throws to caller)
+    const bad = { messages: { create: async () => { throw new Error("boom"); } } };
+    const g = await resolveScenePrompt({ pkg: { item: "Goa", route: "North Goa" }, slug: "goa", sceneGenClient: bad });
+    ok(g.dynamic === false && typeof g.prompt === "string" && g.prompt.length > 0, "a scene-gen error falls back to the static pool (the card never loses its image)");
+  }
+
+  console.log(`\nSCENE-GENERATOR PASS: master-as-system + honesty + history-aware; structured concept + render-ready prompt; throws→fallback; history read; shared resolver. (${pass} checks)`);
 })().catch((e) => { console.error("FAIL:", e); process.exit(1); });

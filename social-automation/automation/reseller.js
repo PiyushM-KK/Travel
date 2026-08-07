@@ -94,22 +94,28 @@ async function buildResellerCards(ctx = {}, opts = {}) {
     cardUrlA = await hostCard(await _makeCard({ ...baseCard, photoPath: photo, credit: "Photo: Wikimedia CC" }), `card-a-${smid}`);
   } catch (e) { return { matched: false, reason: "card A render/host failed: " + String((e && e.message) || e) }; }
 
-  let cardUrlB = "", bStyle = "";
+  let cardUrlB = "", bStyle = "", sceneMeta = null;
   try {
     const imageGen = ctx.imageGen !== undefined ? ctx.imageGen : require("./image-gen").resolveImageGen();
     let bufB;
     if (imageGen && (ctx.genUsed || 0) < imageGenMax) {
-      const { promptForSlug } = require("./scene-prompts");
-      const gen = await imageGen(promptForSlug(match.slug), ctx.imageGenOpts || {});
+      // Card B = a FRESH AI scene — the SAME production path as the own-catalogue cards: the dynamic
+      // Scene Generator (grounded to the matched Skyline package, avoiding recent history) with the
+      // static SCENES pool as the fallback. So resold posts get new images too, not the same decor.
+      const { resolveScenePrompt } = require("./scene-generator");
+      const rs = await resolveScenePrompt({ pkg, slug: match.slug, store: ctx.store, client: ctx.client || "skyline", sceneGenClient: ctx.sceneGenClient, model: ctx.sceneModel, recent: ctx.recentScenes });
+      sceneMeta = rs.sceneMeta;
+      const gen = await imageGen(rs.prompt, ctx.imageGenOpts || {});
       bufB = await _makeCard({ ...baseCard, photoBytes: gen.buffer, credit: "AI-generated scene · illustrative" });
       bStyle = "AI scene";
     } else { bufB = await _makeCard({ ...baseCard, decor: true }); bStyle = "decorative"; }
     cardUrlB = await hostCard(bufB, `card-b-${smid}`);
   } catch (e) {
     // B is best-effort: fall back to the gradient decor; if THAT fails, offer A alone.
-    try { cardUrlB = await hostCard(await _makeCard({ ...baseCard, decor: true }), `card-b-${smid}`); bStyle = "decorative"; }
-    catch (e2) { cardUrlB = ""; bStyle = ""; }
+    try { cardUrlB = await hostCard(await _makeCard({ ...baseCard, decor: true }), `card-b-${smid}`); bStyle = "decorative"; sceneMeta = null; }
+    catch (e2) { cardUrlB = ""; bStyle = ""; sceneMeta = null; }
   }
+  if (bStyle !== "AI scene") sceneMeta = null; // only record a concept the AI scene actually used
 
   const options = { A: cardUrlA }; if (cardUrlB) options.B = cardUrlB;
   const hint =
@@ -118,7 +124,7 @@ async function buildResellerCards(ctx = {}, opts = {}) {
     `Do NOT invent specific attractions, activities, sights, hotels, meals or day-by-day itinerary. ` +
     `Keep it about the FEELING/mood + the invitation to plan a custom trip. Do NOT state any price ` +
     `(it's already on the card) and do not name any other company.`;
-  return { matched: true, pkg, rp, prices, offer, cardUrlA, cardUrlB, bStyle, options, hint };
+  return { matched: true, pkg, rp, prices, offer, cardUrlA, cardUrlB, bStyle, options, hint, sceneMeta };
 }
 
 module.exports = { buildResellerCards, toJpeg };

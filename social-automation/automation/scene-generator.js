@@ -230,4 +230,30 @@ async function generateSceneSpec(ctx = {}) {
   return spec;
 }
 
-module.exports = { generateSceneSpec, recentScenesFromStore, sceneSummary, SCENE_TOOL, SCENE_MODEL };
+/**
+ * The ONE entry point every card-building intake uses to get a card-B image prompt: a fresh, unique
+ * DYNAMIC scene (grounded to the package + avoiding recent history) when the generator is enabled and
+ * a package is known, else the static SCENES-pool prompt. Never throws — a generation failure logs and
+ * falls back to the pool. Returns { prompt, sceneMeta, dynamic }; sceneMeta is non-null only for a
+ * genuine dynamic concept (what the history loop records).
+ *
+ * @param {object} ctx { pkg, slug, store?, client?, sceneGenClient?, model?, recent? }
+ */
+async function resolveScenePrompt(ctx = {}) {
+  const { promptForSlug } = require("./scene-prompts");
+  const slug = ctx.slug || "";
+  const sceneGenOn = process.env.SOCIAL_SCENE_GEN !== "off" && (ctx.sceneGenClient || process.env.ANTHROPIC_API_KEY);
+  if (sceneGenOn && ctx.pkg) {
+    try {
+      let recent = ctx.recent;
+      if (recent == null && ctx.store) { try { recent = await recentScenesFromStore(ctx.store, { client: ctx.client || "skyline" }); } catch (e) { recent = []; } }
+      const spec = await generateSceneSpec({ pkg: ctx.pkg, route: ctx.pkg.route, slug, recent: recent || [], client: ctx.sceneGenClient, model: ctx.model });
+      return { prompt: spec.imagePrompt, sceneMeta: sceneSummary(spec), dynamic: true };
+    } catch (e) {
+      try { console.warn(JSON.stringify({ evt: "scene_gen_fallback", note: String((e && e.message) || e).slice(0, 120) })); } catch { /* ignore */ }
+    }
+  }
+  return { prompt: promptForSlug(slug), sceneMeta: null, dynamic: false };
+}
+
+module.exports = { generateSceneSpec, resolveScenePrompt, recentScenesFromStore, sceneSummary, SCENE_TOOL, SCENE_MODEL };

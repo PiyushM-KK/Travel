@@ -164,15 +164,23 @@ module.exports = async (req, res) => {
         // Only the authorized sender reaches here (handleInbound rejects others upstream).
         if (process.env.SOCIAL_WHATSAPP_RESELLER !== "off" && (row.imageSource || row.imageUrl)) {
           // 1) Build the Skyline card BEFORE touching the row, so any failure here leaves the row
-          //    pristine and we fall cleanly through to the normal draft. imageGen:null → B is free
-          //    decor (no paid gpt-image-1 per inbound message — bounds cost even for the owner).
+          //    pristine and we fall cleanly through to the normal draft. Card B defaults to FREE instant
+          //    decor because this webhook is SYNCHRONOUS: a paid gpt-image-1 + scene call (several
+          //    seconds) can exceed the provider's webhook timeout → a delivery retry re-runs this and
+          //    could generate a SECOND paid image for the same message. So the fresh AI scene here is
+          //    OPT-IN: set SOCIAL_WHATSAPP_RESELLER_IMAGE=on to enable it. (The Gmail reseller and the
+          //    own-catalogue crons run async and get the AI scene by default.)
           let r = null;
           try {
             const { resolveImageSourceBytes } = require("../automation/image-source");
             const { buildResellerCards } = require("../automation/reseller");
             const src = row.imageSource || { kind: "url", url: row.imageUrl };
             const { buffer } = await resolveImageSourceBytes(src, {});
-            r = await buildResellerCards({ imageGen: null }, { imageBytes: buffer, offerText: row.hint || "", smid: row.id });
+            const wantImage = process.env.SOCIAL_WHATSAPP_RESELLER_IMAGE === "on";
+            r = await buildResellerCards(
+              wantImage ? { store } : { imageGen: null },
+              { imageBytes: buffer, offerText: row.hint || "", smid: row.id }
+            );
           } catch (e) { r = null; } // pre-mutation failure → row untouched → fall through to normal draft
 
           // Matched a Skyline destination but no price to apply the MANDATORY +10% → don't silently
@@ -197,7 +205,7 @@ module.exports = async (req, res) => {
             try {
               await store.update(row.id, {
                 imageUrl: r.cardUrlA,
-                imageSource: { kind: "url", url: r.cardUrlA, options: r.options },
+                imageSource: { kind: "url", url: r.cardUrlA, options: r.options, ...(r.sceneMeta ? { sceneMeta: r.sceneMeta } : {}) },
                 hint: r.hint,
                 platforms: (row.platforms && row.platforms.length) ? row.platforms : ["instagram", "facebook"],
               });

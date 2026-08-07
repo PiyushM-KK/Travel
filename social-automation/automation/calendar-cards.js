@@ -160,27 +160,13 @@ async function buildAndDraftCard(store, ctx, { pkg, smid, source }) {
     const imageGen = ctx.imageGen || require("./image-gen").resolveImageGen();
     let bufB;
     if (imageGen) {
-      // Card B image prompt — DYNAMIC AI Scene Generator first (owner's travel-photography workflow):
-      // Claude reads the master prompt and returns a fresh, unique concept + render-ready prompt for
-      // THIS package, avoiding recent concepts (scene history). Falls back to the static SCENES pool
-      // if the generator is off (SOCIAL_SCENE_GEN=off / no key) or errors. The concept metadata rides
-      // on the row (imageSource.sceneMeta) so the next run can avoid it.
-      let scenePrompt = "";
-      const sceneGenOn = process.env.SOCIAL_SCENE_GEN !== "off" && (ctx.sceneGenClient || process.env.ANTHROPIC_API_KEY);
-      if (sceneGenOn) {
-        try {
-          const { generateSceneSpec, recentScenesFromStore, sceneSummary } = require("./scene-generator");
-          let recent = ctx.recentScenes;
-          if (!recent) { try { recent = await recentScenesFromStore(store, { client: ctx.client || "skyline" }); } catch (e) { recent = []; } }
-          const spec = await generateSceneSpec({ pkg, route: pkg.route, slug, recent, client: ctx.sceneGenClient, model: ctx.sceneModel });
-          scenePrompt = spec.imagePrompt;
-          sceneMeta = sceneSummary(spec);
-        } catch (e) {
-          try { console.warn(JSON.stringify({ evt: "scene_gen_fallback", note: "dynamic scene generation failed — using the static SCENES pool: " + String((e && e.message) || e).slice(0, 120) })); } catch { /* ignore */ }
-        }
-      }
-      if (!scenePrompt) { const { promptForSlug } = require("./scene-prompts"); scenePrompt = promptForSlug(slug); }
-      const gen = await imageGen(scenePrompt, ctx.imageGenOpts || {});
+      // Card B image prompt — the shared resolver: a fresh, unique DYNAMIC scene (grounded to the
+      // package + avoiding recent history) when the AI Scene Generator is on, else the static SCENES
+      // pool. The concept metadata rides on the row (imageSource.sceneMeta) so the next run avoids it.
+      const { resolveScenePrompt } = require("./scene-generator");
+      const r = await resolveScenePrompt({ pkg, slug, store, client: ctx.client || "skyline", sceneGenClient: ctx.sceneGenClient, model: ctx.sceneModel, recent: ctx.recentScenes });
+      sceneMeta = r.sceneMeta;
+      const gen = await imageGen(r.prompt, ctx.imageGenOpts || {});
       bufB = await makeCard({ ...baseCard, photoBytes: gen.buffer, credit: "AI-generated scene · illustrative" });
       bStyle = AI_SCENE_STYLE;
     } else {

@@ -12,15 +12,17 @@ The `CRON_SECRET` repo secret was set on **PiyushM-KK/Travel** (from `.env`), so
 Package-post now triggers reliably 9 AM / 2 PM IST + a manual "Run workflow" button. (Vercel Hobby
 throttles >2 crons, which is why the Vercel package-post crons were unreliable — the GHA is the fix.)
 
-## ⚠️ B-PKGCARD — PRIORITY (agent-fixable, not owner-gated): package-post card has no image
-Today's package-post row `package-goa-2026-08-07-s0` is **`rejected`** with **`imageUrl:false`** — the
-branded card image isn't being built/hosted, so the post has no image and no price on it → the SMM agent
-rejects it ("price missing entirely"). So even with the cron fixed (B-CRONSECRET), **clean package cards
-aren't posting.** Investigate the package-post → `calendar-cards.buildAndDraftCard` card render+host path
-(satori → JPEG → Blob) on the deployed skyline-social: is `makeCard`/`hostCard` failing there, or is the
-row losing `imageUrl`? Compare with the WhatsApp reseller path, which builds+hosts the same card fine.
-Then the auto-publish gate posts a clean card. (Owner already flagged "9 AM didn't post" — the cron was
-one cause, this is the other.)
+## B-PKGCARD — ✅ RESOLVED 2026-08-07 (was: package-post card "has no image" / SMM "price missing")
+**Real cause was the CAPTION, not hosting.** Ground-truth from the live queue: own-catalogue cards
+deliberately omitted the price ("it's on the image"), so the SMM accessibility rule flagged EVERY card
+"price/CTA missing" → `revise` → held/rejected (the `imageUrl:false` on the rejected rows was a symptom
+— the cards were swept after the SMM reject, not a hosting failure). **Fix (deployed `604fefb`):** for
+Skyline's OWN packages the price + WhatsApp number are grounded facts, so the caption now states
+"from ₹X per person" + one WhatsApp CTA (the vendor "don't repeat prices" guard in `briefFromRow` was
+scoped to vendor sources only). Verified live: SMM now **8/10 PASS**. Also (a) the twice-daily auto-post
+now posts the FRESH AI scene, not the repeating stock photo, and (b) owner messages carry source
+provenance. Tests `check_pkgcard_fix.js` (17). Superseded by the AI Scene Generator (`9e04931`) + the
+reseller-flow extension.
 
 ## B-CHATBOT — owner setup for the client chatbot (the pricing-portal pivot)
 The pricing portal is becoming a **client-only chatbot agent** (edit website prices/packages/hotels by

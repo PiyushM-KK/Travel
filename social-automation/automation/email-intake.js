@@ -107,14 +107,19 @@ async function runEmailIntake(store, ctx = {}) {
       cardUrlA = await hostCard(bufA, `card-a-${smid}`);
     } catch (e) { held.push({ from: m.from, subject: m.subject, reason: "card A render/host failed: " + String((e && e.message) || e) }); continue; }
 
-    let cardUrlB = "", bStyle = "";
+    let cardUrlB = "", bStyle = "", sceneMeta = null;
     try {
       const imageGen = ctx.imageGen || require("./image-gen").resolveImageGen();
       let bufB;
       if (imageGen && imageGenUsed < imageGenMax) {
-        const { promptForSlug } = require("./scene-prompts");
         imageGenUsed++;
-        const gen = await imageGen(promptForSlug(match.slug), ctx.imageGenOpts || {});
+        // Card B = a FRESH AI scene — the shared resolver (dynamic Scene Generator → static SCENES pool),
+        // grounded to the matched Skyline package. Same production path as the own-catalogue cards, so
+        // Gmail-resold posts get new images too (the concept metadata rides on the row for the history loop).
+        const { resolveScenePrompt } = require("./scene-generator");
+        const rs = await resolveScenePrompt({ pkg, slug: match.slug, store, client: ctx.client || "skyline", sceneGenClient: ctx.sceneGenClient, model: ctx.sceneModel });
+        sceneMeta = rs.sceneMeta;
+        const gen = await imageGen(rs.prompt, ctx.imageGenOpts || {});
         bufB = await makeCard({ ...baseCard, photoBytes: gen.buffer, credit: "AI-generated scene · illustrative" });
         bStyle = "AI scene";
       } else {
@@ -127,11 +132,13 @@ async function runEmailIntake(store, ctx = {}) {
       try {
         const bufB = await makeCard({ ...baseCard, decor: true });
         cardUrlB = await hostCard(bufB, `card-b-${smid}`);
-        bStyle = "decorative";
-      } catch (e2) { cardUrlB = ""; bStyle = ""; }
+        bStyle = "decorative"; sceneMeta = null;
+      } catch (e2) { cardUrlB = ""; bStyle = ""; sceneMeta = null; }
     }
+    if (bStyle !== "AI scene") sceneMeta = null; // only record a concept the AI scene actually used
 
     const options = { A: cardUrlA }; if (cardUrlB) options.B = cardUrlB;
+    const imgSrc = () => { const s = { kind: "url", url: cardUrlA, options }; if (sceneMeta) s.sceneMeta = sceneMeta; return s; };
 
     // 4. Create the row (A is the default image). BOTH option URLs ride inside imageSource so the
     //    owner's A/B/both reply can choose which to publish — no Airtable schema change needed.
@@ -139,7 +146,7 @@ async function runEmailIntake(store, ctx = {}) {
     const row = await store.create({
       status: "planned", source: "gmail", sourceMessageId: smid, client: ctx.client || "skyline",
       subject: (m.subject || "").slice(0, 80), hint, language: "en",
-      platforms: ["instagram", "facebook"], imageUrl: cardUrlA, imageSource: { kind: "url", url: cardUrlA, options },
+      platforms: ["instagram", "facebook"], imageUrl: cardUrlA, imageSource: imgSrc(),
     });
     try { reader.markSeen && (await reader.markSeen(m.messageId)); } catch (e) { /* dedup covers re-fetch */ }
 
@@ -149,7 +156,7 @@ async function runEmailIntake(store, ctx = {}) {
     });
     const fresh = await store.get(row.id);
     // keep card A as the default image even if generate cleared/normalised imageUrl (options preserved)
-    if (fresh.imageUrl !== cardUrlA) { await store.update(fresh.id, { imageUrl: cardUrlA, imageSource: { kind: "url", url: cardUrlA, options } }); fresh.imageUrl = cardUrlA; }
+    if (fresh.imageUrl !== cardUrlA) { await store.update(fresh.id, { imageUrl: cardUrlA, imageSource: imgSrc() }); fresh.imageUrl = cardUrlA; }
     if (res.outcome !== "pending" && res.outcome !== "approved") { await sweepCards([cardUrlA, cardUrlB]); held.push({ id: fresh.id, reason: res.reason || fresh.lastError || "" }); continue; }
 
     // 5. Send BOTH cards + a selection prompt (A / B / both / reject) to the owner on WhatsApp.

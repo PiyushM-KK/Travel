@@ -6,6 +6,17 @@ the real values live in the local `.env` (gitignored) and the Vercel project env
 
 ---
 
+## B-LANG-FOLLOWUP — agent-fixable (not owner-gated): 2 remaining language items
+The website 3-language (EN/HI/GU) fix shipped 2026-08-07 (`ad247c7`; see `../LANG-FIX-SPEC.md`). Two
+minor follow-ups remain, both agent-fixable — no owner action needed:
+1. `AssistantWidget.dc.html` — the embedded floating assistant (~4 static strings: title, "Here to help…",
+   input placeholder) still shows English. It has no own lang state and can't easily read the parent
+   page's selection in Duda's model; skipped by design. Fix later if wanted (e.g. persist lang to
+   localStorage + have the widget read it).
+2. Long-form itinerary PROSE on `Package.dc.html` / `Destination.dc.html` (highlights, "about", season,
+   day-by-day) is still English — the `tr()` plumbing is already in place, so just add `_hi`/`_gu` fields
+   to those data objects following `LANG-FIX-SPEC.md`.
+
 ## B-CRONSECRET — ✅ DONE 2026-08-07 — package-post GitHub Action can now run
 The `CRON_SECRET` repo secret was set on **PiyushM-KK/Travel** (from `.env`), so
 `.github/workflows/package-post.yml` authenticates and fires (verified: manual dispatch → HTTP 200).

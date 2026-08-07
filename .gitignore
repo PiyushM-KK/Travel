@@ -33,3 +33,10 @@ social-automation/.env.enc
 
 # Private security audit reports — documents live vulns; NEVER commit to this PUBLIC repo
 SECURITY-AUDIT-*.md
+
+# Vendor rate sheets — confidential B2B net pricing; NEVER commit to this PUBLIC repo.
+# The chatbot reads these locally/at upload; only Skyline SELL prices ever reach the site.
+social-automation/assets/*Ready Reckoner*
+social-automation/assets/*ratesheet*
+social-automation/assets/*rate-sheet*
+*.ratesheet.pdf

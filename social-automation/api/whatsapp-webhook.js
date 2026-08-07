@@ -218,9 +218,13 @@ module.exports = async (req, res) => {
               if (res.outcome === "pending" || res.outcome === "approved") {
                 await store.update(fresh.id, { digestedAt: new Date().toISOString() });
                 const { shortCode } = require("../automation/whatsapp");
+                const { istStamp } = require("../automation/calendar-cards");
                 const code = shortCode(fresh.id);
                 const priceNote = `${r.rp.line}${(r.prices && r.prices.length) ? ` (vendor ${Math.min(...r.prices).toLocaleString("en-IN")} +10%)` : " (Skyline rate)"}`;
-                const details = `🧳 Skyline reseller card ready (+10% margin)\n   Package: ${r.pkg.item} — ${r.pkg.route}\n   Price on card: ${priceNote}`;
+                // Intake provenance (same as the other channels carry): where this came from + when, so
+                // the owner sees the source before approving. rowCreatedAt = when the poster arrived.
+                const intakeAt = istStamp(rrow.createdAt || undefined);
+                const details = `🧳 Skyline reseller card ready (+10% margin)\n   Package: ${r.pkg.item} — ${r.pkg.route}\n   Price on card: ${priceNote}\n   Source: WhatsApp — client-forwarded vendor poster\n   Received: ${intakeAt}`;
                 const instr = r.cardUrlB
                   ? `\n\nReply:\n🅰️ A ${code} → real-photo card\n🅱️ B ${code} → ${r.bStyle} card\n➕ both ${code}\n❌ reject ${code}`
                   : `\n\n✅ approve ${code} → posts to Instagram + Facebook   |   ❌ reject ${code}`;

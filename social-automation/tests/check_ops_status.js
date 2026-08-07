@@ -40,6 +40,10 @@ const hasAlert = (s, re) => s.alerts.some((a) => re.test([a.title, a.impact, a.a
   ok(a.kpis.published === 2 && a.kpis.awaitingApproval === 1 && a.kpis.flaggedForReview === 5, "KPIs computed (published / awaiting / flagged)");
   ok(a.trend.daily.length === 30 && a.trend.weekly.length === 12 && a.trend.monthly.length === 12, "trend has daily(30)/weekly(12)/monthly(12) buckets");
   ok(a.trend.daily.reduce((n, b) => n + b.count, 0) === 2, "the 2 published posts appear in the daily trend");
+  ok(a.workflows.every((w) => !!w.nextRunAt && new Date(w.nextRunAt).getTime() > NOW.getTime()), "every workflow has a FUTURE next-run time");
+  ok(a.pipeline.length === 5 && a.pipeline[2].label === "Sent for approval", "live pipeline has the 5 stages in order");
+  ok(a.pipeline.find((p) => p.key === "live").count === 2 && a.pipeline.find((p) => p.key === "approval").count === 1, "pipeline stage counts reflect the queue (live=2, approval=1)");
+  ok(Array.isArray(a.recent) && a.recent.length > 0 && a.recent[0].stage, "recent-activity feed is populated with stages");
   ok(a.heartbeats.generate.ageMin >= 118 && a.heartbeats.generate.ageMin <= 122, "generate heartbeat age ~2h");
   ok(a.heartbeats.publish.ageMin > 30 * 60, "publish heartbeat age > 30h (stale)");
 

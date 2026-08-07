@@ -52,6 +52,19 @@ function buildTrend(publishedRows, now) {
   return { daily, weekly, monthly };
 }
 
+/** The soonest FUTURE run time given a set of daily UTC {h,m} schedule slots. Returns a Date or null. */
+function nextRunAt(times, now) {
+  if (!times || !times.length) return null;
+  let best = null;
+  for (const t of times) {
+    for (let day = 0; day <= 1; day++) {
+      const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + day, t.h, t.m, 0, 0));
+      if (d.getTime() > now.getTime() && (!best || d < best)) best = d;
+    }
+  }
+  return best;
+}
+
 async function buildOpsStatus(store, ctx = {}) {
   const now = ctx.now instanceof Date ? ctx.now : new Date();
   const nowMs = now.getTime();
@@ -64,13 +77,43 @@ async function buildOpsStatus(store, ctx = {}) {
   const queue = {};
   let newestUpdate = null;
   let publishedRows = [];
+  let allRows = [];
   for (const s of QUEUE_STATUSES) {
     const rows = await safeList(store, s);
     queue[s] = rows.length;
     if (s === "published") publishedRows = rows;
-    for (const r of rows) if (r.updatedAt && (!newestUpdate || r.updatedAt > newestUpdate)) newestUpdate = r.updatedAt;
+    for (const r of rows) { r._status = s; allRows.push(r); if (r.updatedAt && (!newestUpdate || r.updatedAt > newestUpdate)) newestUpdate = r.updatedAt; }
   }
   const trend = buildTrend(publishedRows, now);
+
+  // ---- Live pipeline: the stage a post moves through, with how many are at each stage RIGHT NOW ----
+  const pipeline = [
+    { key: "intake", label: "Intake", desc: "Searching Gmail · picking a package · receiving a photo", count: (queue.planned || 0) },
+    { key: "draft", label: "Draft & review", desc: "Writing the caption + quality checks", count: (queue.drafting || 0) + (queue.drafted || 0) },
+    { key: "approval", label: "Sent for approval", desc: "WhatsApp / email sent — awaiting the owner", count: queue.pending_approval || 0 },
+    { key: "approved", label: "Approved", desc: "Owner said yes — ready to post", count: (queue.approved || 0) + (queue.publishing || 0) },
+    { key: "live", label: "Published — live", desc: "On Instagram + Facebook", count: queue.published || 0 },
+  ];
+
+  // ---- Recent posts and where each is in its journey (the "live status" feed) ----
+  const STAGE = { planned: "Intake", drafting: "Draft & review", drafted: "Draft & review", pending_approval: "Sent for approval", approved: "Approved", publishing: "Publishing", published: "Published — live", held: "Held for review", rejected: "Declined" };
+  const recent = allRows
+    .filter((r) => r.updatedAt)
+    .sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1))
+    .slice(0, 6)
+    .map((r) => {
+      const res = r.results || {};
+      return {
+        subject: String(r.subject || r.hint || "post").slice(0, 60),
+        status: r._status,
+        stage: STAGE[r._status] || r._status,
+        source: r.source || "",
+        createdAt: r.createdAt || null,             // workflow start / intake
+        sentAt: r.digestedAt || null,               // went out for approval (WhatsApp/email sent)
+        publishedAt: (res.instagram && res.instagram.at) || (res.facebook && res.facebook.at) || null, // live
+        updatedAt: r.updatedAt,
+      };
+    });
 
   // ---- KPIs in business language ----
   const kpis = {
@@ -138,12 +181,13 @@ async function buildOpsStatus(store, ctx = {}) {
 
   // ---- Workflows: the named automations + what each DOES + live status ----
   const OVERDUE_MARGIN_H = 6;
+  // `times` are the scheduled UTC slots (Vercel crons) — used to compute the next run.
   const WORKFLOWS = ctx.workflows || [
-    { name: "Prep — draft & queue for approval", desc: "Turns the travel catalogue into ready-to-post drafts and sends them for the owner’s approval.", when: "Every day · 7:00 PM IST", job: "generate", cadenceH: 24 },
-    { name: "Publish approved posts", desc: "Posts approved content to Instagram and the Facebook Page (also instantly on approval).", when: "Every day · 9:00 PM IST + on approval", job: "publish", cadenceH: 24 },
-    { name: "Twice-daily package feature", desc: "Automatically features a travel package as a branded post, morning and afternoon.", when: "Twice a day · 9:00 AM & 2:00 PM IST", job: "package-post", cadenceH: 12 },
-    { name: "Vendor-email intake", desc: "Reads supplier offer emails and drafts branded Skyline post ideas from them.", when: "Every day · 7:00 PM IST", job: "email", cadenceH: 24 },
-    { name: "Daily calendar card", desc: "Features one catalogue package a day as a finished card, ready to approve.", when: "Every day · 7:00 PM IST", job: "calendar-cards", cadenceH: 24 },
+    { name: "Prep — draft & queue for approval", desc: "Turns the travel catalogue into ready-to-post drafts and sends them for the owner’s approval.", when: "Every day · 7:00 PM IST", job: "generate", cadenceH: 24, times: [{ h: 13, m: 30 }] },
+    { name: "Publish approved posts", desc: "Posts approved content to Instagram and the Facebook Page (also instantly on approval).", when: "Every day · 9:00 PM IST + on approval", job: "publish", cadenceH: 24, times: [{ h: 15, m: 30 }] },
+    { name: "Twice-daily package feature", desc: "Automatically features a travel package as a branded post, morning and afternoon.", when: "Twice a day · 9:00 AM & 2:00 PM IST", job: "package-post", cadenceH: 12, times: [{ h: 3, m: 30 }, { h: 8, m: 30 }] },
+    { name: "Vendor-email intake", desc: "Reads supplier offer emails and drafts branded Skyline post ideas from them.", when: "Every day · 7:00 PM IST", job: "email", cadenceH: 24, times: [{ h: 13, m: 30 }] },
+    { name: "Daily calendar card", desc: "Features one catalogue package a day as a finished card, ready to approve.", when: "Every day · 7:00 PM IST", job: "calendar-cards", cadenceH: 24, times: [{ h: 13, m: 30 }] },
   ];
   const workflows = WORKFLOWS.map((w) => {
     const hb = heartbeats[w.job] || {};
@@ -152,7 +196,8 @@ async function buildOpsStatus(store, ctx = {}) {
     if (age == null) { status = "idle"; statusText = "No run recorded yet"; }
     else if (age <= (w.cadenceH + OVERDUE_MARGIN_H) * 60) { status = "ok"; statusText = "Running on schedule"; }
     else { status = "overdue"; statusText = "Behind schedule"; }
-    return { name: w.name, desc: w.desc, when: w.when, job: w.job, lastRunAt: hb.at || null, lastRunAgeMin: age, status, statusText };
+    const next = nextRunAt(w.times, now);
+    return { name: w.name, desc: w.desc, when: w.when, job: w.job, lastRunAt: hb.at || null, lastRunAgeMin: age, status, statusText, nextRunAt: next ? next.toISOString() : null };
   });
   for (const job of DAILY_JOBS) {
     const hb = heartbeats[job];
@@ -187,6 +232,8 @@ async function buildOpsStatus(store, ctx = {}) {
     kpis,
     alerts,
     workflows,
+    pipeline,
+    recent,
     trend,
     queue,
     pendingApproval: queue.pending_approval || 0,

@@ -155,6 +155,76 @@ module.exports = async (req, res) => {
         if (row.status !== "planned") return null; // a dedup hit / already drafted
         const { generateOne } = require("../automation/generate-runner");
         const { digestItem, renderDigestText } = require("../automation/approval-channel");
+
+        // RESELLER-ON-WHATSAPP (opt out: SOCIAL_WHATSAPP_RESELLER=off). If the client forwarded an
+        // OFFER POSTER — a detectable price + a Skyline-matchable destination — reprice the vendor
+        // price +10% into a SKYLINE-branded card and offer THAT. We never repost the vendor's poster
+        // (the foreign-brand guard below would hold it, and AI garbles poster text). A plain photo
+        // with no price returns matched:false and falls straight through to the normal draft below.
+        // Only the authorized sender reaches here (handleInbound rejects others upstream).
+        if (process.env.SOCIAL_WHATSAPP_RESELLER !== "off" && (row.imageSource || row.imageUrl)) {
+          // 1) Build the Skyline card BEFORE touching the row, so any failure here leaves the row
+          //    pristine and we fall cleanly through to the normal draft. imageGen:null → B is free
+          //    decor (no paid gpt-image-1 per inbound message — bounds cost even for the owner).
+          let r = null;
+          try {
+            const { resolveImageSourceBytes } = require("../automation/image-source");
+            const { buildResellerCards } = require("../automation/reseller");
+            const src = row.imageSource || { kind: "url", url: row.imageUrl };
+            const { buffer } = await resolveImageSourceBytes(src, {});
+            r = await buildResellerCards({ requirePrice: true, imageGen: null }, { imageBytes: buffer, offerText: row.hint || "", smid: row.id });
+          } catch (e) { r = null; } // pre-mutation failure → row untouched → fall through to normal draft
+
+          // 2) Matched → we now OWN this row's outcome; never fall through to a second draft.
+          if (r && r.matched) {
+            try {
+              await store.update(row.id, {
+                imageUrl: r.cardUrlA,
+                imageSource: { kind: "url", url: r.cardUrlA, options: r.options },
+                hint: r.hint,
+                platforms: (row.platforms && row.platforms.length) ? row.platforms : ["instagram", "facebook"],
+              });
+              const rrow = await store.get(row.id);
+              const res = await generateOne(store, rrow, {
+                runner: "whatsapp-reseller", facts: client.facts, profile: client.profile,
+                useVision: false, useSmm: true, // caption grounded on the package; card is Skyline's own
+              });
+              const fresh = await store.get(rrow.id);
+              if (res.outcome === "pending" || res.outcome === "approved") {
+                await store.update(fresh.id, { digestedAt: new Date().toISOString() });
+                const { shortCode } = require("../automation/whatsapp");
+                const code = shortCode(fresh.id);
+                const priceNote = `${r.rp.line}${(r.prices && r.prices.length) ? ` (vendor ${Math.min(...r.prices).toLocaleString("en-IN")} +10%)` : " (Skyline rate)"}`;
+                const details = `🧳 Skyline reseller card ready (+10% margin)\n   Package: ${r.pkg.item} — ${r.pkg.route}\n   Price on card: ${priceNote}`;
+                const instr = r.cardUrlB
+                  ? `\n\nReply:\n🅰️ A ${code} → real-photo card\n🅱️ B ${code} → ${r.bStyle} card\n➕ both ${code}\n❌ reject ${code}`
+                  : `\n\n✅ approve ${code} → posts to Instagram + Facebook   |   ❌ reject ${code}`;
+                try {
+                  if (r.cardUrlA) await sendImage(process.env.WHATSAPP_TO, r.cardUrlA, (details + "\n\n🅰️ REAL PHOTO").slice(0, 1024));
+                  if (r.cardUrlB) await sendImage(process.env.WHATSAPP_TO, r.cardUrlB, `🅱️ ${r.bStyle.toUpperCase()} — ${r.pkg.item} ${r.pkg.route || ""}`.trim().slice(0, 1024));
+                } catch (e) { /* best-effort */ }
+                return `Caption:\n${(fresh.caption || "").trim()}${instr}`;
+              }
+              // Built but not sent-for-approval (held by fact-check/QA, or a claim race). Leave the row
+              // in its terminal state — do NOT reset it. A 'held' row is surfaced; a 'drafting' strand
+              // is recovered by the stale-draft reaper on the next generate pass, which drafts the
+              // ALREADY-priced Skyline card once and never re-reprices (only this reseller path marks
+              // up, and it never re-runs on an existing row). Not resetting = no retry double-markup.
+              return `I built a Skyline card from that offer, but couldn't finalize the caption — ${fresh.lastError || res.reason}. Resend the poster if you'd like me to try again.`;
+            } catch (e) {
+              // POST-mutation failure. Do NOT fall through to a second draft and do NOT reset the row
+              // (a reset could let a retry re-run the +10% markup on the already-priced card). Failure
+              // modes, all safe: store.update threw → row unchanged (original poster, 'planned') →
+              // scheduled generate → foreign-brand guard holds it; generateOne/store.get threw after the
+              // claim → row is 'drafting' → recovered by the stale-draft reaper (tested in
+              // tests/check_stale_draft_reaper.js), which drafts the already-priced Skyline card ONCE
+              // (only this path marks up, and it never re-runs on an existing row → no double markup).
+              const { redact } = require("../engine/publish");
+              return `Sorry — I built a Skyline card but hit a snag finalizing it (${redact(String((e && e.message) || e))}). Please resend the poster.`;
+            }
+          }
+          // r null or not matched → fall through to the normal draft below.
+        }
         // v2 image-enhance (B-22): if an AI enhancer is configured (AI_ENHANCER_*), enhance a
         // text-free PHOTO before approval. The runner text-gates it (posters skip, never
         // garbled) and reports the outcome (incl. a Claid credit-limit) in the approval note.

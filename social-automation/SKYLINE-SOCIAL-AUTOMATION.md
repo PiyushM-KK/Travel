@@ -249,15 +249,28 @@ countdowns**, a **published-over-time chart** (daily/weekly/monthly), and plain-
 
 ## 12. Known open items (see `BLOCKED.md` for the live list)
 
-- **cron-prep 504** — ✅ **FIXED IN CODE** (`cf05f6a`), ⏳ **deploy pending**. `generate` now runs under
-  an absolute wall-clock deadline: it stops between rows (reserving one row's headroom), always
-  heartbeats + returns before the 60 s cap, and defers leftover rows to the next pass (queue drains
-  across runs). Also heartbeats before the loop (a mid-row kill never reads dead), always drafts ≥1
-  row/pass (forward progress), and drafts OLDEST-first (FIFO, no tail starvation). Unbounded by default
-  (GHA/CLI unchanged); the Vercel cron sets `deadline = now + 50 s` (`CRON_PREP_BUDGET_MS` overrides,
-  `"0"` opts out). Tests: `check_generate_deadline.js`. **Owner:** deploy to prod (git push auto-deploys
-  if the project is git-connected, else `vercel --prod`); optional `SOCIAL_CALENDAR_COUNT=0` to trim the
-  briefs and drain faster. See `BLOCKED.md` → B-504.
+- **⚠️ package-post card has no image (B-PKGCARD) — PRIORITY, agent-fixable.** Today's package-post row is
+  `rejected` with `imageUrl:false` → SMM rejects it ("price missing"). The branded card isn't building/
+  hosting its image on deployed skyline-social → clean package cards don't post. Fix the package-post →
+  `calendar-cards.buildAndDraftCard` render+host path. (The cron itself is now fixed — see below.)
+- **package-post cron** — ✅ FIXED (B-CRONSECRET): `CRON_SECRET` repo secret set → the GitHub Action
+  (`.github/workflows/package-post.yml`) fires 9 AM / 2 PM IST + manual dispatch (verified HTTP 200).
+  Vercel Hobby throttles >2 crons, so the GHA is the reliable path.
+- **NEW 5th intake — WhatsApp RESELLER (built + deployed 2026-08-07):** client forwards a supplier offer
+  poster → `reseller.js` reads price+destination (Sonnet vision) → matches a Skyline package → **+10%
+  (mandatory, price from the poster)** → clean Skyline card (no vendor name/phone) → approve → IG+FB. No
+  price on the poster → asks the owner for a priced one. `SOCIAL_WHATSAPP_RESELLER=off` to disable. This
+  makes it **five** intakes (update §3): WhatsApp note/photo · WhatsApp reseller poster · Gmail vendor ·
+  calendar-cards · package-post.
+- **cron-prep 504** — ✅ FIXED (`cf05f6a`) + deployed (skyline-social auto-deploys from `main`). `generate`
+  runs under a wall-clock deadline (stops between rows, always heartbeats, defers overflow, FIFO). Tests:
+  `check_generate_deadline.js`. Optional `SOCIAL_CALENDAR_COUNT=0` to trim briefs.
+- **PIVOT — pricing portal → CLIENT CHATBOT (owner request 2026-08-07):** a client-only conversational AI
+  agent to edit website prices/packages/hotels by chat — GitHub-OAuth login, Claude (Anthropic API)
+  tool-use (read repo → propose → preview/diff → commit via a scoped BuildWise bot), grounded on the site+
+  repo (system prompt + live reads, NOT fine-tuning), accepts documents. Reuses the `pricing-portal/`
+  scaffold (baseline reader + spec). Preview+confirm before every commit; tools scoped to price/package/
+  hotel fields. Owner setup: GitHub OAuth App + bot (BLOCKED B-CHATBOT / `pricing-portal/PRICING-PORTAL.md`).
 - **Infra migration** — move publishing off the firm `site` project onto Skyline's own infra.
 - **Monitoring dashboard** — ✅ BUILT (see §11b). Scale it by adding clients to the registry.
 - **Private client image repo** — `PiyushM-KK/skyline-client-images` (private) for client photo uploads;

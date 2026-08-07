@@ -1,5 +1,12 @@
 # Skyline Pricing Portal — Option 2 (BuildWise pricing-catalog manager)
 
+> **⚠️ DIRECTION CHANGE (2026-08-07):** the owner chose a **client CHATBOT** over a Word-upload portal.
+> The interface becomes a **conversational AI agent** (GitHub-OAuth login → Claude tool-use → propose →
+> preview/diff → commit via a scoped bot), grounded on the site + repo, that also accepts documents. The
+> pieces below (baseline reader, price-apply, GitHub-OAuth + bot, preview/commit) are STILL the engine —
+> only the front door changes from an upload form to chat. Build the agent's tools on this scaffold.
+
+
 A private web portal where an updated **Word rate-sheet** becomes live package/hotel prices on
 **skylinetravelplanner.com**, via a **live preview + one-click publish**, with **GitHub OAuth login**
 and **BuildWise-bot commits**. First use-case: **Skyline hotel & tour-package prices.**

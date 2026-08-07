@@ -4,7 +4,42 @@ Scope: **only the `social-automation/` folder.** The rest of the Skyline project
 (the travel website) is unchanged and separate. Read `README.md` here first for the
 structure + provenance.
 
-## ⭐ 2026-08-06 (late) — LATEST: cron-prep 504 fixed in code (B-504)
+## ⭐ 2026-08-07 — CHECKPOINT: WhatsApp reseller intake + package-post cron fix + chatbot pivot
+
+**Shipped (committed to `main`, skyline-social auto-deploys):**
+- **NEW 5th intake — WhatsApp RESELLER** (`e07654f`, `5713046`): the client forwards a supplier offer
+  poster on WhatsApp → the webhook reads the price + destination (`describeOffer`/`extractPrices`, now on
+  **Sonnet** — haiku read nothing off posters), matches a Skyline package, **reprices vendor +10%**, and
+  builds a **clean Skyline card** (no vendor name/phone — the reliable way to "modify" a poster; AI can't
+  safely edit poster text) → approve on WhatsApp → posts to IG+FB. Shared core: `automation/reseller.js`
+  (reused by the Gmail reseller flow). **+10% is MANDATORY** — the price must come from the POSTER; no
+  price → returns `no_price` + the matched package and the webhook tells the owner *"matches X, send a
+  poster that shows the price."* (No caption-typed price — that let free text underprice; removed.) A
+  clean photo with no offer falls through to the normal draft; only the authorized sender reaches it.
+  Test `tests/check_reseller.js` (14); Bug Hunter + App Security reviewed; full suite 217, 0 fails.
+  Opt out: `SOCIAL_WHATSAPP_RESELLER=off`. **Live-tested:** a Rajasthan @ ₹24,900 poster → a Rs 27,400
+  Skyline card (verified); the client's real **Bali (DMC Hub)** poster → correctly `no_price` (that B2B
+  poster shows no per-person price).
+- **package-post cron FIXED:** the 9 AM IST trigger wasn't firing because (a) Vercel Hobby throttles >2
+  crons and (b) the GitHub Action fallback (`.github/workflows/package-post.yml`, already committed) had
+  no `CRON_SECRET`. **Set the `CRON_SECRET` repo secret** (PiyushM-KK/Travel) from `.env`; manually ran
+  the Action → **HTTP 200** (works). It'll now fire reliably 9 AM / 2 PM IST + manual dispatch.
+
+**⚠️ Open bug found (see BLOCKED B-PKGCARD):** today's package-post row (`package-goa-2026-08-07-s0`) is
+`rejected` with **no card image** (`imageUrl:false`) → SMM flagged "price missing." So even with the cron
+fixed, the package card isn't building/hosting its image → fails review → nothing posts. Needs a fix in
+the package-post/calendar-card build+host path.
+
+**PIVOT — the pricing portal (Option 2) becomes a CLIENT CHATBOT (owner request 2026-08-07):** instead of
+a Word-doc upload portal, build a **client-only conversational AI agent** for all website price/hotel/
+package edits: GitHub-OAuth login → Claude (Anthropic API) with **tool-use** (read repo → propose edit →
+**preview/diff** → commit via a scoped BuildWise bot), **grounded** on the site + repo (system prompt +
+live repo reads — NOT fine-tuning), accepts documents too. Reuses the Option-2 scaffold
+(`pricing-portal/`). Preview-and-confirm before every commit; tools scoped to price/package/hotel fields.
+Owner critical-path unchanged: create the GitHub **OAuth App** + **bot** (see `pricing-portal/PRICING-PORTAL.md`).
+Related: [[fullfirm-social-automation]], [[fullfirm-industry-bots]].
+
+## ⭐ 2026-08-06 (late) — cron-prep 504 fixed in code (B-504)
 
 `generate` now runs under an absolute **wall-clock deadline** (`cf05f6a`, pushed to `main`): it checks
 the clock BETWEEN rows (reserving one row's headroom), so it always heartbeats + returns before Vercel's

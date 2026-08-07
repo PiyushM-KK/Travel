@@ -6,6 +6,32 @@ the real values live in the local `.env` (gitignored) and the Vercel project env
 
 ---
 
+## B-CRONSECRET — ✅ DONE 2026-08-07 — package-post GitHub Action can now run
+The `CRON_SECRET` repo secret was set on **PiyushM-KK/Travel** (from `.env`), so
+`.github/workflows/package-post.yml` authenticates and fires (verified: manual dispatch → HTTP 200).
+Package-post now triggers reliably 9 AM / 2 PM IST + a manual "Run workflow" button. (Vercel Hobby
+throttles >2 crons, which is why the Vercel package-post crons were unreliable — the GHA is the fix.)
+
+## ⚠️ B-PKGCARD — PRIORITY (agent-fixable, not owner-gated): package-post card has no image
+Today's package-post row `package-goa-2026-08-07-s0` is **`rejected`** with **`imageUrl:false`** — the
+branded card image isn't being built/hosted, so the post has no image and no price on it → the SMM agent
+rejects it ("price missing entirely"). So even with the cron fixed (B-CRONSECRET), **clean package cards
+aren't posting.** Investigate the package-post → `calendar-cards.buildAndDraftCard` card render+host path
+(satori → JPEG → Blob) on the deployed skyline-social: is `makeCard`/`hostCard` failing there, or is the
+row losing `imageUrl`? Compare with the WhatsApp reseller path, which builds+hosts the same card fine.
+Then the auto-publish gate posts a clean card. (Owner already flagged "9 AM didn't post" — the cron was
+one cause, this is the other.)
+
+## B-CHATBOT — owner setup for the client chatbot (the pricing-portal pivot)
+The pricing portal is becoming a **client-only chatbot agent** (edit website prices/packages/hotels by
+chat, GitHub-OAuth login, Claude tool-use, preview→commit via a bot). Owner-only prerequisites (same as
+the old portal — see `pricing-portal/PRICING-PORTAL.md` §Owner setup):
+1. Create a **GitHub OAuth App** (client login) → Client ID + Secret.
+2. Create a **BuildWise commit bot** (GitHub App on `PiyushM-KK/Travel`, Contents: write — or a
+   fine-grained PAT) → the agent commits price/package edits with this, never a personal token.
+3. A Vercel project for the chatbot; set the env vars above.
+The client already has GitHub (OAuth login works for them + the owner).
+
 ## B-CODE — ✅ RESOLVED 2026-08-06 (was: "B- 9880" approval became a junk post / stale-code dead-ends)
 
 **Cause:** the client replied **"B- 9880"** to approve card B, but `parseDecision` only accepted

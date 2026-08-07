@@ -227,12 +227,34 @@ Use the local `.env` for creds (`node -e` scripts load it), or hit the deployed 
 
 ---
 
+## 11b. Monitoring — the `/ops` dashboard (2026-08-06)
+
+A **read-only operations dashboard** at **https://buildwise-digital.com/ops.html** (executive-facing):
+overall verdict (green/amber/red), business KPIs, a **live pipeline** (Intake → Draft & review → Sent
+for approval → Approved → Published-live), **recent-activity** journeys, **per-workflow next-run
+countdowns**, a **published-over-time chart** (daily/weekly/monthly), and plain-English issues
+(problem → impact → recommended action). Auto-refreshes 60 s; countdowns tick every second.
+
+- **Data source:** each client automation exposes a read-only `GET /api/ops-status` (fail-closed,
+  Bearer `OPS_KEY` **or** `CRON_SECRET`, CORS limited to the firm site). For Skyline:
+  `https://skyline-social-nine.vercel.app/api/ops-status` (`?tokens=1` also live-checks the Meta token).
+- **Auth key:** a dedicated read-only **`OPS_KEY`** is set on `skyline-social` (also stored in the local
+  `.env`); the dashboard prompts for it (kept in the browser's sessionStorage only).
+- **Files:** `automation/ops-status.js` (the health builder — queue/heartbeats/config/workflows/
+  pipeline/recent/trend/next-run), `api/ops-status.js` (the endpoint), firm-repo `site/ops.html` (the
+  page), `tests/check_ops_status.js`. **Scales:** add a `{name, statusUrl}` row to the `CLIENTS` list at
+  the top of `site/ops.html`; each new client just exposes its own `/api/ops-status`.
+
+---
+
 ## 12. Known open items (see `BLOCKED.md` for the live list)
 
-- **cron-prep 504** — the composite prep exceeds Vercel Hobby's 60 s cap; the daily card still builds
-  first, but the tail is cut off (trim it / split / raise `maxDuration`).
+- **cron-prep 504** *(priority — currently shows RED on the dashboard)* — the composite prep exceeds
+  Vercel Hobby's 60 s cap, so `generate` never completes/heartbeats → the reaper doesn't run → a card
+  stays stuck. Fix: trim the composite (drop the image-less calendar briefs / `SOCIAL_CALENDAR_COUNT=0`,
+  or split into separate crons, or raise `maxDuration`).
 - **Infra migration** — move publishing off the firm `site` project onto Skyline's own infra.
-- **Monitoring dashboard** — a scalable multi-client `/ops` view is planned on buildwise-digital.com.
+- **Monitoring dashboard** — ✅ BUILT (see §11b). Scale it by adding clients to the registry.
 - **Private client image repo** — `PiyushM-KK/skyline-client-images` (private) for client photo uploads;
   invite the client as a collaborator (needs their GitHub username). Not yet wired as an auto-intake.
 

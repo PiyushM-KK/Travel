@@ -111,9 +111,20 @@ infra. See HANDOVER.md → "Live plumbing runs on the FIRM's infra."
 
 ---
 
-## B-DASH — monitoring dashboard (planned, firm site)
+## B-DASH — ✅ BUILT 2026-08-06 — the `/ops` monitoring dashboard
 
-A scalable multi-client monitoring dashboard for this automation is planned on
-buildwise-digital.com/ops (reads the Airtable `Queue` + `Runs` heartbeats, shows per-client held
-reasons). Needs an owner auth decision (shared ops key vs login) + read-only `AIRTABLE_*` env on the
-firm `site` project. See the FullFirm repo BLOCKED.md → B-DASH.
+Live at **https://buildwise-digital.com/ops.html** (read-only). Executive view: verdict, KPIs, live
+pipeline (Intake→Approval→Live), recent-activity journeys, per-workflow next-run countdowns,
+published-over-time chart, and plain-English issues (problem→impact→action). Auth: a dedicated
+read-only **`OPS_KEY`** (set on `skyline-social` + in the local `.env`; CRON_SECRET also works). Data
+from `GET /api/ops-status`. Full detail: `SKYLINE-SOCIAL-AUTOMATION.md` §11b. Scale by adding clients
+to the `CLIENTS` list in `site/ops.html`.
+
+## ⚠️ B-504 — PRIORITY: cron-prep 504 (the dashboard shows RED because of this)
+
+`cron-prep` (the daily prep composite: email + calendar-cards + intake + generate + approve) exceeds
+Vercel Hobby's 60 s function cap → `generate` never completes, so it never heartbeats AND the
+self-healing reaper never runs → a card stays stuck in `drafting` and the "Prep" workflow reads idle.
+FIX (any one): trim the composite (turn off the image-less calendar briefs with
+`SOCIAL_CALENDAR_COUNT=0`, and/or drop the heaviest step), split it into separate lighter crons, or
+move to a plan with a higher `maxDuration`. This is the single item keeping the board red.

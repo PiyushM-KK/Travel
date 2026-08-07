@@ -4,6 +4,33 @@ Scope: **only the `social-automation/` folder.** The rest of the Skyline project
 (the travel website) is unchanged and separate. Read `README.md` here first for the
 structure + provenance.
 
+## ⭐ 2026-08-06 (evening) — LATEST: ops dashboard + the whole-session summary
+
+**Read `SKYLINE-SOCIAL-AUTOMATION.md` first** (the single end-to-end reference; mirrored in the FullFirm
+repo — keep both in sync).
+
+**Shipped this session (all deployed + tested, full suite 0 failures):**
+- **Root-caused + fixed "the automation didn't work":** stranded-draft **reaper** (`generate-runner`),
+  image-host preflight + a hosting-probe in `render-selftest`; recovered the stuck card **live**.
+- **B-AIRTABLE** (deployed Airtable token invalid = why crons stopped) — **fixed** (owner-authorized).
+- **B-OPENAI** (card B was always the decorative fallback — prod var misnamed `OPEN_API_KEY` vs
+  `OPENAI_API_KEY`) — **fixed**; card B is now a gpt-image-1 scene.
+- **B-CODE** (a `B- 9880` approval became a junk post) — parser now accepts any separator + guards
+  mistyped approvals + lists waiting codes.
+- **NEW 4th intake:** twice-daily **package-post** (auto-publish-unless-flagged) + a GitHub Actions
+  fallback (`Travel/.github/workflows/package-post.yml`; needs the `CRON_SECRET` repo secret).
+- **Bug Hunter trained** (liveness/orphan-recovery lens + `0||default` trap) + a full EOD adversarial
+  review (2 HIGH + lower fixed; App Security clean). See `AGENTS.md` (FullFirm).
+- **`/ops` monitoring dashboard** — https://buildwise-digital.com/ops.html (see BLOCKED.md → B-DASH and
+  the reference doc §11b). Dedicated read-only `OPS_KEY` set.
+- Published today's Himachal card B to IG+FB manually (the approval had failed on the parser bug).
+
+**🔴 CURRENT PRIORITY — cron-prep 504 (BLOCKED.md → B-504):** the prep composite exceeds the 60 s cap,
+so `generate` never completes → the reaper never runs → a card stays stuck and the dashboard reads RED.
+Fixing this (trim/split the composite) is the single thing that turns the board green. **Do this first.**
+
+---
+
 ## ⭐ 2026-08-06 — READ FIRST (latest changes + open issues)
 
 ### NEW: twice-daily PACKAGE-POST intake (4th channel) — auto-publish unless flagged

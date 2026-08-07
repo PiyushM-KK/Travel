@@ -8,7 +8,7 @@ const { buildOpsStatus } = require(path.join(__dirname, "..", "automation", "ops
 
 const fails = [];
 const ok = (c, m) => { console.log(`  ${c ? "ok" : "FAIL"} - ${m}`); if (!c) fails.push(m); };
-const hasAlert = (s, re) => s.alerts.some((a) => re.test(a.msg));
+const hasAlert = (s, re) => s.alerts.some((a) => re.test([a.title, a.impact, a.action].join(" ")));
 
 (async () => {
   const NOW = new Date("2026-08-06T18:00:00Z");
@@ -32,10 +32,14 @@ const hasAlert = (s, re) => s.alerts.some((a) => re.test(a.msg));
   ok(a.health === "red", "health is RED when a card is stranded + a daily cron is stale");
   ok(a.queue.pending_approval === 1 && a.queue.published === 2 && a.queue.held === 5, "queue counts are correct");
   ok(a.pendingApproval === 1, "pendingApproval surfaced");
-  ok(hasAlert(a, /stuck in "drafting"/), "alerts a stranded drafting card");
-  ok(hasAlert(a, /5 posts held/), "alerts the held pile");
-  ok(hasAlert(a, /"publish" last ran/), "alerts the stale publish cron (40h)");
-  ok(hasAlert(a, /"package-post" has no recorded run/), "alerts a cron that never ran");
+  ok(hasAlert(a, /stuck mid-draft/), "alerts a stranded drafting card");
+  ok(hasAlert(a, /flagged for review/), "alerts the held pile");
+  ok(hasAlert(a, /behind schedule/), "alerts the stale publish cron (40h)");
+  ok(hasAlert(a, /hasn.t run yet/), "alerts a cron that never ran");
+  ok(a.summary.verdict === "red" && a.summary.label === "Action required", "executive verdict = Action required");
+  ok(a.kpis.published === 2 && a.kpis.awaitingApproval === 1 && a.kpis.flaggedForReview === 5, "KPIs computed (published / awaiting / flagged)");
+  ok(a.trend.daily.length === 30 && a.trend.weekly.length === 12 && a.trend.monthly.length === 12, "trend has daily(30)/weekly(12)/monthly(12) buckets");
+  ok(a.trend.daily.reduce((n, b) => n + b.count, 0) === 2, "the 2 published posts appear in the daily trend");
   ok(a.heartbeats.generate.ageMin >= 118 && a.heartbeats.generate.ageMin <= 122, "generate heartbeat age ~2h");
   ok(a.heartbeats.publish.ageMin > 30 * 60, "publish heartbeat age > 30h (stale)");
 
@@ -62,9 +66,9 @@ const hasAlert = (s, re) => s.alerts.some((a) => re.test(a.msg));
 
   // ---- Scenario C: config gaps raise the right flags ----
   const c = await buildOpsStatus(new InMemoryStore({ clock: () => NOW }), { now: NOW, label: "x", live: false, blob: false, imageGen: false });
-  ok(hasAlert(c, /BLOB_READ_WRITE_TOKEN/) && c.health === "red", "no image hosting → RED alert");
-  ok(hasAlert(c, /OPENAI_API_KEY/), "no image-gen → amber alert");
-  ok(hasAlert(c, /SOCIAL_LIVE is off/), "live gate off → amber alert");
+  ok(hasAlert(c, /BLOB_READ_WRITE_TOKEN/) && c.health === "red", "no image hosting → RED alert (with action)");
+  ok(hasAlert(c, /OPENAI_API_KEY/), "no image-gen → amber alert (with action)");
+  ok(hasAlert(c, /SOCIAL_LIVE/), "live gate off → amber alert (with action)");
 
   if (fails.length) { console.error("\nOPS-STATUS FAIL:\n - " + fails.join("\n - ")); process.exit(1); }
   console.log("\nOPS-STATUS PASS: health/alerts/queue/heartbeats/config all reflect the automation's real state.");

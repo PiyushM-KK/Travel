@@ -13,7 +13,7 @@
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@500;600;700&family=Noto+Sans+Gujarati:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   *{box-sizing:border-box}
   html,body{height:100%}
@@ -45,6 +45,11 @@
         <div style="font-weight:700;font-size:15.5px;line-height:1.2">Skyline Travel Planner</div>
         <div style="font-size:12px;color:#cfeee6;line-height:1.2">{{ statusText }}</div>
       </div>
+      <div style="display:flex;align-items:center;border:1px solid #E4ECF3;border-radius:10px;overflow:hidden;height:34px;flex-shrink:0;background:#fff" role="group" aria-label="Language">
+        <sc-for list="{{ langOptions }}" as="lo" hint-placeholder-count="3">
+          <button onClick="{{ lo.pick }}" title="{{ lo.name }}" style="{{ lo.style }};cursor:pointer;font-family:inherit;font-weight:700;font-size:12.5px;border:0;border-left:1px solid #EEF3F7;padding:0 10px;height:100%">{{ lo.mark }}</button>
+        </sc-for>
+      </div>
       <div style="display:flex;align-items:center;gap:20px;color:#fff;opacity:.95;padding-right:4px">
         <svg width="21" height="21" viewBox="0 0 24 24" fill="#fff"><path d="M17 10.5V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-3.5l4 3.5V7l-4 3.5z"/></svg>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M6.6 10.8a15 15 0 006.6 6.6l2.2-2.2a1 1 0 011-.24c1.1.37 2.3.57 3.5.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.2.2 2.4.57 3.5a1 1 0 01-.24 1L6.6 10.8z"/></svg>
@@ -56,7 +61,7 @@
     <div ref="{{ scrollEl }}" class="wa-scroll" style="flex:1;overflow-y:auto;padding:16px 14px 8px;background-color:#ECE5DD;background-image:radial-gradient(rgba(120,140,130,.14) 1px,transparent 1px);background-size:22px 22px;display:flex;flex-direction:column;gap:7px">
       <!-- encryption notice -->
       <div style="align-self:center;background:#FCF4CB;color:#54656F;font-size:11.5px;text-align:center;padding:7px 12px;border-radius:8px;max-width:90%;margin-bottom:6px;line-height:1.45">
-        <span data-en="🔒 This is an automated Skyline assistant. It can't confirm bookings, prices, availability or visas — our team follows up personally." data-hi="🔒 यह एक स्वचालित Skyline सहायक है। यह बुकिंग, मूल्य, उपलब्धता या वीज़ा की पुष्टि नहीं कर सकता — हमारी टीम व्यक्तिगत रूप से संपर्क करती है।">🔒 This is an automated Skyline assistant. It can't confirm bookings, prices, availability or visas — our team follows up personally.</span>
+        <span data-en="🔒 This is an automated Skyline assistant. It can't confirm bookings, prices, availability or visas — our team follows up personally." data-hi="🔒 यह एक स्वचालित Skyline सहायक है। यह बुकिंग, मूल्य, उपलब्धता या वीज़ा की पुष्टि नहीं कर सकता — हमारी टीम व्यक्तिगत रूप से संपर्क करती है।" data-gu="🔒 આ એક સ્વયંસંચાલિત Skyline સહાયક છે. તે બુકિંગ, ભાવ, ઉપલબ્ધતા કે વિઝાની પુષ્ટિ કરી શકતું નથી — અમારી ટીમ વ્યક્તિગત રીતે સંપર્ક કરે છે.">🔒 This is an automated Skyline assistant. It can't confirm bookings, prices, availability or visas — our team follows up personally.</span>
       </div>
 
       <sc-for list="{{ messages }}" as="m" hint-placeholder-count="1">
@@ -85,7 +90,7 @@
     <form onSubmit="{{ onSubmit }}" style="display:flex;align-items:center;gap:8px;padding:8px 10px 10px;background:#ECE5DD;flex-shrink:0">
       <div style="flex:1;display:flex;align-items:center;gap:8px;background:#fff;border-radius:24px;padding:9px 14px;box-shadow:0 1px 1px rgba(0,0,0,.08)">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="#54656F"><circle cx="12" cy="12" r="9" fill="none" stroke="#8696A0" stroke-width="1.6"/><circle cx="9" cy="10" r="1.2"/><circle cx="15" cy="10" r="1.2"/><path d="M8.5 14.5a4 4 0 007 0" fill="none" stroke="#8696A0" stroke-width="1.6" stroke-linecap="round"/></svg>
-        <input ref="{{ inputEl }}" placeholder="Message" style="flex:1;border:0;outline:none;font-family:inherit;font-size:14.5px;color:#111B21;background:transparent" />
+        <input ref="{{ inputEl }}" placeholder="Message" data-en-ph="Message" data-hi-ph="संदेश" data-gu-ph="સંદેશ" style="flex:1;border:0;outline:none;font-family:inherit;font-size:14.5px;color:#111B21;background:transparent" />
         <svg width="20" height="20" viewBox="0 0 24 24" fill="#8696A0"><path d="M16.5 6.5l-7 7a2.1 2.1 0 003 3l7-7a4.2 4.2 0 00-6-6l-7 7a6.3 6.3 0 009 9l6-6" fill="none" stroke="#8696A0" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
       <button class="wa-send" type="submit" style="flex-shrink:0;width:46px;height:46px;border:0;cursor:pointer;background:#00A884;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 5px rgba(0,0,0,.2);transition:transform .12s">
@@ -97,11 +102,27 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = { thinking: false, messages: [] };
+  state = { lang: 'en', thinking: false, messages: [] };
 
-  setRoot = (el) => { this.rootEl = el; };
+  setRoot = (el) => { if (el) { this.rootEl = el; this.applyLang(); } };
   setScroll = (el) => { this.scrollEl = el; };
   setInput = (el) => { this.inputEl = el; };
+
+  applyLang() {
+    if (!this.rootEl) return;
+    const L = this.state.lang;
+    const font = L === 'hi' ? "'Noto Sans Devanagari','Plus Jakarta Sans',sans-serif"
+               : L === 'gu' ? "'Noto Sans Gujarati','Plus Jakarta Sans',sans-serif" : '';
+    this.rootEl.style.fontFamily = font;
+    this.rootEl.querySelectorAll('[data-en]').forEach((n) => {
+      n.textContent = n.getAttribute('data-' + L) || n.getAttribute('data-en');
+    });
+    this.rootEl.querySelectorAll('[data-en-ph]').forEach((n) => {
+      n.setAttribute('placeholder', n.getAttribute('data-' + L + '-ph') || n.getAttribute('data-en-ph'));
+    });
+  }
+  tr(o, key) { return (o && (o[key + '_' + this.state.lang] || o[key])) || ''; }
+  LANGS() { return [{ code:'en', name:'English', mark:'EN' }, { code:'hi', name:'हिंदी', mark:'हिं' }, { code:'gu', name:'ગુજરાતી', mark:'ગુ' }]; }
 
   now() {
     const d = new Date();
@@ -121,7 +142,7 @@ class Component extends DCLogic {
   }
 
   scrollDown() { if (this.scrollEl) this.scrollEl.scrollTop = this.scrollEl.scrollHeight; }
-  componentDidUpdate() { this.scrollDown(); }
+  componentDidUpdate() { this.applyLang(); this.scrollDown(); }
 
   primer() {
     return `You are the official WhatsApp chat assistant for "Skyline Travel Planner", an India-based travel planning service (WhatsApp +91 8866050291, info@skylinetravelplanner.com). Help travellers with: choosing destinations (Rajasthan, Himachal, Kashmir, Kerala, Goa, Sikkim, Mysuru/Coorg/Ooty, Mathura/Vrindavan/Agra, Gujarat, Uttar Pradesh; internationally Thailand, Bali, Maldives), trip duration, draft itineraries, 3/4/5-star hotel comparison, budget and season guidance, family/honeymoon/religious/group planning, and FAQs. Prices are in Indian Rupees and ALWAYS "starting from" estimates — never guaranteed. Write like a warm, professional WhatsApp agent: short messages, friendly, a few tasteful emojis, line breaks over long paragraphs (under 90 words). After understanding the trip, tell them our travel team will share a detailed itinerary & quotation, and invite them to also fill the "Customize My Trip" form on our website. NEVER claim to confirm tickets, process payments, guarantee hotel availability, guarantee prices, guarantee visa approval, or give official immigration advice — politely say our team / the official provider handles that. Never ask for card, bank, Aadhaar or passport details.`;
@@ -161,7 +182,15 @@ class Component extends DCLogic {
       inputEl: this.setInput,
       onSubmit: this.onSubmit,
       thinking: this.state.thinking,
-      statusText: this.state.thinking ? 'typing…' : 'online',
+      langLabel: (this.LANGS().find((l) => l.code === this.state.lang) || {}).mark || 'EN',
+      langOptions: this.LANGS().map((l) => ({
+        name: l.name, mark: l.mark,
+        pick: () => this.setState({ lang: l.code }),
+        style: 'background:' + (l.code === this.state.lang ? '#EAF5FD' : 'transparent') + ';color:' + (l.code === this.state.lang ? '#0A84D6' : '#0B2440'),
+      })),
+      statusText: this.state.thinking
+        ? this.tr({ t: 'typing…', t_hi: 'लिख रहे हैं…', t_gu: 'લખી રહ્યાં છે…' }, 't')
+        : this.tr({ t: 'online', t_hi: 'ऑनलाइन', t_gu: 'ઓનલાઇન' }, 't'),
       messages: this.state.messages.map((m) => {
         const me = m.role === 'user';
         return {
@@ -174,11 +203,11 @@ class Component extends DCLogic {
         };
       }),
       chips: [
-        { label: 'Kerala family trip', send: () => this.ask('I want a Kerala family trip for 4 people, 6 days, around ₹30,000 per person.') },
-        { label: 'Honeymoon ideas', send: () => this.ask('Suggest a honeymoon destination for a week within ₹60,000 per person.') },
-        { label: 'Rajasthan package', send: () => this.ask('Can you suggest a Rajasthan package and how many days I need?') },
-        { label: 'Best time for Kashmir', send: () => this.ask('What is the best time to visit Kashmir?') },
-      ],
+        { label: 'Kerala family trip', label_hi: 'केरल परिवार यात्रा', label_gu: 'કેરળ કુટુંબ યાત્રા', send: () => this.ask('I want a Kerala family trip for 4 people, 6 days, around ₹30,000 per person.') },
+        { label: 'Honeymoon ideas', label_hi: 'हनीमून सुझाव', label_gu: 'હનીમૂન સૂચનો', send: () => this.ask('Suggest a honeymoon destination for a week within ₹60,000 per person.') },
+        { label: 'Rajasthan package', label_hi: 'राजस्थान पैकेज', label_gu: 'રાજસ્થાન પેકેજ', send: () => this.ask('Can you suggest a Rajasthan package and how many days I need?') },
+        { label: 'Best time for Kashmir', label_hi: 'कश्मीर का सही समय', label_gu: 'કાશ્મીર માટે શ્રેષ્ઠ સમય', send: () => this.ask('What is the best time to visit Kashmir?') },
+      ].map((c) => ({ ...c, label: this.tr(c, 'label') })),
     };
   }
 }

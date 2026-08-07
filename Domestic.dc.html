@@ -23,7 +23,7 @@
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@500;600;700&family=Noto+Sans+Gujarati:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   *{box-sizing:border-box}
   body{margin:0;background:linear-gradient(180deg, #e9f2fb 0%, #f5efe6 45%, #f3ede3 100%);background-attachment:fixed;color:#0B2440;font-family:'Plus Jakarta Sans',sans-serif;-webkit-font-smoothing:antialiased}
@@ -49,18 +49,19 @@
         <image-slot id="brand-logo" src="images/logo.png" style="width:200px;height:48px;display:block" shape="rounded" radius="8" fit="contain" position="0% 50%" placeholder="Drop your logo"></image-slot>
       </a>
       <nav style="display:flex;align-items:center;gap:19px;margin-left:8px;flex-wrap:wrap;font-size:13.5px;font-weight:600;color:#3A4D5E">
-        <a class="navlink" href="Domestic.dc.html" style="color:#0A84D6" data-en="Domestic Tours" data-hi="भारत यात्रा">Domestic Tours</a>
-        <a class="navlink" href="International.dc.html" data-en="International" data-hi="विदेश यात्रा">International</a>
-        <a class="navlink" href="Customize.dc.html" data-en="Customized" data-hi="अनुकूलित">Customized</a>
-        <a class="navlink" href="index.html#flights" data-en="Flights" data-hi="उड़ानें">Flights</a>
-        <a class="navlink" href="index.html#flights" data-en="Hotels" data-hi="होटल">Hotels</a>
+        <a class="navlink" href="Domestic.dc.html" style="color:#0A84D6" data-en="Domestic Tours" data-hi="भारत यात्रा" data-gu="ભારત યાત્રા">Domestic Tours</a>
+        <a class="navlink" href="International.dc.html" data-en="International" data-hi="विदेश यात्रा" data-gu="વિદેશ યાત્રા">International</a>
+        <a class="navlink" href="Customize.dc.html" data-en="Customized" data-hi="अनुकूलित" data-gu="કસ્ટમાઇઝ્ડ">Customized</a>
+        <a class="navlink" href="index.html#flights" data-en="Flights" data-hi="उड़ानें" data-gu="ફ્લાઇટ્સ">Flights</a>
+        <a class="navlink" href="index.html#flights" data-en="Hotels" data-hi="होटल" data-gu="હોટેલ">Hotels</a>
       </nav>
       <div style="margin-left:auto;display:flex;align-items:center;gap:12px;flex-shrink:0">
-        <button onClick="{{ toggleLang }}" style="border:1px solid #E4ECF3;background:#fff;cursor:pointer;font-family:inherit;font-weight:700;font-size:13px;color:#0B2440;height:38px;padding:0 14px;border-radius:10px;display:flex;align-items:center;gap:6px">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9.2" stroke="#0A84D6" stroke-width="1.6"/><path d="M3 12h18M12 3c2.5 2.5 2.5 15 0 18M12 3c-2.5 2.5-2.5 15 0 18" stroke="#0A84D6" stroke-width="1.4"/></svg>
-          {{ langLabel }}
-        </button>
-        <a class="cbtn" href="Customize.dc.html" style="background:#FF6A3D;color:#fff;font-weight:700;font-size:13px;padding:10px 16px;border-radius:10px;box-shadow:0 8px 18px -8px rgba(255,106,61,.7)" data-en="Customize My Trip" data-hi="यात्रा बनाएं">Customize My Trip</a>
+        <div style="display:flex;align-items:center;border:1px solid #E4ECF3;border-radius:10px;overflow:hidden;height:38px" role="group" aria-label="Language">
+          <sc-for list="{{ langOptions }}" as="lo" hint-placeholder-count="3">
+            <button onClick="{{ lo.pick }}" title="{{ lo.name }}" style="{{ lo.style }};cursor:pointer;font-family:inherit;font-weight:700;font-size:13px;border:0;border-left:1px solid #EEF3F7;padding:0 12px;height:100%">{{ lo.mark }}</button>
+          </sc-for>
+        </div>
+        <a class="cbtn" href="Customize.dc.html" style="background:#FF6A3D;color:#fff;font-weight:700;font-size:13px;padding:10px 16px;border-radius:10px;box-shadow:0 8px 18px -8px rgba(255,106,61,.7)" data-en="Customize My Trip" data-hi="यात्रा बनाएं" data-gu="યાત્રા બનાવો">Customize My Trip</a>
       </div>
     </div>
   </header>
@@ -68,9 +69,9 @@
   <!-- Page header -->
   <section style="background:linear-gradient(180deg,#EAF5FD,#fff)">
     <div style="max-width:1240px;margin:0 auto;padding:46px 28px 34px">
-      <div style="font-size:13px;font-weight:600;color:#5C6F80;margin-bottom:14px"><a href="index.html" style="color:#0A84D6">Home</a> &nbsp;/&nbsp; <span data-en="Domestic Tours" data-hi="भारत यात्रा">Domestic Tours</span></div>
-      <h1 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:46px;letter-spacing:-.02em;margin:0;max-width:760px" data-en="Tour packages across India" data-hi="भारत भर के टूर पैकेज">Tour packages across India</h1>
-      <p style="font-size:17px;color:#46596A;max-width:620px;margin:16px 0 0" data-en="Browse curated circuits by region. Every package can be tailored with 3-, 4- or 5-star hotels and your own dates." data-hi="क्षेत्र अनुसार चुनिंदा सर्किट देखें। हर पैकेज 3, 4 या 5-स्टार होटल और आपकी तारीखों के अनुसार बनाया जा सकता है।">Browse curated circuits by region. Every package can be tailored with 3-, 4- or 5-star hotels and your own dates.</p>
+      <div style="font-size:13px;font-weight:600;color:#5C6F80;margin-bottom:14px"><a href="index.html" style="color:#0A84D6">Home</a> &nbsp;/&nbsp; <span data-en="Domestic Tours" data-hi="भारत यात्रा" data-gu="ભારત યાત્રા">Domestic Tours</span></div>
+      <h1 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:46px;letter-spacing:-.02em;margin:0;max-width:760px" data-en="Tour packages across India" data-hi="भारत भर के टूर पैकेज" data-gu="ભારત ભરના ટૂર પેકેજ">Tour packages across India</h1>
+      <p style="font-size:17px;color:#46596A;max-width:620px;margin:16px 0 0" data-en="Browse curated circuits by region. Every package can be tailored with 3-, 4- or 5-star hotels and your own dates." data-hi="क्षेत्र अनुसार चुनिंदा सर्किट देखें। हर पैकेज 3, 4 या 5-स्टार होटल और आपकी तारीखों के अनुसार बनाया जा सकता है।" data-gu="પ્રદેશ મુજબ પસંદ કરેલા સર્કિટ જુઓ. દરેક પેકેજ 3, 4 કે 5-સ્ટાર હોટેલ અને તમારી પોતાની તારીખો મુજબ બનાવી શકાય છે.">Browse curated circuits by region. Every package can be tailored with 3-, 4- or 5-star hotels and your own dates.</p>
     </div>
   </section>
 
@@ -105,10 +106,10 @@
                 <div style="font-size:13px;color:#5C6F80;font-weight:600;line-height:1.45;min-height:38px">{{ p.route }}</div>
                 <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-top:14px;padding-top:14px;border-top:1px solid #F0F4F7">
                   <div>
-                    <div style="font-size:11px;color:#8094A4;font-weight:600">From (3★, per person)</div>
+                    <div style="font-size:11px;color:#8094A4;font-weight:600" data-en="From (3★, per person)" data-hi="शुरू (3★, प्रति व्यक्ति)" data-gu="થી (3★, વ્યક્તિ દીઠ)">From (3★, per person)</div>
                     <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:20px;color:#0B2440">{{ p.price }}</div>
                   </div>
-                  <span style="background:#EAF5FD;color:#0A6FB8;font-weight:700;font-size:12.5px;padding:8px 14px;border-radius:10px">View →</span>
+                  <span style="background:#EAF5FD;color:#0A6FB8;font-weight:700;font-size:12.5px;padding:8px 14px;border-radius:10px" data-en="View →" data-hi="देखें →" data-gu="જુઓ →">View →</span>
                 </div>
               </div>
             </a>
@@ -119,10 +120,10 @@
 
     <div style="margin-top:20px;background:#0B2440;border-radius:24px;padding:40px 44px;display:flex;align-items:center;justify-content:space-between;gap:30px;flex-wrap:wrap">
       <div style="color:#fff;max-width:560px">
-        <h3 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:28px;letter-spacing:-.01em;margin:0" data-en="Don't see your exact trip?" data-hi="अपनी यात्रा नहीं मिली?">Don't see your exact trip?</h3>
-        <p style="font-size:15px;color:rgba(255,255,255,.72);margin:10px 0 0" data-en="Tell us where, when and how you like to travel — we'll build a fully customized itinerary." data-hi="हमें बताएं कहाँ, कब और कैसे यात्रा करना चाहते हैं — हम पूरी तरह अनुकूलित योजना बनाएंगे।">Tell us where, when and how you like to travel — we'll build a fully customized itinerary.</p>
+        <h3 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:28px;letter-spacing:-.01em;margin:0" data-en="Don't see your exact trip?" data-hi="अपनी यात्रा नहीं मिली?" data-gu="તમારી ચોક્કસ યાત્રા ન મળી?">Don't see your exact trip?</h3>
+        <p style="font-size:15px;color:rgba(255,255,255,.72);margin:10px 0 0" data-en="Tell us where, when and how you like to travel — we'll build a fully customized itinerary." data-hi="हमें बताएं कहाँ, कब और कैसे यात्रा करना चाहते हैं — हम पूरी तरह अनुकूलित योजना बनाएंगे।" data-gu="અમને કહો ક્યાં, ક્યારે અને કેવી રીતે યાત્રા કરવા માંગો છો — અમે સંપૂર્ણ કસ્ટમાઇઝ્ડ યોજના બનાવીશું.">Tell us where, when and how you like to travel — we'll build a fully customized itinerary.</p>
       </div>
-      <a class="cbtn" href="Customize.dc.html" style="background:#FF6A3D;color:#fff;font-weight:800;font-size:15px;padding:16px 28px;border-radius:14px;box-shadow:0 14px 30px -12px rgba(255,106,61,.7)" data-en="Customize My Trip" data-hi="यात्रा बनाएं">Customize My Trip</a>
+      <a class="cbtn" href="Customize.dc.html" style="background:#FF6A3D;color:#fff;font-weight:800;font-size:15px;padding:16px 28px;border-radius:14px;box-shadow:0 14px 30px -12px rgba(255,106,61,.7)" data-en="Customize My Trip" data-hi="यात्रा बनाएं" data-gu="યાત્રા બનાવો">Customize My Trip</a>
     </div>
   </section>
 
@@ -132,7 +133,7 @@
 
   <a href="WhatsApp.dc.html?msg=Hello%20Skyline%20Travel%20Planner.%20I%20am%20interested%20in%20a%20domestic%20tour%20package." class="cbtn" style="position:fixed;right:22px;bottom:22px;z-index:8000;display:flex;align-items:center;gap:10px;background:#25D366;color:#fff;font-weight:700;font-size:14px;padding:14px 20px;border-radius:999px;box-shadow:0 16px 34px -10px rgba(37,211,102,.7)">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M12 2a10 10 0 00-8.6 15l-1.3 4.8 4.9-1.3A10 10 0 1012 2zm5.6 14.2c-.2.6-1.2 1.2-1.7 1.2-.4 0-1 .1-3-.8a11 11 0 01-4.6-4.1c-.3-.5-.8-1.4-.8-2.2 0-.8.4-1.2.6-1.4.2-.2.4-.2.6-.2h.4c.2 0 .4 0 .6.5l.7 1.7c0 .2.1.4 0 .5l-.3.5-.3.3c-.1.1-.3.3-.1.5.1.3.7 1.1 1.4 1.7 1 .8 1.7 1.1 2 1.2.2.1.4.1.5-.1l.6-.8c.2-.2.3-.2.5-.1l1.6.8c.2.1.4.2.4.3.1.1.1.6 0 .9z"/></svg>
-    <span data-en="Chat with us" data-hi="हमसे चैट करें">Chat with us</span>
+    <span data-en="Chat with us" data-hi="हमसे चैट करें" data-gu="અમારી સાથે ચેટ કરો">Chat with us</span>
   </a>
 
   <dc-import name="AssistantWidget" hint-size="0,0"></dc-import>
@@ -146,12 +147,19 @@ class Component extends DCLogic {
 
   applyLang() {
     if (!this.rootEl) return;
-    const hi = this.state.lang === 'hi';
+    const L = this.state.lang;
+    const font = L === 'hi' ? "'Noto Sans Devanagari','Plus Jakarta Sans',sans-serif"
+               : L === 'gu' ? "'Noto Sans Gujarati','Plus Jakarta Sans',sans-serif" : '';
+    this.rootEl.style.fontFamily = font;
     this.rootEl.querySelectorAll('[data-en]').forEach((n) => {
-      n.textContent = hi ? (n.getAttribute('data-hi') || n.getAttribute('data-en')) : n.getAttribute('data-en');
-      n.style.fontFamily = hi ? "'Noto Sans Devanagari','Plus Jakarta Sans',sans-serif" : '';
+      n.textContent = n.getAttribute('data-' + L) || n.getAttribute('data-en');
+    });
+    this.rootEl.querySelectorAll('[data-en-ph]').forEach((n) => {
+      n.setAttribute('placeholder', n.getAttribute('data-' + L + '-ph') || n.getAttribute('data-en-ph'));
     });
   }
+  tr(o, key) { return (o && (o[key + '_' + this.state.lang] || o[key])) || ''; }
+  LANGS() { return [{ code:'en', name:'English', mark:'EN' }, { code:'hi', name:'हिंदी', mark:'हिं' }, { code:'gu', name:'ગુજરાતી', mark:'ગુ' }]; }
   componentDidUpdate() { this.applyLang(); }
 
   scrollTo(key) {
@@ -161,62 +169,68 @@ class Component extends DCLogic {
 
   renderVals() {
     const regionDefs = [
-      { key: 'north', label: 'North India' },
-      { key: 'west', label: 'Western India' },
-      { key: 'east', label: 'East India' },
-      { key: 'northeast', label: 'Northeast India' },
-      { key: 'south', label: 'South India' },
+      { key: 'north', label: 'North India', label_hi: 'उत्तर भारत', label_gu: 'ઉત્તર ભારત' },
+      { key: 'west', label: 'Western India', label_hi: 'पश्चिम भारत', label_gu: 'પશ્ચિમ ભારત' },
+      { key: 'east', label: 'East India', label_hi: 'पूर्व भारत', label_gu: 'પૂર્વ ભારત' },
+      { key: 'northeast', label: 'Northeast India', label_hi: 'पूर्वोत्तर भारत', label_gu: 'ઉત્તરપૂર્વ ભારત' },
+      { key: 'south', label: 'South India', label_hi: 'दक्षिण भारत', label_gu: 'દક્ષિણ ભારત' },
     ];
     const collections = [
-      { key: 'north', region: 'North India', accent: '#0A84D6', note: 'Rajasthan · Himachal · Uttarakhand · Kashmir · Uttar Pradesh', packages: [
-        { id: 't-raj', slug: 'rajasthan', img: 'images/dest-rajasthan.jpg', name: 'Royal Rajasthan', route: 'Jaipur · Jodhpur · Udaipur · Jaisalmer', duration: '7N / 8D', tag: 'Heritage', price: '₹24,900' },
-        { id: 't-him', slug: 'himachal', img: 'images/dest-himachal.avif', name: 'Himachal Hills', route: 'Shimla · Manali · Dharamshala', duration: '6N / 7D', tag: 'Family', price: '₹21,500' },
-        { id: 't-kash', slug: 'kashmir', img: 'images/dest-kashmir.webp', name: 'Kashmir Valley', route: 'Srinagar · Gulmarg · Pahalgam · Sonamarg', duration: '5N / 6D', tag: 'Honeymoon', price: '₹27,800' },
-        { id: 't-kaus', slug: 'kausani', img: 'images/t-kaus.png', name: 'Kausani & Kumaon', route: 'Kausani · Baijnath · Almora · Bageshwar', duration: '5N / 6D', tag: 'Off-beat', price: '₹19,700' },
-        { id: 't-naini', slug: 'nainital-corbett', img: 'images/dest-uttarakhand.jpg', name: 'Nainital · Mussoorie · Corbett', route: 'Mussoorie · Nainital · Jim Corbett', duration: '6N / 7D', tag: 'Wildlife', price: 'On request' },
-        { id: 't-shml', slug: 'shimla-manali', img: 'images/dest-himachal.avif', name: 'Shimla & Manali', route: 'Shimla · Kufri · Kullu · Solang · Manali', duration: '5N / 6D', tag: 'Family', price: 'On request' },
-        { id: 't-spiti', slug: 'spiti-valley', img: 'images/dest-himachal.avif', name: 'Untouched Spiti Valley', route: 'Narkanda · Sangla · Chitkul · Tabo · Kaza · Kalpa', duration: '8N / 9D', tag: 'Adventure', price: 'On request' },
+      { key: 'north', region: 'North India', region_hi: 'उत्तर भारत', region_gu: 'ઉત્તર ભારત', accent: '#0A84D6', note: 'Rajasthan · Himachal · Uttarakhand · Kashmir · Uttar Pradesh', note_hi: 'राजस्थान · हिमाचल · उत्तराखंड · कश्मीर · उत्तर प्रदेश', note_gu: 'રાજસ્થાન · હિમાચલ · ઉત્તરાખંડ · કાશ્મીર · ઉત્તર પ્રદેશ', packages: [
+        { id: 't-raj', slug: 'rajasthan', img: 'images/dest-rajasthan.jpg', name: 'Royal Rajasthan', name_hi: 'शाही राजस्थान', name_gu: 'શાહી રાજસ્થાન', route: 'Jaipur · Jodhpur · Udaipur · Jaisalmer', route_hi: 'जयपुर · जोधपुर · उदयपुर · जैसलमेर', route_gu: 'જયપુર · જોધપુર · ઉદયપુર · જેસલમેર', duration: '7N / 8D', tag: 'Heritage', tag_hi: 'विरासत', tag_gu: 'વારસો', price: '₹24,900' },
+        { id: 't-him', slug: 'himachal', img: 'images/dest-himachal.avif', name: 'Himachal Hills', name_hi: 'हिमाचल की पहाड़ियाँ', name_gu: 'હિમાચલની ટેકરીઓ', route: 'Shimla · Manali · Dharamshala', route_hi: 'शिमला · मनाली · धर्मशाला', route_gu: 'શિમલા · મનાલી · ધર્મશાલા', duration: '6N / 7D', tag: 'Family', tag_hi: 'परिवार', tag_gu: 'કુટુંબ', price: '₹21,500' },
+        { id: 't-kash', slug: 'kashmir', img: 'images/dest-kashmir.webp', name: 'Kashmir Valley', name_hi: 'कश्मीर घाटी', name_gu: 'કાશ્મીર ખીણ', route: 'Srinagar · Gulmarg · Pahalgam · Sonamarg', route_hi: 'श्रीनगर · गुलमर्ग · पहलगाम · सोनमर्ग', route_gu: 'શ્રીનગર · ગુલમર્ગ · પહલગામ · સોનમર્ગ', duration: '5N / 6D', tag: 'Honeymoon', tag_hi: 'हनीमून', tag_gu: 'હનીમૂન', price: '₹27,800' },
+        { id: 't-kaus', slug: 'kausani', img: 'images/t-kaus.png', name: 'Kausani & Kumaon', name_hi: 'कौसानी और कुमाऊँ', name_gu: 'કૌસાની અને કુમાઉં', route: 'Kausani · Baijnath · Almora · Bageshwar', route_hi: 'कौसानी · बैजनाथ · अल्मोड़ा · बागेश्वर', route_gu: 'કૌસાની · બૈજનાથ · અલ્મોડા · બાગેશ્વર', duration: '5N / 6D', tag: 'Off-beat', tag_hi: 'अनोखा', tag_gu: 'અનોખું', price: '₹19,700' },
+        { id: 't-naini', slug: 'nainital-corbett', img: 'images/dest-uttarakhand.jpg', name: 'Nainital · Mussoorie · Corbett', name_hi: 'नैनीताल · मसूरी · कॉर्बेट', name_gu: 'નૈનીતાલ · મસૂરી · કોર્બેટ', route: 'Mussoorie · Nainital · Jim Corbett', route_hi: 'मसूरी · नैनीताल · जिम कॉर्बेट', route_gu: 'મસૂરી · નૈનીતાલ · જિમ કોર્બેટ', duration: '6N / 7D', tag: 'Wildlife', tag_hi: 'वन्यजीव', tag_gu: 'વન્યજીવન', price: 'On request' },
+        { id: 't-shml', slug: 'shimla-manali', img: 'images/dest-himachal.avif', name: 'Shimla & Manali', name_hi: 'शिमला और मनाली', name_gu: 'શિમલા અને મનાલી', route: 'Shimla · Kufri · Kullu · Solang · Manali', route_hi: 'शिमला · कुफरी · कुल्लू · सोलंग · मनाली', route_gu: 'શિમલા · કુફરી · કુલ્લુ · સોલંગ · મનાલી', duration: '5N / 6D', tag: 'Family', tag_hi: 'परिवार', tag_gu: 'કુટુંબ', price: 'On request' },
+        { id: 't-spiti', slug: 'spiti-valley', img: 'images/dest-himachal.avif', name: 'Untouched Spiti Valley', name_hi: 'अछूती स्पीति घाटी', name_gu: 'અસ્પૃશ્ય સ્પિતિ ખીણ', route: 'Narkanda · Sangla · Chitkul · Tabo · Kaza · Kalpa', route_hi: 'नारकंडा · सांगला · छितकुल · ताबो · काज़ा · कल्पा', route_gu: 'નારકંડા · સાંગલા · છિતકુલ · તાબો · કાઝા · કલ્પા', duration: '8N / 9D', tag: 'Adventure', tag_hi: 'रोमांच', tag_gu: 'સાહસ', price: 'On request' },
       ]},
-      { key: 'west', region: 'Western India', accent: '#FF6A3D', note: 'Gujarat · Goa', packages: [
-        { id: 't-guj', slug: 'gujarat', img: 'images/dest-rajasthan.jpg', name: 'Gujarat Darshan', route: 'Dwarka · Somnath · Statue of Unity · Kutch', duration: '6N / 7D', tag: 'Religious', price: '₹22,400' },
-        { id: 't-goa', slug: 'goa', img: 'images/dest-goa.jpg', name: 'Goa Getaway', route: 'North Goa · South Goa · Beaches', duration: '4N / 5D', tag: 'Couples', price: '₹16,900' },
-        { id: 't-up', slug: 'agra', img: 'images/dest-agra.jpg', name: 'Braj & Agra Yatra', route: 'Mathura · Vrindavan · Gokul · Agra', duration: '3N / 4D', tag: 'Spiritual', price: '₹12,500' },
+      { key: 'west', region: 'Western India', region_hi: 'पश्चिम भारत', region_gu: 'પશ્ચિમ ભારત', accent: '#FF6A3D', note: 'Gujarat · Goa', note_hi: 'गुजरात · गोवा', note_gu: 'ગુજરાત · ગોવા', packages: [
+        { id: 't-guj', slug: 'gujarat', img: 'images/dest-rajasthan.jpg', name: 'Gujarat Darshan', name_hi: 'गुजरात दर्शन', name_gu: 'ગુજરાત દર્શન', route: 'Dwarka · Somnath · Statue of Unity · Kutch', route_hi: 'द्वारका · सोमनाथ · स्टैच्यू ऑफ यूनिटी · कच्छ', route_gu: 'દ્વારકા · સોમનાથ · સ્ટેચ્યુ ઓફ યુનિટી · કચ્છ', duration: '6N / 7D', tag: 'Religious', tag_hi: 'धार्मिक', tag_gu: 'ધાર્મિક', price: '₹22,400' },
+        { id: 't-goa', slug: 'goa', img: 'images/dest-goa.jpg', name: 'Goa Getaway', name_hi: 'गोवा गेटअवे', name_gu: 'ગોવા ગેટવે', route: 'North Goa · South Goa · Beaches', route_hi: 'उत्तर गोवा · दक्षिण गोवा · समुद्र तट', route_gu: 'ઉત્તર ગોવા · દક્ષિણ ગોવા · દરિયાકિનારા', duration: '4N / 5D', tag: 'Couples', tag_hi: 'जोड़ों के लिए', tag_gu: 'યુગલો માટે', price: '₹16,900' },
+        { id: 't-up', slug: 'agra', img: 'images/dest-agra.jpg', name: 'Braj & Agra Yatra', name_hi: 'ब्रज और आगरा यात्रा', name_gu: 'બ્રજ અને આગ્રા યાત્રા', route: 'Mathura · Vrindavan · Gokul · Agra', route_hi: 'मथुरा · वृंदावन · गोकुल · आगरा', route_gu: 'મથુરા · વૃંદાવન · ગોકુલ · આગ્રા', duration: '3N / 4D', tag: 'Spiritual', tag_hi: 'आध्यात्मिक', tag_gu: 'આધ્યાત્મિક', price: '₹12,500' },
       ]},
-      { key: 'east', region: 'East India', accent: '#1DA66B', note: 'Sikkim & the Himalayas', packages: [
-        { id: 't-sik', slug: 'sikkim', img: 'images/dest-sikkim.jpg', name: 'Sikkim Discovery', route: 'Gangtok · Pelling · Lachung · North Sikkim', duration: '6N / 7D', tag: 'Mountains', price: '₹25,600' },
-        { id: 't-sikh', slug: 'sikkim', img: 'images/dest-sikkim-tsomgo.jpg', name: 'Sikkim Honeymoon', route: 'Gangtok · Tsomgo Lake · Pelling', duration: '5N / 6D', tag: 'Honeymoon', price: '₹23,200' },
-        { id: 't-darj', slug: 'sikkim', img: 'images/dest-darjeeling.jpg', name: 'Gangtok & Darjeeling', route: 'Darjeeling · Gangtok · Tea gardens', duration: '6N / 7D', tag: 'Scenic', price: '₹24,100' },
-        { id: 't-skd', slug: 'sikkim-darjeeling', img: 'images/dest-sikkim-tsomgo.jpg', name: 'Sikkim & Darjeeling', route: 'Gangtok · Tsomgo Lake · Baba Mandir · Darjeeling', duration: '5N / 6D', tag: 'Scenic', price: 'On request' },
+      { key: 'east', region: 'East India', region_hi: 'पूर्व भारत', region_gu: 'પૂર્વ ભારત', accent: '#1DA66B', note: 'Sikkim & the Himalayas', note_hi: 'सिक्किम और हिमालय', note_gu: 'સિક્કિમ અને હિમાલય', packages: [
+        { id: 't-sik', slug: 'sikkim', img: 'images/dest-sikkim.jpg', name: 'Sikkim Discovery', name_hi: 'सिक्किम खोज', name_gu: 'સિક્કિમ શોધ', route: 'Gangtok · Pelling · Lachung · North Sikkim', route_hi: 'गंगटोक · पेलिंग · लाचुंग · उत्तर सिक्किम', route_gu: 'ગંગટોક · પેલિંગ · લાચુંગ · ઉત્તર સિક્કિમ', duration: '6N / 7D', tag: 'Mountains', tag_hi: 'पर्वत', tag_gu: 'પર્વતો', price: '₹25,600' },
+        { id: 't-sikh', slug: 'sikkim', img: 'images/dest-sikkim-tsomgo.jpg', name: 'Sikkim Honeymoon', name_hi: 'सिक्किम हनीमून', name_gu: 'સિક્કિમ હનીમૂન', route: 'Gangtok · Tsomgo Lake · Pelling', route_hi: 'गंगटोक · त्सोमगो झील · पेलिंग', route_gu: 'ગંગટોક · ત્સોમ્ગો તળાવ · પેલિંગ', duration: '5N / 6D', tag: 'Honeymoon', tag_hi: 'हनीमून', tag_gu: 'હનીમૂન', price: '₹23,200' },
+        { id: 't-darj', slug: 'sikkim', img: 'images/dest-darjeeling.jpg', name: 'Gangtok & Darjeeling', name_hi: 'गंगटोक और दार्जिलिंग', name_gu: 'ગંગટોક અને દાર્જિલિંગ', route: 'Darjeeling · Gangtok · Tea gardens', route_hi: 'दार्जिलिंग · गंगटोक · चाय बागान', route_gu: 'દાર્જિલિંગ · ગંગટોક · ચાના બગીચા', duration: '6N / 7D', tag: 'Scenic', tag_hi: 'मनोरम', tag_gu: 'મનોહર', price: '₹24,100' },
+        { id: 't-skd', slug: 'sikkim-darjeeling', img: 'images/dest-sikkim-tsomgo.jpg', name: 'Sikkim & Darjeeling', name_hi: 'सिक्किम और दार्जिलिंग', name_gu: 'સિક્કિમ અને દાર્જિલિંગ', route: 'Gangtok · Tsomgo Lake · Baba Mandir · Darjeeling', route_hi: 'गंगटोक · त्सोमगो झील · बाबा मंदिर · दार्जिलिंग', route_gu: 'ગંગટોક · ત્સોમ્ગો તળાવ · બાબા મંદિર · દાર્જિલિંગ', duration: '5N / 6D', tag: 'Scenic', tag_hi: 'मनोरम', tag_gu: 'મનોહર', price: 'On request' },
       ]},
-      { key: 'northeast', region: 'Northeast India', accent: '#0FA3A3', note: 'Meghalaya · Assam · Arunachal · Nagaland · Manipur · Mizoram', packages: [
-        { id: 't-megh', slug: 'meghalaya', img: 'images/t-megh.png', name: 'Meghalaya Wonders', route: 'Shillong · Cherrapunji · Dawki · Mawlynnong', duration: '6N / 7D', tag: 'Scenic', price: '₹28,900' },
-        { id: 't-assam', slug: 'assam', img: 'images/t-assam.png', name: 'Assam & Kaziranga', route: 'Guwahati · Kaziranga · Majuli · Tea gardens', duration: '5N / 6D', tag: 'Wildlife', price: '₹26,400' },
-        { id: 't-arun', slug: 'arunachal', img: 'images/t-arun.png', name: 'Arunachal Explorer', route: 'Tawang · Bomdila · Dirang · Sela Pass', duration: '7N / 8D', tag: 'Adventure', price: '₹34,500' },
-        { id: 't-naga', slug: 'nagaland', img: 'images/t-naga.png', name: 'Nagaland Highlands', route: 'Kohima · Dzukou Valley · Khonoma', duration: '6N / 7D', tag: 'Culture', price: '₹29,800' },
-        { id: 't-mani', slug: 'manipur', img: 'images/t-mani.png', name: 'Manipur & Loktak', route: 'Imphal · Loktak Lake · Kangla · Moirang', duration: '5N / 6D', tag: 'Off-beat', price: '₹27,600' },
-        { id: 't-mizo', slug: 'mizoram', img: 'images/t-mizo.png', name: 'Mizoram Discovery', route: 'Aizawl · Reiek · Hmuifang · Vantawng', duration: '6N / 7D', tag: 'Off-beat', price: '₹30,200' },
+      { key: 'northeast', region: 'Northeast India', region_hi: 'पूर्वोत्तर भारत', region_gu: 'ઉત્તરપૂર્વ ભારત', accent: '#0FA3A3', note: 'Meghalaya · Assam · Arunachal · Nagaland · Manipur · Mizoram', note_hi: 'मेघालय · असम · अरुणाचल · नागालैंड · मणिपुर · मिज़ोरम', note_gu: 'મેઘાલય · આસામ · અરુણાચલ · નાગાલેન્ડ · મણિપુર · મિઝોરમ', packages: [
+        { id: 't-megh', slug: 'meghalaya', img: 'images/t-megh.png', name: 'Meghalaya Wonders', name_hi: 'मेघालय के अजूबे', name_gu: 'મેઘાલયના અજાયબીઓ', route: 'Shillong · Cherrapunji · Dawki · Mawlynnong', route_hi: 'शिलांग · चेरापूंजी · डावकी · मावलिननॉन्ग', route_gu: 'શિલોંગ · ચેરાપૂંજી · ડાવકી · માવલિનનોંગ', duration: '6N / 7D', tag: 'Scenic', tag_hi: 'मनोरम', tag_gu: 'મનોહર', price: '₹28,900' },
+        { id: 't-assam', slug: 'assam', img: 'images/t-assam.png', name: 'Assam & Kaziranga', name_hi: 'असम और काज़ीरंगा', name_gu: 'આસામ અને કાઝીરંગા', route: 'Guwahati · Kaziranga · Majuli · Tea gardens', route_hi: 'गुवाहाटी · काज़ीरंगा · माजुली · चाय बागान', route_gu: 'ગુવાહાટી · કાઝીરંગા · માજુલી · ચાના બગીચા', duration: '5N / 6D', tag: 'Wildlife', tag_hi: 'वन्यजीव', tag_gu: 'વન્યજીવન', price: '₹26,400' },
+        { id: 't-arun', slug: 'arunachal', img: 'images/t-arun.png', name: 'Arunachal Explorer', name_hi: 'अरुणाचल एक्सप्लोरर', name_gu: 'અરુણાચલ એક્સપ્લોરર', route: 'Tawang · Bomdila · Dirang · Sela Pass', route_hi: 'तवांग · बोमडिला · दिरांग · सेला दर्रा', route_gu: 'તવાંગ · બોમડિલા · દિરાંગ · સેલા ઘાટ', duration: '7N / 8D', tag: 'Adventure', tag_hi: 'रोमांच', tag_gu: 'સાહસ', price: '₹34,500' },
+        { id: 't-naga', slug: 'nagaland', img: 'images/t-naga.png', name: 'Nagaland Highlands', name_hi: 'नागालैंड हाइलैंड्स', name_gu: 'નાગાલેન્ડ હાઇલેન્ડ્સ', route: 'Kohima · Dzukou Valley · Khonoma', route_hi: 'कोहिमा · दज़ुकोऊ घाटी · खोनोमा', route_gu: 'કોહિમા · ડઝુકોઉ ખીણ · ખોનોમા', duration: '6N / 7D', tag: 'Culture', tag_hi: 'संस्कृति', tag_gu: 'સંસ્કૃતિ', price: '₹29,800' },
+        { id: 't-mani', slug: 'manipur', img: 'images/t-mani.png', name: 'Manipur & Loktak', name_hi: 'मणिपुर और लोकतक', name_gu: 'મણિપુર અને લોકતક', route: 'Imphal · Loktak Lake · Kangla · Moirang', route_hi: 'इंफाल · लोकतक झील · कांगला · मोइरांग', route_gu: 'ઇમ્ફાલ · લોકતક તળાવ · કાંગલા · મોઇરાંગ', duration: '5N / 6D', tag: 'Off-beat', tag_hi: 'अनोखा', tag_gu: 'અનોખું', price: '₹27,600' },
+        { id: 't-mizo', slug: 'mizoram', img: 'images/t-mizo.png', name: 'Mizoram Discovery', name_hi: 'मिज़ोरम खोज', name_gu: 'મિઝોરમ શોધ', route: 'Aizawl · Reiek · Hmuifang · Vantawng', route_hi: 'आइज़ोल · रेइक · ह्मुइफांग · वंतावंग', route_gu: 'આઇઝોલ · રેઇક · હ્મુઇફાંગ · વંતાવંગ', duration: '6N / 7D', tag: 'Off-beat', tag_hi: 'अनोखा', tag_gu: 'અનોખું', price: '₹30,200' },
       ]},
-      { key: 'south', region: 'South India', accent: '#7C5CFF', note: 'Kerala · Karnataka & the Nilgiris · Tamil Nadu', packages: [
-        { id: 't-ker', slug: 'kerala', img: 'images/dest-kerala.webp', name: 'Kerala Backwaters', route: 'Kochi · Munnar · Thekkady · Alappuzha', duration: '6N / 7D', tag: 'Family', price: '₹23,900' },
-        { id: 't-mys', slug: 'mysuru', img: 'images/dest-mysuru.jpg', name: 'Mysuru–Coorg–Ooty', route: 'Bengaluru · Mysuru · Coorg · Ooty', duration: '6N / 7D', tag: 'Hill stations', price: '₹20,800' },
-        { id: 't-temple', slug: 'south-temple', img: 'images/dest-ooty.webp', name: 'South Temple Trail', route: 'Madurai · Rameswaram · Kanyakumari', duration: '5N / 6D', tag: 'Religious', price: '₹19,400' },
-        { id: 't-ocm', slug: 'ooty-coorg-mysore', img: 'images/dest-mysuru.jpg', name: 'Ooty · Coorg · Mysore', route: 'Mysore · Coorg · Ooty · Coonoor', duration: '5N / 6D', tag: 'Hill stations', price: 'On request' },
+      { key: 'south', region: 'South India', region_hi: 'दक्षिण भारत', region_gu: 'દક્ષિણ ભારત', accent: '#7C5CFF', note: 'Kerala · Karnataka & the Nilgiris · Tamil Nadu', note_hi: 'केरल · कर्नाटक और नीलगिरि · तमिलनाडु', note_gu: 'કેરળ · કર્ણાટક અને નીલગિરિ · તમિલનાડુ', packages: [
+        { id: 't-ker', slug: 'kerala', img: 'images/dest-kerala.webp', name: 'Kerala Backwaters', name_hi: 'केरल बैकवाटर्स', name_gu: 'કેરળ બેકવોટર્સ', route: 'Kochi · Munnar · Thekkady · Alappuzha', route_hi: 'कोच्चि · मुन्नार · थेक्कडी · अलाप्पुझा', route_gu: 'કોચી · મુન્નાર · થેક્કડી · અલપ્પુઝા', duration: '6N / 7D', tag: 'Family', tag_hi: 'परिवार', tag_gu: 'કુટુંબ', price: '₹23,900' },
+        { id: 't-mys', slug: 'mysuru', img: 'images/dest-mysuru.jpg', name: 'Mysuru–Coorg–Ooty', name_hi: 'मैसूर–कूर्ग–ऊटी', name_gu: 'મૈસૂર–કૂર્ગ–ઊટી', route: 'Bengaluru · Mysuru · Coorg · Ooty', route_hi: 'बेंगलुरु · मैसूर · कूर्ग · ऊटी', route_gu: 'બેંગલુરુ · મૈસૂર · કૂર્ગ · ઊટી', duration: '6N / 7D', tag: 'Hill stations', tag_hi: 'हिल स्टेशन', tag_gu: 'હિલ સ્ટેશન', price: '₹20,800' },
+        { id: 't-temple', slug: 'south-temple', img: 'images/dest-ooty.webp', name: 'South Temple Trail', name_hi: 'दक्षिण मंदिर यात्रा', name_gu: 'દક્ષિણ મંદિર માર્ગ', route: 'Madurai · Rameswaram · Kanyakumari', route_hi: 'मदुरै · रामेश्वरम · कन्याकुमारी', route_gu: 'મદુરાઈ · રામેશ્વરમ · કન્યાકુમારી', duration: '5N / 6D', tag: 'Religious', tag_hi: 'धार्मिक', tag_gu: 'ધાર્મિક', price: '₹19,400' },
+        { id: 't-ocm', slug: 'ooty-coorg-mysore', img: 'images/dest-mysuru.jpg', name: 'Ooty · Coorg · Mysore', name_hi: 'ऊटी · कूर्ग · मैसूर', name_gu: 'ઊટી · કૂર્ગ · મૈસૂર', route: 'Mysore · Coorg · Ooty · Coonoor', route_hi: 'मैसूर · कूर्ग · ऊटी · कुन्नूर', route_gu: 'મૈસૂર · કૂર્ગ · ઊટી · કુન્નૂર', duration: '5N / 6D', tag: 'Hill stations', tag_hi: 'हिल स्टेशन', tag_gu: 'હિલ સ્ટેશન', price: 'On request' },
       ]},
     ];
     collections.forEach((c) => { c.setRef = (el) => { if (el) this.colRefs[c.key] = el; }; });
 
     return {
       root: this.setRoot,
-      langLabel: this.state.lang === 'en' ? 'हिंदी' : 'EN',
-      toggleLang: () => this.setState((s) => ({ lang: s.lang === 'en' ? 'hi' : 'en' })),
+      langLabel: (this.LANGS().find((l) => l.code === this.state.lang) || {}).mark || 'EN',
+      langOptions: this.LANGS().map((l) => ({
+        name: l.name, mark: l.mark,
+        pick: () => this.setState({ lang: l.code }),
+        style: 'background:' + (l.code === this.state.lang ? '#EAF5FD' : 'transparent') + ';color:' + (l.code === this.state.lang ? '#0A84D6' : '#0B2440'),
+      })),
       regions: regionDefs.map((r, i) => ({
-        label: r.label,
+        label: this.tr(r, 'label'),
         go: () => this.scrollTo(r.key),
         border: i === 0 ? '#0A84D6' : '#E4ECF3',
         bg: i === 0 ? '#EAF5FD' : '#fff',
         color: i === 0 ? '#0A6FB8' : '#3A4D5E',
       })),
-      collections,
+      collections: collections.map((c) => ({ ...c,
+        region: this.tr(c, 'region'), note: this.tr(c, 'note'),
+        packages: c.packages.map((p) => ({ ...p, name: this.tr(p, 'name'), route: this.tr(p, 'route'), tag: this.tr(p, 'tag') })) })),
     };
   }
 }

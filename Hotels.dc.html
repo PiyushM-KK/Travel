@@ -13,7 +13,7 @@
   <title>Hotel Booking - Skyline Travel Planner</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@400;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@400;700;800&family=Noto+Sans+Devanagari:wght@500;600;700&family=Noto+Sans+Gujarati:wght@500;600;700&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box }
     body { margin: 0; background: #f5f9ff; color: #1a2332; font-family: 'Plus Jakarta Sans', sans-serif }
@@ -69,11 +69,20 @@
   </svg>
 </template>
 
+<div ref="{{ root }}">
+
 <!-- Header -->
 <header style="position: sticky; top: 0; z-index: 1000; background: linear-gradient(90deg, #0a5fd7 0%, #0c70e2 100%); box-shadow: 0 2px 14px rgba(10,36,64,.22)">
   <div style="max-width: 1240px; margin: 0 auto; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between">
     <a href="index.html" style="display: flex; align-items: center; background: #fff; padding: 6px 14px; border-radius: 12px; box-shadow: 0 4px 14px rgba(0,0,0,.15)"><img src="images/logo.jpeg" alt="Skyline Travel Planner" style="height: 56px; width: auto; display: block" /></a>
-    <a href="index.html" style="background: #fff; color: #0b6bbf; font-weight: 800; padding: 10px 18px; border-radius: 10px; box-shadow: 0 4px 14px rgba(0,0,0,.16)">← Back Home</a>
+    <div style="display: flex; align-items: center; gap: 12px">
+      <div style="display:flex;align-items:center;border:1px solid #E4ECF3;border-radius:10px;overflow:hidden;height:38px;background:#fff" role="group" aria-label="Language">
+        <sc-for list="{{ langOptions }}" as="lo" hint-placeholder-count="3">
+          <button onClick="{{ lo.pick }}" title="{{ lo.name }}" style="{{ lo.style }};cursor:pointer;font-family:inherit;font-weight:700;font-size:13px;border:0;border-left:1px solid #EEF3F7;padding:0 12px;height:100%">{{ lo.mark }}</button>
+        </sc-for>
+      </div>
+      <a href="index.html" style="background: #fff; color: #0b6bbf; font-weight: 800; padding: 10px 18px; border-radius: 10px; box-shadow: 0 4px 14px rgba(0,0,0,.16)" data-en="← Back Home" data-hi="← होम पर वापस" data-gu="← હોમ પર પાછા">← Back Home</a>
+    </div>
   </div>
 </header>
 
@@ -99,26 +108,26 @@
   <span class="hveh hv2"><span class="flip"><svg width="44" height="18" viewBox="0 0 44 18" fill="none"><path d="M2 12 L6 6 C8 3.5 12 3 16 3 L26 3 C31 3 35 5 38 8 L42 10 L42 13 C42 14 41 15 40 15 L4 15 C3 15 2 14 2 13 Z" fill="rgba(255,255,255,.85)"/><path d="M10 7 L14.5 4.5 H23 V9 H8.5 Z" fill="rgba(10,30,60,.4)"/><circle cx="11" cy="15" r="3" fill="rgba(15,28,50,.9)"/><circle cx="33" cy="15" r="3" fill="rgba(15,28,50,.9)"/></svg></span></span>
   <span class="hveh hv3"><span class="flip"><svg width="36" height="21" viewBox="0 0 34 20" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.5" cy="15" r="3.8" fill="none"/><circle cx="27.5" cy="15" r="3.8" fill="none"/><path d="M6.5 15 L12 9 H20 L27.5 15" fill="none"/><path d="M12 9 L10.5 6 H14.5" fill="none"/><circle cx="18" cy="4.2" r="2.1" fill="rgba(255,255,255,.9)" stroke="none"/><path d="M15.5 9 C15.8 6.6 18.8 6.2 19.8 8.2 L21.5 9.6" fill="none" stroke-width="2.3"/></svg></span></span>
   <div class="htl-hero-in">
-    <h1 class="htl-h1">Find your stay</h1>
-    <p class="htl-hsub">3-star to 5-star hotels, palaces &amp; beach resorts across India</p>
+    <h1 class="htl-h1" data-en="Find your stay" data-hi="अपना ठहराव खोजें" data-gu="તમારો ઉતારો શોધો">Find your stay</h1>
+    <p class="htl-hsub" data-en="3-star to 5-star hotels, palaces &amp; beach resorts across India" data-hi="पूरे भारत में 3-स्टार से 5-स्टार होटल, महल और बीच रिज़ॉर्ट" data-gu="સમગ્ર ભારતમાં 3-સ્ટારથી 5-સ્ટાર હોટેલ, મહેલ અને બીચ રિસોર્ટ">3-star to 5-star hotels, palaces &amp; beach resorts across India</p>
     <div class="htl-bar">
       <div class="htl-cell">
-        <label>Destination</label>
-        <input type="text" placeholder="Goa, Kerala, Jaipur…">
+        <label data-en="Destination" data-hi="गंतव्य" data-gu="સ્થળ">Destination</label>
+        <input type="text" placeholder="Goa, Kerala, Jaipur…" data-en-ph="Goa, Kerala, Jaipur…" data-hi-ph="गोवा, केरल, जयपुर…" data-gu-ph="ગોવા, કેરળ, જયપુર…">
       </div>
       <div class="htl-cell">
-        <label>Check-in</label>
+        <label data-en="Check-in" data-hi="चेक-इन" data-gu="ચેક-ઇન">Check-in</label>
         <input type="date">
       </div>
       <div class="htl-cell">
-        <label>Check-out</label>
+        <label data-en="Check-out" data-hi="चेक-आउट" data-gu="ચેક-આઉટ">Check-out</label>
         <input type="date">
       </div>
       <div class="htl-cell" style="flex:.6;min-width:110px">
-        <label>Rooms</label>
+        <label data-en="Rooms" data-hi="कमरे" data-gu="રૂમ">Rooms</label>
         <input type="number" placeholder="1" min="1">
       </div>
-      <a class="htl-go" href="https://www.booking.com" target="_blank" rel="noopener">Search Hotels</a>
+      <a class="htl-go" href="https://www.booking.com" target="_blank" rel="noopener" data-en="Search Hotels" data-hi="होटल खोजें" data-gu="હોટેલ શોધો">Search Hotels</a>
     </div>
   </div>
 </section>
@@ -128,26 +137,26 @@
 
   <!-- Hotel Categories -->
   <div>
-    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 32px; margin: 0 0 32px">Choose Your Hotel Category</h2>
+    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 32px; margin: 0 0 32px" data-en="Choose Your Hotel Category" data-hi="अपनी होटल श्रेणी चुनें" data-gu="તમારી હોટેલ શ્રેણી પસંદ કરો">Choose Your Hotel Category</h2>
     
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px">
       <sc-for list="{{ categories }}" as="cat" hint-placeholder-count="3">
         <div style="background: #fff; border-radius: 16px; overflow: hidden; border: 1.5px solid #e5ecf5; transition: all .3s" style-hover="border-color: #0a5fd7; box-shadow: 0 8px 24px rgba(10,95,215,.1); transform: translateY(-4px)">
           <!-- Category Header -->
           <div style="background: linear-gradient(135deg, {{ cat.gradStart }}, {{ cat.gradEnd }}); padding: 24px; color: #fff">
-            <div style="font-weight: 800; font-size: 20px; margin-bottom: 4px">{{ cat.stars }} Star Hotels</div>
+            <div style="font-weight: 800; font-size: 20px; margin-bottom: 4px">{{ cat.stars }} <span data-en="Star Hotels" data-hi="स्टार होटल" data-gu="સ્ટાર હોટેલ">Star Hotels</span></div>
             <div style="font-size: 13px; opacity: .9">{{ cat.tagline }}</div>
           </div>
           
           <!-- Category Details -->
           <div style="padding: 24px">
             <div style="margin-bottom: 20px">
-              <div style="font-weight: 700; font-size: 13px; color: #5c6f80; text-transform: uppercase; margin-bottom: 8px">Ideal For</div>
+              <div style="font-weight: 700; font-size: 13px; color: #5c6f80; text-transform: uppercase; margin-bottom: 8px" data-en="Ideal For" data-hi="किसके लिए उपयुक्त" data-gu="કોના માટે યોગ્ય">Ideal For</div>
               <div style="font-size: 14px; color: #1a2332">{{ cat.idealFor }}</div>
             </div>
             
             <div style="margin-bottom: 20px">
-              <div style="font-weight: 700; font-size: 13px; color: #5c6f80; text-transform: uppercase; margin-bottom: 8px">Amenities</div>
+              <div style="font-weight: 700; font-size: 13px; color: #5c6f80; text-transform: uppercase; margin-bottom: 8px" data-en="Amenities" data-hi="सुविधाएं" data-gu="સુવિધાઓ">Amenities</div>
               <ul style="margin: 0; padding-left: 18px; font-size: 14px">
                 <sc-for list="{{ cat.amenities }}" as="am" hint-placeholder-count="3">
                   <li style="margin-bottom: 6px">{{ am }}</li>
@@ -155,7 +164,7 @@
               </ul>
             </div>
             
-            <a href="https://www.booking.com" target="_blank" style="display: block; text-align: center; background: {{ cat.btnColor }}; color: #fff; font-weight: 700; padding: 12px 16px; border-radius: 8px; font-size: 14px; transition: all .2s" style-hover="opacity: .9; transform: translateY(-1px)">View Hotels</a>
+            <a href="https://www.booking.com" target="_blank" style="display: block; text-align: center; background: {{ cat.btnColor }}; color: #fff; font-weight: 700; padding: 12px 16px; border-radius: 8px; font-size: 14px; transition: all .2s" style-hover="opacity: .9; transform: translateY(-1px)" data-en="View Hotels" data-hi="होटल देखें" data-gu="હોટેલ જુઓ">View Hotels</a>
           </div>
         </div>
       </sc-for>
@@ -164,45 +173,100 @@
 
   <!-- Additional Info -->
   <div style="background: #fff; border-radius: 16px; padding: 24px; border-left: 4px solid #0a5fd7; margin-top: 48px">
-    <p style="margin: 0; font-size: 14px; color: #5c6f80"><strong>Note:</strong> Hotel availability and pricing depend on your travel dates. Properties are subject to availability. Skyline Travel Planner does not process hotel payments directly — you will complete bookings with official hotel partners.</p>
+    <p style="margin: 0; font-size: 14px; color: #5c6f80"><strong data-en="Note:" data-hi="ध्यान दें:" data-gu="નોંધ:">Note:</strong> <span data-en="Hotel availability and pricing depend on your travel dates. Properties are subject to availability. Skyline Travel Planner does not process hotel payments directly — you will complete bookings with official hotel partners." data-hi="होटल की उपलब्धता और कीमतें आपकी यात्रा तिथियों पर निर्भर करती हैं। संपत्तियां उपलब्धता के अधीन हैं। Skyline Travel Planner सीधे होटल भुगतान संसाधित नहीं करता — आप आधिकारिक होटल भागीदारों के साथ बुकिंग पूरी करेंगे।" data-gu="હોટેલની ઉપલબ્ધતા અને કિંમતો તમારી પ્રવાસ તારીખો પર આધાર રાખે છે. મિલકતો ઉપલબ્ધતાને આધીન છે. Skyline Travel Planner સીધા હોટેલ ચુકવણી પ્રોસેસ કરતું નથી — તમે અધિકૃત હોટેલ ભાગીદારો સાથે બુકિંગ પૂર્ણ કરશો.">Hotel availability and pricing depend on your travel dates. Properties are subject to availability. Skyline Travel Planner does not process hotel payments directly — you will complete bookings with official hotel partners.</span></p>
   </div>
-  <p style="font-size: 11px; color: #8094a4; margin-top: 28px">Hero photos (Wikimedia Commons): Debapriya Hore (CC BY-SA 4.0), McKay Savage (CC BY 2.0), Timothy A. Gonsalves (CC BY-SA 4.0)</p>
+  <p style="font-size: 11px; color: #8094a4; margin-top: 28px" data-en="Hero photos (Wikimedia Commons): Debapriya Hore (CC BY-SA 4.0), McKay Savage (CC BY 2.0), Timothy A. Gonsalves (CC BY-SA 4.0)" data-hi="हीरो तस्वीरें (Wikimedia Commons): Debapriya Hore (CC BY-SA 4.0), McKay Savage (CC BY 2.0), Timothy A. Gonsalves (CC BY-SA 4.0)" data-gu="હીરો ફોટા (Wikimedia Commons): Debapriya Hore (CC BY-SA 4.0), McKay Savage (CC BY 2.0), Timothy A. Gonsalves (CC BY-SA 4.0)">Hero photos (Wikimedia Commons): Debapriya Hore (CC BY-SA 4.0), McKay Savage (CC BY 2.0), Timothy A. Gonsalves (CC BY-SA 4.0)</p>
 </div>
 
+</div>
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
+  state = { lang: 'en' };
+
+  setRoot = (el) => { if (el) { this.rootEl = el; this.applyLang(); } };
+
+  // Swap every element tagged with data-en / data-hi / data-gu (and any input
+  // placeholders tagged data-*-ph) to the active language, and set the correct
+  // Indic script font on the whole page.
+  applyLang() {
+    if (!this.rootEl) return;
+    const L = this.state.lang;
+    const font = L === 'hi' ? "'Noto Sans Devanagari','Plus Jakarta Sans',sans-serif"
+               : L === 'gu' ? "'Noto Sans Gujarati','Plus Jakarta Sans',sans-serif" : '';
+    this.rootEl.style.fontFamily = font;
+    this.rootEl.querySelectorAll('[data-en]').forEach((n) => {
+      n.textContent = n.getAttribute('data-' + L) || n.getAttribute('data-en');
+    });
+    this.rootEl.querySelectorAll('[data-en-ph]').forEach((n) => {
+      n.setAttribute('placeholder', n.getAttribute('data-' + L + '-ph') || n.getAttribute('data-en-ph'));
+    });
+  }
+  tr(o, key) { return (o && (o[key + '_' + this.state.lang] || o[key])) || ''; }
+  LANGS() { return [{ code:'en', name:'English', mark:'EN' }, { code:'hi', name:'हिंदी', mark:'हिं' }, { code:'gu', name:'ગુજરાતી', mark:'ગુ' }]; }
+  componentDidUpdate() { this.applyLang(); }
+
   renderVals() {
-    return {
-      categories: [
+    const categories = [
         {
           stars: '3',
           tagline: 'Value & Comfort',
+          tagline_hi: 'किफ़ायत और आराम',
+          tagline_gu: 'કિંમત અને આરામ',
           gradStart: '#667eea',
           gradEnd: '#764ba2',
           btnColor: '#667eea',
           idealFor: 'Budget-conscious travellers, families seeking value, business trips with modest budgets',
-          amenities: ['Clean rooms', 'Basic amenities', 'WiFi', 'Parking', 'Restaurant/Café', 'Central location']
+          idealFor_hi: 'बजट का ध्यान रखने वाले यात्री, किफ़ायत चाहने वाले परिवार, सीमित बजट की बिज़नेस यात्राएं',
+          idealFor_gu: 'બજેટનું ધ્યાન રાખતા પ્રવાસીઓ, કિંમત શોધતા કુટુંબો, મર્યાદિત બજેટની બિઝનેસ યાત્રાઓ',
+          amenities: ['Clean rooms', 'Basic amenities', 'WiFi', 'Parking', 'Restaurant/Café', 'Central location'],
+          amenities_hi: ['साफ़ कमरे', 'बुनियादी सुविधाएं', 'वाईफ़ाई', 'पार्किंग', 'रेस्टोरेंट/कैफ़े', 'केंद्रीय स्थान'],
+          amenities_gu: ['સ્વચ્છ રૂમ', 'પાયાની સુવિધાઓ', 'વાઇફાઇ', 'પાર્કિંગ', 'રેસ્ટોરન્ટ/કૅફે', 'કેન્દ્રીય સ્થાન']
         },
         {
           stars: '4',
           tagline: 'Premium Experience',
+          tagline_hi: 'प्रीमियम अनुभव',
+          tagline_gu: 'પ્રીમિયમ અનુભવ',
           gradStart: '#f093fb',
           gradEnd: '#f5576c',
           btnColor: '#f5576c',
           idealFor: 'Couples, families seeking comfort, business travellers, honeymoons',
-          amenities: ['Spacious rooms', 'Quality furnishing', 'Multiple dining', 'Room service', 'Fitness centre', 'Swimming pool', 'Concierge']
+          idealFor_hi: 'जोड़े, आराम चाहने वाले परिवार, बिज़नेस यात्री, हनीमून',
+          idealFor_gu: 'યુગલો, આરામ શોધતા કુટુંબો, બિઝનેસ પ્રવાસીઓ, હનીમૂન',
+          amenities: ['Spacious rooms', 'Quality furnishing', 'Multiple dining', 'Room service', 'Fitness centre', 'Swimming pool', 'Concierge'],
+          amenities_hi: ['विशाल कमरे', 'उम्दा साज-सज्जा', 'कई भोजनालय', 'रूम सर्विस', 'फ़िटनेस सेंटर', 'स्विमिंग पूल', 'कॉन्सियज'],
+          amenities_gu: ['વિશાળ રૂમ', 'ગુણવત્તાયુક્ત સાજસજ્જા', 'અનેક ડાઇનિંગ', 'રૂમ સર્વિસ', 'ફિટનેસ સેન્ટર', 'સ્વિમિંગ પૂલ', 'કૉન્સિયર્જ']
         },
         {
           stars: '5',
           tagline: 'Luxury & Excellence',
+          tagline_hi: 'लक्ज़री और उत्कृष्टता',
+          tagline_gu: 'લક્ઝરી અને ઉત્કૃષ્ટતા',
           gradStart: '#fa709a',
           gradEnd: '#fee140',
           btnColor: '#fa709a',
           idealFor: 'Luxury travellers, special occasions, honeymoons, premium experiences',
-          amenities: ['Suites & villas', 'Luxury amenities', 'Fine dining', 'Spa & wellness', 'Butler service', 'Premium locations', 'Exclusive experiences']
+          idealFor_hi: 'लक्ज़री यात्री, ख़ास मौके, हनीमून, प्रीमियम अनुभव',
+          idealFor_gu: 'લક્ઝરી પ્રવાસીઓ, ખાસ પ્રસંગો, હનીમૂન, પ્રીમિયમ અનુભવો',
+          amenities: ['Suites & villas', 'Luxury amenities', 'Fine dining', 'Spa & wellness', 'Butler service', 'Premium locations', 'Exclusive experiences'],
+          amenities_hi: ['सुइट और विला', 'लक्ज़री सुविधाएं', 'फ़ाइन डाइनिंग', 'स्पा और वेलनेस', 'बटलर सेवा', 'प्रीमियम स्थान', 'विशेष अनुभव'],
+          amenities_gu: ['સ્યૂટ અને વિલા', 'લક્ઝરી સુવિધાઓ', 'ફાઇન ડાઇનિંગ', 'સ્પા અને વેલનેસ', 'બટલર સેવા', 'પ્રીમિયમ સ્થાનો', 'વિશિષ્ટ અનુભવો']
         }
-      ]
+      ];
+    return {
+      root: this.setRoot,
+      langLabel: (this.LANGS().find((l) => l.code === this.state.lang) || {}).mark || 'EN',
+      langOptions: this.LANGS().map((l) => ({
+        name: l.name, mark: l.mark,
+        pick: () => this.setState({ lang: l.code }),
+        style: 'background:' + (l.code === this.state.lang ? '#EAF5FD' : 'transparent') + ';color:' + (l.code === this.state.lang ? '#0A84D6' : '#0B2440'),
+      })),
+      categories: categories.map((c) => ({ ...c,
+        tagline: this.tr(c, 'tagline'),
+        idealFor: this.tr(c, 'idealFor'),
+        amenities: c['amenities_' + this.state.lang] || c.amenities,
+      })),
     };
   }
 }

@@ -18,7 +18,7 @@
   <title>Cab & Taxi Booking - Skyline Travel Planner</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@400;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@400;700;800&family=Noto+Sans+Devanagari:wght@500;600;700&family=Noto+Sans+Gujarati:wght@500;600;700&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box }
     body { margin: 0; background: #f5f9ff; color: #1a2332; font-family: 'Plus Jakarta Sans', sans-serif }
@@ -72,11 +72,19 @@
   </svg>
 </template>
 
+<div ref="{{ root }}" style="min-height:100vh">
 <!-- Header -->
 <header style="position: sticky; top: 0; z-index: 1000; background: linear-gradient(90deg, #0a5fd7 0%, #0c70e2 100%); box-shadow: 0 2px 14px rgba(10,36,64,.22)">
   <div style="max-width: 1240px; margin: 0 auto; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between">
     <a href="index.html" style="display: flex; align-items: center; background: #fff; padding: 6px 14px; border-radius: 12px; box-shadow: 0 4px 14px rgba(0,0,0,.15)"><img src="images/logo.jpeg" alt="Skyline Travel Planner" style="height: 56px; width: auto; display: block" /></a>
-    <a href="index.html" style="background: #fff; color: #0b6bbf; font-weight: 800; padding: 10px 18px; border-radius: 10px; box-shadow: 0 4px 14px rgba(0,0,0,.16)">← Back Home</a>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="display:flex;align-items:center;background:#fff;border:1px solid #E4ECF3;border-radius:10px;overflow:hidden;height:38px" role="group" aria-label="Language">
+        <sc-for list="{{ langOptions }}" as="lo" hint-placeholder-count="3">
+          <button onClick="{{ lo.pick }}" title="{{ lo.name }}" style="{{ lo.style }};cursor:pointer;font-family:inherit;font-weight:700;font-size:13px;border:0;border-left:1px solid #EEF3F7;padding:0 12px;height:100%">{{ lo.mark }}</button>
+        </sc-for>
+      </div>
+      <a href="index.html" style="background: #fff; color: #0b6bbf; font-weight: 800; padding: 10px 18px; border-radius: 10px; box-shadow: 0 4px 14px rgba(0,0,0,.16)" data-en="← Back Home" data-hi="← होम पर वापस" data-gu="← હોમ પર પાછા">← Back Home</a>
+    </div>
   </div>
 </header>
 
@@ -138,26 +146,26 @@
   </span></span>
 
   <div class="cab-hero-in">
-    <h1 class="cab-h1">Book a cab, anywhere in India</h1>
-    <p class="cab-hsub">Airport transfers, outstation trips, hourly rentals &amp; city rides</p>
+    <h1 class="cab-h1" data-en="Book a cab, anywhere in India" data-hi="पूरे भारत में कहीं भी कैब बुक करें" data-gu="સમગ્ર ભારતમાં ગમે ત્યાં કૅબ બુક કરો">Book a cab, anywhere in India</h1>
+    <p class="cab-hsub" data-en="Airport transfers, outstation trips, hourly rentals & city rides" data-hi="एयरपोर्ट ट्रांसफर, आउटस्टेशन यात्राएं, घंटे के किराए और शहर की सवारी" data-gu="એરપોર્ટ ટ્રાન્સફર, આઉટસ્ટેશન પ્રવાસ, કલાકનાં ભાડાં અને શહેરની સવારી">Airport transfers, outstation trips, hourly rentals &amp; city rides</p>
     <div class="cab-bar">
       <div class="cab-cell">
-        <label>Pickup from</label>
-        <input type="text" placeholder="City, airport or hotel…">
+        <label data-en="Pickup from" data-hi="कहाँ से लें" data-gu="ક્યાંથી લેવું">Pickup from</label>
+        <input type="text" placeholder="City, airport or hotel…" data-en-ph="City, airport or hotel…" data-hi-ph="शहर, एयरपोर्ट या होटल…" data-gu-ph="શહેર, એરપોર્ટ કે હોટેલ…">
       </div>
       <div class="cab-cell">
-        <label>Drop to</label>
-        <input type="text" placeholder="Destination…">
+        <label data-en="Drop to" data-hi="कहाँ छोड़ें" data-gu="ક્યાં ઉતારવું">Drop to</label>
+        <input type="text" placeholder="Destination…" data-en-ph="Destination…" data-hi-ph="गंतव्य…" data-gu-ph="ગંતવ્ય…">
       </div>
       <div class="cab-cell">
-        <label>Pickup date</label>
+        <label data-en="Pickup date" data-hi="पिकअप तिथि" data-gu="પિકઅપ તારીખ">Pickup date</label>
         <input type="date">
       </div>
       <div class="cab-cell">
-        <label>Trip type</label>
-        <select><option>One-way drop</option><option>Round trip</option><option>Airport transfer</option><option>Hourly rental (4/8/12 hr)</option></select>
+        <label data-en="Trip type" data-hi="यात्रा प्रकार" data-gu="પ્રવાસ પ્રકાર">Trip type</label>
+        <select><option data-en="One-way drop" data-hi="एक तरफ़ा ड्रॉप" data-gu="એક તરફી ડ્રોપ">One-way drop</option><option data-en="Round trip" data-hi="राउंड ट्रिप" data-gu="રાઉન્ડ ટ્રિપ">Round trip</option><option data-en="Airport transfer" data-hi="एयरपोर्ट ट्रांसफर" data-gu="એરપોર્ટ ટ્રાન્સફર">Airport transfer</option><option data-en="Hourly rental (4/8/12 hr)" data-hi="घंटे का किराया (4/8/12 घंटे)" data-gu="કલાકનું ભાડું (4/8/12 કલાક)">Hourly rental (4/8/12 hr)</option></select>
       </div>
-      <a class="cab-go" href="https://www.savaari.com" target="_blank" rel="noopener">Search on Savaari</a>
+      <a class="cab-go" href="https://www.savaari.com" target="_blank" rel="noopener" data-en="Search on Savaari" data-hi="Savaari पर खोजें" data-gu="Savaari પર શોધો">Search on Savaari</a>
     </div>
   </div>
 </section>
@@ -167,7 +175,7 @@
 
   <!-- Ride Options -->
   <div style="margin-bottom: 48px">
-    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 32px; margin: 0 0 24px">Ride Options</h2>
+    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 32px; margin: 0 0 24px" data-en="Ride Options" data-hi="सवारी विकल्प" data-gu="સવારીના વિકલ્પો">Ride Options</h2>
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px">
       <sc-for list="{{ cabTypes }}" as="c" hint-placeholder-count="6">
         <div style="background: #fff; padding: 24px; border-radius: 14px; border: 1.5px solid #e5ecf5; text-align: center">
@@ -181,13 +189,13 @@
 
   <!-- Partners -->
   <div style="margin-bottom: 48px">
-    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 32px; margin: 0 0 24px">Trusted Cab Partners</h2>
+    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 32px; margin: 0 0 24px" data-en="Trusted Cab Partners" data-hi="भरोसेमंद कैब साझेदार" data-gu="વિશ્વસનીય કૅબ ભાગીદારો">Trusted Cab Partners</h2>
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px">
       <sc-for list="{{ partners }}" as="p" hint-placeholder-count="6">
         <div style="background: #fff; padding: 24px; border-radius: 14px; border: 1.5px solid #e5ecf5; text-align: center">
           <div style="font-weight: 700; font-size: 16px; margin-bottom: 8px">{{ p.name }}</div>
           <div style="font-size: 13px; color: #5c6f80; margin-bottom: 16px">{{ p.coverage }}</div>
-          <a href="{{ p.link }}" target="_blank" rel="noopener" style="display: inline-block; background: #0a5fd7; color: #fff; font-weight: 700; font-size: 13px; padding: 10px 16px; border-radius: 6px">Book Cabs</a>
+          <a href="{{ p.link }}" target="_blank" rel="noopener" style="display: inline-block; background: #0a5fd7; color: #fff; font-weight: 700; font-size: 13px; padding: 10px 16px; border-radius: 6px" data-en="Book Cabs" data-hi="कैब बुक करें" data-gu="કૅબ બુક કરો">Book Cabs</a>
         </div>
       </sc-for>
     </div>
@@ -195,8 +203,8 @@
 
   <!-- Popular outstation routes -->
   <div>
-    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 32px; margin: 0 0 6px">Popular Outstation Routes</h2>
-    <p style="font-size: 14px; color: #5c6f80; margin: 0 0 24px">Want a private cab with driver for any of these? <a href="Customize.dc.html" style="color: #0a5fd7; font-weight: 700">Send us an enquiry</a> and we'll arrange it as part of your trip.</p>
+    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 32px; margin: 0 0 6px" data-en="Popular Outstation Routes" data-hi="लोकप्रिय आउटस्टेशन रूट" data-gu="લોકપ્રિય આઉટસ્ટેશન રૂટ">Popular Outstation Routes</h2>
+    <p style="font-size: 14px; color: #5c6f80; margin: 0 0 24px"><span data-en="Want a private cab with driver for any of these? " data-hi="इनमें से किसी के लिए ड्राइवर के साथ प्राइवेट कैब चाहिए? " data-gu="આમાંથી કોઈ માટે ડ્રાઇવર સાથે પ્રાઇવેટ કૅબ જોઈએ છે? ">Want a private cab with driver for any of these? </span><a href="Customize.dc.html" style="color: #0a5fd7; font-weight: 700" data-en="Send us an enquiry" data-hi="हमें पूछताछ भेजें" data-gu="અમને પૂછપરછ મોકલો">Send us an enquiry</a><span data-en=" and we'll arrange it as part of your trip." data-hi=" और हम इसे आपकी यात्रा का हिस्सा बनाकर व्यवस्था कर देंगे।" data-gu=" અને અમે તેને તમારા પ્રવાસના ભાગરૂપે ગોઠવી આપીશું."> and we'll arrange it as part of your trip.</span></p>
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px">
       <sc-for list="{{ routes }}" as="r" hint-placeholder-count="6">
         <a href="Customize.dc.html" style="display: block; background: #fff; padding: 20px 22px; border-radius: 14px; border: 1.5px solid #e5ecf5; transition: all .25s" style-hover="border-color: #0a5fd7; transform: translateY(-3px); box-shadow: 0 12px 26px -14px rgba(10,60,130,.35)">
@@ -208,14 +216,40 @@
     </div>
   </div>
 
-  <p style="font-size: 11px; color: #8094a4; margin-top: 28px">Skyline Travel Planner does not operate cabs or take payments — bookings are completed with the provider you choose. Distances and drive times are approximate.</p>
+  <p style="font-size: 11px; color: #8094a4; margin-top: 28px" data-en="Skyline Travel Planner does not operate cabs or take payments — bookings are completed with the provider you choose. Distances and drive times are approximate." data-hi="Skyline Travel Planner न तो कैब चलाता है और न ही भुगतान लेता है — बुकिंग आपके चुने हुए प्रदाता के साथ पूरी होती है। दूरी और यात्रा समय अनुमानित हैं।" data-gu="Skyline Travel Planner ન તો કૅબ ચલાવે છે કે ન તો ચુકવણી લે છે — બુકિંગ તમે પસંદ કરેલા પ્રદાતા સાથે પૂરી થાય છે. અંતર અને મુસાફરીનો સમય અંદાજિત છે.">Skyline Travel Planner does not operate cabs or take payments — bookings are completed with the provider you choose. Distances and drive times are approximate.</p>
+</div>
 </div>
 
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
+  state = { lang: 'en' };
+  setRoot = (el) => { if (el) { this.rootEl = el; this.applyLang(); } };
+  applyLang() {
+    if (!this.rootEl) return;
+    const L = this.state.lang;
+    const font = L === 'hi' ? "'Noto Sans Devanagari','Plus Jakarta Sans',sans-serif"
+               : L === 'gu' ? "'Noto Sans Gujarati','Plus Jakarta Sans',sans-serif" : '';
+    this.rootEl.style.fontFamily = font;
+    this.rootEl.querySelectorAll('[data-en]').forEach((n) => {
+      n.textContent = n.getAttribute('data-' + L) || n.getAttribute('data-en');
+    });
+    this.rootEl.querySelectorAll('[data-en-ph]').forEach((n) => {
+      n.setAttribute('placeholder', n.getAttribute('data-' + L + '-ph') || n.getAttribute('data-en-ph'));
+    });
+  }
+  tr(o, key) { return (o && (o[key + '_' + this.state.lang] || o[key])) || ''; }
+  LANGS() { return [{ code:'en', name:'English', mark:'EN' }, { code:'hi', name:'हिंदी', mark:'हिं' }, { code:'gu', name:'ગુજરાતી', mark:'ગુ' }]; }
+  componentDidUpdate() { this.applyLang(); }
   renderVals() {
     return {
+      root: this.setRoot,
+      langLabel: (this.LANGS().find((l) => l.code === this.state.lang) || {}).mark || 'EN',
+      langOptions: this.LANGS().map((l) => ({
+        name: l.name, mark: l.mark,
+        pick: () => this.setState({ lang: l.code }),
+        style: 'background:' + (l.code === this.state.lang ? '#EAF5FD' : 'transparent') + ';color:' + (l.code === this.state.lang ? '#0A84D6' : '#0B2440'),
+      })),
       cabTypes: [
         { icon: '🛬', name: 'Airport Transfers', desc: 'Fixed-fare pickups & drops' },
         { icon: '🛣️', name: 'Outstation One-way', desc: 'Intercity drops, pay one side' },

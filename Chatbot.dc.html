@@ -16,7 +16,7 @@
   <title>Skyline AI Travel Assistant</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@500;600;700&family=Noto+Sans+Gujarati:wght@500;600;700&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box }
     html, body { height: 100% }
@@ -50,8 +50,13 @@
         <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3z"/><circle cx="18.5" cy="17.5" r="1.6"/><circle cx="5.5" cy="16.5" r="1.2"/></svg>
       </span>
       <div style="flex: 1; min-width: 0">
-        <div style="font-weight: 800; font-size: 17px; letter-spacing: -.01em">Skyline AI Travel Assistant</div>
+        <div style="font-weight: 800; font-size: 17px; letter-spacing: -.01em" data-en="Skyline AI Travel Assistant" data-hi="Skyline AI यात्रा सहायक" data-gu="Skyline AI પ્રવાસ સહાયક">Skyline AI Travel Assistant</div>
         <div style="font-size: 12.5px; opacity: .9; display: flex; align-items: center; gap: 6px"><span style="width: 8px; height: 8px; border-radius: 50%; background: #7cf2b0"></span>{{ statusText }}</div>
+      </div>
+      <div style="display:flex;align-items:center;border:1px solid #E4ECF3;border-radius:10px;overflow:hidden;height:38px;flex-shrink:0;background:#fff" role="group" aria-label="Language">
+        <sc-for list="{{ langOptions }}" as="lo" hint-placeholder-count="3">
+          <button onClick="{{ lo.pick }}" title="{{ lo.name }}" style="{{ lo.style }};cursor:pointer;font-family:inherit;font-weight:700;font-size:13px;border:0;border-left:1px solid #EEF3F7;padding:0 12px;height:100%">{{ lo.mark }}</button>
+        </sc-for>
       </div>
     </div>
 
@@ -82,32 +87,49 @@
 
     <!-- input -->
     <form onSubmit="{{ onSubmit }}" style="display: flex; gap: 10px; padding: 14px 16px; background: #fff; border-top: 1px solid #eef3f9; flex-shrink: 0">
-      <input ref="{{ inputEl }}" placeholder="Ask about destinations, hotels, budget, best season…" style="flex: 1; border: 1.5px solid #dce7f4; border-radius: 13px; padding: 13px 15px; font-family: inherit; font-size: 14.5px; outline: none; color: #1b2f40" />
+      <input ref="{{ inputEl }}" placeholder="Ask about destinations, hotels, budget, best season…" data-en-ph="Ask about destinations, hotels, budget, best season…" data-hi-ph="गंतव्य, होटल, बजट, सही मौसम के बारे में पूछें…" data-gu-ph="સ્થળ, હોટેલ, બજેટ, શ્રેષ્ઠ મોસમ વિશે પૂછો…" style="flex: 1; border: 1.5px solid #dce7f4; border-radius: 13px; padding: 13px 15px; font-family: inherit; font-size: 14.5px; outline: none; color: #1b2f40" />
       <button class="sk-send" type="submit" style="flex-shrink: 0; width: 50px; border: 0; cursor: pointer; background: #0a5fd7; color: #fff; border-radius: 13px; display: flex; align-items: center; justify-content: center; transition: transform .12s">
         <svg width="21" height="21" viewBox="0 0 24 24" fill="#fff"><path d="M3 11l18-8-8 18-2-7-8-3z"/></svg>
       </button>
     </form>
-    <div style="font-size: 11px; color: #9ab8dc; text-align: center; padding: 0 16px 12px; background: #fff; flex-shrink: 0">Skyline AI gives guidance only — it can't confirm bookings, prices, availability or visas. Our team follows up personally.</div>
+    <div style="font-size: 11px; color: #9ab8dc; text-align: center; padding: 0 16px 12px; background: #fff; flex-shrink: 0" data-en="Skyline AI gives guidance only — it can't confirm bookings, prices, availability or visas. Our team follows up personally." data-hi="Skyline AI केवल मार्गदर्शन देता है — यह बुकिंग, मूल्य, उपलब्धता या वीज़ा की पुष्टि नहीं कर सकता। हमारी टीम व्यक्तिगत रूप से संपर्क करती है।" data-gu="Skyline AI માત્ર માર્ગદર્શન આપે છે — તે બુકિંગ, ભાવ, ઉપલબ્ધતા કે વિઝાની પુષ્ટિ કરી શકતું નથી. અમારી ટીમ વ્યક્તિગત રીતે સંપર્ક કરે છે.">Skyline AI gives guidance only — it can't confirm bookings, prices, availability or visas. Our team follows up personally.</div>
   </div>
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
   state = {
+    lang: 'en',
     thinking: false,
     messages: [{ role: 'assistant', text: "Namaste! 🙏 I'm the Skyline AI Travel Assistant. Tell me where you'd like to go, your dates, travellers and budget — I'll suggest destinations, trip length and hotel categories, then point you to a quote on WhatsApp or our Customize My Trip form. ✈️🏝️" }],
   };
 
-  setRoot = (el) => { this.rootEl = el; };
+  setRoot = (el) => { if (el) { this.rootEl = el; this.applyLang(); } };
   setScroll = (el) => { this.scrollEl = el; };
   setInput = (el) => { this.inputEl = el; };
+
+  applyLang() {
+    if (!this.rootEl) return;
+    const L = this.state.lang;
+    const font = L === 'hi' ? "'Noto Sans Devanagari','Plus Jakarta Sans',sans-serif"
+               : L === 'gu' ? "'Noto Sans Gujarati','Plus Jakarta Sans',sans-serif" : '';
+    this.rootEl.style.fontFamily = font;
+    this.rootEl.querySelectorAll('[data-en]').forEach((n) => {
+      n.textContent = n.getAttribute('data-' + L) || n.getAttribute('data-en');
+    });
+    this.rootEl.querySelectorAll('[data-en-ph]').forEach((n) => {
+      n.setAttribute('placeholder', n.getAttribute('data-' + L + '-ph') || n.getAttribute('data-en-ph'));
+    });
+  }
+  tr(o, key) { return (o && (o[key + '_' + this.state.lang] || o[key])) || ''; }
+  LANGS() { return [{ code:'en', name:'English', mark:'EN' }, { code:'hi', name:'हिंदी', mark:'हिं' }, { code:'gu', name:'ગુજરાતી', mark:'ગુ' }]; }
 
   componentDidMount() {
     this.scrollDown();
     if (this.inputEl) this.inputEl.focus();
   }
   scrollDown() { if (this.scrollEl) this.scrollEl.scrollTop = this.scrollEl.scrollHeight; }
-  componentDidUpdate() { this.scrollDown(); }
+  componentDidUpdate() { this.applyLang(); this.scrollDown(); }
 
   primer() {
     return `You are the Skyline AI Travel Assistant for "Skyline Travel Planner", an India-based travel-planning website (WhatsApp +91 8866050291, info@skylinetravelplanner.com). Help with: destination selection, trip duration, preliminary itineraries, hotel-category comparison (3/4/5-star), packing lists, transport recommendations, family & honeymoon planning, budget planning, travel-season guidance, and FAQs. Focus destinations: Rajasthan, Himachal, Kashmir, Kerala, Goa, Sikkim, Mysuru/Coorg/Ooty, Mathura/Vrindavan/Agra, Gujarat, Uttar Pradesh, and internationally Thailand, Bali, Maldives. Prices are in Indian Rupees and always "starting from" estimates, never guaranteed. Reply in the same language the user writes in (English, Hindi or Gujarati). Keep replies warm, concise (under 120 words), practical, with a few tasteful emojis. After understanding the trip, encourage the user to request a customized package (the website form) or chat on WhatsApp for a quote. NEVER claim to confirm tickets, process payments, guarantee hotel availability, guarantee prices, guarantee visa approval, or give official immigration advice — politely defer those. Never ask for card, bank, Aadhaar or passport details.`;
@@ -144,7 +166,15 @@ class Component extends DCLogic {
       inputEl: this.setInput,
       onSubmit: this.onSubmit,
       thinking: this.state.thinking,
-      statusText: this.state.thinking ? 'typing…' : 'Online · here to help plan your trip',
+      langLabel: (this.LANGS().find((l) => l.code === this.state.lang) || {}).mark || 'EN',
+      langOptions: this.LANGS().map((l) => ({
+        name: l.name, mark: l.mark,
+        pick: () => this.setState({ lang: l.code }),
+        style: 'background:' + (l.code === this.state.lang ? '#EAF5FD' : 'transparent') + ';color:' + (l.code === this.state.lang ? '#0A84D6' : '#0B2440'),
+      })),
+      statusText: this.state.thinking
+        ? this.tr({ t: 'typing…', t_hi: 'लिख रहे हैं…', t_gu: 'લખી રહ્યાં છે…' }, 't')
+        : this.tr({ t: 'Online · here to help plan your trip', t_hi: 'ऑनलाइन · आपकी यात्रा की योजना में मदद के लिए', t_gu: 'ઓનલાઇન · તમારી યાત્રા યોજવામાં મદદ માટે' }, 't'),
       messages: this.state.messages.map((m) => {
         const me = m.role === 'user';
         return {
@@ -156,10 +186,10 @@ class Component extends DCLogic {
         };
       }),
       chips: [
-        { label: '5-day Kerala trip', send: () => this.ask('Can you suggest a 5-day Kerala itinerary for a family of 4?') },
-        { label: '3★ vs 5★ packages', send: () => this.ask("What's the difference between a 3-star and 5-star package?") },
-        { label: 'Best time for Kashmir', send: () => this.ask('What is the best time to visit Kashmir?') },
-      ],
+        { label: '5-day Kerala trip', label_hi: '5-दिन केरल यात्रा', label_gu: '5-દિવસ કેરળ યાત્રા', send: () => this.ask('Can you suggest a 5-day Kerala itinerary for a family of 4?') },
+        { label: '3★ vs 5★ packages', label_hi: '3★ बनाम 5★ पैकेज', label_gu: '3★ સામે 5★ પેકેજ', send: () => this.ask("What's the difference between a 3-star and 5-star package?") },
+        { label: 'Best time for Kashmir', label_hi: 'कश्मीर का सही समय', label_gu: 'કાશ્મીર માટે શ્રેષ્ઠ સમય', send: () => this.ask('What is the best time to visit Kashmir?') },
+      ].map((c) => ({ ...c, label: this.tr(c, 'label') })),
     };
   }
 }

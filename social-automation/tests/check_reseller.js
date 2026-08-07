@@ -42,22 +42,30 @@ function ctx(over = {}) {
     ok(r.matched && r.rp.amount === 22000, `vendor ₹20,000 +10% → ₹22,000 (got ${r.matched && r.rp.amount})`);
   }
 
-  // 3. requirePrice GATE: a plain photo with NO detectable price is NOT treated as an offer
-  //    (it must fall through to the normal WhatsApp draft) — and NO card is built/hosted.
+  // 3. Matched destination but NO price → matched:false reason 'no_price' + the matched package (so
+  //    the webhook can ask the owner for the price). The +10% is mandatory → NO card is built.
   {
     let hosted = 0;
     const r = await buildResellerCards(ctx({ extractPrices: async () => [], hostCard: async () => { hosted++; return "x"; } }),
       { imageBytes: Buffer.from([1]), smid: "t3" });
-    ok(r.matched === false, "no price + requirePrice → matched:false (falls through to normal draft)");
-    ok(/price/i.test(r.reason || ""), "the reason names the missing price");
-    ok(hosted === 0, "no card is hosted when the price gate fails (no orphaned blob)");
+    ok(r.matched === false && r.reason === "no_price", "matched destination + no price → reason 'no_price'");
+    ok(r.pkg && /rajasthan/i.test(r.pkg.item || ""), "returns the matched package so the owner can be asked for the price");
+    ok(hosted === 0, "no card is built without the mandatory +10% price (no orphaned blob)");
   }
 
-  // 4. A destination Skyline doesn't sell → matched:false (never invent a package).
+  // 3b. A price TYPED in the caption must NOT set the price (only the poster's own price counts) — a
+  //     matched destination with no poster price still returns no_price, ignoring the caption number.
+  {
+    const r = await buildResellerCards(ctx({ extractPrices: async () => [] }),
+      { imageBytes: Buffer.from([1]), offerText: "Rajasthan 1000", smid: "t3b" });
+    ok(r.matched === false && r.reason === "no_price", "a caption-typed number never sets the reseller price (poster price only)");
+  }
+
+  // 4. A destination Skyline doesn't sell → matched:false reason 'no_match' (never invent a package).
   {
     const r = await buildResellerCards(ctx({ describeOffer: async () => "xyzzy nonsense unmatchable place", extractPrices: async () => [50000] }),
       { imageBytes: Buffer.from([1]), smid: "t4" });
-    ok(r.matched === false, "an unmatched destination is held, not forced onto a random package");
+    ok(r.matched === false && r.reason === "no_match", "an unmatched destination → reason 'no_match'");
   }
 
   // 5. Card A render/host failure → matched:false with a clear reason (never a half-built post).

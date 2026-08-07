@@ -28,6 +28,7 @@ async function toJpeg(buffer) {
   catch (e) { return buffer; }
 }
 
+
 /**
  * Build Skyline reseller cards from an offer image.
  * @param {object} ctx  injectables: describeOffer, extractPrices, matchPackage, makeCard, pickPhoto,
@@ -52,26 +53,32 @@ async function buildResellerCards(ctx = {}, opts = {}) {
   const _rawMax = process.env.IMAGE_GEN_MAX_PER_RUN;
   const imageGenMax = ctx.imageGenMax != null ? Number(ctx.imageGenMax) : (_rawMax != null && _rawMax !== "" ? Number(_rawMax) : 8);
 
-  // 1. Read the offer's destinations + prices from the image (brand/phone excluded by the prompts).
-  let offer = opts.offerText || "", prices = [];
+  // 1. Read destinations + prices from the image with a strong vision model (brand/phone excluded by
+  //    the prompts). The PRICE comes ONLY from the poster — the vendor's authoritative original price
+  //    that we mark up +10%. We deliberately do NOT accept a price typed in the forwarding message
+  //    (that's not the "original price" and would let free text set/underprice the card). The caption
+  //    (opts.offerText) is used only as extra DESTINATION text for matching, never as a price. Reads
+  //    happen BEFORE building/hosting anything, so a no-price abort orphans nothing.
+  let visionOffer = "", prices = [];
   if (opts.imageBytes) {
     try {
       const [d, p] = await Promise.all([_describeOffer(opts.imageBytes, ctx.offerOpts || {}), _extractPrices(opts.imageBytes, ctx.priceOpts || {})]);
-      if (d) offer = (offer ? offer + " " : "") + d;
+      if (d) visionOffer = d;
       prices = p || [];
-    } catch (e) { /* keep offerText */ }
+    } catch (e) { /* keep caption-derived offer text for matching */ }
   }
+  const offer = [opts.offerText || "", visionOffer].filter(Boolean).join(" ").trim();
 
   // 2. Match to a Skyline package. No match ⇒ Skyline doesn't sell it → don't invent a destination.
   const match = _matchPackage(offer);
-  if (!match) return { matched: false, reason: "no Skyline package matches this offer" };
-  // GATE (WhatsApp): a genuine reseller poster carries a PRICE to mark up. When requirePrice is set,
-  // an image with no detectable price is NOT treated as an offer (a plain holiday photo falls through
-  // to the normal draft). Do this BEFORE building/hosting cards so we never orphan a blob.
-  if (ctx.requirePrice && !(prices && prices.length)) return { matched: false, reason: "no price detected on the image" };
-
+  if (!match) return { matched: false, reason: "no_match", offer };
   const pkg = match.pkg;
-  const rp = repricedLine(prices, pkg); // vendor min +10%, or Skyline's own catalogue price
+  // 3. A +10% markup is MANDATORY, so we MUST have the vendor's original price. If the destination is
+  //    one Skyline sells but no price was read (or typed), return no_price + the matched package so the
+  //    caller can ask the owner for it — we NEVER post a reseller card without the +10%.
+  if (!(prices && prices.length)) return { matched: false, reason: "no_price", pkg, offer };
+
+  const rp = repricedLine(prices, pkg); // vendor min +10%
 
   // 3. Build Skyline cards: A = real destination photo; B = AI scene (if a generator is wired) else decor.
   const baseCard = {

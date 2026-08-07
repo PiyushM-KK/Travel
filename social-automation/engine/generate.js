@@ -371,7 +371,9 @@ async function describeOffer(image, opts = {}) {
   const client = opts.client || newClient();
   try {
     const msg = await client.messages.create({
-      model: opts.model || REPLY_MODEL,
+      // Poster reading needs a strong vision model — the cheap REPLY_MODEL (haiku) returns EMPTY on
+      // stylised vendor posters. Default to CAPTION_MODEL (Sonnet); overridable via opts.model.
+      model: opts.model || CAPTION_MODEL,
       max_tokens: 120,
       messages: [{
         role: "user",
@@ -400,7 +402,9 @@ async function extractPrices(image, opts = {}) {
   const client = opts.client || newClient();
   try {
     const msg = await client.messages.create({
-      model: opts.model || REPLY_MODEL,
+      // Strong vision model — haiku blanked poster prices, and a +10% markup is MANDATORY so reading
+      // the original price reliably matters. Default to CAPTION_MODEL (Sonnet); overridable.
+      model: opts.model || CAPTION_MODEL,
       max_tokens: 60,
       messages: [{
         role: "user",

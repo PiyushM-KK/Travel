@@ -172,8 +172,25 @@ module.exports = async (req, res) => {
             const { buildResellerCards } = require("../automation/reseller");
             const src = row.imageSource || { kind: "url", url: row.imageUrl };
             const { buffer } = await resolveImageSourceBytes(src, {});
-            r = await buildResellerCards({ requirePrice: true, imageGen: null }, { imageBytes: buffer, offerText: row.hint || "", smid: row.id });
+            r = await buildResellerCards({ imageGen: null }, { imageBytes: buffer, offerText: row.hint || "", smid: row.id });
           } catch (e) { r = null; } // pre-mutation failure → row untouched → fall through to normal draft
+
+          // Matched a Skyline destination but no price to apply the MANDATORY +10% → don't silently
+          // foreign-brand-hold it; tell the owner which package it matched and ask for a priced poster.
+          // The row is left 'held' by DESIGN — this is terminal, not a pending state: recovery is the
+          // owner resending a poster that SHOWS the price (a fresh row), never a reply to this row, so
+          // nothing waits on it. (We never post without the +10%, so we can't proceed from here.)
+          if (r && !r.matched && r.reason === "no_price" && r.pkg) {
+            try {
+              await store.update(row.id, {
+                status: "held", claimToken: null, claimedAt: null,
+                subject: ("Reseller — " + r.pkg.item).slice(0, 80),
+                reviewNotes: "reseller: matched " + r.pkg.item + " but no price to mark up +10%",
+                lastError: "no vendor price for the mandatory +10%",
+              });
+            } catch (e) { /* non-fatal */ }
+            return `🧳 That poster matches *${r.pkg.item}* (${r.pkg.route}), but I couldn't read a per-person price on it — and the +10% markup needs the vendor's original price.\n\nSend a poster that clearly shows the per-person price and I'll post it at +10%.`;
+          }
 
           // 2) Matched → we now OWN this row's outcome; never fall through to a second draft.
           if (r && r.matched) {

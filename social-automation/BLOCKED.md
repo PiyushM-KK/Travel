@@ -120,11 +120,27 @@ read-only **`OPS_KEY`** (set on `skyline-social` + in the local `.env`; CRON_SEC
 from `GET /api/ops-status`. Full detail: `SKYLINE-SOCIAL-AUTOMATION.md` §11b. Scale by adding clients
 to the `CLIENTS` list in `site/ops.html`.
 
-## ⚠️ B-504 — PRIORITY: cron-prep 504 (the dashboard shows RED because of this)
+## B-504 — ✅ FIXED IN CODE 2026-08-06 (cron-prep 504) — ⏳ deploy pending
 
-`cron-prep` (the daily prep composite: email + calendar-cards + intake + generate + approve) exceeds
-Vercel Hobby's 60 s function cap → `generate` never completes, so it never heartbeats AND the
-self-healing reaper never runs → a card stays stuck in `drafting` and the "Prep" workflow reads idle.
-FIX (any one): trim the composite (turn off the image-less calendar briefs with
-`SOCIAL_CALENDAR_COUNT=0`, and/or drop the heaviest step), split it into separate lighter crons, or
-move to a plan with a higher `maxDuration`. This is the single item keeping the board red.
+**Was:** `cron-prep` (the daily prep composite: email + calendar-cards + intake + generate + approve)
+exceeded Vercel Hobby's 60 s cap → `generate` was killed mid-pass, never heartbeated, and a card
+could stay stuck in `drafting` → the "Prep" workflow read idle (board RED).
+
+**Fix (committed `cf05f6a`, pushed to `main`):** `runGenerate` now takes an absolute **wall-clock
+deadline**. It checks the clock BETWEEN rows (never mid-draft), reserving one row's worth of headroom,
+so it ALWAYS heartbeats + returns before the cap and DEFERS leftover rows to the next pass (the queue
+drains across runs). It also (a) heartbeats BEFORE the loop so a mid-row kill still leaves a fresh
+heartbeat, (b) always drafts ≥1 row/pass (forward-progress — a heavy preamble/tiny budget can't stall
+the queue), and (c) drafts OLDEST-first (FIFO) so the tail is never starved. Unbounded by default
+(GitHub Actions / CLI unchanged); only the Vercel cron opts in. `cron-prep` sets `deadline = now + 50s`
+(env `CRON_PREP_BUDGET_MS` overrides; `"0"` opts out). Locked by `tests/check_generate_deadline.js`
+(12 assertions); reviewed by Bug Hunter + App Security (0 HIGH/CRITICAL; residuals documented in code).
+
+**⏳ REMAINING (owner, ~1 min): deploy to prod.** The push to `main` deploys automatically IF the
+Vercel project is git-connected; otherwise run a fresh `vercel --prod` from `social-automation/` (the
+agent's CLI deploy was blocked by the harness guardrail — owner action). After deploy, the next
+`cron-prep` (13:30 UTC) returns 200 and the /ops "Prep" workflow goes green.
+
+**Optional complementary trim (owner):** set `SOCIAL_CALENDAR_COUNT=0` on `skyline-social` to stop the
+daily image-less briefs — pure QA-held clutter AND the main source of generate's queue length. With
+the deadline fix the 504 is already gone; this just makes the queue drain faster and cleaner.

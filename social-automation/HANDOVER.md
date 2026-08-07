@@ -4,7 +4,22 @@ Scope: **only the `social-automation/` folder.** The rest of the Skyline project
 (the travel website) is unchanged and separate. Read `README.md` here first for the
 structure + provenance.
 
-## ⭐ 2026-08-06 (evening) — LATEST: ops dashboard + the whole-session summary
+## ⭐ 2026-08-06 (late) — LATEST: cron-prep 504 fixed in code (B-504)
+
+`generate` now runs under an absolute **wall-clock deadline** (`cf05f6a`, pushed to `main`): it checks
+the clock BETWEEN rows (reserving one row's headroom), so it always heartbeats + returns before Vercel's
+60 s cap and **defers** leftover rows to the next pass (the queue drains across runs). Also: heartbeats
+BEFORE the loop (a mid-row kill never reads dead), always drafts **≥1 row/pass** (forward progress), and
+drafts **OLDEST-first** (FIFO — no tail starvation). Unbounded by default (GHA/CLI/tests unchanged);
+only the Vercel cron opts in (`cron-prep` → `deadline = now + 50 s`; `CRON_PREP_BUDGET_MS` overrides,
+`"0"` opts out). Locked by `tests/check_generate_deadline.js` (12 assertions); Bug Hunter + App Security
+reviewed (0 HIGH/CRITICAL — the forced-first-row poison-pill residual is documented + bounded in code).
+**⏳ Owner: deploy to prod** (git push auto-deploys if the project is git-connected, else `vercel --prod`
+from `social-automation/` — the agent's CLI deploy was blocked by the harness guardrail). Then the next
+`cron-prep` returns 200 and the /ops "Prep" workflow goes green. Optional `SOCIAL_CALENDAR_COUNT=0` trims
+the image-less briefs so the queue drains faster. See `BLOCKED.md` → B-504.
+
+## 2026-08-06 (evening) — ops dashboard + the whole-session summary
 
 **Read `SKYLINE-SOCIAL-AUTOMATION.md` first** (the single end-to-end reference; mirrored in the FullFirm
 repo — keep both in sync).

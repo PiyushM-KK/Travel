@@ -249,10 +249,15 @@ countdowns**, a **published-over-time chart** (daily/weekly/monthly), and plain-
 
 ## 12. Known open items (see `BLOCKED.md` for the live list)
 
-- **cron-prep 504** *(priority — currently shows RED on the dashboard)* — the composite prep exceeds
-  Vercel Hobby's 60 s cap, so `generate` never completes/heartbeats → the reaper doesn't run → a card
-  stays stuck. Fix: trim the composite (drop the image-less calendar briefs / `SOCIAL_CALENDAR_COUNT=0`,
-  or split into separate crons, or raise `maxDuration`).
+- **cron-prep 504** — ✅ **FIXED IN CODE** (`cf05f6a`), ⏳ **deploy pending**. `generate` now runs under
+  an absolute wall-clock deadline: it stops between rows (reserving one row's headroom), always
+  heartbeats + returns before the 60 s cap, and defers leftover rows to the next pass (queue drains
+  across runs). Also heartbeats before the loop (a mid-row kill never reads dead), always drafts ≥1
+  row/pass (forward progress), and drafts OLDEST-first (FIFO, no tail starvation). Unbounded by default
+  (GHA/CLI unchanged); the Vercel cron sets `deadline = now + 50 s` (`CRON_PREP_BUDGET_MS` overrides,
+  `"0"` opts out). Tests: `check_generate_deadline.js`. **Owner:** deploy to prod (git push auto-deploys
+  if the project is git-connected, else `vercel --prod`); optional `SOCIAL_CALENDAR_COUNT=0` to trim the
+  briefs and drain faster. See `BLOCKED.md` → B-504.
 - **Infra migration** — move publishing off the firm `site` project onto Skyline's own infra.
 - **Monitoring dashboard** — ✅ BUILT (see §11b). Scale it by adding clients to the registry.
 - **Private client image repo** — `PiyushM-KK/skyline-client-images` (private) for client photo uploads;

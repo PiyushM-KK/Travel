@@ -39,9 +39,14 @@ module.exports = async (req, res) => {
     // string from req.url — never build a URL from the attacker-controlled Host header.
     let slot;
     const q = String(req.url || "").split("?")[1] || "";
-    const s = new URLSearchParams(q).get("slot");
+    const params = new URLSearchParams(q);
+    const s = params.get("slot");
     if (s === "0" || s === "1") slot = Number(s);
-    const out = await runJob({ job: "package-post", clientId, runner: "vercel-package", ...(slot != null ? { slot } : {}) });
+    // Optional recreate/re-feature controls: ?pkg=<slug|name> features a specific package; ?hold=1
+    // forces the approval route (held for the owner on WhatsApp) instead of auto-publishing.
+    const pkgRef = params.get("pkg") || undefined;
+    const hold = ["1", "true", "yes"].includes(String(params.get("hold") || "").toLowerCase());
+    const out = await runJob({ job: "package-post", clientId, runner: "vercel-package", ...(slot != null ? { slot } : {}), ...(pkgRef ? { pkgRef } : {}), ...(hold ? { hold: true } : {}) });
     res.status(out.ok ? 200 : 500).json({ runner: "vercel", ...out });
   } catch (e) {
     res.status(500).json({ runner: "vercel", ok: false, error: redact(String((e && e.message) || e)) });

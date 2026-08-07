@@ -283,7 +283,20 @@ async function runJob(opts = {}) {
       : (now.getUTCHours() < 6 ? 0 : 1);
     // The SAME live gate the publish job uses — so a clean card is only AUTO-published when it can
     // actually go out; otherwise it's held for the owner (never left silently `approved`).
-    const live = (opts.live === true || process.env.SOCIAL_LIVE === "true") && !!client.live && !!(client.creds && client.creds.pageToken);
+    // `opts.hold` forces the approval route (live=false) even when live posting is on — used to
+    // RECREATE / re-feature a specific package for the owner to review before it goes public.
+    const live = opts.hold === true ? false
+      : ((opts.live === true || process.env.SOCIAL_LIVE === "true") && !!client.live && !!(client.creds && client.creds.pageToken));
+    // Optional: feature a SPECIFIC package (recreate a rejected post / re-feature on demand). Resolve a
+    // slug or name to the catalogue package object; falls back to the slot's package if unmatched.
+    let pkgOverride = opts.pkg;
+    if (!pkgOverride && opts.pkgRef) {
+      const { allPackages, photoSlug } = require("./packages");
+      const ref = String(opts.pkgRef).trim().toLowerCase();
+      pkgOverride = allPackages().find((p) => photoSlug(p.item + " " + (p.route || "")) === ref)
+        || allPackages().find((p) => p.item.toLowerCase() === ref)
+        || allPackages().find((p) => p.item.toLowerCase().includes(ref));
+    }
     const out = await runPackagePosts(store, {
       facts: client.facts, profile: client.profile, clientName: client.label || client.id, client: client.id,
       slot, live,
@@ -296,7 +309,7 @@ async function runJob(opts = {}) {
       publishFn: opts.publishFn || (() => runJob({ job: "publish", clientId, runner, now, store })),
       ...(opts.notify != null ? { notify: opts.notify } : {}),
       ...(opts.now ? { now: opts.now } : {}),
-      ...(opts.pkg ? { pkg: opts.pkg } : {}),
+      ...(pkgOverride ? { pkg: pkgOverride } : {}),
     });
     await store.heartbeat("package-post", { runner, considered: out.considered, published: (out.published || []).length, notified: (out.notified || []).length, held: (out.held || []).length });
     return { ok: true, ...base, packagePost: out };

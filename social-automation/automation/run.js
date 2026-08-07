@@ -177,6 +177,8 @@ async function runJob(opts = {}) {
       ...(opts.genOpts ? { genOpts: opts.genOpts } : {}),
       ...(opts.visionOpts ? { visionOpts: opts.visionOpts } : {}),
       ...(opts.vision === false ? { vision: false } : {}),
+      ...(opts.deadlineMs != null ? { deadlineMs: opts.deadlineMs } : {}),
+      ...(opts.budgetMs != null ? { budgetMs: opts.budgetMs } : {}),
     });
     return { ok: true, ...base, summary };
   }
@@ -212,6 +214,11 @@ async function runJob(opts = {}) {
         ...(opts.genOpts ? { genOpts: opts.genOpts } : {}),
         ...(opts.visionOpts ? { visionOpts: opts.visionOpts } : {}),
         ...(opts.vision === false ? { vision: false } : {}),
+        // B-504: the prep composite runs on the capped Vercel cron — carry the caller's deadline
+        // through so generate stops before the function is killed (email/calendar-cards already
+        // spent part of the window; the deadline is absolute, so their time counts against it).
+        ...(opts.deadlineMs != null ? { deadlineMs: opts.deadlineMs } : {}),
+        ...(opts.budgetMs != null ? { budgetMs: opts.budgetMs } : {}),
       });
     }
     const channel = resolveApprovalChannel(opts);

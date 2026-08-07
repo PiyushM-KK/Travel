@@ -44,6 +44,23 @@ module.exports = async (req, res) => {
 
   try {
     const clientId = process.env.SOCIAL_CLIENT || "skyline";
+    // B-504: hard wall-clock deadline for the whole composite. Vercel Hobby kills the function at
+    // 60s; generate stops with a row's worth of headroom (see generate-runner) so it always
+    // heartbeats + returns 200 rather than being killed mid-queue. Absolute epoch ms, taken from the
+    // function's OWN clock now — so the time the email + calendar-cards steps below consume counts
+    // against the same budget, and generate only ever gets the window that's actually left. Leftover
+    // planned rows defer to the next pass (the queue drains across runs).
+    //   CRON_PREP_BUDGET_MS unset/invalid → 50s default;  a positive number → that budget;
+    //   exactly "0" → OPT OUT (no deadline; runs unbounded, accepting the 504 risk — an honest 0,
+    //   not the `Number(x) || N` trap that silently ignores it).
+    const rawCap = process.env.CRON_PREP_BUDGET_MS;
+    let deadlineMs; // undefined = no deadline passed (unbounded)
+    if (rawCap === "0") {
+      deadlineMs = undefined;
+    } else {
+      const capMs = Number(rawCap);
+      deadlineMs = Date.now() + (Number.isFinite(capMs) && capMs > 0 ? capMs : 50 * 1000);
+    }
     // Run the #3 VENDOR-EMAIL idea flow FIRST (it's light + the owner's priority), so it always
     // completes even if the heavier calendar prep below runs long against the 60s function limit.
     // Folded in here so we don't need a 3rd Vercel cron on the Hobby plan. It turns new vendor
@@ -57,7 +74,10 @@ module.exports = async (req, res) => {
     let calendarCards;
     try { calendarCards = (await runJob({ job: "calendar-cards", clientId, runner: "vercel-calendar" })).calendarCards; }
     catch (e) { calendarCards = { error: redact(String((e && e.message) || e)) }; }
-    const out = await runJob({ job: "prep", clientId, runner: "vercel-prep" });
+    // prep = intake -> generate -> approve; generate is the unbounded, expensive step, so it carries
+    // the deadline. If email+calendar already spent most of the window, generate drafts what it can
+    // and defers the rest (never a 504).
+    const out = await runJob({ job: "prep", clientId, runner: "vercel-prep", ...(deadlineMs != null ? { deadlineMs } : {}) });
     res.status(out.ok ? 200 : 500).json({ runner: "vercel", ...out, email, calendarCards });
   } catch (e) {
     // Never leak a secret in an error surfaced to the caller (all shapes).

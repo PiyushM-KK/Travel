@@ -59,6 +59,49 @@ function resolveStaleMs() {
   return Math.max(MIN_STALE_MS, Number.isFinite(n) ? n : DEFAULT_STALE_MS);
 }
 
+// WALL-CLOCK DEADLINE (B-504 fix): generate drafts every `planned` row, and each row costs ~4
+// sequential Claude calls (vision → draft+fact-check → SMM → QA). On a serverless runner with a hard
+// function cap (Vercel Hobby = 60s), a long queue makes generate exceed the cap → the function is
+// killed before it heartbeats, so the "Prep" workflow reads dead AND leftover rows never drain. The
+// deadline makes generate ALWAYS finish inside the window: it checks the clock BETWEEN rows and, once
+// past the deadline, stops cleanly, heartbeats what it did, and DEFERS the rest to the next pass (the
+// queue drains across runs). A row already in flight is never interrupted mid-draft (its claim + the
+// reaper protect it), so nothing is corrupted — only unstarted rows are deferred.
+//   opts.deadlineMs  — absolute epoch ms; the caller (cron-prep) sets it from the function's own clock
+//                      so time already spent by earlier composite steps (email/calendar-cards) counts.
+//   opts.budgetMs / GENERATE_BUDGET_MS — relative ms from generate's start (fallback when no absolute
+//                      deadline is given).
+//   none of the above → Infinity: UNBOUNDED (the default). GitHub Actions has no function cap, and the
+//                      CLI/tests must keep draining the whole queue — so only a runner that opts in is
+//                      ever time-boxed. Behaviour is unchanged everywhere the deadline isn't passed.
+function resolveGenerateDeadlineMs(opts, startMs) {
+  if (opts.deadlineMs != null && Number.isFinite(Number(opts.deadlineMs))) return Number(opts.deadlineMs);
+  // Explicit per-call opt-out: opts.budgetMs of exactly 0 (or "0") means UNBOUNDED. Honour it BEFORE
+  // consulting the env (the honest-0 contract, matching deadlineMs/rowReserveMs) — the `> 0` check
+  // below would otherwise treat 0 as unset and silently fall through to GENERATE_BUDGET_MS.
+  if (opts.budgetMs === 0 || opts.budgetMs === "0") return Infinity;
+  const rawBudget = opts.budgetMs != null && opts.budgetMs !== ""
+    ? opts.budgetMs
+    : process.env.GENERATE_BUDGET_MS;
+  const budget = rawBudget != null && rawBudget !== "" ? Number(rawBudget) : null;
+  if (budget != null && Number.isFinite(budget) && budget > 0) return startMs + budget;
+  return Infinity;
+}
+
+// Per-row time reserve (ms). One `planned` row costs ~4 sequential Claude calls (vision → draft →
+// SMM → QA), so the deadline is checked with this headroom SUBTRACTED: we stop STARTING rows once
+// less than a row's worth of time remains, so a row begun near the deadline still finishes before
+// the function's hard cap — never killed mid-draft without heartbeating. Default 12s; 0 disables it
+// (start rows right up to the deadline). Honours an explicit 0 (not the `x || N` trap).
+function resolveRowReserveMs(opts) {
+  const raw = opts.rowReserveMs != null && opts.rowReserveMs !== "" ? opts.rowReserveMs : process.env.GENERATE_ROW_RESERVE_MS;
+  const n = raw != null && raw !== "" ? Number(raw) : 12000;
+  return Number.isFinite(n) && n >= 0 ? n : 12000;
+}
+
+// ISO -> epoch ms for sorting; a missing/invalid stamp sorts as 0 (oldest → drafted first).
+function toMs(iso) { const t = iso ? new Date(iso).getTime() : 0; return Number.isFinite(t) ? t : 0; }
+
 async function reapStaleDrafting(store, now, staleMs) {
   const window = Math.max(MIN_STALE_MS, Number.isFinite(staleMs) ? staleMs : DEFAULT_STALE_MS);
   const cutoff = (now instanceof Date ? now : new Date()).getTime() - window;
@@ -382,11 +425,55 @@ async function runGenerate(store, opts = {}) {
   // list `planned`, so a reaped row is re-drafted in this same pass (not a future one).
   const reaped = await reapStaleDrafting(store, now, resolveStaleMs());
 
-  const planned = await store.listByStatus("planned");
-  const summary = { runner: ctx.runner, at: nowIso(now), considered: planned.length, reaped: reaped.reaped, approved: 0, pending: 0, held: 0, skipped: 0, rows: [] };
+  // Wall-clock deadline so generate always finishes inside a capped function window (B-504).
+  // Uses the real clock (NOT `now`, which may be an injected test/backfill time) — it measures
+  // elapsed work, not simulated time. Infinity = unbounded (default; GHA/CLI/tests).
+  const startMs = Date.now();
+  const deadlineMs = resolveGenerateDeadlineMs(opts, startMs);
+  const rowReserveMs = resolveRowReserveMs(opts);
 
-  for (const row of planned) {
-    const res = await generateOne(store, row, ctx);
+  const planned = await store.listByStatus("planned");
+  // FIFO fairness (guards tail starvation under a tight per-run budget): draft the OLDEST rows first,
+  // so the SAME tail rows are never deferred forever — every row advances toward the front and drains
+  // in a bounded number of passes. createdAt is immutable; a stampless row sorts oldest (drafted first).
+  // Secondary sort by id gives a TOTAL, deterministic order so that many rows sharing a createdAt (or
+  // all lacking one → tie at 0) still get a stable, repeatable position instead of arbitrary listByStatus
+  // order — without it, a batch of stampless rows could keep the same subset at the front every pass.
+  const queue = planned.slice().sort((a, b) =>
+    (toMs(a.createdAt) - toMs(b.createdAt)) || String(a.id || "").localeCompare(String(b.id || "")));
+  const summary = { runner: ctx.runner, at: nowIso(now), considered: queue.length, reaped: reaped.reaped, approved: 0, pending: 0, held: 0, skipped: 0, deferred: 0, rows: [] };
+
+  // Heartbeat that this pass STARTED, before any expensive row. So even if one slow row overruns and
+  // the function is killed mid-draft, the dashboard still sees a fresh generate heartbeat (the pass ran;
+  // the reaper already reset stale rows), not a dead workflow. The post-loop heartbeat carries the real
+  // counts. Best-effort — a heartbeat failure must never sink the pass.
+  try { await store.heartbeat("generate", { runner: ctx.runner, phase: "start", considered: queue.length, reaped: reaped.reaped }); } catch (e) { /* non-fatal */ }
+
+  for (let i = 0; i < queue.length; i++) {
+    // Check the clock BETWEEN rows (never mid-draft), with a row's worth of headroom reserved: once
+    // less than that remains, stop and defer the rest so this run heartbeats + returns before the
+    // function's hard cap (and never begins a row it can't finish in time). Only bites when a finite
+    // deadline is set — unbounded runs (GHA/CLI) process the whole queue.
+    // FORWARD-PROGRESS GUARANTEE: always draft at least the FIRST row of a pass (i === 0), even when
+    // no headroom remains. Otherwise a heavy composite preamble (email+calendar-cards) OR a mis-set
+    // tiny budget could leave < one row's headroom on EVERY pass, so the queue would NEVER drain — a
+    // silent stall behind a green dashboard. Draining one row/pass degrades gracefully to slow-but-
+    // draining; the pre-loop heartbeat + the reaper keep that one forced row safe if it ever overruns.
+    //
+    // RESIDUAL (accepted, bounded — do NOT "defer when past the deadline" to close it: that just
+    // re-opens the never-drains stall above). The forced first row ignores the deadline, so it is only
+    // ever killed mid-draft if preamble + one row exceeds the function's HARD cap (~preamble > 45s of
+    // the 60s cap). That is (a) an alarm condition in its own right — email+calendar should never take
+    // 45s — whose real fix is trimming the preamble (SOCIAL_CALENDAR_COUNT=0), (b) NOT silent: the
+    // pre-loop heartbeat already recorded the pass, and (c) self-recovering: the reaper resets the row
+    // and, because generate drains FIFO-oldest-first, it completes on the very next lighter-preamble
+    // pass. Publish is separately idempotent + claim-guarded, so the worst case is a wasted re-draft,
+    // never a double post.
+    if (i > 0 && Number.isFinite(deadlineMs) && Date.now() + rowReserveMs >= deadlineMs) {
+      summary.deferred = queue.length - i;
+      break;
+    }
+    const res = await generateOne(store, queue[i], ctx);
     summary.rows.push(res);
     if (res.outcome === "approved") summary.approved++;
     else if (res.outcome === "pending") summary.pending++;
@@ -402,6 +489,7 @@ async function runGenerate(store, opts = {}) {
     pending: summary.pending,
     held: summary.held,
     skipped: summary.skipped,
+    deferred: summary.deferred,
   });
   return summary;
 }

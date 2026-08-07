@@ -39,15 +39,32 @@ now posts the FRESH AI scene, not the repeating stock photo, and (b) owner messa
 provenance. Tests `check_pkgcard_fix.js` (17). Superseded by the AI Scene Generator (`9e04931`) + the
 reseller-flow extension.
 
-## B-CHATBOT — owner setup for the client chatbot (the pricing-portal pivot)
-The pricing portal is becoming a **client-only chatbot agent** (edit website prices/packages/hotels by
-chat, GitHub-OAuth login, Claude tool-use, preview→commit via a bot). Owner-only prerequisites (same as
-the old portal — see `pricing-portal/PRICING-PORTAL.md` §Owner setup):
-1. Create a **GitHub OAuth App** (client login) → Client ID + Secret.
-2. Create a **BuildWise commit bot** (GitHub App on `PiyushM-KK/Travel`, Contents: write — or a
-   fine-grained PAT) → the agent commits price/package edits with this, never a personal token.
-3. A Vercel project for the chatbot; set the env vars above.
-The client already has GitHub (OAuth login works for them + the owner).
+## B-CHATBOT — owner setup for the OWNER-ONLY website-edit chatbot (Phase 2 unblock)
+The `Chatbot.dc.html` page becomes an **owner-only console** to edit website prices/packages/hotels by
+chat: GitHub-login (allow-list of the owner + Piyush), Claude tool-use, preview→commit via a scoped bot.
+
+**Phase 1 is BUILT + shipped** (`5c0c6b3`, see `pricing-portal/CHATBOT.md`): the data model + bounded
+writers + reader + rate-sheet parser, all tested (40 checks) + reviewed. Decisions locked: **auth =
+GitHub login**; **hotels = both** a city hotel-rate catalog (on Hotels.dc.html, ships EMPTY) AND
+per-package 4★/5★ tier prices (Domestic/International). Vendor reckoners are **scanned image PDFs**
+(no text layer) → the agent reads them by **Claude vision**; a clean Markdown/CSV table is the exact
+fallback. Vendor NET rates get Skyline's **margin** before going public (mirrors the reseller +10% rule).
+
+**Owner-only prerequisites to run Phase 2 live (I can't create GitHub apps / set prod secrets):**
+1. **GitHub OAuth App** (owner login) — GitHub → Settings → Developer settings → OAuth Apps → New.
+   Homepage = the chatbot URL; callback = `<chatbot>/api/auth/callback`. → `GITHUB_OAUTH_CLIENT_ID` +
+   `GITHUB_OAUTH_CLIENT_SECRET`.
+2. **Allow-list** the two GitHub usernames (owner + Piyush) → `PORTAL_ALLOWED_LOGINS`.
+3. **BuildWise commit bot** (least-privilege, NOT a personal token) — a GitHub App on `PiyushM-KK/Travel`
+   with **Contents: read & write** (App ID + Installation ID + private key) OR a fine-grained PAT scoped
+   to that one repo with an expiry → `GH_APP_ID`/`GH_APP_INSTALLATION_ID`/`GH_APP_PRIVATE_KEY` (or `GH_BOT_TOKEN`).
+4. **Vercel project** (root = `pricing-portal`) + the env vars above + `ANTHROPIC_API_KEY`.
+The client/owner already has GitHub. Hand me the IDs and I wire Phase 2 (`lib/commit.js` + `api/auth/*`
+OAuth + `agent/chatbot.js` tool-use loop incl. PDF vision + the secured `Chatbot.dc.html` UI).
+
+**NOTE (data leak guard):** vendor rate sheets (e.g. the Touracle reckoner in `social-automation/assets/`)
+carry confidential B2B net pricing and are **gitignored** — never commit them to this PUBLIC repo. Only
+Skyline SELL prices reach the site.
 
 ## B-CODE — ✅ RESOLVED 2026-08-06 (was: "B- 9880" approval became a junk post / stale-code dead-ends)
 

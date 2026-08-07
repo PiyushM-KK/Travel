@@ -17,7 +17,7 @@
  * dry run mutates nothing and the row simply waits for the next live publish. Injectable for tests.
  */
 
-const { buildAndDraftCard, packageForSlot, dateKey } = require("./calendar-cards");
+const { buildAndDraftCard, packageForSlot, dateKey, sourceLine, AI_SCENE_STYLE } = require("./calendar-cards");
 const { shortCode } = require("./whatsapp");
 const { photoSlug } = require("./packages");
 
@@ -82,7 +82,7 @@ async function runPackagePosts(store, ctx = {}) {
         return { considered: 1, slot, published: [], notified: [], held: [{ id: fresh.id, reason: `hold failed — could not demote from '${fresh.status}' to pending_approval; NOT notifying (row may still be publishable)` }], skipped: [] };
       }
     }
-    const details = `📦 Skyline package post — HELD for your OK\n   ${pkg.item} — ${pkg.route}\n   Price on card: ${rp.line} (Skyline rate)\n   ⚠️ ${holdReason}`;
+    const details = `📦 Skyline package post — HELD for your OK\n   ${pkg.item} — ${pkg.route}\n   Price on card: ${rp.line} (Skyline rate)\n   ${sourceLine(pkg, now)}\n   ⚠️ ${holdReason}`;
     const instr = cardUrlB
       ? `\n\nReply:\n🅰️ A ${code} → post the real-photo card\n🅱️ B ${code} → post the ${bStyle} card\n➕ both ${code}\n❌ reject ${code}`
       : `\n\n✅ approve ${code} → posts to Instagram + Facebook   |   ❌ reject ${code}`;
@@ -96,21 +96,45 @@ async function runPackagePosts(store, ctx = {}) {
     return { considered: 1, slot, published: [], notified: [{ id: fresh.id, code, package: pkg.item, heldForApproval: holdReason }], held: [], skipped: [] };
   }
 
-  // ---- CLEAN + LIVE → auto-publish variant A (the real photo). Approve the row, drop the unused B, publish.
-  await store.update(fresh.id, { status: "approved", imageUrl: cardUrlA, imageSource: { kind: "url", url: cardUrlA, options }, lastError: "" });
-  await sweepCards([cardUrlB]); // keep A, remove the unchosen scene card
+  // ---- CLEAN + LIVE → auto-publish. Prefer the FRESHLY-GENERATED AI scene (card B) over the fixed
+  //      stock photo (card A): the stock photo repeats every rotation cycle (owner: "don't reuse the
+  //      same picture — create new images"), whereas the AI scene is generated anew each run, so
+  //      consecutive posts of the same package no longer look identical. Fall back to the real photo
+  //      when no AI scene was produced (generator off / decor fallback / B render failed).
+  const useScene = bStyle === AI_SCENE_STYLE && !!cardUrlB;
+  const postUrl = useScene ? cardUrlB : cardUrlA;
+  const dropUrl = useScene ? cardUrlA : cardUrlB;
+  await store.update(fresh.id, { status: "approved", imageUrl: postUrl, imageSource: { kind: "url", url: postUrl, options }, lastError: "" });
+  // Do NOT sweep the other candidate yet — keep it hosted as a FALLBACK until we know the publish
+  // landed. An AI scene (illustrative) is likelier than a real photo to be refused by Meta, so if we
+  // swept the photo up-front a failed scene publish would leave only the failing card to retry.
 
   let pub = null;
   try { pub = ctx.publishFn ? await ctx.publishFn() : null; }
   catch (e) { pub = { error: String((e && e.message) || e) }; }
   const after = await store.get(fresh.id);
   const publishedOk = !!(after && after.status === "published");
-  if (publishedOk) { try { await sweepCards([cardUrlA]); } catch (e) { /* Meta ingested it; the public blob is now liability */ } }
+  if (publishedOk) {
+    // Landed — the posted blob is now liability, the other is an orphan. Sweep both.
+    try { await sweepCards([postUrl, dropUrl]); } catch (e) { /* Meta ingested it; the public blobs are now liability */ }
+  } else if (useScene && dropUrl) {
+    // The AI-scene publish did NOT complete. Fall back to the reliable destination photo (still hosted)
+    // so the row's retry (cron-publish re-posts an `approved` row from its stored imageUrl — it does
+    // NOT re-draft, so this hand-off is what actually prevents re-attempting the failing scene) posts
+    // the safe card. Only sweep the scene blob AFTER the demote SUCCEEDS — otherwise imageUrl would
+    // still point at the scene we just deleted (a 404 on retry).
+    let fellBack = false;
+    try {
+      await store.update(fresh.id, { imageUrl: dropUrl, imageSource: { kind: "url", url: dropUrl, options }, lastError: "AI scene didn't publish — fell back to the destination photo for retry" });
+      fellBack = true;
+    } catch (e) { /* couldn't demote — leave the scene url AND its blob hosted so the retry still has an image */ }
+    if (fellBack) { try { await sweepCards([postUrl]); } catch (e) { /* best-effort */ } }
+  }
 
   // Tell the owner the outcome (informational — no action needed on a clean auto-post).
   if (notify && to && ctx.sendText) {
     let line;
-    if (publishedOk) line = `📦✅ Auto-posted to Instagram + Facebook:\n${pkg.item} — ${pkg.route}\n"${(fresh.caption || "").trim().slice(0, 180)}"`;
+    if (publishedOk) line = `📦✅ Auto-posted to Instagram + Facebook:\n${pkg.item} — ${pkg.route}\n   ${sourceLine(pkg, now)}\n   Image: ${useScene ? "fresh AI scene (illustrative)" : "destination photo"}\n"${(fresh.caption || "").trim().slice(0, 180)}"`;
     else if (pub && pub.dryRun) line = `📦 Prepared "${pkg.item}" — live posting is off, so it'll go out on the next live publish run. (id ${code})`;
     else line = `📦⚠️ Prepared "${pkg.item}" but publishing didn't complete (${(after && after.status) || "unknown"}${after && after.lastError ? ": " + after.lastError : ""}). It stays approved and will retry. (id ${code})`;
     try { await ctx.sendText(to, line.slice(0, 4000)); } catch (e) { /* best-effort */ }

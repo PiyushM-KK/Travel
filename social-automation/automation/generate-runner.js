@@ -145,6 +145,12 @@ function briefFromRow(row, photoDescription) {
   const hint = photoDescription || row.hint || "";
   const subject = row.subject || (hint ? hint.slice(0, 60) : "something worth sharing");
   const hasImage = !!(photoDescription || row.imageSource || row.imageUrl);
+  // OWN-CATALOGUE cards (calendar-card / package-post) attach OUR OWN branded card and carry a
+  // complete, GROUNDED hint (route + an indicative "from ₹X / person" price + one WhatsApp CTA). For
+  // these the caption SHOULD state that grounded price + CTA — so use the hint verbatim and skip the
+  // vendor-poster guard below. Burying the price/CTA on the image alone made the SMM accessibility
+  // rule flag every own card "price/CTA missing" → held/rejected (B-PKGCARD).
+  const ownCatalogue = row.source === "calendar-card" || row.source === "package-post";
   // When a post carries an IMAGE, reframe the task. A finished promo/poster (a common
   // vendor intake) already shows prices + package names — the strict grounding guard then
   // refuses to write a post at all (it won't restate un-verifiable prices), so photo posts
@@ -152,7 +158,8 @@ function briefFromRow(row, photoDescription) {
   // the offer: write a mood + CTA caption, never restate the image's prices/specifics, and
   // still ground everything in Skyline's own facts. A plain scene/destination photo still
   // gets an evocative, grounded caption. The owner's own note (row.hint) is honoured first.
-  const angle = hasImage
+  // (Own-catalogue cards are EXEMPT — their prices are ours and verifiable.)
+  const angle = (hasImage && !ownCatalogue)
     ? (row.hint
         ? `${row.hint}. The attached image already shows any offer, prices and package details — do NOT repeat those specifics; set the mood and invite people to message us. Ground everything in Skyline's real offerings; never state a price that isn't in your facts.`
         : "This post has an attached image. Write a short, warm caption grounded in what Skyline actually offers. If the image is a finished promo/poster that already shows prices, package names or contact details, do NOT repeat those specifics — set the mood and invite people to message us to plan their trip. If it is a place or scene, evoke it and connect it to how Skyline plans custom trips there. Never state a price or detail that isn't in your facts.")
@@ -162,7 +169,9 @@ function briefFromRow(row, photoDescription) {
     subject,
     angle,
     suggestedItems: Array.isArray(row.suggestedItems) ? row.suggestedItems : [],
-    photoCaption: hint,
+    // For own-catalogue cards the "photo" is our generated card, not a described scene — don't feed
+    // the instruction text back as a bogus "WHAT THE PHOTO SHOWS" line.
+    photoCaption: ownCatalogue ? "" : hint,
     language: row.language || "en",
   };
 }

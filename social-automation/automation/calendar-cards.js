@@ -20,11 +20,16 @@ const { makeCard, pickPhoto } = require("../engine/card");
 const { generateOne } = require("./generate-runner");
 const { shortCode } = require("./whatsapp");
 const { BUSINESS } = require("../facts");
-const { allPackages, repricedLine, photoSlug } = require("./packages");
+const { allPackages, repricedLine, photoSlug, categoryForItem } = require("./packages");
 
 const ASSETS = path.join(__dirname, "..", "assets");
 const PHOTOS = path.join(ASSETS, "destinations");
 const LOGO = path.join(ASSETS, "Skyline_Logo.jpg");
+
+// The bStyle label for a FRESHLY-GENERATED AI scene (card B). One constant so the assignment here and
+// the "post the fresh scene, not the repeating photo" check in package-posts.js can never drift apart
+// (a silent rename would otherwise revert auto-posts to the repeated stock photo with no error).
+const AI_SCENE_STYLE = "AI scene";
 
 // IG accepts JPEG only; satori renders PNG — re-encode before hosting.
 async function toJpeg(buffer) {
@@ -66,6 +71,22 @@ function packageForSlot(now, slot = 0, slotsPerDay = 2) {
 }
 
 function dateKey(now) { return (now || new Date()).toISOString().slice(0, 10); }
+
+/** Owner-facing IST timestamp for provenance ("Prepared: …"). */
+function istStamp(now) {
+  const d = now instanceof Date ? now : (now ? new Date(now) : new Date());
+  try { return d.toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", hour: "numeric", minute: "2-digit", hour12: true }) + " IST"; }
+  catch (e) { return d.toISOString(); }
+}
+
+/** One provenance block telling the owner WHERE this content came from — Skyline's OWN website
+ *  catalogue, which category page it's on, and when it was prepared. (Email/WhatsApp intakes carry
+ *  their own From/Received provenance; this is the "package from the website" equivalent.) */
+function sourceLine(pkg, now) {
+  const cat = categoryForItem(pkg.item);
+  const site = String(BUSINESS.website || "skylinetravelplanner.com").replace(/^https?:\/\//, "").replace(/\/+$/, "");
+  return `Source: Skyline website catalogue${cat ? " · " + cat : ""} (${site})\n   Prepared: ${istStamp(now)}`;
+}
 
 /** hostCard / sweepCards closures over the ctx's (injectable) hosting transport. */
 function makeCardHelpers(ctx) {
@@ -112,7 +133,13 @@ async function buildAndDraftCard(store, ctx, { pkg, smid, source }) {
   // yet) so a re-trigger / cron retry finds it via findBySourceMessageId and skips — closing the
   // check-then-create window BEFORE the paid image generation runs.
   const rp = repricedLine([], pkg);
-  const hint = `Write a SHORT, warm Skyline post inviting people to plan a CUSTOM ${pkg.item} trip with Skyline and message us on WhatsApp. You may name ONLY the destinations in this route: ${pkg.route}. Do NOT invent specific attractions, activities, sights, hotels, meals or day-by-day itinerary — none are provided, so they read as fabricated. Keep it about the FEELING/mood + the invitation to plan a custom trip. Do NOT state any price (it's already on the image) and do not name any other company.`;
+  // Skyline's OWN catalogue price + WhatsApp number are GROUNDED facts (facts.js), so — unlike a
+  // vendor poster — the caption SHOULD state them. Burying them on the image alone made the SMM's
+  // accessibility rule flag EVERY card "price/CTA missing" → held/rejected → nothing auto-posted
+  // (B-PKGCARD). State the price ONCE as an indicative "from …/person" (passes the price-hedge guard)
+  // and give exactly ONE WhatsApp CTA (both verified by validate-post).
+  const phone = (BUSINESS.locations && BUSINESS.locations[0] && BUSINESS.locations[0].phone) || "";
+  const hint = `Write a SHORT, warm Skyline post inviting people to plan a CUSTOM ${pkg.item} trip with Skyline. You may name ONLY the destinations in this route: ${pkg.route}. Do NOT invent specific attractions, activities, sights, hotels, meals or day-by-day itinerary — none are provided, so they read as fabricated. Keep it about the FEELING/mood + the invitation to plan a custom trip. State the price ONCE, as an INDICATIVE starting-from figure phrased exactly like "from ${pkg.price} per person" — it is a starting-from estimate that changes with season and availability, so NEVER call it fixed, final or locked. End with exactly ONE clear call to action: message us on WhatsApp at ${phone}. Do not name any other company.`;
   let row;
   try {
     row = await store.create({ status: "planned", source, sourceMessageId: smid, client: ctx.client || "skyline", subject: pkg.item, hint, language: "en", platforms: ["instagram", "facebook"] });
@@ -132,7 +159,7 @@ async function buildAndDraftCard(store, ctx, { pkg, smid, source }) {
   try {
     const imageGen = ctx.imageGen || require("./image-gen").resolveImageGen();
     let bufB;
-    if (imageGen) { const { promptForSlug } = require("./scene-prompts"); const gen = await imageGen(promptForSlug(slug), ctx.imageGenOpts || {}); bufB = await makeCard({ ...baseCard, photoBytes: gen.buffer, credit: "AI-generated scene · illustrative" }); bStyle = "AI scene"; }
+    if (imageGen) { const { promptForSlug } = require("./scene-prompts"); const gen = await imageGen(promptForSlug(slug), ctx.imageGenOpts || {}); bufB = await makeCard({ ...baseCard, photoBytes: gen.buffer, credit: "AI-generated scene · illustrative" }); bStyle = AI_SCENE_STYLE; }
     else {
       // No image generator resolved → card B is the code-drawn DECORATIVE gradient, NOT an AI scene.
       // This is silent-by-design (it's a valid fallback), but a MISSING/misnamed OPENAI_API_KEY looks
@@ -175,7 +202,7 @@ async function runCalendarCards(store, ctx = {}) {
 
   const { fresh, cardUrlA, cardUrlB, bStyle, rp, options } = built;
   const code = shortCode(fresh.id);
-  const details = `📅 Skyline package feature (auto)\n   Package: ${pkg.item} — ${pkg.route}\n   Price on card: ${rp.line} (Skyline rate)`;
+  const details = `📅 Skyline package feature (auto)\n   Package: ${pkg.item} — ${pkg.route}\n   Price on card: ${rp.line} (Skyline rate)\n   ${sourceLine(pkg, now)}`;
   const instr = cardUrlB
     ? `\n\nReply:\n🅰️ A ${code} → post the real-photo card\n🅱️ B ${code} → post the ${bStyle} card\n➕ both ${code} → post both\n❌ reject ${code}`
     : `\n\n✅ approve ${code} → posts to Instagram + Facebook   |   ❌ reject ${code}`;
@@ -189,4 +216,4 @@ async function runCalendarCards(store, ctx = {}) {
   return { considered: 1, notified: [{ id: fresh.id, code, package: pkg.item, price: rp.line, options: Object.keys(options).join("/"), bStyle }], held: [], skipped: [] };
 }
 
-module.exports = { runCalendarCards, buildAndDraftCard, makeCardHelpers, packageForDay, packageForSlot, dateKey, featurablePackages };
+module.exports = { runCalendarCards, buildAndDraftCard, makeCardHelpers, packageForDay, packageForSlot, dateKey, featurablePackages, sourceLine, istStamp, AI_SCENE_STYLE };

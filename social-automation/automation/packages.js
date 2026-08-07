@@ -18,6 +18,17 @@ function allPackages() {
   return out;
 }
 
+/** The website catalogue CATEGORY a package sits under (e.g. "North India"), for owner
+ *  provenance messages ("package from the website"). Empty string if not found. */
+function categoryForItem(item) {
+  const cats = (BUSINESS.catalogue && BUSINESS.catalogue.categories) || {};
+  const key = String(item || "").trim().toLowerCase();
+  for (const [cat, list] of Object.entries(cats)) {
+    if ((list || []).some((p) => String(p.item || "").trim().toLowerCase() === key)) return cat;
+  }
+  return "";
+}
+
 function priceNum(p) {
   const m = String((p && p.price) || "").match(/[\d,]+/);
   return m ? Number(m[0].replace(/,/g, "")) : null;
@@ -67,4 +78,4 @@ function repricedLine(vendorPrices, pkg) {
   return { line: "From " + n + " / person", amount: rounded, main: n, suffix: "/ person", short: "From " + n };
 }
 
-module.exports = { allPackages, matchPackage, photoSlug, priceNum, repricedLine };
+module.exports = { allPackages, categoryForItem, matchPackage, photoSlug, priceNum, repricedLine };

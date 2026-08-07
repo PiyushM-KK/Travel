@@ -35,15 +35,20 @@
   <!-- Panel -->
   <div ref="{{ panelEl }}" style="display:none;position:fixed;left:22px;bottom:22px;z-index:8500;width:374px;max-width:calc(100vw - 44px);height:560px;max-height:calc(100vh - 44px);background:#fff;border-radius:22px;box-shadow:0 40px 80px -24px rgba(7,59,102,.55);overflow:hidden;flex-direction:column;font-family:'Plus Jakarta Sans',sans-serif;animation:sk-pop .22s ease">
     <!-- header -->
-    <div style="background:linear-gradient(135deg,#0A84D6,#34C3F0);color:#fff;padding:16px 18px;display:flex;align-items:center;gap:12px;flex-shrink:0">
-      <span style="width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center">
+    <div style="background:linear-gradient(135deg,#0A84D6,#34C3F0);color:#fff;padding:16px 18px;display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <span style="width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3z"/><circle cx="18.5" cy="17.5" r="1.6"/><circle cx="5.5" cy="16.5" r="1.2"/></svg>
       </span>
-      <div style="flex:1">
-        <div style="font-weight:800;font-size:15px;letter-spacing:-.01em">Skyline AI Travel Assistant</div>
-        <div style="font-size:11.5px;opacity:.9;display:flex;align-items:center;gap:6px"><span style="width:7px;height:7px;border-radius:50%;background:#7CF2B0"></span>Here to help plan your trip</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:800;font-size:15px;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ title }}</div>
+        <div style="font-size:11.5px;opacity:.9;display:flex;align-items:center;gap:6px"><span style="width:7px;height:7px;border-radius:50%;background:#7CF2B0;flex-shrink:0"></span><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ subtitle }}</span></div>
       </div>
-      <button onClick="{{ toggle }}" title="Minimize — your chat continues" aria-label="Minimize chat" style="background:rgba(255,255,255,.18);border:0;cursor:pointer;color:#fff;width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center">
+      <div style="display:flex;align-items:center;border-radius:9px;overflow:hidden;background:rgba(255,255,255,.16);flex-shrink:0" role="group" aria-label="Language">
+        <sc-for list="{{ langOptions }}" as="lo" hint-placeholder-count="3">
+          <button onClick="{{ lo.pick }}" title="{{ lo.name }}" style="{{ lo.style }};cursor:pointer;font-family:inherit;font-weight:800;font-size:11px;line-height:1;border:0;padding:6px 7px">{{ lo.mark }}</button>
+        </sc-for>
+      </div>
+      <button onClick="{{ toggle }}" title="{{ minimizeLabel }}" aria-label="{{ minimizeLabel }}" style="background:rgba(255,255,255,.18);border:0;cursor:pointer;color:#fff;width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg>
       </button>
     </div>
@@ -69,7 +74,7 @@
     <!-- quick chips -->
     <div style="display:flex;gap:8px;padding:10px 14px 0;flex-wrap:wrap;background:#fff;flex-shrink:0">
       <a href="{{ waHref }}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:6px;text-decoration:none;border:1px solid #25D366;background:#25D366;color:#fff;font-family:inherit;font-weight:700;font-size:12px;padding:7px 12px;border-radius:999px">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M12 2a10 10 0 00-8.6 15l-1.3 4.8 4.9-1.3A10 10 0 1012 2z"/></svg>Chat on WhatsApp
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M12 2a10 10 0 00-8.6 15l-1.3 4.8 4.9-1.3A10 10 0 1012 2z"/></svg>{{ waLabel }}
       </a>
       <sc-for list="{{ chips }}" as="c" hint-placeholder-count="3">
         <button class="sk-q" onClick="{{ c.send }}" style="border:1px solid #E4ECF3;background:#fff;cursor:pointer;font-family:inherit;font-weight:600;font-size:12px;color:#3A4D5E;padding:7px 12px;border-radius:999px">{{ c.label }}</button>
@@ -78,12 +83,12 @@
 
     <!-- input -->
     <form onSubmit="{{ onSubmit }}" style="display:flex;gap:9px;padding:12px 14px;background:#fff;border-top:1px solid #EEF3F7;flex-shrink:0">
-      <input ref="{{ inputEl }}" placeholder="Ask about destinations, hotels, budget…" style="flex:1;border:1.5px solid #E4ECF3;border-radius:12px;padding:12px 14px;font-family:inherit;font-size:13.5px;outline:none" />
+      <input ref="{{ inputEl }}" placeholder="{{ inputPlaceholder }}" style="flex:1;border:1.5px solid #E4ECF3;border-radius:12px;padding:12px 14px;font-family:inherit;font-size:13.5px;outline:none" />
       <button class="sk-send" type="submit" style="flex-shrink:0;width:44px;border:0;cursor:pointer;background:#0A84D6;color:#fff;border-radius:12px;display:flex;align-items:center;justify-content:center;transition:transform .15s">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M3 11l18-8-8 18-2-7-8-3z"/></svg>
       </button>
     </form>
-    <div style="font-size:10.5px;color:#9AB3C7;text-align:center;padding:0 14px 10px;background:#fff;flex-shrink:0">Skyline AI gives guidance only — it can't confirm bookings, prices, availability or visas.</div>
+    <div style="font-size:10.5px;color:#9AB3C7;text-align:center;padding:0 14px 10px;background:#fff;flex-shrink:0">{{ disclaimer }}</div>
   </div>
 </div>
 </x-dc>
@@ -96,17 +101,108 @@ class Component extends DCLogic {
   // is unreachable the widget falls back to WhatsApp.
   aiEndpoint = 'https://hello-world.skyline-dev.workers.dev';
 
+  // ── i18n (EN / हिं / ગુ) ──────────────────────────────────────────────────
+  // The widget carries its OWN language toggle so it works regardless of the
+  // parent page's selection (Duda widgets are isolated — a widget can't read
+  // another widget's state). English stays the default. Static UI + the seed
+  // greeting + quick chips are translated here; live AI replies are asked to
+  // come back in the chosen language (see langNote() + ask()).
+  T = {
+    en: {
+      greeting: "Namaste! 🙏 I'm the Skyline AI Travel Assistant. Tell me where you'd like to go, your dates, travellers and budget — I'll suggest destinations, trip length and hotel categories, then point you to a quote on WhatsApp or our custom form.",
+      title: 'Skyline AI Travel Assistant',
+      subtitle: 'Here to help plan your trip',
+      minimize: 'Minimize — your chat continues',
+      wa: 'Chat on WhatsApp',
+      placeholder: 'Ask about destinations, hotels, budget…',
+      disclaimer: "Skyline AI gives guidance only — it can't confirm bookings, prices, availability or visas.",
+      ask: 'Ask Skyline AI',
+      resume: 'Resume chat',
+      noBackend: "For the fastest, most accurate help, tap the green “Chat on WhatsApp” button below — our travel team will personally plan your trip and share a quote. 🙏 You can also use the “Customize My Trip” form.",
+      error: "I'm having trouble connecting right now. For quick help, tap “Chat on WhatsApp” below or use the Customize My Trip form.",
+      rephrase: "Sorry, I didn't catch that — could you rephrase?",
+      chips: [
+        { label: '5-day Kerala?', q: 'Can you suggest a 5-day Kerala itinerary for a family of 4?' },
+        { label: '3★ vs 5★', q: "What's the difference between a 3-star and 5-star package?" },
+        { label: 'Best season', q: 'What is the best season to visit Kashmir?' },
+      ],
+    },
+    hi: {
+      greeting: "नमस्ते! 🙏 मैं Skyline AI ट्रैवल असिस्टेंट हूँ। बताइए आप कहाँ जाना चाहते हैं, आपकी तारीखें, यात्री और बजट — मैं गंतव्य, यात्रा की अवधि और होटल श्रेणियाँ सुझाऊँगा, फिर WhatsApp पर या हमारे कस्टम फ़ॉर्म से कोटेशन के लिए मार्गदर्शन करूँगा।",
+      title: 'Skyline AI ट्रैवल असिस्टेंट',
+      subtitle: 'आपकी यात्रा की योजना में मदद के लिए',
+      minimize: 'छोटा करें — आपकी चैट जारी रहेगी',
+      wa: 'WhatsApp पर चैट करें',
+      placeholder: 'गंतव्य, होटल, बजट के बारे में पूछें…',
+      disclaimer: 'Skyline AI केवल मार्गदर्शन देता है — यह बुकिंग, कीमत, उपलब्धता या वीज़ा की पुष्टि नहीं कर सकता।',
+      ask: 'Skyline AI से पूछें',
+      resume: 'चैट जारी रखें',
+      noBackend: 'सबसे तेज़ और सटीक मदद के लिए, नीचे हरे “WhatsApp पर चैट करें” बटन पर टैप करें — हमारी ट्रैवल टीम व्यक्तिगत रूप से आपकी यात्रा की योजना बनाकर कोटेशन देगी। 🙏 आप “यात्रा बनाएं” फ़ॉर्म का भी उपयोग कर सकते हैं।',
+      error: 'अभी कनेक्ट करने में समस्या हो रही है। त्वरित मदद के लिए, नीचे “WhatsApp पर चैट करें” पर टैप करें या यात्रा बनाएं फ़ॉर्म का उपयोग करें।',
+      rephrase: 'माफ़ करें, मैं समझ नहीं पाया — क्या आप दोबारा कह सकते हैं?',
+      chips: [
+        { label: '5-दिन केरल?', q: 'क्या आप 4 लोगों के परिवार के लिए 5-दिन का केरल यात्रा कार्यक्रम सुझा सकते हैं?' },
+        { label: '3★ बनाम 5★', q: '3-स्टार और 5-स्टार पैकेज में क्या अंतर है?' },
+        { label: 'सबसे अच्छा मौसम', q: 'कश्मीर घूमने का सबसे अच्छा मौसम कौन सा है?' },
+      ],
+    },
+    gu: {
+      greeting: "નમસ્તે! 🙏 હું Skyline AI ટ્રાવેલ સહાયક છું. કહો તમે ક્યાં જવા માંગો છો, તમારી તારીખો, પ્રવાસીઓ અને બજેટ — હું સ્થળો, યાત્રાની અવધિ અને હોટેલ શ્રેણીઓ સૂચવીશ, પછી WhatsApp પર અથવા અમારા કસ્ટમ ફોર્મ દ્વારા ક્વોટ માટે માર્ગદર્શન આપીશ.",
+      title: 'Skyline AI ટ્રાવેલ સહાયક',
+      subtitle: 'તમારી યાત્રાની યોજનામાં મદદ માટે',
+      minimize: 'નાનું કરો — તમારી ચેટ ચાલુ રહેશે',
+      wa: 'WhatsApp પર ચેટ કરો',
+      placeholder: 'સ્થળો, હોટેલ, બજેટ વિશે પૂછો…',
+      disclaimer: 'Skyline AI માત્ર માર્ગદર્શન આપે છે — તે બુકિંગ, કિંમત, ઉપલબ્ધતા કે વિઝાની પુષ્ટિ કરી શકતું નથી.',
+      ask: 'Skyline AI ને પૂછો',
+      resume: 'ચેટ ચાલુ રાખો',
+      noBackend: 'સૌથી ઝડપી અને સચોટ મદદ માટે, નીચે લીલા “WhatsApp પર ચેટ કરો” બટન પર ટૅપ કરો — અમારી ટ્રાવેલ ટીમ વ્યક્તિગત રીતે તમારી યાત્રાની યોજના બનાવીને ક્વોટ આપશે. 🙏 તમે “યાત્રા બનાવો” ફોર્મનો પણ ઉપયોગ કરી શકો છો.',
+      error: 'અત્યારે કનેક્ટ કરવામાં મુશ્કેલી આવી રહી છે. ઝડપી મદદ માટે, નીચે “WhatsApp પર ચેટ કરો” પર ટૅપ કરો અથવા યાત્રા બનાવો ફોર્મનો ઉપયોગ કરો.',
+      rephrase: 'માફ કરશો, હું સમજી શક્યો નહીં — શું તમે ફરીથી કહી શકશો?',
+      chips: [
+        { label: '5-દિવસ કેરળ?', q: 'શું તમે 4 લોકોના પરિવાર માટે 5-દિવસનો કેરળ પ્રવાસ સૂચવી શકો?' },
+        { label: '3★ vs 5★', q: '3-સ્ટાર અને 5-સ્ટાર પેકેજ વચ્ચે શું તફાવત છે?' },
+        { label: 'શ્રેષ્ઠ મોસમ', q: 'કાશ્મીર જવા માટે શ્રેષ્ઠ મોસમ કઈ છે?' },
+      ],
+    },
+  };
+
+  phrase(key) { return (this.T[this.state.lang] && this.T[this.state.lang][key]) || this.T.en[key]; }
+
+  // Attached to the latest user turn so the AI replies in the chosen language
+  // (the system prompt lives server-side on the Worker, so we can't set it here).
+  langNote() {
+    return this.state.lang === 'hi' ? 'Please reply in Hindi (हिंदी).'
+         : this.state.lang === 'gu' ? 'Please reply in Gujarati (ગુજરાતી).' : '';
+  }
+
+  LANGS() { return [{ code: 'en', name: 'English', mark: 'EN' }, { code: 'hi', name: 'हिंदी', mark: 'हिं' }, { code: 'gu', name: 'ગુજરાતી', mark: 'ગુ' }]; }
+
   state = {
+    lang: 'en',
     open: false,
     thinking: false,
     unread: 0,
-    messages: [{ role: 'assistant', text: "Namaste! 🙏 I'm the Skyline AI Travel Assistant. Tell me where you'd like to go, your dates, travellers and budget — I'll suggest destinations, trip length and hotel categories, then point you to a quote on WhatsApp or our custom form." }],
+    // seed:true → the greeting text is derived from the current language at render
+    // time (seedText), so switching language before chatting updates it live.
+    messages: [{ role: 'assistant', seed: true, text: '' }],
   };
 
-  setRoot = (el) => { this.rootEl = el; };
+  setRoot = (el) => { if (el) { this.rootEl = el; this.applyLang(); } };
   setPanel = (el) => { this.panelEl = el; };
   setScroll = (el) => { this.scrollEl = el; };
   setInput = (el) => { this.inputEl = el; };
+
+  applyLang() {
+    if (!this.rootEl) return;
+    const L = this.state.lang;
+    this.rootEl.style.fontFamily = L === 'hi' ? "'Noto Sans Devanagari','Plus Jakarta Sans',sans-serif"
+      : L === 'gu' ? "'Noto Sans Gujarati','Plus Jakarta Sans',sans-serif" : '';
+  }
+
+  // The greeting is stored as a seed (empty text) and rendered from the current
+  // language; real chat turns carry their own text verbatim.
+  seedText(m) { return m.seed ? this.phrase('greeting') : m.text; }
 
   toggle = () => {
     const open = !this.state.open;
@@ -116,7 +212,7 @@ class Component extends DCLogic {
   };
 
   scrollDown() { if (this.scrollEl) this.scrollEl.scrollTop = this.scrollEl.scrollHeight; }
-  componentDidUpdate() { this.scrollDown(); }
+  componentDidUpdate() { this.applyLang(); this.scrollDown(); }
 
   systemPrimer() {
     return `You are the Skyline AI Travel Assistant for "Skyline Travel Planner", an India-based travel planning website. Help with: destination selection, trip duration, preliminary itineraries, hotel-category comparison (3/4/5-star), packing lists, transport recommendations, family & honeymoon planning, budget planning, travel-season guidance, and FAQs. Focus destinations: Rajasthan, Himachal, Kashmir, Kerala, Goa, Sikkim, Mysuru/Coorg/Ooty, Mathura/Vrindavan/Agra, Gujarat, Uttar Pradesh, and internationally Thailand, Bali, Maldives. Prices are in Indian Rupees and always "starting from" estimates, never guaranteed. Keep replies warm, concise (under 120 words), and practical. After understanding the trip, encourage the user to either request a customized package (the website form) or chat on WhatsApp (+91 8866050291) for a quote. NEVER claim to confirm tickets, process payments, guarantee hotel availability, guarantee prices, guarantee visa approval, or give official immigration advice — politely defer those. Do not invent specific hotel bookings.`;
@@ -129,18 +225,23 @@ class Component extends DCLogic {
     const usePreview = window.claude && typeof window.claude.complete === 'function';
     // No AI backend at all → route to WhatsApp instead of showing a connection error.
     if (!useEndpoint && !usePreview) {
-      this.setState({ messages: [...msgs, { role: 'assistant', text: "For the fastest, most accurate help, tap the green “Chat on WhatsApp” button below — our travel team will personally plan your trip and share a quote. 🙏 You can also use the “Customize My Trip” form." }] });
+      this.setState({ messages: [...msgs, { role: 'assistant', text: this.phrase('noBackend') }] });
       return;
     }
     this.setState({ messages: msgs, thinking: true });
+    // Build the API turns (seed greeting → current-language text) and attach the
+    // reply-language directive to the latest user turn.
+    const apiMsgs = msgs.map((m) => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: this.seedText(m) }));
+    const note = this.langNote();
+    if (note && apiMsgs.length) apiMsgs[apiMsgs.length - 1].content += '\n\n(' + note + ')';
     try {
       let reply;
       if (useEndpoint) {
-        // Live: call our OpenAI-backed Worker. The system prompt/rules live server-side.
+        // Live: call our Claude-backed Worker. The system prompt/rules live server-side.
         const res = await fetch(this.aiEndpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages: msgs.map((m) => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.text })) }),
+          body: JSON.stringify({ messages: apiMsgs }),
         });
         const data = await res.json();
         reply = data.reply;
@@ -149,13 +250,13 @@ class Component extends DCLogic {
         const api = [
           { role: 'user', content: this.systemPrimer() },
           { role: 'assistant', content: 'Understood — I will help plan trips with Skyline Travel Planner and follow those limits.' },
-          ...msgs.map((m) => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.text })),
+          ...apiMsgs,
         ];
         reply = await window.claude.complete({ messages: api });
       }
-      this.setState({ messages: [...msgs, { role: 'assistant', text: (reply || '').trim() || "Sorry, I didn't catch that — could you rephrase?" }], thinking: false, unread: this.state.open ? 0 : this.state.unread + 1 });
+      this.setState({ messages: [...msgs, { role: 'assistant', text: (reply || '').trim() || this.phrase('rephrase') }], thinking: false, unread: this.state.open ? 0 : this.state.unread + 1 });
     } catch (e) {
-      this.setState({ messages: [...msgs, { role: 'assistant', text: "I'm having trouble connecting right now. For quick help, tap “Chat on WhatsApp” below or use the Customize My Trip form." }], thinking: false, unread: this.state.open ? 0 : this.state.unread + 1 });
+      this.setState({ messages: [...msgs, { role: 'assistant', text: this.phrase('error') }], thinking: false, unread: this.state.open ? 0 : this.state.unread + 1 });
     }
   }
 
@@ -175,25 +276,32 @@ class Component extends DCLogic {
       inputEl: this.setInput,
       toggle: this.toggle,
       onSubmit: this.onSubmit,
-      launcherLabel: this.state.messages.length > 1 ? 'Resume chat' : 'Ask Skyline AI',
+      title: this.phrase('title'),
+      subtitle: this.phrase('subtitle'),
+      minimizeLabel: this.phrase('minimize'),
+      waLabel: this.phrase('wa'),
+      inputPlaceholder: this.phrase('placeholder'),
+      disclaimer: this.phrase('disclaimer'),
+      launcherLabel: this.state.messages.length > 1 ? this.phrase('resume') : this.phrase('ask'),
+      langOptions: this.LANGS().map((l) => ({
+        name: l.name, mark: l.mark,
+        pick: () => this.setState({ lang: l.code }),
+        style: 'background:' + (l.code === this.state.lang ? '#fff' : 'transparent') + ';color:' + (l.code === this.state.lang ? '#0A84D6' : '#fff'),
+      })),
       hasUnread: this.state.unread > 0,
       unread: this.state.unread > 9 ? '9+' : String(this.state.unread),
       thinking: this.state.thinking,
       messages: this.state.messages.map((m) => {
         const me = m.role === 'user';
         return {
-          text: m.text,
+          text: this.seedText(m),
           justify: me ? 'flex-end' : 'flex-start',
           bg: me ? '#0A84D6' : '#fff',
           color: me ? '#fff' : '#1B2F40',
           radius: me ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
         };
       }),
-      chips: [
-        { label: '5-day Kerala?', send: () => this.ask('Can you suggest a 5-day Kerala itinerary for a family of 4?') },
-        { label: '3★ vs 5★', send: () => this.ask("What's the difference between a 3-star and 5-star package?") },
-        { label: 'Best season', send: () => this.ask('What is the best season to visit Kashmir?') },
-      ],
+      chips: this.phrase('chips').map((c) => ({ label: c.label, send: () => this.ask(c.q) })),
     };
   }
 }

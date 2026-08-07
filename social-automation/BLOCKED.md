@@ -6,16 +6,20 @@ the real values live in the local `.env` (gitignored) and the Vercel project env
 
 ---
 
-## B-LANG-FOLLOWUP — agent-fixable (not owner-gated): 2 remaining language items
-The website 3-language (EN/HI/GU) fix shipped 2026-08-07 (`ad247c7`; see `../LANG-FIX-SPEC.md`). Two
-minor follow-ups remain, both agent-fixable — no owner action needed:
-1. `AssistantWidget.dc.html` — the embedded floating assistant (~4 static strings: title, "Here to help…",
-   input placeholder) still shows English. It has no own lang state and can't easily read the parent
-   page's selection in Duda's model; skipped by design. Fix later if wanted (e.g. persist lang to
-   localStorage + have the widget read it).
-2. Long-form itinerary PROSE on `Package.dc.html` / `Destination.dc.html` (highlights, "about", season,
-   day-by-day) is still English — the `tr()` plumbing is already in place, so just add `_hi`/`_gu` fields
-   to those data objects following `LANG-FIX-SPEC.md`.
+## B-LANG-FOLLOWUP — ✅ RESOLVED 2026-08-07 (`ecefa2d`) — the site is now fully 3-language
+Both deferred items from the main pass (`ad247c7`) are done, so the whole site now switches EN/हिं/ગુ:
+1. `AssistantWidget.dc.html` — instead of the fragile "read the parent page via localStorage" idea, the
+   embedded floating assistant got its OWN EN/हिं/ગુ toggle in its header (Duda widgets are isolated —
+   a widget can't read another widget's state, so a self-contained toggle is both simpler and better UX).
+   A `T` dictionary + `phrase()` translate title/subtitle/greeting/quick-chips/placeholder/WhatsApp
+   button/disclaimer + launcher/minimize/fallback strings; a `langNote()` directive asks the AI to reply
+   in the chosen language (the Cloudflare Worker already drops the leading assistant greeting so
+   user-first ordering holds). English stays default.
+2. Long-form prose on `Package.dc.html` (23 pkgs: duration/season/audience/highlights) and
+   `Destination.dc.html` (19 dests: tagline/about/best-time/visa notes/place descriptions/highlights)
+   now has `_hi`/`_gu` fields wired through the existing `tr()`. Data + wiring only — English canonical,
+   no prices/ids/links/logic touched. Verified: all three script blocks re-parse, per-field balance +
+   3-language render + base-text integrity checked, adversarial review found no defects introduced.
 
 ## B-CRONSECRET — ✅ DONE 2026-08-07 — package-post GitHub Action can now run
 The `CRON_SECRET` repo secret was set on **PiyushM-KK/Travel** (from `.env`), so

@@ -46,10 +46,12 @@ module.exports = async (req, res) => {
   if (req.method === "OPTIONS") { res.status(204).end(); return; }
   if (req.method !== "GET") { res.status(405).json({ error: "method not allowed" }); return; }
 
-  // Fail closed: an ops key must be configured, and the caller must present it.
-  const key = process.env.OPS_KEY || process.env.CRON_SECRET;
-  if (!key) { res.status(503).json({ error: "ops not configured — set OPS_KEY (or CRON_SECRET)" }); return; }
-  if (!safeEqual(req.headers["authorization"], `Bearer ${key}`)) { res.status(403).json({ error: "forbidden" }); return; }
+  // Fail closed: an ops key must be configured, and the caller must present it. Accept EITHER the
+  // dedicated read-only OPS_KEY or the existing CRON_SECRET, so both keep working.
+  const keys = [process.env.OPS_KEY, process.env.CRON_SECRET].filter(Boolean);
+  if (!keys.length) { res.status(503).json({ error: "ops not configured — set OPS_KEY (or CRON_SECRET)" }); return; }
+  const authed = keys.some((k) => safeEqual(req.headers["authorization"], `Bearer ${k}`));
+  if (!authed) { res.status(403).json({ error: "forbidden" }); return; }
 
   try {
     const clientId = process.env.SOCIAL_CLIENT || "skyline";

@@ -1,19 +1,18 @@
 /**
- * parse-ratesheet.js — turn an uploaded rate-sheet DOCUMENT into structured update rows.
+ * parse-ratesheet.js — turn a pasted / uploaded rate sheet into structured update rows the chatbot
+ * can match against the live catalog. We accept the two formats a non-technical owner can actually
+ * produce and edit — a Markdown/pipe TABLE or CSV (a .docx/.xlsx exports to either) — so no binary
+ * parsing is needed. Tolerant of header spelling/case, column order, and extra columns.
  *
- * The client drops a rate sheet in their private GitHub upload folder and tells the chatbot to apply
- * it. This parses that document into rows the planner can match against the live site. We accept the
- * two formats a non-technical client can actually produce and edit — a Markdown/pipe TABLE or CSV —
- * so no binary .docx parsing is required (a .docx can be exported to either). Tolerant of header
- * spelling/case and extra columns.
- *
- * Output rows:
- *   { kind: "package", ref, price }          — set a package's "from" price   (ref = name or slug)
- *   { kind: "hotel",   ref, tier, price }     — set a package's per-tier hotel price (tier = 3★/4★/5★)
- * `price` is normalised downstream (apply-prices.normalizePrice); here we keep the raw cell.
+ * Output rows (price kept raw; normalised downstream by apply-*.normalizePrice):
+ *   { kind: "package",   ref, price }              — set a package's 3★ "from" price   (ref = name or slug)
+ *   { kind: "tier",      ref, tier, price }        — set a package's 4★/5★ tier price   (tier = "4★"/"5★")
+ *   { kind: "hotelRate", city, name, stars, price }— a city-catalog hotel + per-night rate
+ * Which shape a table yields is decided by its columns: a `City` column → hotelRate; a tier/star
+ * column (no city) → tier; otherwise → package.
  */
 
-// Split a pipe/CSV line into trimmed cells. A Markdown table row is "| a | b |"; CSV is "a,b".
+// Split a pipe/CSV line into trimmed cells. A Markdown row is "| a | b |"; CSV is "a,b".
 function cells(line) {
   const t = line.trim();
   if (t.includes("|")) return t.replace(/^\||\|$/g, "").split("|").map((c) => c.trim());
@@ -22,50 +21,62 @@ function cells(line) {
 
 const isSep = (line) => /^[\s|:-]+$/.test(line.trim()) && /-/.test(line); // markdown header underline row
 const norm = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+const TIER = (s) => { const m = String(s || "").match(/([45])\s*(?:star|★)?/i); return m ? m[1] + "★" : ""; };
+const STARS = (s) => { const m = String(s || "").match(/([345])/); return m ? Number(m[1]) : 0; };
 
-// Which column is which, from a header row. Returns { pkg, tier, price } column indexes (or -1).
+/** Column indexes from a header row: { city, name, tier, price } (or -1 if absent). */
 function headerMap(hdr) {
-  const idx = { pkg: -1, tier: -1, price: -1 };
+  const idx = { city: -1, name: -1, tier: -1, price: -1 };
   hdr.forEach((h, i) => {
     const n = norm(h);
-    if (idx.pkg === -1 && /(package|tour|circuit|name|slug|item)/.test(n)) idx.pkg = i;
-    else if (idx.tier === -1 && /(tier|star|category|hotel|class)/.test(n)) idx.tier = i;
-    else if (idx.price === -1 && /(price|rate|fare|amount|cost|from)/.test(n)) idx.price = i;
+    if (idx.city === -1 && /^(city|location|destination|place)$/.test(n)) idx.city = i;
+    else if (idx.tier === -1 && /(tier|star|category|class)/.test(n)) idx.tier = i;
+    else if (idx.name === -1 && /(hotel|property|package|tour|circuit|name|slug|item)/.test(n)) idx.name = i;
+    else if (idx.price === -1 && /(price|rate|fare|amount|cost|from|night)/.test(n)) idx.price = i;
   });
+  // A trailing price-ish column sometimes reads as name first; ensure price is set if any col looks priced.
+  if (idx.price === -1) hdr.forEach((h, i) => { if (idx.price === -1 && i !== idx.name && i !== idx.city && i !== idx.tier && /(price|rate|fare|amount|cost|from|night)/.test(norm(h))) idx.price = i; });
   return idx;
 }
 
-const TIER = (s) => { const m = String(s || "").match(/([345])\s*(?:star|★)?/i); return m ? m[1] + "★" : ""; };
+const looksHeader = (c, line) => c.some((x) => /(city|package|tour|price|rate|tier|star|hotel|property|name|slug|night|location)/i.test(x)) && !/[₹\d]/.test(line);
 
 /**
- * Parse a rate-sheet document's text into update rows.
- * @param {string} text  the document content (Markdown table or CSV; multiple tables allowed)
+ * Parse a rate-sheet's text into update rows.
+ * @param {string} text  Markdown table(s) or CSV; multiple tables allowed (each with its own header)
  * @returns {{rows: Array, warnings: string[]}}
  */
 function parseRatesheet(text) {
   const rows = [];
   const warnings = [];
   let hdr = null;
-  const lines = String(text || "").split(/\r?\n/);
-  for (const raw of lines) {
+  for (const raw of String(text || "").split(/\r?\n/)) {
     const line = raw.trim();
     if (!line || line.startsWith("#") || line.startsWith("<!--")) continue; // blank / heading / comment
     if (isSep(line)) continue; // markdown --- underline
     const c = cells(line);
     if (c.length < 2) continue;
-    // A header row (re-)establishes the columns; a new table can restart it.
-    const looksHeader = c.some((x) => /(package|tour|price|rate|tier|star|hotel|name|slug)/i.test(x)) && !/[₹\d]/.test(line);
-    if (looksHeader) { hdr = headerMap(c); continue; }
-    if (!hdr || hdr.pkg === -1 || hdr.price === -1) continue; // need at least package + price columns
-    const ref = c[hdr.pkg];
+    if (looksHeader(c, line)) { hdr = headerMap(c); continue; } // a header (re)establishes columns
+    if (!hdr || hdr.price === -1) continue; // need at least a price column
+
     const price = c[hdr.price];
-    if (!ref || price === undefined || price === "") continue;
-    const tier = hdr.tier !== -1 ? TIER(c[hdr.tier]) : "";
-    if (hdr.tier !== -1 && tier) rows.push({ kind: "hotel", ref, tier, price });
-    else rows.push({ kind: "package", ref, price });
+    if (price === undefined || price === "") continue;
+
+    if (hdr.city !== -1) {
+      const city = c[hdr.city];
+      const name = hdr.name !== -1 ? c[hdr.name] : "";
+      if (!city || !name) continue;
+      rows.push({ kind: "hotelRate", city, name, stars: hdr.tier !== -1 ? STARS(c[hdr.tier]) : 0, price });
+    } else if (hdr.name !== -1) {
+      const ref = c[hdr.name];
+      if (!ref) continue;
+      const tier = hdr.tier !== -1 ? TIER(c[hdr.tier]) : "";
+      if (tier) rows.push({ kind: "tier", ref, tier, price });
+      else rows.push({ kind: "package", ref, price });
+    }
   }
-  if (!rows.length) warnings.push("no rows found — expected a table with a Package column and a Price column (Markdown or CSV)");
+  if (!rows.length) warnings.push('no rows found — expected a table with a name/package column and a price column (Markdown or CSV); add a "City" column for a hotel catalog');
   return { rows, warnings };
 }
 
-module.exports = { parseRatesheet, headerMap, TIER };
+module.exports = { parseRatesheet, headerMap, TIER, STARS };

@@ -10,15 +10,44 @@ Client work — lives in the Skyline repo (`PiyushM-KK/Travel`), not FullFirm (r
 
 ---
 
-## What the client can do (scope)
-1. **Package prices** — "Set Goa Getaway to ₹17,500" / "Kerala is On request now". (Engine built ✅)
-2. **Package details** — name, route, duration, tag on an existing package.
-3. **Hotel info** — the 3★/4★/5★ tiers + per-tier notes shown on a package/hotel section.
-4. **Bulk from a document** — upload a Word/PDF rate-sheet; the agent parses it into proposed edits,
-   each shown as a diff to approve (never auto-applied).
+## Who may use it
+The console is **owner-only** (the Skyline owner + Piyush). Auth = **GitHub login** (OAuth), and the
+backend only accepts an allow-list of those two GitHub usernames (`PORTAL_ALLOWED_LOGINS`). The page
+(`Chatbot.dc.html`) is a static GitHub-Pages page and holds NO secrets — all auth + repo writes happen
+server-side in the Vercel backend, which rejects anyone not on the allow-list. (A client-side password
+on a public page is not real security; this is why the gate is server-enforced.)
 
-Everything is a **bounded edit to a known file, previewed as a diff, approved by the client, committed
+## What the owner can do (scope)
+1. **Package prices** — "Set Goa Getaway to ₹17,500" / "Kerala is On request now". (Engine built ✅ `apply-prices.js`)
+2. **4★/5★ tier prices** — each package's 3★ price is `price:`; optional `price4:`/`price5:` add the 4★/5★
+   "from" prices shown on the card. (Engine built ✅ `apply-package.js`)
+3. **Add / remove packages** — a whole package object, placed next to an existing one (right region).
+   (Engine built ✅ `apply-package.js`)
+4. **Hotel rate catalog** — a per-city list of named hotels with a star rating + "from ₹X / night", on the
+   Hotels page. Add/remove a hotel, update a nightly rate. (Engine built ✅ `apply-hotel.js`; the catalog
+   ships EMPTY — the owner fills it with REAL hotels/rates.)
+5. **Bulk from a vendor rate sheet** — see **Ingestion** below.
+
+Everything is a **bounded edit to a known file, previewed as a diff, approved by the owner, committed
 by the bot** — so every change is one auditable git commit the owner can inspect/revert.
+
+## Ingestion — how a vendor rate sheet becomes site edits
+Ground truth: a real vendor sheet (e.g. Touracle's *South India Winter Ready Reckoner 2026-27*,
+`social-automation/assets/…pdf`) is a **graphic/scanned PDF with NO text layer** (`/Font: false`,
+image pages) — `pdftotext` yields nothing, so a regex/table parser cannot read it. Design:
+- **Primary — the agent reads the PDF itself (vision).** The Anthropic API accepts a PDF as a document
+  block and Claude OCRs the pages. The owner uploads the PDF + "apply this"; the agent extracts the
+  tour/hotel/category rates into structured rows, matches them to the live catalog, and shows **each
+  proposed change as a diff (with the source cell it read)** so the owner catches any OCR misread.
+  Never auto-applied.
+- **Fallback — a clean table (exact, zero OCR risk).** For bulk/critical updates the owner can paste or
+  export a Markdown/CSV table; `parse-ratesheet.js` turns it into rows deterministically. Accepted shapes:
+  a `Package | Price` table (3★ price), a `Package | Tier | Price` table (4★/5★), and a
+  `City | Hotel | Stars | Rate` table (hotel catalog).
+- **⚠️ Vendor NET rates are a COST, not a sell price.** These B2B reckoners are "net, non-commissionable,
+  per person". The agent MUST NOT paste a vendor net rate onto the public site — it surfaces
+  "vendor net ₹X → your sell ₹Y" and applies Skyline's margin (the owner sets/confirms it), mirroring the
+  mandatory reseller **+10%** rule in the social engine. Public prices are always Skyline's sell price.
 
 ## Architecture
 ```
@@ -42,14 +71,23 @@ Client → GitHub OAuth login (allow-listed)
 ## Components / status
 | Piece | File | Status |
 |---|---|---|
-| Baseline reader (current prices) | `lib/read-site-prices.js` | ✅ built (24 pkgs) |
-| **Price writer (bounded edit)** | `lib/apply-prices.js` | ✅ **built + tested** (12 checks) |
-| Detail/hotel writer | `lib/apply-details.js` | ▢ next |
-| Rate-sheet parser (.docx → rows) | `lib/parse-ratesheet.js` | ▢ next (`mammoth`) |
-| Plan: match + validate + diff | `lib/plan-update.js` | ▢ next |
-| Claude agent (tool-use loop) | `agent/chatbot.js` | ▢ next (`@anthropic-ai/sdk`, ANTHROPIC key) |
-| Chat UI + OAuth + preview | `api/*`, `web/*` (Vercel) | ▢ needs owner setup |
-| Bot commit to the repo | `lib/commit.js` (GitHub App/PAT) | ▢ needs owner setup |
+| Baseline reader (current prices) | `lib/read-site-prices.js` | ✅ built |
+| **Unified catalog reader** (packages+tiers+hotels, grounding) | `lib/read-catalog.js` | ✅ **built** |
+| **Price writer** (3★, bounded edit) | `lib/apply-prices.js` | ✅ **built + tested** |
+| **Package writer** (4★/5★ tiers + add/remove package) | `lib/apply-package.js` | ✅ **built + tested** |
+| **Hotel writer** (add/remove hotel + nightly rate) | `lib/apply-hotel.js` | ✅ **built + tested** |
+| **Rate-sheet parser** (Markdown/CSV → rows) | `lib/parse-ratesheet.js` | ✅ **built + tested** |
+| Engine tests (writers+reader+parser) | `lib/engine.test.js` | ✅ **40 checks green** |
+| Site data model + rendering (hotel catalog, 4★/5★ tiers) | `Hotels/Domestic/International.dc.html` | ✅ **built** (catalog ships empty) |
+| PDF vision ingestion (upload → rows) | in `agent/chatbot.js` (Anthropic document block) | ▢ Phase 2 |
+| Claude agent (tool-use loop) | `agent/chatbot.js` | ▢ Phase 2 (`@anthropic-ai/sdk`, ANTHROPIC key) |
+| Chat UI + OAuth + preview | `api/*`, `Chatbot.dc.html` | ▢ Phase 2 + owner setup |
+| Bot commit to the repo | `lib/commit.js` (GitHub App/PAT) | ▢ Phase 2 + owner setup |
+
+**Phase 1 (built, this session):** the whole DATA MODEL + bounded WRITERS + READER + parser + site
+rendering — all pure/local, tested (40 checks), reviewed. **Phase 2 (owner-gated):** the agent loop
+(incl. PDF vision), GitHub OAuth, the commit bot, and the secured `Chatbot.dc.html` UI — needs the
+owner setup below to run live.
 
 ## OWNER SETUP — the critical path (B-CHATBOT; I can't create GitHub apps/secrets)
 Do these, hand me the IDs, and I wire the rest:

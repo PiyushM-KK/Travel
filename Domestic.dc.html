@@ -108,6 +108,13 @@
                   <div>
                     <div style="font-size:11px;color:#8094A4;font-weight:600" data-en="From (3★, per person)" data-hi="शुरू (3★, प्रति व्यक्ति)" data-gu="થી (3★, વ્યક્તિ દીઠ)">From (3★, per person)</div>
                     <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:20px;color:#0B2440">{{ p.price }}</div>
+                    <sc-if value="{{ p.hasTiers }}" hint-placeholder-val="{{ false }}">
+                      <div style="font-size:11.5px;color:#8094A4;font-weight:600;margin-top:5px">
+                        <sc-if value="{{ p.hasPrice4 }}" hint-placeholder-val="{{ false }}"><span><span data-en="4★ from" data-hi="4★ शुरू" data-gu="4★ થી">4★ from</span> {{ p.price4 }}</span></sc-if>
+                        <sc-if value="{{ p.hasBoth }}" hint-placeholder-val="{{ false }}"><span> · </span></sc-if>
+                        <sc-if value="{{ p.hasPrice5 }}" hint-placeholder-val="{{ false }}"><span><span data-en="5★ from" data-hi="5★ शुरू" data-gu="5★ થી">5★ from</span> {{ p.price5 }}</span></sc-if>
+                      </div>
+                    </sc-if>
                   </div>
                   <span style="background:#EAF5FD;color:#0A6FB8;font-weight:700;font-size:12.5px;padding:8px 14px;border-radius:10px" data-en="View →" data-hi="देखें →" data-gu="જુઓ →">View →</span>
                 </div>
@@ -230,7 +237,7 @@ class Component extends DCLogic {
       })),
       collections: collections.map((c) => ({ ...c,
         region: this.tr(c, 'region'), note: this.tr(c, 'note'),
-        packages: c.packages.map((p) => ({ ...p, name: this.tr(p, 'name'), route: this.tr(p, 'route'), tag: this.tr(p, 'tag') })) })),
+        packages: c.packages.map((p) => ({ ...p, name: this.tr(p, 'name'), route: this.tr(p, 'route'), tag: this.tr(p, 'tag'), price4: p.price4 || '', price5: p.price5 || '', hasTiers: !!(p.price4 || p.price5), hasPrice4: !!p.price4, hasPrice5: !!p.price5, hasBoth: !!(p.price4 && p.price5) })) })),
     };
   }
 }

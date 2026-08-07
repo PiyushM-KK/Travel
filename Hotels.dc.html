@@ -171,6 +171,34 @@
     </div>
   </div>
 
+  <!-- Hotel rates (catalog managed by the admin chatbot; ships EMPTY) -->
+  <div style="margin-top: 48px">
+    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 32px; margin: 0 0 32px" data-en="Hotel rates" data-hi="होटल दरें" data-gu="હોટેલ દરો">Hotel rates</h2>
+
+    <!-- Empty state: shown when the catalog has no hotels yet -->
+    <sc-if value="{{ noHotels }}" hint-placeholder-val="{{ false }}">
+      <div style="background: #fff; border-radius: 16px; padding: 24px; border-left: 4px solid #0a5fd7">
+        <p style="margin: 0; font-size: 15px; color: #5c6f80" data-en="Hotel rates are being updated — message us on WhatsApp for current rates." data-hi="होटल दरें अभी अपडेट की जा रही हैं — मौजूदा दरों के लिए हमें WhatsApp पर संदेश भेजें।" data-gu="હોટેલ દરો હાલ અપડેટ થઈ રહી છે — વર્તમાન દરો માટે અમને WhatsApp પર સંદેશ મોકલો.">Hotel rates are being updated — message us on WhatsApp for current rates.</p>
+      </div>
+    </sc-if>
+
+    <!-- Catalog: hotels grouped by city (first-seen city order) -->
+    <sc-for list="{{ hotelCities }}" as="hc" hint-placeholder-count="2">
+      <div style="margin-bottom: 32px">
+        <h3 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 22px; margin: 0 0 16px; color: #0b2440">{{ hc.city }}</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px">
+          <sc-for list="{{ hc.hotels }}" as="ht" hint-placeholder-count="3">
+            <div style="background: #fff; border-radius: 16px; padding: 20px 22px; border: 1.5px solid #e5ecf5; display: flex; flex-direction: column; gap: 10px; transition: all .3s" style-hover="border-color: #0a5fd7; box-shadow: 0 8px 24px rgba(10,95,215,.1); transform: translateY(-3px)">
+              <div style="font-weight: 800; font-size: 17px; color: #1a2332; line-height: 1.3">{{ ht.name }}</div>
+              <div style="align-self: flex-start; background: #fff7e6; color: #d98c0a; font-weight: 700; font-size: 13px; letter-spacing: 3px; padding: 3px 11px; border-radius: 999px">{{ ht.starsLabel }}</div>
+              <div style="font-size: 15px; color: #0b2440"><span data-en="from" data-hi="से शुरू" data-gu="થી શરૂ">from</span> <strong style="color: #0a5fd7; font-size: 17px">{{ ht.price }}</strong> <span data-en="/ night" data-hi="/ रात" data-gu="/ રાત">/ night</span></div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+
   <!-- Additional Info -->
   <div style="background: #fff; border-radius: 16px; padding: 24px; border-left: 4px solid #0a5fd7; margin-top: 48px">
     <p style="margin: 0; font-size: 14px; color: #5c6f80"><strong data-en="Note:" data-hi="ध्यान दें:" data-gu="નોંધ:">Note:</strong> <span data-en="Hotel availability and pricing depend on your travel dates. Properties are subject to availability. Skyline Travel Planner does not process hotel payments directly — you will complete bookings with official hotel partners." data-hi="होटल की उपलब्धता और कीमतें आपकी यात्रा तिथियों पर निर्भर करती हैं। संपत्तियां उपलब्धता के अधीन हैं। Skyline Travel Planner सीधे होटल भुगतान संसाधित नहीं करता — आप आधिकारिक होटल भागीदारों के साथ बुकिंग पूरी करेंगे।" data-gu="હોટેલની ઉપલબ્ધતા અને કિંમતો તમારી પ્રવાસ તારીખો પર આધાર રાખે છે. મિલકતો ઉપલબ્ધતાને આધીન છે. Skyline Travel Planner સીધા હોટેલ ચુકવણી પ્રોસેસ કરતું નથી — તમે અધિકૃત હોટેલ ભાગીદારો સાથે બુકિંગ પૂર્ણ કરશો.">Hotel availability and pricing depend on your travel dates. Properties are subject to availability. Skyline Travel Planner does not process hotel payments directly — you will complete bookings with official hotel partners.</span></p>
@@ -207,6 +235,23 @@ class Component extends DCLogic {
   componentDidUpdate() { this.applyLang(); }
 
   renderVals() {
+    // Hotel rate catalog — MANAGED BY THE ADMIN CHATBOT (edits objects by `id`,
+    // one object per line). Ships EMPTY: the owner adds only REAL hotels + REAL
+    // per-night rates. Each hotel object looks EXACTLY like this (keys in order):
+    // { id: 'h-goa-1', city: 'Goa', city_hi: 'गोवा', city_gu: 'ગોવા', name: 'Some Hotel Name', stars: 5, price: '₹12,000' }
+    //   id    = unique slug h-<cityslug>-<n>
+    //   stars = number 3 / 4 / 5
+    //   price = a ₹ figure string (e.g. '₹12,000') or 'On request'
+    const hotelCatalog = []; // owner adds real hotels + real per-night rates via the admin chatbot
+
+    // Group the catalog by city, preserving first-seen city order.
+    const hotelCityOrder = [], hotelCityMap = {};
+    hotelCatalog.forEach((h) => {
+      if (!hotelCityMap[h.city]) { hotelCityMap[h.city] = { city: this.tr(h, 'city'), hotels: [] }; hotelCityOrder.push(h.city); }
+      hotelCityMap[h.city].hotels.push({ name: h.name, starsLabel: '★'.repeat(h.stars), price: h.price });
+    });
+    const hotelCities = hotelCityOrder.map((k) => hotelCityMap[k]);
+
     const categories = [
         {
           stars: '3',
@@ -267,6 +312,9 @@ class Component extends DCLogic {
         idealFor: this.tr(c, 'idealFor'),
         amenities: c['amenities_' + this.state.lang] || c.amenities,
       })),
+      hotelCities,
+      hasHotels: hotelCities.length > 0,
+      noHotels: hotelCities.length === 0,
     };
   }
 }

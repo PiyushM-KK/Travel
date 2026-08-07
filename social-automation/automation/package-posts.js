@@ -53,9 +53,12 @@ async function runPackagePosts(store, ctx = {}) {
   if (built.status === "skipped") return { considered: built.skipped[0] === smid ? 1 : 0, slot, published: [], notified: [], held: [], skipped: built.skipped };
   if (built.status === "held") return { considered: 1, slot, published: [], notified: [], held: built.held, skipped: [] };
 
-  const { fresh, cardUrlA, cardUrlB, bStyle, options, rp, sweepCards } = built;
+  const { fresh, cardUrlA, cardUrlB, bStyle, options, rp, sweepCards, sceneMeta } = built;
   const code = shortCode(fresh.id);
   const flags = riskFlags(fresh);
+  // Carry the AI Scene Generator's concept metadata onto every imageSource we persist, so the scene-
+  // history feedback loop can still read it from published/approved rows (not just the pending draft).
+  const src = (url) => { const s = { kind: "url", url, options }; if (sceneMeta) s.sceneMeta = sceneMeta; return s; };
 
   // AUTO-PUBLISH only when (a) no agent flagged the card AND (b) publishing is actually LIVE. If the
   // live gate is off, auto-approving would leave the row `approved` and a later unrelated publish job
@@ -75,7 +78,7 @@ async function runPackagePosts(store, ctx = {}) {
     if (fresh.status !== "pending_approval") {
       let demoted = false;
       for (let i = 0; i < 2 && !demoted; i++) {
-        try { await store.update(fresh.id, { status: "pending_approval", imageUrl: cardUrlA, imageSource: { kind: "url", url: cardUrlA, options } }); demoted = true; }
+        try { await store.update(fresh.id, { status: "pending_approval", imageUrl: cardUrlA, imageSource: src(cardUrlA) }); demoted = true; }
         catch (e) { if (i === 1) { /* give up after the retry */ } }
       }
       if (!demoted) {
@@ -104,7 +107,7 @@ async function runPackagePosts(store, ctx = {}) {
   const useScene = bStyle === AI_SCENE_STYLE && !!cardUrlB;
   const postUrl = useScene ? cardUrlB : cardUrlA;
   const dropUrl = useScene ? cardUrlA : cardUrlB;
-  await store.update(fresh.id, { status: "approved", imageUrl: postUrl, imageSource: { kind: "url", url: postUrl, options }, lastError: "" });
+  await store.update(fresh.id, { status: "approved", imageUrl: postUrl, imageSource: src(postUrl), lastError: "" });
   // Do NOT sweep the other candidate yet — keep it hosted as a FALLBACK until we know the publish
   // landed. An AI scene (illustrative) is likelier than a real photo to be refused by Meta, so if we
   // swept the photo up-front a failed scene publish would leave only the failing card to retry.
@@ -125,7 +128,7 @@ async function runPackagePosts(store, ctx = {}) {
     // still point at the scene we just deleted (a 404 on retry).
     let fellBack = false;
     try {
-      await store.update(fresh.id, { imageUrl: dropUrl, imageSource: { kind: "url", url: dropUrl, options }, lastError: "AI scene didn't publish — fell back to the destination photo for retry" });
+      await store.update(fresh.id, { imageUrl: dropUrl, imageSource: src(dropUrl), lastError: "AI scene didn't publish — fell back to the destination photo for retry" });
       fellBack = true;
     } catch (e) { /* couldn't demote — leave the scene url AND its blob hosted so the retry still has an image */ }
     if (fellBack) { try { await sweepCards([postUrl]); } catch (e) { /* best-effort */ } }

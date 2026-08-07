@@ -152,15 +152,38 @@ async function buildAndDraftCard(store, ctx, { pkg, smid, source }) {
     tagline: BUSINESS.slogan || "Your Journey, Our Passion",
     phone: (BUSINESS.locations && BUSINESS.locations[0] && BUSINESS.locations[0].phone) || "",
   };
-  let cardUrlA = "", cardUrlB = "", bStyle = "";
+  let cardUrlA = "", cardUrlB = "", bStyle = "", sceneMeta = null;
   try {
     cardUrlA = await hostCard(await makeCard({ ...baseCard, photoPath: pickPhoto(fs, PHOTOS, slug), credit: "Photo: Wikimedia CC" }), `card-a-${smid}`);
   } catch (e) { await store.update(row.id, { status: "held", lastError: "card A render/host failed: " + String((e && e.message) || e) }); return { status: "held", held: [{ id: row.id, reason: "card A render/host failed" }], sweepCards }; }
   try {
     const imageGen = ctx.imageGen || require("./image-gen").resolveImageGen();
     let bufB;
-    if (imageGen) { const { promptForSlug } = require("./scene-prompts"); const gen = await imageGen(promptForSlug(slug), ctx.imageGenOpts || {}); bufB = await makeCard({ ...baseCard, photoBytes: gen.buffer, credit: "AI-generated scene · illustrative" }); bStyle = AI_SCENE_STYLE; }
-    else {
+    if (imageGen) {
+      // Card B image prompt — DYNAMIC AI Scene Generator first (owner's travel-photography workflow):
+      // Claude reads the master prompt and returns a fresh, unique concept + render-ready prompt for
+      // THIS package, avoiding recent concepts (scene history). Falls back to the static SCENES pool
+      // if the generator is off (SOCIAL_SCENE_GEN=off / no key) or errors. The concept metadata rides
+      // on the row (imageSource.sceneMeta) so the next run can avoid it.
+      let scenePrompt = "";
+      const sceneGenOn = process.env.SOCIAL_SCENE_GEN !== "off" && (ctx.sceneGenClient || process.env.ANTHROPIC_API_KEY);
+      if (sceneGenOn) {
+        try {
+          const { generateSceneSpec, recentScenesFromStore, sceneSummary } = require("./scene-generator");
+          let recent = ctx.recentScenes;
+          if (!recent) { try { recent = await recentScenesFromStore(store, { client: ctx.client || "skyline" }); } catch (e) { recent = []; } }
+          const spec = await generateSceneSpec({ pkg, route: pkg.route, slug, recent, client: ctx.sceneGenClient, model: ctx.sceneModel });
+          scenePrompt = spec.imagePrompt;
+          sceneMeta = sceneSummary(spec);
+        } catch (e) {
+          try { console.warn(JSON.stringify({ evt: "scene_gen_fallback", note: "dynamic scene generation failed — using the static SCENES pool: " + String((e && e.message) || e).slice(0, 120) })); } catch { /* ignore */ }
+        }
+      }
+      if (!scenePrompt) { const { promptForSlug } = require("./scene-prompts"); scenePrompt = promptForSlug(slug); }
+      const gen = await imageGen(scenePrompt, ctx.imageGenOpts || {});
+      bufB = await makeCard({ ...baseCard, photoBytes: gen.buffer, credit: "AI-generated scene · illustrative" });
+      bStyle = AI_SCENE_STYLE;
+    } else {
       // No image generator resolved → card B is the code-drawn DECORATIVE gradient, NOT an AI scene.
       // This is silent-by-design (it's a valid fallback), but a MISSING/misnamed OPENAI_API_KEY looks
       // identical to "intentionally off" — which is exactly how a typo'd env var (OPEN_API_KEY) shipped
@@ -170,20 +193,24 @@ async function buildAndDraftCard(store, ctx, { pkg, smid, source }) {
     }
     cardUrlB = await hostCard(bufB, `card-b-${smid}`);
   } catch (e) {
-    try { cardUrlB = await hostCard(await makeCard({ ...baseCard, decor: true }), `card-b-${smid}`); bStyle = "decorative"; }
-    catch (e2) { cardUrlB = ""; bStyle = ""; }
+    try { cardUrlB = await hostCard(await makeCard({ ...baseCard, decor: true }), `card-b-${smid}`); bStyle = "decorative"; sceneMeta = null; }
+    catch (e2) { cardUrlB = ""; bStyle = ""; sceneMeta = null; }
   }
+  // Invariant: only keep sceneMeta if the AI scene was actually the card we built (a fallback to the
+  // photo/decor means that concept was never rendered, so it must not enter the history as "seen").
+  if (bStyle !== AI_SCENE_STYLE) sceneMeta = null;
   const options = { A: cardUrlA }; if (cardUrlB) options.B = cardUrlB;
-  await store.update(row.id, { imageUrl: cardUrlA, imageSource: { kind: "url", url: cardUrlA, options } });
+  const imgSrc = () => { const s = { kind: "url", url: cardUrlA, options }; if (sceneMeta) s.sceneMeta = sceneMeta; return s; };
+  await store.update(row.id, { imageUrl: cardUrlA, imageSource: imgSrc() });
 
   let res;
   try { res = await generateOne(store, await store.get(row.id), { runner: source, facts: ctx.facts, profile: ctx.profile, clientName: ctx.clientName, useVision: false, useSmm: true, useQa: ctx.useQa === true }); }
   catch (e) { await sweepCards([cardUrlA, cardUrlB]); await store.update(row.id, { status: "held", imageUrl: "", lastError: "generate threw: " + String((e && e.message) || e) }); return { status: "held", held: [{ id: row.id, reason: "generate threw" }], sweepCards }; }
   const fresh = await store.get(row.id);
-  if (fresh.imageUrl !== cardUrlA) { await store.update(fresh.id, { imageUrl: cardUrlA, imageSource: { kind: "url", url: cardUrlA, options } }); fresh.imageUrl = cardUrlA; }
+  if (fresh.imageUrl !== cardUrlA) { await store.update(fresh.id, { imageUrl: cardUrlA, imageSource: imgSrc() }); fresh.imageUrl = cardUrlA; }
   if (res.outcome !== "pending" && res.outcome !== "approved") { await sweepCards([cardUrlA, cardUrlB]); return { status: "held", held: [{ id: fresh.id, reason: res.reason || fresh.lastError || "" }], sweepCards }; }
 
-  return { status: "drafted", fresh, cardUrlA, cardUrlB, bStyle, options, rp, pkg, res, sweepCards };
+  return { status: "drafted", fresh, cardUrlA, cardUrlB, bStyle, options, rp, pkg, res, sweepCards, sceneMeta };
 }
 
 async function runCalendarCards(store, ctx = {}) {

@@ -1,0 +1,1876 @@
+# MASTER PROMPT — Ultra-Realistic Indian Nature, Landscape & Travel Moments Photography
+
+Create a diverse collection of ultra-photorealistic professional travel and landscape photographs captured across the most beautiful natural destinations of India.
+
+The collection must combine:
+
+* Authentic Indian landscapes
+* Mountains and Himalayan valleys
+* Rivers, waterfalls and lakes
+* Forests and alpine meadows
+* Beaches and coastlines
+* Deserts and salt flats
+* Backwaters
+* Snow landscapes
+* Monsoon environments
+* Remote countryside
+* Wildlife environments
+* Scenic roads
+* Genuine human travel experiences
+* Family vacations
+* Honeymoons and romantic travel
+* Motorcycle and road trips
+* Campervan/motorhome adventures
+* Camping
+* Group tours
+* Adventure travel
+* Luxury nature stays
+* Peaceful relaxation
+* Spontaneous happy travel moments
+
+The final images must look like authentic professional photographs taken by an experienced National Geographic, travel, lifestyle or outdoor photographer — NOT AI-generated artwork, CGI or digital illustration.
+
+# MASTER PROMPT — Ultra-Realistic Indian Nature, Landscape & Travel Moments Photography
+
+## USER INPUT — EDIT ONLY THIS SECTION
+
+COUNTRY: [India]
+
+LOCATION:
+[Enter location OR AUTO]
+
+NATURE SCENE:
+[Enter scene OR AUTO]
+
+TRAVEL MOMENT:
+[Enter moment OR AUTO]
+
+TRAVELLER TYPE:
+[Family / Couple / Honeymoon / Friends / Motorcycle Group / Campervan Family / Solo / AUTO]
+
+SEASON:
+[Spring / Summer / Monsoon / Autumn / Winter / AUTO]
+
+TIME:
+[Sunrise / Morning / Afternoon / Golden Hour / Sunset / Blue Hour / Night / AUTO]
+
+WEATHER:
+[Clear / Cloudy / Mist / Snow / Rain / AUTO]
+
+IMAGE TYPE:
+[Pure Landscape / Travel Lifestyle / AUTO]
+
+ASPECT RATIO:
+[3:2 / 16:9 / 4:5 / 9:16]
+
+SPECIAL REQUEST:
+[Enter request OR NONE]
+
+VARIATION MODE:
+[MAXIMUM]
+
+Then follow Items #1 through #30 below.
+
+
+## 1. LOCATION SELECTION
+
+For EVERY new image, select a real Indian destination.
+
+Examples include, but are not limited to:
+
+# 1. LOCATION SELECTION — EXPANDED LOCATION BANK
+
+For every new image, select a real destination from the following location bank or another geographically authentic nearby location.
+
+Prioritize offbeat and lesser-photographed locations while occasionally using famous destinations.
+
+---
+
+## JAMMU & KASHMIR
+
+### Kashmir Valley
+
+* Sonamarg
+* Pahalgam
+* Aru Valley
+* Betaab Valley
+* Chandanwari
+* Baisaran Valley
+* Gulmarg
+* Khilanmarg
+* Tangmarg
+* Srinagar
+* Dal Lake
+* Nigeen Lake
+* Manasbal Lake
+* Wular Lake
+* Yusmarg
+* Doodhpathri
+* Aharbal
+* Tosamaidan
+* Tosa Maidan meadows
+* Sinthan Top
+* Kokernag
+* Verinag
+* Dachigam
+
+### Gurez Region
+
+* Gurez Valley
+* Dawar
+* Tulail Valley
+* Chakwali
+* Habba Khatoon Valley
+
+### Lolab & Bangus
+
+* Lolab Valley
+* Chandigam
+* Kalaroos
+* Bangus Valley
+* Reshwari
+* Mawar Valley
+
+### High-Altitude Kashmir
+
+* Tarsar Lake
+* Marsar Lake
+* Gangabal Lake
+* Nundkol Lake
+* Vishansar Lake
+* Krishansar Lake
+* Gadsar Lake
+* Satsar Lakes
+* Naranag
+
+### Chenab / Jammu Himalaya
+
+* Bhaderwah
+* Jai Valley
+* Padri
+* Chinta Valley
+* Seoj Meadow
+* Bani
+* Sarthal Valley
+* Basohli
+* Sanasar
+* Patnitop
+* Nathatop
+* Warwan Valley
+* Marwah Valley
+* Paddar Valley
+
+---
+
+# LADAKH
+
+### Leh Region
+
+* Leh
+* Sham Valley
+* Basgo
+* Alchi
+* Likir
+* Lamayuru
+* Uleytokpo
+* Hemis
+* Stok
+* Matho
+* Thiksey
+
+### Nubra
+
+* Nubra Valley
+* Diskit
+* Hunder
+* Sumur
+* Panamik
+* Turtuk
+* Tyakshi
+* Yarab Tso
+
+### Changthang
+
+* Pangong Tso
+* Merak
+* Spangmik
+* Chushul
+* Tso Moriri
+* Korzok
+* Tso Kar
+* More Plains
+* Hanle
+* Changthang Plateau
+
+### Zanskar
+
+* Zanskar Valley
+* Padum
+* Rangdum
+* Pensi La
+* Drang-Drung Glacier
+* Purne
+* Phugtal
+* Stongde
+* Zangla
+* Karsha
+* Shinku La region
+
+### Western Ladakh
+
+* Kargil
+* Suru Valley
+* Sankoo
+* Panikhar
+* Parkachik
+* Aryan Valley
+* Dha
+* Hanu
+
+---
+
+# HIMACHAL PRADESH
+
+### Spiti Valley
+
+* Spiti Valley
+* Kaza
+* Tabo
+* Dhankar
+* Dhankar Lake
+* Pin Valley
+* Mudh Village
+* Langza
+* Hikkim
+* Komic
+* Demul
+* Losar
+* Kibber
+* Chicham
+* Chandratal Lake
+* Kunzum Pass
+
+### Lahaul
+
+* Lahaul Valley
+* Sissu
+* Gondhla
+* Keylong
+* Jispa
+* Darcha
+* Udaipur
+* Trilokinath
+* Miyar Valley
+* Pattan Valley
+
+### Kinnaur
+
+* Kinnaur
+* Sangla Valley
+* Chitkul
+* Rakchham
+* Kalpa
+* Roghi
+* Nako
+* Moorang
+* Khab
+* Nichar
+
+### Kullu / Manali Offbeat Region
+
+* Manali
+* Old Manali
+* Hamta Valley
+* Hallan Valley
+* Fojal Valley
+* Soyal
+* Sethan
+* Jana
+* Naggar
+* Raison
+* Solang Valley
+* Gulaba
+
+### Tirthan / Great Himalayan Region
+
+* Tirthan Valley
+* Gushaini
+* Banjar
+* Shoja
+* Jalori Pass
+* Serolsar Lake
+* Sainj Valley
+* Shangarh
+* Jiwa Nal Valley
+* Great Himalayan National Park
+
+### Parvati
+
+* Parvati Valley
+* Kasol
+* Chalal
+* Tosh
+* Pulga
+* Kalga
+* Tulga
+* Grahan
+
+### Chamba
+
+* Chamba
+* Khajjiar
+* Dalhousie
+* Sach Pass
+* Pangi Valley
+* Sural Valley
+* Kugti
+* Bharmour
+
+Official Incredible India identifies Sainj, Tirthan, Jiwa Nal and Parvati as the four valleys associated with Great Himalayan National Park and separately highlights several offbeat Manali-area valleys.
+
+---
+
+# UTTARAKHAND
+
+### Garhwal
+
+* Chopta
+* Tungnath
+* Deoria Tal
+* Mandal
+* Gopeshwar
+* Auli
+* Joshimath
+* Tapovan
+* Urgam Valley
+* Kalpeshwar
+* Niti Valley
+* Mana
+* Badrinath
+* Kedarnath Valley
+* Harsil
+* Dharali
+* Mukhba
+* Nelong Valley
+* Dayara Bugyal
+* Uttarkashi
+
+### Tehri Region
+
+* Kanatal
+* Dhanaulti
+* Tehri Lake
+* Chamba
+* Khirsu
+
+### Kumaon
+
+* Munsiyari
+* Khaliya Top
+* Darkot
+* Birthi
+* Chaukori
+* Berinag
+* Binsar
+* Kausani
+* Mukteshwar
+* Ramgarh
+* Peora
+* Pangot
+* Sattal
+* Bhimtal
+* Naukuchiatal
+
+### Remote Valleys
+
+* Darma Valley
+* Johar Valley
+* Milam
+* Pindari Glacier Valley
+* Kafni Valley
+* Namik Valley
+
+### Meadows
+
+* Valley of Flowers
+* Bedni Bugyal
+* Ali Bugyal
+* Dayara Bugyal
+* Gorson Bugyal
+
+### Other
+
+* Lansdowne
+* Chakrata
+* Mori
+* Sankri
+* Har Ki Dun
+* Tons Valley
+
+---
+
+# SIKKIM
+
+### North Sikkim
+
+* Lachung
+* Yumthang Valley
+* Zero Point
+* Yumesamdong
+* Lachen
+* Gurudongmar Lake
+* Thangu Valley
+* Chopta Valley
+* Dzongu
+* Tingvong
+* Passingdang
+
+### West Sikkim
+
+* Yuksom
+* Khecheopalri Lake
+* Pelling
+* Darap
+* Uttarey
+* Dentam
+* Rinchenpong
+* Kaluk
+* Borong
+
+### South/East Sikkim
+
+* Ravangla
+* Temi Tea Garden
+* Namchi
+* Zuluk
+* Gnathang Valley
+* Kupup
+* Tsomgo Lake
+
+---
+
+# DARJEELING & KALIMPONG HIMALAYA — WEST BENGAL
+
+* Darjeeling
+* Sandakphu
+* Phalut
+* Singalila Ridge
+* Tumling
+* Tonglu
+* Lepchajagat
+* Chatakpur
+* Tinchuley
+* Takdah
+* Lamahatta
+* Sittong
+* Bijanbari
+* Mirik
+* Kalimpong
+* Lava
+* Loleygaon
+* Rishop
+* Pedong
+* Kolakham
+* Neora Valley
+
+---
+
+# ARUNACHAL PRADESH
+
+* Tawang
+* Sangetsar Lake
+* Sela Pass
+* Nuranang Falls
+* Zemithang
+* Dirang
+* Sangti Valley
+* Thembang
+* Shergaon
+* Bomdila
+* Bhalukpong
+* Ziro Valley
+* Hong Village
+* Hapoli
+* Talley Valley
+* Mechuka
+* Siyom Valley
+* Along / Aalo
+* Pasighat
+* Dambuk
+* Roing
+* Mayodia Pass
+* Anini
+* Dibang Valley
+* Dri Valley
+* Mishmi Hills
+* Tezu
+* Walong
+* Dong Valley
+* Hayuliang
+* Namdapha
+* Miao
+* Vijaynagar
+* Seijosa
+* Pakke Valley
+
+[Incredible India – Arunachal Pradesh](https://www.incredibleindia.gov.in/en/arunachal-pradesh) confirms the state's extensive Himalayan landscapes, while its Northeast itinerary specifically covers Bhalukpong, Dirang, Sela and Tawang.
+
+---
+
+# ASSAM
+
+* Majuli
+* Nimati Ghat
+* Chandubi Lake
+* Deepor Beel
+* Pobitora
+* Manas
+* Nameri
+* Orang
+* Kaziranga
+* Kakochang
+* Haflong
+* Dima Hasao
+* Jatinga
+* Umrangso
+* Panimur
+* Maibong
+* Sivasagar
+* Hoollongapar Gibbon Sanctuary
+* Dibru-Saikhowa
+* Maguri Motapung Beel
+* Bogamati
+* Pobitora grasslands
+
+---
+
+# MEGHALAYA
+
+* Shillong
+* Cherrapunji / Sohra
+* Mawsynram
+* Mawlynnong
+* Dawki
+* Shnongpdeng
+* Umngot River
+* Nongriat
+* Double Decker Living Root Bridge
+* Rainbow Falls
+* Nohkalikai Falls
+* Wei Sawdong Falls
+* Dainthlen Falls
+* Seven Sisters Falls
+* Laitlum Canyon
+* Mawphlang
+* Mawphlang Sacred Forest
+* David Scott Trail
+* Kongthong
+* Pynursla
+* Jowai
+* Nartiang
+* Krang Suri
+* Phe Phe Falls
+* Shilliang Jashar
+* Umiam Lake
+* Nongkhnum Island
+* Wari Chora
+* Garo Hills
+* Balpakram
+* Nokrek
+
+Official Incredible India lists Mawlynnong, Laitlum, Mawphlang, Jowai, Cherrapunji's waterfalls and living-root-bridge landscapes among Meghalaya's natural attractions. [Meghalaya](https://www.incredibleindia.gov.in/en/meghalaya)
+
+---
+
+# NAGALAND
+
+* Dzukou Valley
+* Khonoma
+* Kohima
+* Jakhama
+* Kigwema
+* Pulie Badze
+* Tuophema
+* Mokokchung
+* Longkhum
+* Ungma
+* Mon
+* Longwa
+* Veda Peak
+* Wokha
+* Doyang Reservoir
+* Pfutsero
+* Shilloi Lake
+
+[Incredible India – Nagaland](https://www.incredibleindia.gov.in/en/nagaland) highlights Dzukou Valley, Khonoma, Pulie Badze, Tuophema and the landscapes around Mokokchung.
+
+---
+
+# MANIPUR
+
+* Loktak Lake
+* Sendra
+* Keibul Lamjao
+* Moirang
+* Ukhrul
+* Shirui Hills
+* Shirui Peak
+* Dzukou Valley
+* Andro
+* Santhei Natural Park
+* Tamenglong
+* Barak Waterfalls
+* Zeilad Lake
+* Tharon Cave
+* Khonghampat
+* Moreh
+
+[Incredible India – Manipur](https://www.incredibleindia.gov.in/en/manipur) confirms Loktak Lake, Keibul Lamjao, Shirui Hills/Ukhrul and Dzukou Valley among the state's distinctive natural landscapes.
+
+---
+
+# MIZORAM
+
+* Aizawl
+* Reiek
+* Reiek Peak
+* Hmuifang
+* Champhai
+* Thenzawl
+* Vantawng Falls
+* Tuirihiau Falls
+* Tam Dil
+* Palak Dil / Palak Lake
+* Phawngpui
+* Blue Mountain
+* Durtlang Hills
+* Serchhip
+* Murlen
+* Dampa
+* Lunglei
+* Sialsuk
+* Rih Dil region
+
+[Incredible India – Mizoram](https://www.incredibleindia.gov.in/en/mizoram) and [Aizawl regional attractions](https://www.incredibleindia.gov.in/en/mizoram/aizawl) identify Reiek, Hmuifang, Tam Dil, Vantawng and Palak Lake among the state's nature destinations.
+
+---
+
+# TRIPURA
+
+* Jampui Hills
+* Betlingchhip
+* Vanghmun
+* Dumboor Lake
+* Chabimura
+* Devtamura
+* Unakoti
+* Neermahal
+* Rudrasagar Lake
+* Sepahijala
+* Trishna
+* Baramura Hills
+* Atharamura Hills
+* Longtharai Hills
+* Amarpur
+
+Official tourism sources highlight Tripura's hill, lake and forest landscapes, including Dumboor Lake. [Tripura tourism](https://tripuratourism.gov.in/), [Incredible India – Tripura](https://www.incredibleindia.gov.in/en/tripura).
+
+---
+
+# WESTERN GHATS — MAHARASHTRA
+
+* Malshej Ghat
+* Tamhini Ghat
+* Bhor Ghat
+* Varandha Ghat
+* Amboli Ghat
+* Chorla Ghat
+* Mahabaleshwar
+* Panchgani
+* Kaas Plateau
+* Thoseghar
+* Koyna
+* Bamnoli
+* Tapola
+* Jawhar
+* Bhandardara
+* Arthur Lake
+* Sandhan Valley
+* Harishchandragad
+* Ratangad
+* Kalsubai
+* Igatpuri
+* Bhimashankar
+* Matheran
+* Lonavala
+* Rajmachi
+* Mulshi
+* Devkund
+* Andharban
+* Kolad
+* Radhanagari
+* Gaganbawda
+
+---
+
+# WESTERN GHATS — GOA
+
+* Chorla Ghat
+* Mhadei
+* Mollem
+* Bhagwan Mahavir Wildlife Sanctuary
+* Dudhsagar
+* Tambdi Surla
+* Netravali
+* Mainapi Falls
+* Salaulim
+* Cotigao
+* Keri / Querim
+
+---
+
+# WESTERN GHATS — KARNATAKA
+
+### Coorg
+
+* Madikeri
+* Mandalpatti
+* Talakaveri
+* Bhagamandala
+* Kakkabe
+* Tadiandamol
+* Chelavara
+* Kabbe Hills
+
+### Chikmagalur
+
+* Chikmagalur
+* Mullayanagiri
+* Baba Budangiri
+* Kemmanagundi
+* Z Point
+* Devaramane
+* Charmadi Ghat
+* Ballalarayana Durga
+* Kudremukh
+* Kalasa
+* Horanadu
+
+### Malnad
+
+* Agumbe
+* Kundadri Hills
+* Sringeri
+* Someshwara
+* Kodachadri
+* Honnemaradu
+* Sharavathi Valley
+* Jog Falls
+* Unchalli Falls
+* Sathodi Falls
+* Sirsi
+* Yana
+* Dandeli
+* Kali River
+* Sakleshpur
+* Bisle Ghat
+
+---
+
+# WESTERN GHATS — KERALA
+
+### Idukki
+
+* Munnar
+* Marayoor
+* Kanthalloor
+* Vattavada
+* Chinnar
+* Top Station
+* Mattupetty
+* Kundala
+* Meesapulimala
+* Kolukkumalai
+* Anamudi
+* Pampadum Shola
+* Vagamon
+* Ramakkalmedu
+* Idukki
+* Calvary Mount
+
+### Wayanad
+
+* Wayanad
+* Vythiri
+* Lakkidi
+* Chembra
+* Banasura
+* Meppadi
+* Thirunelli
+* Kuruva Island
+* Neelimala
+
+### Other Western Ghats Kerala
+
+* Silent Valley
+* Nelliyampathy
+* Parambikulam
+* Palakkad Gap
+* Athirappilly
+* Vazhachal
+* Sholayar
+* Valparai-border forests
+* Thenmala
+* Ponmudi
+* Peppara
+* Gavi
+* Thekkady
+* Periyar
+* Tusharagiri
+* Ranipuram
+
+Incredible India specifically identifies Tusharagiri as a Western Ghats eco-tourism landscape and the Palakkad Gap as a major Western Ghats pass. [Tusharagiri](https://www.incredibleindia.gov.in/en/kerala/kozhikode/thusharagiri-waterfalls), [Palakkad](https://www.incredibleindia.gov.in/en/kerala/palakkad).
+
+---
+
+# WESTERN GHATS — TAMIL NADU
+
+* Ooty / Udhagamandalam
+* Avalanche
+* Emerald Lake
+* Upper Bhavani
+* Parsons Valley
+* Mukurthi
+* Glenmorgan
+* Kotagiri
+* Coonoor
+* Ketti Valley
+* Manjoor
+* Silent Valley Nilgiris
+* Kodaikanal
+* Poombarai
+* Mannavanur
+* Berijam Lake
+* Vattakanal
+* Palani Hills
+* Meghamalai
+* High Wavy Mountains
+* Valparai
+* Topslip
+* Anamalai
+* Aliyar
+* Manjolai Hills
+* Kalakkad
+* Mundanthurai
+
+---
+
+# SOUTHERN GUJARAT HILL / FOREST BELT
+
+* Saputara
+* Dang
+* Ahwa
+* Waghai
+* Don Hill Station
+* Purna Wildlife Sanctuary
+* Gira Falls
+* Mahal Forest
+* Wilson Hills
+
+---
+
+# ANDAMAN ISLANDS
+
+* Swaraj Dweep / Havelock
+* Radhanagar Beach
+* Elephant Beach
+* Kalapathar Beach
+* Govind Nagar
+* Shaheed Dweep / Neil Island
+* Bharatpur Beach
+* Laxmanpur Beach
+* Sitapur Beach
+* Natural Bridge
+* Long Island
+* Lalaji Bay
+* Rangat
+* Dhani Nallah
+* Baratang
+* Limestone Cave region
+* Middle Andaman
+* North Andaman
+* Diglipur
+* Ross and Smith Islands
+* Kalipur Beach
+* Ramnagar Beach
+* Saddle Peak
+* Chidiya Tapu
+* Mount Manipur
+* Wandoor
+* Mahatma Gandhi Marine National Park
+* Jolly Buoy
+* Red Skin Island
+
+Incredible India confirms Havelock/Swaraj Dweep, Neil/Shaheed Dweep and Diglipur as major nature areas within the archipelago. [Andaman & Nicobar](https://www.incredibleindia.gov.in/en/andaman-and-nicobar-islands/sri-vijaya-puram/take-in-the-yehmeraindiawaalifeeling-in-andamans)
+
+---
+
+# NICOBAR — ACCESS-SENSITIVE LANDSCAPES
+
+Use only when geographically appropriate and do NOT automatically depict ordinary tourist access, resorts, camping or human activity.
+
+* Great Nicobar
+* Campbell Bay
+* Galathea Bay
+* Galathea National Park region
+* Mount Thullier region
+
+Do NOT generate tourism scenes on protected tribal/reserve islands or imply unrestricted access to restricted Nicobar territories.
+
+---
+
+# MALDIVES
+
+### Northern Maldives
+
+* Haa Alifu Atoll
+* Haa Dhaalu Atoll
+* Hanimaadhoo
+* Dhidhdhoo
+* Kelaa
+* Utheemu
+* Shaviyani Atoll
+* Noonu Atoll
+* Raa Atoll
+
+### Baa Atoll
+
+* Baa Atoll
+* Hanifaru Bay
+* Dharavandhoo
+* Kamadhoo
+* Maalhos
+* Fulhadhoo
+* Goidhoo
+
+### Lhaviyani
+
+* Lhaviyani Atoll
+* Naifaru
+* Olhuvelifushi
+
+### North / South Ari
+
+* Alifu Alifu Atoll
+* Alifu Dhaalu Atoll
+* Rasdhoo
+* Ukulhas
+* Thoddoo
+* Mathiveri
+* Bodufolhudhoo
+* Dhigurah
+* Dhangethi
+* Omadhoo
+* Mahibadhoo
+
+### Kaafu
+
+* Kaafu Atoll
+* Gulhi
+* Guraidhoo
+* Maafushi
+* Thulusdhoo
+* Dhiffushi
+* Himmafushi
+
+### Vaavu
+
+* Vaavu Atoll
+* Fulidhoo
+* Felidhoo
+* Keyodhoo
+* Thinadhoo
+
+### Meemu
+
+* Meemu Atoll
+* Muli
+* Dhiggaru
+
+### Faafu / Dhaalu
+
+* Faafu Atoll
+* Dharanboodhoo
+* Dhaalu Atoll
+* Kudahuvadhoo
+
+### Laamu
+
+* Laamu Atoll
+* Gan
+* Fonadhoo
+* Maamendhoo
+* Isdhoo
+
+### Huvadhoo
+
+* Gaafu Alifu Atoll
+* Gaafu Dhaalu Atoll
+* Villingili
+* Kondey
+* Gadhdhoo
+
+### Deep South
+
+* Fuvahmulah
+* Addu Atoll
+* Gan
+* Feydhoo
+* Maradhoo
+* Hithadhoo
+
+The official Maldives destination guides identify Baa, Ari, Vaavu, Kaafu, Laamu, Huvadhoo/Gaafu, Fuvahmulah and Addu among the country's principal geographic and nature/diving regions. [Visit Maldives destination guide](https://visitmaldives.com/en/downloads/destination-guide-2024-english)
+
+# AUTO-SELECTION RULE
+
+When LOCATION = AUTO:
+
+Randomly and intelligently select from the COMPLETE location bank above.
+
+Do not repeatedly prioritize famous destinations.
+
+Actively rotate between:
+
+Jammu & Kashmir
+Ladakh
+Himachal Pradesh
+Uttarakhand
+Sikkim
+Darjeeling/Kalimpong Himalaya
+Arunachal Pradesh
+Assam
+Meghalaya
+Nagaland
+Manipur
+Mizoram
+Tripura
+Maharashtra Western Ghats
+Goa Western Ghats
+Karnataka Western Ghats
+Kerala Western Ghats
+Tamil Nadu Western Ghats
+Andaman Islands
+Maldives
+
+Prefer approximately:
+
+70% OFFBEAT / LESSER-KNOWN LOCATIONS
+30% ICONIC / WELL-KNOWN LOCATIONS
+
+Do not select a location merely because it is famous.
+
+Select locations according to their unique photographic potential, season, natural environment and compatibility with the chosen travel moment.
+
+LOCATION repetition is allowed, but repeatedly selecting the same small group of destinations is NOT allowed.
+
+# 2. CRITICAL VARIATION ENGINE
+
+Treat every photograph as:
+
+LOCATION
++
+NATURAL SCENE
++
+TRAVEL MOMENT
++
+PEOPLE
++
+ACTIVITY
++
+TIME
++
+WEATHER
++
+CAMERA COMPOSITION
+
+Every generated photograph must create a new combination.
+
+### ABSOLUTE NON-REPETITION RULE
+
+The same LOCATION/NATURE SCENE may appear again.
+
+Different MOMENTS in the same scene are encouraged.
+
+However:
+
+SAME SCENE + SAME MOMENT = NOT ALLOWED.
+
+If a previously generated photograph shows:
+
+“Family having tea beside the Lidder River in Pahalgam”
+
+then Pahalgam and the same river can appear again, but use a genuinely different moment, such as:
+
+* Couple walking beside the river
+* Children skipping stones
+* Family picnic
+* Grandparents watching the mountains
+* Motorcycle travellers stopping at the river
+* Campervan breakfast
+* Couple photographing sunset
+* Family sitting around a campfire
+
+Do not simply change clothes, camera angle or weather and call it a different moment.
+
+The actual human activity and storytelling must change.
+
+# 3. TRAVEL MOMENT LIBRARY
+
+Randomly select or intelligently create moments from the following categories.
+
+Do NOT cycle through them mechanically.
+
+## FAMILY HAPPY MOMENTS
+
+* Parents and children walking beside a mountain river
+* Children skipping stones across shallow water
+* Family laughing during a riverside picnic
+* Parents helping children cross a small stream
+* Children running through an alpine meadow
+* Family watching snowfall together
+* Children making a snowman
+* Snowball fight
+* Family sharing hot chai in cold weather
+* Father carrying a tired child after hiking
+* Mother and child collecting colourful autumn leaves
+* Family photographing mountains
+* Children looking through binoculars
+* Family sitting quietly beside a lake
+* Parents teaching children photography
+* Family watching clouds move through a valley
+* Parents and children dipping their feet into safe shallow water
+* Family flying a kite in an open valley
+* Family enjoying breakfast with a panoramic view
+* Children discovering tiny flowers or interesting rocks
+* Family celebrating arrival at a viewpoint
+* Siblings laughing on a scenic trail
+
+## RELAXING FAMILY MOMENTS
+
+* Family lying on blankets in a meadow
+* Reading beside a river
+* Quiet afternoon picnic
+* Drinking chai overlooking mountains
+* Watching a sunset together
+* Sitting silently beside an alpine lake
+* Relaxing on a cabin veranda
+* Family watching rainfall from a covered terrace
+* Hammock relaxation
+* Stargazing together
+* Parents relaxing while children safely play nearby
+
+## HONEYMOON & ROMANTIC MOMENTS
+
+Keep romance elegant, natural and candid.
+
+* Newlywed couple walking hand-in-hand
+* Couple watching sunrise
+* Couple watching sunset beside a lake
+* Romantic riverside breakfast
+* Private mountain picnic
+* Couple sharing one blanket beside a campfire
+* Couple drinking chai on a cold balcony
+* Walking through light snowfall
+* Couple photographing each other
+* Quiet conversation beside a river
+* Couple sitting on a rock overlooking a valley
+* Surprise flower moment
+* Couple watching stars
+* Cozy glass-cabin evening
+* Dome-hotel mountain-view breakfast
+* Couple watching snowfall through panoramic glass
+* Romantic dinner outside a mountain cabin
+* Couple walking barefoot along a quiet Kerala beach
+* Kayaking together
+* Houseboat honeymoon in Kerala
+* Sunrise tea overlooking Himalayan peaks
+
+## MOTORCYCLE / BIKE TOUR MOMENTS
+
+* Riders navigating a Himalayan road
+* Group stopping beside a mountain river
+* Friends checking a motorcycle at a scenic pass
+* Rider removing helmet and admiring the panorama
+* Couple touring together on motorcycles
+* Group drinking chai at a roadside mountain stop
+* Motorcycles parked beside a glacial lake
+* Riders photographing one another
+* Friends laughing during a rest stop
+* Motorcycle group crossing an isolated valley
+* Riders camping beside their motorcycles
+* Early-morning departure from camp
+* Friends studying a paper/digital route map
+* Rider watching sunset from beside the motorcycle
+* Motorcyclists safely crossing shallow terrain where appropriate
+
+## GROUP TOUR / FRIENDS
+
+* Friends hiking together
+* Group picnic
+* Friends photographing one another
+* Group sharing chai
+* Friends laughing around a campfire
+* Road-trip group stopping at a viewpoint
+* Friends setting up tents
+* Group cooking outdoors
+* Group watching sunrise
+* Group celebrating reaching a viewpoint
+* Friends playing cards at camp
+* Friends singing around a campfire
+* Group enjoying local food
+* Friends walking through a forest trail
+* Group stargazing
+
+# 4. CAMPING MOMENTS
+
+Show realistic outdoor equipment and environmentally responsible camping.
+
+* Couple pitching a tent
+* Family setting up camp
+* Children helping assemble a tent
+* Friends cooking dinner
+* Campfire conversation where legally and environmentally appropriate
+* Morning coffee outside the tent
+* Sunrise emerging behind tents
+* Reading inside an open tent
+* Watching rain safely from inside the tent
+* Stargazing
+* Milky Way over camp where scientifically possible
+* Packing equipment
+* Waking up to mountain views
+* Preparing breakfast
+* Sitting in camping chairs beside a river
+* Quiet late-evening campsite
+* Family playing board games at camp
+* Children using binoculars
+* Hammock beside camp where appropriate
+* Couple wrapped in blankets watching the mountains
+
+# 5. CAMPERVAN / MOTORHOME TRAVEL
+
+Create premium but believable campervan experiences.
+
+Possible moments:
+
+* Family arriving at a beautiful campsite
+* Motorhome parked beside a panoramic mountain landscape
+* Parents preparing breakfast inside the van
+* Children looking through camper windows
+* Family eating breakfast outside
+* Couple drinking coffee beside the motorhome
+* Family arranging camping chairs
+* Children helping unpack equipment
+* Outdoor cooking
+* Family watching sunset
+* Morning mist around the campervan
+* Campervan beside a safe riverside campsite
+* Family playing games inside during rain
+* Couple viewing stars through an open camper roof/window
+* Family sleeping comfortably inside
+* Parent reading a bedtime story
+* Campervan on a remote scenic road
+* Family photographing the landscape after stopping
+* Picnic table beside motorhome
+* Evening lantern-lit dinner
+* Family waking to snow-covered peaks
+
+Never place motorhomes in ecologically protected or physically inaccessible locations where vehicles realistically could not travel or camp.
+
+# 6. RIVER & LAKESIDE MOMENTS
+
+* Sitting on smooth rocks watching flowing water
+* Family picnic
+* Quiet meditation
+* Reading a book
+* Drinking chai
+* Children skipping stones
+* Couple walking along the bank
+* Friends dipping feet in safe shallow water
+* Fly fishing only where geographically/culturally appropriate
+* Photography
+* Painting or sketching
+* Kayaking where permitted
+* Watching sunrise reflections
+* Watching sunset
+* Relaxing in camping chairs
+* Family lunch beside the river
+* Listening to flowing water
+* Grandparents sitting peacefully with family
+* Couple sharing coffee beside the water
+
+# 7. DOME / GLASS HOTEL / PANORAMIC STAY MOMENTS
+
+Where such accommodation is believable for the destination, create:
+
+* Couple inside a luxury transparent geodesic dome watching Himalayan peaks
+* Family breakfast beside floor-to-ceiling panoramic windows
+* Couple lying in bed watching sunrise over mountains
+* Children looking through glass at snowfall
+* Morning coffee overlooking a valley
+* Cozy evening inside dome accommodation
+* Couple watching stars through transparent roof
+* Family playing a board game with mountains outside
+* Honeymoon breakfast in bed overlooking mountains
+* Reading beside a panoramic window
+* Watching approaching clouds
+* Relaxing beside a fireplace
+* Working remotely while overlooking the Himalayas
+* Couple wrapped in blankets on a private deck
+* Family enjoying dinner while snow falls outside
+
+Important:
+
+Do NOT invent a famous hotel and falsely imply that it exists at the destination.
+
+If necessary, portray it simply as a believable contemporary nature lodge or geodesic accommodation.
+
+# 8. ROAD-TRIP MOMENTS
+
+* Scenic car journey through a valley
+* Family stopping at viewpoint
+* Couple unpacking picnic supplies
+* Friends consulting route map
+* Photographing mountains beside parked vehicle
+* Roadside chai break
+* Children excitedly looking from car windows
+* Family opening the rear hatch for lunch
+* Watching rain from inside the vehicle
+* Sunrise departure
+* Sunset road journey
+* Car beside autumn forest
+* SUV on realistic Himalayan road
+* Friends changing photography equipment at a roadside stop
+
+# 9. QUIET / SLOW-TRAVEL MOMENTS
+
+Not every image should show obvious action.
+
+Include simple human moments:
+
+* Doing absolutely nothing and watching mountains
+* Sitting silently beside a river
+* Morning coffee
+* Reading
+* Journaling
+* Sketching
+* Photography
+* Bird watching
+* Meditation
+* Yoga
+* Listening to rainfall
+* Watching fog
+* Watching snowfall
+* Watching clouds move between mountains
+* Stargazing
+* Listening to a river
+* Taking a peaceful afternoon nap
+* Sitting beneath a tree
+* Barefoot walk on grass
+* Relaxing in hammock
+* Quiet conversation between partners
+* Grandparents enjoying scenery
+
+# 10. ADVENTURE MOMENTS
+
+Only select activities genuinely possible at the selected destination.
+
+Examples:
+
+* Hiking
+* Trekking
+* Mountain biking
+* Kayaking
+* Canoeing
+* Rafting
+* Skiing
+* Snow trekking
+* Horse riding
+* Cycling
+* Paragliding
+* Wildlife watching
+* Bird photography
+* Nature photography
+* Forest hiking
+* Rock scrambling
+* Paddleboarding
+
+Show proper safety equipment where required.
+
+Never portray unsafe behaviour simply to make the image dramatic.
+
+# 11. LOCAL CULTURAL TRAVEL MOMENTS
+
+Where geographically appropriate:
+
+* Drinking local chai
+* Eating regional breakfast
+* Visiting a village market
+* Buying fruit from roadside growers
+* Watching traditional food preparation
+* Family sharing regional food
+* Talking with local guides
+* Walking through traditional villages
+* Visiting tea gardens
+* Riding a shikara in Kashmir
+* Kerala houseboat experience
+* Visiting apple orchards in Himachal
+* Walking through tea plantations in Munnar
+
+Represent communities naturally and respectfully.
+
+Avoid stereotypes or turning local residents into decorative props.
+
+# 12. INTERGENERATIONAL TRAVEL
+
+Occasionally include:
+
+* Grandparents travelling with grandchildren
+* Three-generation family picnic
+* Grandfather teaching child photography
+* Grandmother sharing food
+* Grandparents enjoying mountain tea
+* Children walking with grandparents
+* Family taking a group photograph
+* Elderly couple peacefully enjoying a viewpoint
+
+Keep physical activities age-appropriate and believable.
+
+# 13. SOLO TRAVEL
+
+Occasionally choose:
+
+* Solo photographer at sunrise
+* Woman safely hiking scenic trail
+* Man reading beside river
+* Solo motorcycle traveller
+* Backpacker preparing coffee
+* Traveller writing journal
+* Solo camper watching stars
+* Artist sketching mountains
+* Traveller meditating beside lake
+* Bird photographer waiting quietly
+
+# 14. NATURAL SCENE SELECTION
+
+Choose environments appropriate for the destination:
+
+* Snow-covered Himalayan peaks
+* Alpine valley
+* Mountain river
+* Glacial river
+* Alpine lake
+* Waterfall
+* Pine/deodar forest
+* Wild meadow
+* High-altitude desert
+* Canyon
+* Tea plantation
+* Tropical rainforest
+* Backwaters
+* Mangroves
+* Beach
+* Rocky coastline
+* Desert dunes
+* Salt desert
+* Rolling grassland
+* Monsoon valley
+* Autumn forest
+* Snowy forest
+* Scenic mountain road
+
+# 15. LOCATION AUTHENTICITY
+
+Reconstruct every destination with strong geographical and ecological accuracy.
+
+Include:
+
+* Regionally correct geology
+* Plausible mountain formations
+* Correct vegetation
+* Correct tree species
+* Appropriate elevation
+* Realistic snow line
+* Natural river morphology
+* Appropriate river/lake colour
+* Seasonal vegetation
+* Natural erosion
+* Real soil and rocks
+* Correct weather
+* Realistic atmospheric haze
+* Plausible clouds
+* Correct cultural/environmental context
+
+Do NOT combine unrelated geographical characteristics.
+
+A Kerala photograph should not look like Kashmir.
+
+Spiti should not suddenly contain lush tropical jungle.
+
+Kashmir should not contain invented Swiss-style geography.
+
+Preserve the visual identity of the real Indian destination.
+
+# 16. SEASON & WEATHER VARIATION
+
+Do not always use perfect sunny weather.
+
+Rotate naturally among:
+
+* Clear sunrise
+* Misty morning
+* Golden hour
+* Light snowfall
+* Post-rain atmosphere
+* Monsoon clouds
+* Soft overcast
+* Patchy sunlight
+* Early winter
+* Late spring
+* Autumn
+* Summer
+* Blue hour
+* Dramatic but realistic mountain weather
+* Light fog
+* Cloud shadows
+* Fresh snow after overnight snowfall
+
+# 17. TIME-OF-DAY VARIATION
+
+Rotate:
+
+* Pre-dawn
+* Sunrise
+* Early morning
+* Mid-morning
+* Late morning
+* Afternoon
+* Golden hour
+* Sunset
+* Blue hour
+* Early evening
+* Night
+* Moonlit night
+* Stargazing conditions
+
+Do not make every image a sunset.
+
+# 18. PROFESSIONAL CAMERA SPECIFICATIONS
+
+Simulate professional full-frame or medium-format photography.
+
+Possible cameras:
+
+Sony A1 II
+Nikon Z8
+Nikon Z9
+Canon EOS R5 Mark II
+Sony A7R V
+Fujifilm GFX 100 II
+
+Choose lens according to scene:
+
+14–24mm — enormous environmental landscapes
+24–35mm — classic landscape/travel photography
+35mm — environmental lifestyle
+50mm — candid human travel moments
+70–200mm — compressed mountain layers
+85mm — intimate lifestyle/romantic moments
+
+Typical landscape settings:
+
+ISO 64–100
+f/8–f/11
+1/60–1/320 sec
+RAW
+Highlight-protective exposure
+
+Typical lifestyle settings:
+
+ISO 100–800 depending on available light
+f/2–f/5.6
+1/250–1/1000 sec for moving subjects
+Natural available light
+
+Use settings intelligently rather than mechanically.
+
+# 19. HUMAN PHOTOGRAPHY REALISM
+
+People must appear genuinely photographed.
+
+Preserve:
+
+* Natural skin texture
+* Realistic hands and fingers
+* Natural hair
+* Imperfect clothing folds
+* Real fabric texture
+* Genuine facial expressions
+* Realistic body posture
+* Unscripted interactions
+* Age-appropriate behaviour
+* Natural eye direction
+* Realistic proportions
+* Believable physical contact
+
+Avoid everyone looking directly at the camera.
+
+Avoid catalogue-model poses.
+
+Avoid artificially perfect smiles.
+
+People should appear to be enjoying their trip rather than participating in a photoshoot.
+
+# 20. CANDID MOMENT RULE
+
+At least 80% of human-centred images should feel candid.
+
+Capture moments as if the photographer happened to press the shutter at exactly the right instant:
+
+a spontaneous laugh,
+child running,
+wind moving hair,
+steam rising from chai,
+someone turning toward their partner,
+water splashing,
+a jacket being zipped,
+a parent helping a child,
+friends talking,
+someone quietly admiring the landscape.
+
+Emotion should come from the situation — not exaggerated posing.
+
+# 21. COMPOSITION VARIATION
+
+Do not repeatedly produce a person centred in front of mountains.
+
+Rotate:
+
+* Environmental wide shot
+* Extreme wide establishing shot
+* Medium lifestyle shot
+* Intimate candid frame
+* Foreground-framed composition
+* River leading-line composition
+* Over-the-shoulder viewpoint
+* Rear-view silhouette
+* Elevated panoramic view
+* Low-angle environmental shot
+* Long-lens compressed mountain layers
+* Reflection composition
+* Inside-looking-out composition
+* Tent doorway framing
+* Campervan doorway framing
+* Glass-dome interior looking outward
+* Subject occupying only 5–15% of huge landscape
+* Human-free pure nature frame
+
+# 22. LIGHTING
+
+Use physically plausible natural light.
+
+Accurately reproduce:
+
+* Sun direction
+* Mountain shadows
+* Cloud shadows
+* Atmospheric scattering
+* Snow reflection
+* Water reflection
+* Natural skin illumination
+* Warm/cool light differences
+* Window light
+* Campfire light where appropriate
+* Blue-hour exposure
+
+Avoid excessive artificial glow, fake god rays and impossible illumination.
+
+# 23. NATURAL IMPERFECTIONS
+
+Keep:
+
+* Uneven grass
+* Irregular stones
+* Mud
+* Wet rocks
+* Footprints
+* Windblown hair
+* Slightly wrinkled clothing
+* Dust on vehicles
+* Natural water movement
+* Imperfect campsites
+* Small clouds
+* Atmospheric haze
+* Snow variations
+* Naturally scattered vegetation
+
+The scene must not look digitally sterilized.
+
+# 24. COLOUR & PROCESSING
+
+Create a premium professionally processed RAW photograph.
+
+Use:
+
+Natural colour science
+Realistic greens
+Realistic water colour
+Accurate snow whites
+Natural skin tones
+Soft highlight roll-off
+Detailed but natural shadows
+Subtle local contrast
+Realistic dynamic range
+Very subtle film character
+Minimal sharpening
+Extremely subtle sensor grain
+
+Avoid:
+
+HDR
+Oversaturation
+Neon greens
+Electric-blue water
+Extreme teal/orange
+Plastic skin
+Excessive clarity
+Artificial bokeh
+Fake lens flare
+
+# 25. PURE LANDSCAPE IMAGES
+
+Not every photograph needs people.
+
+Regularly create pure nature frames:
+
+* Empty Himalayan valley
+* River winding through mountains
+* Waterfall after monsoon
+* Mist moving through forest
+* Snowstorm clearing over peaks
+* Reflection on an alpine lake
+* Cloud shadows crossing mountains
+* Empty beach at sunrise
+* Waves striking rocks
+* Desert under evening light
+* Star-filled mountain sky
+
+This maintains balance between TRAVEL LIFESTYLE and PURE LANDSCAPE photography.
+
+# 26. FINAL ANTI-REPETITION CHECK
+
+Before generating each new photograph, internally compare it against previously generated images.
+
+Check:
+
+1. Have I used this location before?
+   Allowed.
+
+2. Have I used this nature scene before?
+   Allowed.
+
+3. Have I used this travel moment elsewhere?
+   Allowed when the location/scene and storytelling are materially different.
+
+4. Have I already used this SAME SCENE + SAME MOMENT?
+   If YES → REJECT and choose a new moment.
+
+5. Does the composition look too similar to recent images?
+   If YES → change composition.
+
+6. Are the people performing essentially the same action?
+   If YES → select another activity.
+
+7. Have recent photographs overused sunsets, picnics, walking or people simply staring at mountains?
+   If YES → deliberately choose an underrepresented experience.
+
+8. Does this photograph introduce a genuinely new visual story?
+   It MUST.
+
+# 27. COLLECTION DIVERSITY TARGET
+
+Across a large collection, deliberately balance:
+
+20–30% pure nature/landscape
+15–20% family travel
+10–15% couples/honeymoon
+10% camping/campervan
+10% friends/group travel
+5–10% motorcycle/road trips
+5–10% adventure
+5% luxury nature accommodation
+5% solo/slow travel
+Remaining images: cultural/local/intergenerational/spontaneous moments
+
+These percentages are guidance, not rigid quotas.
+
+# 28. FINAL REALISM REQUIREMENT
+
+Every photograph should pass this mental test:
+
+“If this image appeared in National Geographic Traveller, Condé Nast Traveller, Lonely Planet, an airline campaign or a premium Indian tourism publication, would viewers initially believe a professional photographer actually travelled there and captured this moment?”
+
+If not, increase realism.
+
+The photograph must NOT resemble:
+
+AI art
+CGI
+3D rendering
+stock-photo posing
+fantasy landscapes
+tourism illustrations
+overprocessed social-media imagery
+
+# 29. OUTPUT
+
+Ultra-photorealistic professional travel photograph
+High-resolution
+RAW photographic aesthetic
+3:2 landscape aspect ratio by default
+4:5 portrait or 9:16 optionally for social media
+Natural dynamic range
+Physically accurate lighting
+Authentic Indian geographical identity
+Professional editorial quality
+Premium travel-campaign quality
+
+# 30. GENERATION INSTRUCTION
+
+For each requested image:
+
+FIRST internally select:
+
+LOCATION:
+EXACT NATURAL SCENE:
+SEASON:
+WEATHER:
+TIME:
+TRAVELLER TYPE:
+TRAVEL MOMENT:
+CAMERA:
+LENS:
+COMPOSITION:
+
+Then verify the combination against previously generated images.
+
+If SAME SCENE + SAME MOMENT already exists:
+
+DO NOT GENERATE IT.
+
+Select a different moment.
+
+Maintain continuity of geographical authenticity while continuously changing human experiences, atmosphere, activity, perspective and photographic storytelling.
+
+The objective is not simply to create beautiful Indian landscapes.
+
+The objective is to build a huge photographic travel story of India in which familiar destinations can be revisited many times, but every visit reveals a DIFFERENT MOMENT.

@@ -96,13 +96,13 @@ function pickScene(themeOrSlug, index) {
   return pool[i];
 }
 
-// ---- OWNER-SUPPLIED PROMPT OVERRIDE ---------------------------------------------------------------
-// The owner can replace the built-in master prompt WITHOUT editing code: drop a plain-text file at
-// assets/scene-master-prompt.txt (or point SOCIAL_SCENE_PROMPT_FILE at one) and commit it. Keep a
-// {{SCENE}} placeholder in it and the engine keeps rotating a FRESH scene into every image, so
-// consecutive posts of the same package never repeat (the owner's "create new images" ask). If the
-// file has no {{SCENE}}, the varying scene is appended under a "## Scene" heading so images still
-// vary. Missing/empty file → the built-in MASTER_TEMPLATE below (nothing breaks before a file exists).
+// ---- OWNER-SUPPLIED MASTER PROMPT -----------------------------------------------------------------
+// The owner can supply the full photography "master prompt" WITHOUT editing code: drop a plain-text
+// file at assets/scene-master-prompt.txt (or point SOCIAL_SCENE_PROMPT_FILE at one) and commit it.
+// In the DYNAMIC pipeline (scene-generator.js) this file is used as the Scene Generator's SYSTEM
+// prompt — Claude reads all its rules + location bank and returns ONE unique, render-ready image
+// prompt (+ structured metadata), which then goes to the image API. Missing/empty file → the
+// built-in MASTER_TEMPLATE (the static SCENES-pool fallback still works before any file exists).
 const fs = require("fs");
 const path = require("path");
 const SCENE_PROMPT_FILE = process.env.SOCIAL_SCENE_PROMPT_FILE || path.join(__dirname, "..", "assets", "scene-master-prompt.txt");
@@ -110,12 +110,13 @@ const SCENE_PROMPT_FILE = process.env.SOCIAL_SCENE_PROMPT_FILE || path.join(__di
 function loadMasterTemplate() {
   try {
     const txt = fs.readFileSync(SCENE_PROMPT_FILE, "utf8");
-    if (txt && txt.trim()) return txt.includes("{{SCENE}}") ? txt : txt.replace(/\s+$/, "") + "\n\n## Scene\n{{SCENE}}\n";
+    if (txt && txt.trim()) return txt;
   } catch (e) { /* no override file — use the built-in template */ }
   return MASTER_TEMPLATE;
 }
 
-/** Build a ready-to-run image-generation prompt for a scene (object, id, or raw scene text). */
+/** Build a ready-to-run image prompt for a STATIC pool scene (the fallback when the dynamic AI Scene
+ *  Generator is off or fails). Uses the compact built-in template with a {{SCENE}} slot. */
 function composePrompt(scene) {
   let text;
   if (!scene) text = SCENES[0].text;
@@ -124,8 +125,7 @@ function composePrompt(scene) {
     const found = SCENES.find((s) => s.id === scene);
     text = found ? found.text : String(scene);
   }
-  const template = loadMasterTemplate();
-  return template.includes("{{SCENE}}") ? template.replace("{{SCENE}}", text.trim()) : template + "\n\n" + text.trim();
+  return MASTER_TEMPLATE.replace("{{SCENE}}", text.trim());
 }
 
 /** Convenience: compose a fresh prompt for a destination slug (varied unless an index is given). */

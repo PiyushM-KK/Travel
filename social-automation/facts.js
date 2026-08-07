@@ -37,7 +37,13 @@ const BUSINESS = {
       area: "WhatsApp",
       address: "Primary enquiry channel",
       hours: "Replies during business hours",
-      phone: "+91 88660 50291",
+      phone: "+91 88660 50291", // PRIMARY (8866050291)
+    },
+    {
+      area: "Phone",
+      address: "Additional contact — Bhavik Baker",
+      hours: "Business hours",
+      phone: "+91 90330 20291", // secondary, owner-verified (9033020291)
     },
   ],
 

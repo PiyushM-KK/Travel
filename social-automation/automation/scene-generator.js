@@ -247,7 +247,9 @@ async function resolveScenePrompt(ctx = {}) {
     try {
       let recent = ctx.recent;
       if (recent == null && ctx.store) { try { recent = await recentScenesFromStore(ctx.store, { client: ctx.client || "skyline" }); } catch (e) { recent = []; } }
-      const spec = await generateSceneSpec({ pkg: ctx.pkg, route: ctx.pkg.route, slug, recent: recent || [], client: ctx.sceneGenClient, model: ctx.model });
+      // ctx.avoid = concepts to explicitly steer away from (e.g. images the owner rejected as "not
+      // good" — the training loop). Merged into the "avoid repeats" list so the next image is different.
+      const spec = await generateSceneSpec({ pkg: ctx.pkg, route: ctx.pkg.route, slug, recent: (recent || []).concat(ctx.avoid || []), client: ctx.sceneGenClient, model: ctx.model });
       return { prompt: spec.imagePrompt, sceneMeta: sceneSummary(spec), dynamic: true };
     } catch (e) {
       try { console.warn(JSON.stringify({ evt: "scene_gen_fallback", note: String((e && e.message) || e).slice(0, 120) })); } catch { /* ignore */ }

@@ -112,21 +112,22 @@ function parseDecision(text) {
     return null; // a word follows ("scene of the hills") — not a command
   }
 
-  // VERB commands: approve / reject / hold / edit / yes / no / ok — same separator tolerance.
-  const m = t.match(/^(approve|reject|hold|edit|yes|no|ok)(?![a-z])[\s:#\-]*(.*)$/i);
+  // VERB commands: approve / reject / hold / edit / yes / no / ok / reason / why — same tolerance.
+  // `reason <code> <1-5|text>` attaches a structured rejection reason to a post (the training loop).
+  const m = t.match(/^(approve|reject|hold|edit|yes|no|ok|reason|why)(?![a-z])[\s:#\-]*(.*)$/i);
   if (!m) return null;
   let verb = m[1].toLowerCase();
   const rest = (m[2] || "").trim();
   const parts = rest ? rest.split(/\s+/) : [];
   const first = parts[0] || "";
   const remainder = parts.slice(1).join(" ");
-  const norm = (v) => (v === "yes" || v === "ok" ? "approve" : v === "no" ? "reject" : v);
+  const norm = (v) => (v === "yes" || v === "ok" ? "approve" : v === "no" ? "reject" : v === "why" ? "reason" : v);
 
   // BARE decision — "approve" / "yes" / "hold" / "reject" with no target → the single post awaiting
   // approval (the webhook resolves id=null). "edit" always needs a target + new text.
   if (!first) {
     verb = norm(verb);
-    if (verb === "edit") return null;
+    if (verb === "edit" || verb === "reason") return null; // both need a target
     if (verb === "approve") return { id: null, decision: { action: "approve" } };
     if (verb === "reject") return { id: null, decision: { action: "reject", reason: "" } };
     if (verb === "hold") return { id: null, decision: { action: "hold", reason: "" } };
@@ -140,6 +141,7 @@ function parseDecision(text) {
   if (verb === "approve") return { id: first, decision: { action: "approve" } };
   if (verb === "reject") return { id: first, decision: { action: "reject", reason: remainder } };
   if (verb === "hold") return { id: first, decision: { action: "hold", reason: remainder } };
+  if (verb === "reason") return { id: first, decision: { action: "reason", reason: remainder } };
   return null;
 }
 
@@ -196,6 +198,10 @@ async function handleInbound(body, ctx = {}) {
       : `⚠️ ${parsed.id || ""}: ${result.error || (result.errors || []).join("; ")}`;
     // PUBLISH-ON-APPROVAL: the applyDecision handler may post immediately and set a note.
     if (result.published) note += `\n${result.published}`;
+    // REJECTION-REASON TRAINING: after a reject/reason with no reason yet, ASK; once a reason is
+    // captured, confirm it (so the owner knows the automation will learn from it).
+    if (result.ok && result.reasonLabel) note += `\n📝 Noted: ${result.reasonLabel} — I'll use that to improve the next one.`;
+    else if (result.ok && result.needsReason) { const { reasonMenu } = require("./feedback"); note += `\n\n${reasonMenu(parsed.id)}`; }
     if (ctx.reply) await ctx.reply(msg.from, note);
     return { action: "decision", id: parsed.id, result };
   }

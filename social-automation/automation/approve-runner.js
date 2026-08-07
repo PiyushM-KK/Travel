@@ -82,12 +82,26 @@ async function applyDecision(store, id, decision, opts = {}) {
   const now = opts.now || new Date();
   const row = await store.get(id);
   if (!row) return { ok: false, error: `no row ${id}` };
-  if (row.status !== "pending_approval") {
-    return { ok: false, error: `row ${id} is "${row.status}", not pending_approval — nothing to decide` };
-  }
 
   const dec = typeof decision === "string" ? { action: decision } : decision || {};
   const action = String(dec.action || "").toLowerCase();
+
+  // REASON: attach a STRUCTURED rejection reason to a REJECTED/HELD post (the training loop). Runs
+  // before the pending_approval guard (its target isn't pending), but is itself restricted to
+  // rejected/held rows — never a live/approved/published post, whose reviewNotes/lastError must not be
+  // overwritten with a rejection tag.
+  if (action === "reason") {
+    if (row.status !== "rejected" && row.status !== "held") {
+      return { ok: false, error: `a reason can only be added to a rejected or held post (this one is "${row.status}")` };
+    }
+    const { recordRejectionReason } = require("./feedback");
+    const c = await recordRejectionReason(store, id, dec.reason || "", { row });
+    return { ok: !!c.ok, status: row.status, reasonKey: c.key, reasonLabel: c.label, needsReason: c.ok && !c.key, error: c.ok ? undefined : c.error };
+  }
+
+  if (row.status !== "pending_approval") {
+    return { ok: false, error: `row ${id} is "${row.status}", not pending_approval — nothing to decide` };
+  }
 
   // On reject/hold, sweep both card candidate blobs (if any) so neither variant is left orphaned.
   async function sweepCardBlobs() {
@@ -98,8 +112,14 @@ async function applyDecision(store, id, decision, opts = {}) {
   if (action === "reject") {
     await cleanupDraftPreview(row, opts); // an AI-regenerated preview must not linger public
     await sweepCardBlobs();
-    await store.update(id, { status: "rejected", imageUrl: "", lastError: dec.reason || "" });
-    return { ok: true, status: "rejected" };
+    // Capture a STRUCTURED reason if the owner gave one ("reject <code> over-price"); otherwise the row
+    // is rejected and the webhook asks for the reason (needsReason). The reason trains the next post.
+    const { classifyRejectionReason } = require("./feedback");
+    const c = classifyRejectionReason(dec.reason || "");
+    const patch = { status: "rejected", imageUrl: "", lastError: c.note || "" };
+    if (c.key) patch.reviewNotes = `REJECT:${c.key}${c.note ? " — " + c.note : ""}`.slice(0, 900);
+    await store.update(id, patch);
+    return { ok: true, status: "rejected", reasonKey: c.key, reasonLabel: c.label, needsReason: !c.key };
   }
   if (action === "hold") {
     await cleanupDraftPreview(row, opts);

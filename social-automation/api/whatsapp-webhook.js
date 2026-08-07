@@ -92,28 +92,33 @@ module.exports = async (req, res) => {
       // Ambiguous (bare word + several waiting) -> list the numbers, apply nothing.
       applyDecision: async (id, decision) => {
         const { shortCode } = require("../automation/whatsapp");
-        let pending = [];
-        try { pending = (await store.listByStatus("pending_approval")) || []; } catch { pending = []; }
+        const isReason = decision && decision.action === "reason";
         const codeOf = (r) => shortCode(r.id);
-        const waiting = () => pending.map((r) => `• ${codeOf(r)} — ${String(r.caption || r.subject || r.hint || "post").slice(0, 40)}`).join("\n");
+        // approve/reject/hold resolve against PENDING posts; a `reason` follow-up targets an already-
+        // REJECTED post, so it resolves against recent rejected rows instead — a SEPARATE, non-
+        // overlapping pool (so a reused code can't collide across the two), scoped to THIS client.
+        let pool = [];
+        try { pool = (await store.listByStatus(isReason ? "rejected" : "pending_approval")) || []; } catch { pool = []; }
+        if (isReason) pool = pool.filter((r) => r.client === client.id); // strict: a clientless row is NOT globally addressable
+        const noun = isReason ? "rejected" : "waiting";
+        const listPool = () => pool.map((r) => `• ${codeOf(r)} — ${String(r.caption || r.subject || r.hint || "post").slice(0, 40)}`).join("\n");
         let realId = null;
         if (id && /^rec[A-Za-z0-9]{4,}$/i.test(id)) {
           realId = id; // an explicit rec… id
         } else if (id) {
-          // Match the typed CODE against EVERY pending post. NEVER silently pick the first on a
-          // collision (that could approve the WRONG post); and if nothing matches — a stale/old code
-          // (e.g. the row was deleted + rebuilt with a new code) — show the codes actually waiting so
-          // the owner just retypes the right one instead of getting a dead-end error.
-          const hits = pending.filter((r) => codeOf(r) === String(id).trim());
+          // Match the typed CODE within the right pool. NEVER silently pick the first on a collision
+          // (that could hit the WRONG post); and on no match — a stale/old code — show the codes in the
+          // pool so the owner just retypes the right one instead of getting a dead-end error.
+          const hits = pool.filter((r) => codeOf(r) === String(id).trim());
           if (hits.length === 1) realId = hits[0].id;
-          else if (hits.length > 1) return { ok: false, error: `More than one waiting post uses code ${id} — reply with the exact one:\n${waiting()}` };
-          else return { ok: false, error: pending.length ? `No waiting post has code "${id}". Waiting now — reply e.g. "approve ${codeOf(pending[0])}":\n${waiting()}` : "Nothing is waiting for approval right now." };
-        } else if (pending.length === 1) {
-          realId = pending[0].id;
-        } else if (pending.length > 1) {
-          return { ok: false, error: `You have ${pending.length} posts waiting. Reply with the number, e.g. "approve ${codeOf(pending[0])}":\n${waiting()}` };
+          else if (hits.length > 1) return { ok: false, error: `More than one ${noun} post uses code ${id} — reply with the exact one:\n${listPool()}` };
+          else return { ok: false, error: pool.length ? `No ${noun} post has code "${id}".\n${listPool()}` : (isReason ? "No recently rejected post to add a reason to." : "Nothing is waiting for approval right now.") };
+        } else if (pool.length === 1) {
+          realId = pool[0].id;
+        } else if (pool.length > 1) {
+          return { ok: false, error: `You have ${pool.length} ${noun} posts. Reply with the code, e.g. "${isReason ? "reason " + codeOf(pool[0]) + " 4" : "approve " + codeOf(pool[0])}":\n${listPool()}` };
         }
-        if (!realId) return { ok: false, error: "Nothing is waiting for approval right now." };
+        if (!realId) return { ok: false, error: isReason ? "No recently rejected post to add a reason to." : "Nothing is waiting for approval right now." };
         const result = await applyDecision(store, realId, decision, { facts: client.facts, profile: client.profile });
         // PUBLISH-ON-APPROVAL: the moment the owner approves, post to Instagram + Facebook right
         // away (don't wait for the scheduled publish cron — the owner asked for immediate posting).

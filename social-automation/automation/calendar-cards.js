@@ -152,6 +152,14 @@ async function buildAndDraftCard(store, ctx, { pkg, smid, source }) {
     tagline: BUSINESS.slogan || "Your Journey, Our Passion",
     phone: (BUSINESS.locations && BUSINESS.locations[0] && BUSINESS.locations[0].phone) || "",
   };
+  // TRAINING FEEDBACK: read this client's structured rejection history once — used to (a) steer the AI
+  // scene AWAY from images the owner rejected as "not good", and (b) caution the owner on the next post
+  // of a package that was rejected for price/source. Best-effort; never sinks a draft.
+  const { rejectionFeedback, feedbackCautionFor } = require("./feedback");
+  let feedback = { avoidScenes: [], priceFlags: {}, sourceFlags: {} };
+  try { feedback = await rejectionFeedback(store, { client: ctx.client || "skyline" }); } catch (e) { /* best-effort */ }
+  const caution = feedbackCautionFor(feedback, pkg.item);
+
   let cardUrlA = "", cardUrlB = "", bStyle = "", sceneMeta = null;
   try {
     cardUrlA = await hostCard(await makeCard({ ...baseCard, photoPath: pickPhoto(fs, PHOTOS, slug), credit: "Photo: Wikimedia CC" }), `card-a-${smid}`);
@@ -164,7 +172,7 @@ async function buildAndDraftCard(store, ctx, { pkg, smid, source }) {
       // package + avoiding recent history) when the AI Scene Generator is on, else the static SCENES
       // pool. The concept metadata rides on the row (imageSource.sceneMeta) so the next run avoids it.
       const { resolveScenePrompt } = require("./scene-generator");
-      const r = await resolveScenePrompt({ pkg, slug, store, client: ctx.client || "skyline", sceneGenClient: ctx.sceneGenClient, model: ctx.sceneModel, recent: ctx.recentScenes });
+      const r = await resolveScenePrompt({ pkg, slug, store, client: ctx.client || "skyline", sceneGenClient: ctx.sceneGenClient, model: ctx.sceneModel, recent: ctx.recentScenes, avoid: feedback.avoidScenes });
       sceneMeta = r.sceneMeta;
       const gen = await imageGen(r.prompt, ctx.imageGenOpts || {});
       bufB = await makeCard({ ...baseCard, photoBytes: gen.buffer, credit: "AI-generated scene · illustrative" });
@@ -196,7 +204,7 @@ async function buildAndDraftCard(store, ctx, { pkg, smid, source }) {
   if (fresh.imageUrl !== cardUrlA) { await store.update(fresh.id, { imageUrl: cardUrlA, imageSource: imgSrc() }); fresh.imageUrl = cardUrlA; }
   if (res.outcome !== "pending" && res.outcome !== "approved") { await sweepCards([cardUrlA, cardUrlB]); return { status: "held", held: [{ id: fresh.id, reason: res.reason || fresh.lastError || "" }], sweepCards }; }
 
-  return { status: "drafted", fresh, cardUrlA, cardUrlB, bStyle, options, rp, pkg, res, sweepCards, sceneMeta };
+  return { status: "drafted", fresh, cardUrlA, cardUrlB, bStyle, options, rp, pkg, res, sweepCards, sceneMeta, caution };
 }
 
 async function runCalendarCards(store, ctx = {}) {
@@ -213,9 +221,9 @@ async function runCalendarCards(store, ctx = {}) {
   if (built.status === "skipped") return { considered: built.skipped[0] === smid ? 1 : 0, notified: [], held: [], skipped: built.skipped };
   if (built.status === "held") return { considered: 1, notified: [], held: built.held, skipped: [] };
 
-  const { fresh, cardUrlA, cardUrlB, bStyle, rp, options } = built;
+  const { fresh, cardUrlA, cardUrlB, bStyle, rp, options, caution } = built;
   const code = shortCode(fresh.id);
-  const details = `📅 Skyline package feature (auto)\n   Package: ${pkg.item} — ${pkg.route}\n   Price on card: ${rp.line} (Skyline rate)\n   ${sourceLine(pkg, now)}`;
+  const details = `📅 Skyline package feature (auto)\n   Package: ${pkg.item} — ${pkg.route}\n   Price on card: ${rp.line} (Skyline rate)\n   ${sourceLine(pkg, now)}${caution ? "\n   " + caution : ""}`;
   const instr = cardUrlB
     ? `\n\nReply:\n🅰️ A ${code} → post the real-photo card\n🅱️ B ${code} → post the ${bStyle} card\n➕ both ${code} → post both\n❌ reject ${code}`
     : `\n\n✅ approve ${code} → posts to Instagram + Facebook   |   ❌ reject ${code}`;

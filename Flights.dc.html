@@ -148,6 +148,14 @@ class Component extends DCLogic {
   LANGS() { return [{ code:'en', name:'English', mark:'EN' }, { code:'hi', name:'हिंदी', mark:'हिं' }, { code:'gu', name:'ગુજરાતી', mark:'ગુ' }]; }
   componentDidUpdate() { this.applyLang(); }
   renderVals() {
+    const airlines = [
+      { name: 'Air India', coverage: 'Domestic & International', coverage_hi: 'घरेलू और अंतरराष्ट्रीय', coverage_gu: 'ઘરેલું અને આંતરરાષ્ટ્રીય', link: 'https://www.airindia.in' },
+      { name: 'IndiGo', coverage: 'Domestic & International', coverage_hi: 'घरेलू और अंतरराष्ट्रीय', coverage_gu: 'ઘરેલું અને આંતરરાષ્ટ્રીય', link: 'https://www.goindigo.in' },
+      { name: 'Air India Express', coverage: 'Domestic', coverage_hi: 'घरेलू', coverage_gu: 'ઘરેલું', link: 'https://www.airindiaexpress.com' },
+      { name: 'SpiceJet', coverage: 'Domestic', coverage_hi: 'घरेलू', coverage_gu: 'ઘરેલું', link: 'https://www.spicejet.com' },
+      { name: 'Akasa Air', coverage: 'Domestic', coverage_hi: 'घरेलू', coverage_gu: 'ઘરેલું', link: 'https://www.akasaair.com' },
+      { name: 'Star Air', coverage: 'Regional', coverage_hi: 'क्षेत्रीय', coverage_gu: 'પ્રાદેશિક', link: 'https://www.staraviations.in' }
+    ];
     return {
       root: this.setRoot,
       langLabel: (this.LANGS().find((l) => l.code === this.state.lang) || {}).mark || 'EN',
@@ -156,14 +164,7 @@ class Component extends DCLogic {
         pick: () => this.setState({ lang: l.code }),
         style: 'background:' + (l.code === this.state.lang ? '#EAF5FD' : 'transparent') + ';color:' + (l.code === this.state.lang ? '#0A84D6' : '#0B2440'),
       })),
-      airlines: [
-        { name: 'Air India', coverage: 'Domestic & International', link: 'https://www.airindia.in' },
-        { name: 'IndiGo', coverage: 'Domestic & International', link: 'https://www.goindigo.in' },
-        { name: 'Air India Express', coverage: 'Domestic', link: 'https://www.airindiaexpress.com' },
-        { name: 'SpiceJet', coverage: 'Domestic', link: 'https://www.spicejet.com' },
-        { name: 'Akasa Air', coverage: 'Domestic', link: 'https://www.akasaair.com' },
-        { name: 'Star Air', coverage: 'Regional', link: 'https://www.staraviations.in' }
-      ]
+      airlines: airlines.map((a) => ({ ...a, coverage: this.tr(a, 'coverage') })),
     };
   }
 }

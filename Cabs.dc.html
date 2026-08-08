@@ -242,6 +242,30 @@ class Component extends DCLogic {
   LANGS() { return [{ code:'en', name:'English', mark:'EN' }, { code:'hi', name:'हिंदी', mark:'हिं' }, { code:'gu', name:'ગુજરાતી', mark:'ગુ' }]; }
   componentDidUpdate() { this.applyLang(); }
   renderVals() {
+    const cabTypes = [
+      { icon: '🛬', name: 'Airport Transfers', name_hi: 'एयरपोर्ट ट्रांसफर', name_gu: 'એરપોર્ટ ટ્રાન્સફર', desc: 'Fixed-fare pickups & drops', desc_hi: 'तय किराए पर पिकअप और ड्रॉप', desc_gu: 'નિશ્ચિત ભાડે પિકઅપ અને ડ્રોપ' },
+      { icon: '🛣️', name: 'Outstation One-way', name_hi: 'आउटस्टेशन एकतरफ़ा', name_gu: 'આઉટસ્ટેશન એક તરફી', desc: 'Intercity drops, pay one side', desc_hi: 'इंटरसिटी ड्रॉप, एक तरफ़ का किराया', desc_gu: 'ઇન્ટરસિટી ડ્રોપ, એક તરફનું ભાડું' },
+      { icon: '🔁', name: 'Round Trips', name_hi: 'राउंड ट्रिप', name_gu: 'રાઉન્ડ ટ્રિપ', desc: 'Same cab & driver, multi-day', desc_hi: 'वही कैब और ड्राइवर, कई दिन', desc_gu: 'એ જ કૅબ અને ડ્રાઇવર, ઘણા દિવસ' },
+      { icon: '⏱️', name: 'Hourly Rentals', name_hi: 'घंटे के किराए', name_gu: 'કલાકનાં ભાડાં', desc: '4/8/12-hr city packages', desc_hi: '4/8/12-घंटे के शहर पैकेज', desc_gu: '4/8/12-કલાકનાં શહેર પૅકેજ' },
+      { icon: '🚕', name: 'City Rides', name_hi: 'शहर की सवारी', name_gu: 'શહેરની સવારી', desc: 'Point-to-point app cabs', desc_hi: 'पॉइंट-टू-पॉइंट ऐप कैब', desc_gu: 'પોઇન્ટ-ટુ-પોઇન્ટ એપ કૅબ' },
+      { icon: '🚙', name: 'SUV & Luxury', name_hi: 'SUV और लक्ज़री', name_gu: 'SUV અને લક્ઝરી', desc: 'Innova, Ertiga & premium cars', desc_hi: 'इनोवा, अर्टिगा और प्रीमियम कारें', desc_gu: 'ઇનોવા, અર્ટિગા અને પ્રીમિયમ કાર' }
+    ];
+    const partners = [
+      { name: 'Savaari', coverage: 'Outstation & airport taxis', coverage_hi: 'आउटस्टेशन और एयरपोर्ट टैक्सी', coverage_gu: 'આઉટસ્ટેશન અને એરપોર્ટ ટૅક્સી', link: 'https://www.savaari.com' },
+      { name: 'Uber', coverage: 'City rides & intercity', coverage_hi: 'शहर की सवारी और इंटरसिटी', coverage_gu: 'શહેરની સવારી અને ઇન્ટરસિટી', link: 'https://www.uber.com/in/en/' },
+      { name: 'Ola Cabs', coverage: 'City, rentals & outstation', coverage_hi: 'शहर, किराए और आउटस्टेशन', coverage_gu: 'શહેર, ભાડાં અને આઉટસ્ટેશન', link: 'https://www.olacabs.com' },
+      { name: 'Rapido', coverage: 'Bike taxis, autos & cabs', coverage_hi: 'बाइक टैक्सी, ऑटो और कैब', coverage_gu: 'બાઇક ટૅક્સી, ઓટો અને કૅબ', link: 'https://www.rapido.bike' },
+      { name: 'MakeMyTrip Cabs', coverage: 'Outstation & airport', coverage_hi: 'आउटस्टेशन और एयरपोर्ट', coverage_gu: 'આઉટસ્ટેશન અને એરપોર્ટ', link: 'https://www.makemytrip.com/cabs/' },
+      { name: 'BlaBlaCar', coverage: 'Intercity carpooling', coverage_hi: 'इंटरसिटी कारपूलिंग', coverage_gu: 'ઇન્ટરસિટી કારપૂલિંગ', link: 'https://www.blablacar.in' }
+    ];
+    const routes = [
+      { route: 'Delhi → Agra', route_hi: 'दिल्ली → आगरा', route_gu: 'દિલ્હી → આગ્રા', meta: '≈ 230 km · 3.5–4 hrs via Yamuna Expressway', meta_hi: '≈ 230 km · 3.5–4 घंटे यमुना एक्सप्रेसवे से', meta_gu: '≈ 230 km · 3.5–4 કલાક યમુના એક્સપ્રેસવે થઈને', tag: 'Taj Mahal day trip', tag_hi: 'ताज महल डे ट्रिप', tag_gu: 'તાજમહેલ ડે ટ્રિપ' },
+      { route: 'Mumbai → Pune', route_hi: 'मुंबई → पुणे', route_gu: 'મુંબઈ → પુણે', meta: '≈ 150 km · 3–3.5 hrs via Expressway', meta_hi: '≈ 150 km · 3–3.5 घंटे एक्सप्रेसवे से', meta_gu: '≈ 150 km · 3–3.5 કલાક એક્સપ્રેસવે થઈને', tag: 'Weekend hop', tag_hi: 'वीकेंड हॉप', tag_gu: 'વીકએન્ડ હૉપ' },
+      { route: 'Delhi → Jaipur', route_hi: 'दिल्ली → जयपुर', route_gu: 'દિલ્હી → જયપુર', meta: '≈ 280 km · 4.5–5 hrs', meta_hi: '≈ 280 km · 4.5–5 घंटे', meta_gu: '≈ 280 km · 4.5–5 કલાક', tag: 'Pink City getaway', tag_hi: 'पिंक सिटी गेटअवे', tag_gu: 'પિંક સિટી ગેટવે' },
+      { route: 'Bengaluru → Mysuru', route_hi: 'बेंगलुरु → मैसूरु', route_gu: 'બેંગલુરુ → મૈસૂરુ', meta: '≈ 145 km · 3 hrs', meta_hi: '≈ 145 km · 3 घंटे', meta_gu: '≈ 145 km · 3 કલાક', tag: 'Palace & Coorg route', tag_hi: 'पैलेस और कूर्ग रूट', tag_gu: 'પૅલેસ અને કૂર્ગ રૂટ' },
+      { route: 'Ahmedabad → Statue of Unity', route_hi: 'अहमदाबाद → स्टैच्यू ऑफ यूनिटी', route_gu: 'અમદાવાદ → સ્ટેચ્યુ ઓફ યુનિટી', meta: '≈ 200 km · 3.5 hrs', meta_hi: '≈ 200 km · 3.5 घंटे', meta_gu: '≈ 200 km · 3.5 કલાક', tag: 'Kevadia day trip', tag_hi: 'केवड़िया डे ट्रिप', tag_gu: 'કેવડિયા ડે ટ્રિપ' },
+      { route: 'Kochi → Munnar', route_hi: 'कोच्चि → मुन्नार', route_gu: 'કોચી → મુન્નાર', meta: '≈ 130 km · 3.5–4 hrs hill drive', meta_hi: '≈ 130 km · 3.5–4 घंटे पहाड़ी ड्राइव', meta_gu: '≈ 130 km · 3.5–4 કલાક પહાડી ડ્રાઇવ', tag: 'Tea country', tag_hi: 'चाय का इलाका', tag_gu: 'ચાનો પ્રદેશ' }
+    ];
     return {
       root: this.setRoot,
       langLabel: (this.LANGS().find((l) => l.code === this.state.lang) || {}).mark || 'EN',
@@ -250,30 +274,9 @@ class Component extends DCLogic {
         pick: () => this.setState({ lang: l.code }),
         style: 'background:' + (l.code === this.state.lang ? '#EAF5FD' : 'transparent') + ';color:' + (l.code === this.state.lang ? '#0A84D6' : '#0B2440'),
       })),
-      cabTypes: [
-        { icon: '🛬', name: 'Airport Transfers', desc: 'Fixed-fare pickups & drops' },
-        { icon: '🛣️', name: 'Outstation One-way', desc: 'Intercity drops, pay one side' },
-        { icon: '🔁', name: 'Round Trips', desc: 'Same cab & driver, multi-day' },
-        { icon: '⏱️', name: 'Hourly Rentals', desc: '4/8/12-hr city packages' },
-        { icon: '🚕', name: 'City Rides', desc: 'Point-to-point app cabs' },
-        { icon: '🚙', name: 'SUV & Luxury', desc: 'Innova, Ertiga & premium cars' }
-      ],
-      partners: [
-        { name: 'Savaari', coverage: 'Outstation & airport taxis', link: 'https://www.savaari.com' },
-        { name: 'Uber', coverage: 'City rides & intercity', link: 'https://www.uber.com/in/en/' },
-        { name: 'Ola Cabs', coverage: 'City, rentals & outstation', link: 'https://www.olacabs.com' },
-        { name: 'Rapido', coverage: 'Bike taxis, autos & cabs', link: 'https://www.rapido.bike' },
-        { name: 'MakeMyTrip Cabs', coverage: 'Outstation & airport', link: 'https://www.makemytrip.com/cabs/' },
-        { name: 'BlaBlaCar', coverage: 'Intercity carpooling', link: 'https://www.blablacar.in' }
-      ],
-      routes: [
-        { route: 'Delhi → Agra', meta: '≈ 230 km · 3.5–4 hrs via Yamuna Expressway', tag: 'Taj Mahal day trip' },
-        { route: 'Mumbai → Pune', meta: '≈ 150 km · 3–3.5 hrs via Expressway', tag: 'Weekend hop' },
-        { route: 'Delhi → Jaipur', meta: '≈ 280 km · 4.5–5 hrs', tag: 'Pink City getaway' },
-        { route: 'Bengaluru → Mysuru', meta: '≈ 145 km · 3 hrs', tag: 'Palace & Coorg route' },
-        { route: 'Ahmedabad → Statue of Unity', meta: '≈ 200 km · 3.5 hrs', tag: 'Kevadia day trip' },
-        { route: 'Kochi → Munnar', meta: '≈ 130 km · 3.5–4 hrs hill drive', tag: 'Tea country' }
-      ]
+      cabTypes: cabTypes.map((c) => ({ ...c, name: this.tr(c, 'name'), desc: this.tr(c, 'desc') })),
+      partners: partners.map((p) => ({ ...p, coverage: this.tr(p, 'coverage') })),
+      routes: routes.map((r) => ({ ...r, route: this.tr(r, 'route'), meta: this.tr(r, 'meta'), tag: this.tr(r, 'tag') }))
     };
   }
 }

@@ -152,6 +152,14 @@ class Component extends DCLogic {
   LANGS() { return [{ code:'en', name:'English', mark:'EN' }, { code:'hi', name:'हिंदी', mark:'हिं' }, { code:'gu', name:'ગુજરાતી', mark:'ગુ' }]; }
   componentDidUpdate() { this.applyLang(); }
   renderVals() {
+    const busTypes = [
+      { icon: '🚌', name: 'Intercity Buses', name_hi: 'इंटरसिटी बसें', name_gu: 'ઇન્ટરસિટી બસો', desc: 'Comfortable long-distance travel', desc_hi: 'आरामदायक लंबी दूरी की यात्रा', desc_gu: 'આરામદાયક લાંબા અંતરની મુસાફરી' },
+      { icon: '🛏️', name: 'Sleeper Buses', name_hi: 'स्लीपर बसें', name_gu: 'સ્લીપર બસો', desc: 'Overnight journeys with berths', desc_hi: 'बर्थ के साथ रातभर की यात्रा', desc_gu: 'બર્થ સાથે રાતભરની મુસાફરી' },
+      { icon: '✨', name: 'Volvo Premium', name_hi: 'वॉल्वो प्रीमियम', name_gu: 'વોલ્વો પ્રીમિયમ', desc: 'AC luxury coaches', desc_hi: 'एसी लक्ज़री कोच', desc_gu: 'એસી લક્ઝરી કોચ' },
+      { icon: '🚐', name: 'Minibus', name_hi: 'मिनीबस', name_gu: 'મિનિબસ', desc: 'Small group travel', desc_hi: 'छोटे समूह की यात्रा', desc_gu: 'નાના જૂથની મુસાફરી' },
+      { icon: '🏛️', name: 'Tourist Coaches', name_hi: 'टूरिस्ट कोच', name_gu: 'ટૂરિસ્ટ કોચ', desc: 'Guided sightseeing trips', desc_hi: 'गाइडेड दर्शनीय यात्राएं', desc_gu: 'ગાઇડેડ પ્રવાસન સફર' },
+      { icon: '👥', name: 'Group Transport', name_hi: 'ग्रुप ट्रांसपोर्ट', name_gu: 'ગ્રુપ ટ્રાન્સપોર્ટ', desc: 'Private group bookings', desc_hi: 'निजी समूह बुकिंग', desc_gu: 'ખાનગી જૂથ બુકિંગ' }
+    ];
     return {
       root: this.setRoot,
       langLabel: (this.LANGS().find((l) => l.code === this.state.lang) || {}).mark || 'EN',
@@ -160,14 +168,7 @@ class Component extends DCLogic {
         pick: () => this.setState({ lang: l.code }),
         style: 'background:' + (l.code === this.state.lang ? '#EAF5FD' : 'transparent') + ';color:' + (l.code === this.state.lang ? '#0A84D6' : '#0B2440'),
       })),
-      busTypes: [
-        { icon: '🚌', name: 'Intercity Buses', desc: 'Comfortable long-distance travel' },
-        { icon: '🛏️', name: 'Sleeper Buses', desc: 'Overnight journeys with berths' },
-        { icon: '✨', name: 'Volvo Premium', desc: 'AC luxury coaches' },
-        { icon: '🚐', name: 'Minibus', desc: 'Small group travel' },
-        { icon: '🏛️', name: 'Tourist Coaches', desc: 'Guided sightseeing trips' },
-        { icon: '👥', name: 'Group Transport', desc: 'Private group bookings' }
-      ]
+      busTypes: busTypes.map((b) => ({ icon: b.icon, name: this.tr(b, 'name'), desc: this.tr(b, 'desc') }))
     };
   }
 }

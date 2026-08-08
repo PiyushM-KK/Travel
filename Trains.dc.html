@@ -182,6 +182,12 @@ class Component extends DCLogic {
   LANGS() { return [{ code:'en', name:'English', mark:'EN' }, { code:'hi', name:'हिंदी', mark:'हिं' }, { code:'gu', name:'ગુજરાતી', mark:'ગુ' }]; }
   componentDidUpdate() { this.applyLang(); }
   renderVals() {
+    const services = [
+      { icon: '🎫', name: 'Tatkal Booking', name_hi: 'तत्काल बुकिंग', name_gu: 'તત્કાલ બુકિંગ', desc: 'Last-minute reservations', desc_hi: 'अंतिम समय की बुकिंग', desc_gu: 'છેલ્લી ઘડીની બુકિંગ' },
+      { icon: '✅', name: 'Check PNR Status', name_hi: 'PNR स्थिति जांचें', name_gu: 'PNR સ્થિતિ તપાસો', desc: 'Track your booking', desc_hi: 'अपनी बुकिंग ट्रैक करें', desc_gu: 'તમારી બુકિંગ ટ્રૅક કરો' },
+      { icon: '🚆', name: 'Seat Availability', name_hi: 'सीट उपलब्धता', name_gu: 'સીટ ઉપલબ્ધતા', desc: 'Real-time updates', desc_hi: 'रीयल-टाइम अपडेट', desc_gu: 'રિયલ-ટાઇમ અપડેટ' },
+      { icon: '📋', name: 'Tourist Trains', name_hi: 'पर्यटक ट्रेनें', name_gu: 'પ્રવાસી ટ્રેનો', desc: 'Special heritage routes', desc_hi: 'विशेष विरासत मार्ग', desc_gu: 'ખાસ વારસો માર્ગો' }
+    ];
     return {
       root: this.setRoot,
       langLabel: (this.LANGS().find((l) => l.code === this.state.lang) || {}).mark || 'EN',
@@ -190,12 +196,7 @@ class Component extends DCLogic {
         pick: () => this.setState({ lang: l.code }),
         style: 'background:' + (l.code === this.state.lang ? '#EAF5FD' : 'transparent') + ';color:' + (l.code === this.state.lang ? '#0A84D6' : '#0B2440'),
       })),
-      services: [
-        { icon: '🎫', name: 'Tatkal Booking', desc: 'Last-minute reservations' },
-        { icon: '✅', name: 'Check PNR Status', desc: 'Track your booking' },
-        { icon: '🚆', name: 'Seat Availability', desc: 'Real-time updates' },
-        { icon: '📋', name: 'Tourist Trains', desc: 'Special heritage routes' }
-      ]
+      services: services.map((s) => ({ icon: s.icon, name: this.tr(s, 'name'), desc: this.tr(s, 'desc') })),
     };
   }
 }

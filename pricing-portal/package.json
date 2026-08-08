@@ -5,6 +5,6 @@
   "description": "Owner-only chatbot to update Skyline Travel Planner prices/packages/hotels by chat (GitHub login + scoped commit bot).",
   "engines": { "node": ">=18" },
   "scripts": {
-    "test": "node lib/apply-prices.test.js && node lib/engine.test.js && node lib/commit.test.js && node lib/session.test.js"
+    "test": "node lib/apply-prices.test.js && node lib/engine.test.js && node lib/commit.test.js && node lib/session.test.js && node lib/actions.test.js"
   }
 }

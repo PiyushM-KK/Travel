@@ -148,11 +148,22 @@
       .then(function (res) {
         box.remove();
         if (!res.ok) { addSys('Could not publish: ' + (res.j.error || 'error')); return; }
-        var span = document.createElement('span');
-        span.appendChild(document.createTextNode('✅ Published. '));
-        var a = document.createElement('a'); a.className = 'link'; a.href = res.j.htmlUrl; a.target = '_blank'; a.textContent = 'View commit';
-        span.appendChild(a); span.appendChild(document.createTextNode(' — the site rebuilds in ~1 min.'));
-        addSys(span);
+        var wrap = document.createElement('div');
+        var t = document.createElement('div'); t.textContent = '✅ Saved — your change will be live on the website in about a minute.';
+        t.style.fontWeight = '700'; t.style.color = '#16a34a'; wrap.appendChild(t);
+        (res.j.diffs || []).forEach(function (d) { var li = document.createElement('div'); li.className = 'diff'; li.textContent = d; wrap.appendChild(li); });
+        var pages = res.j.pages || [];
+        if (pages.length) {
+          var pl = document.createElement('div'); pl.style.marginTop = '8px'; pl.appendChild(document.createTextNode('View on your website: '));
+          pages.forEach(function (p, i) {
+            var a = document.createElement('a'); a.className = 'link'; a.href = p.url; a.target = '_blank'; a.textContent = p.label + ' ↗';
+            pl.appendChild(a); if (i < pages.length - 1) pl.appendChild(document.createTextNode('   ·   '));
+          });
+          wrap.appendChild(pl);
+        }
+        var tip = document.createElement('div'); tip.className = 'hint'; tip.textContent = 'Tip: give it about a minute, then refresh that page to see the update.';
+        wrap.appendChild(tip);
+        addSys(wrap);
       })
       .catch(function () { box.remove(); addSys('Network error while publishing.'); });
   }

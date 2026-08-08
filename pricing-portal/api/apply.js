@@ -10,6 +10,15 @@ const { fetchSources } = require("../lib/catalog-remote");
 const { applyActions } = require("../lib/actions");
 const { commitFiles } = require("../lib/commit");
 
+// The live public site (GitHub Pages custom domain). Each edited source file maps to the page the
+// owner can open to SEE the change — that's what we show them, not a git commit.
+const SITE = (process.env.SITE_URL || "https://skylinetravelplanner.com").replace(/\/+$/, "");
+const PAGE = {
+  "Domestic.dc.html": { url: SITE + "/Domestic.dc.html", label: "Domestic tours page" },
+  "International.dc.html": { url: SITE + "/International.dc.html", label: "International tours page" },
+  "Hotels.dc.html": { url: SITE + "/Hotels.dc.html", label: "Hotels page" },
+};
+
 module.exports = async (req, res) => {
   if (req.method !== "POST") return json(res, 405, { error: "POST only" });
   const sess = sessionFromReq(req);
@@ -33,7 +42,14 @@ module.exports = async (req, res) => {
     const message = ((body.message && String(body.message)) || `Owner console: ${summary}`).slice(0, 200);
     const commit = await commitFiles({ token, message, author: { name: `${sess.login} (via Skyline Console)` }, files });
 
-    return json(res, 200, { ok: true, commitSha: commit.commitSha, htmlUrl: commit.htmlUrl, files: commit.files, diffs: applied.results.map((r) => r.diff) });
+    // What the owner sees: the live page(s) where the change now shows (after the ~1-min rebuild).
+    const pages = Object.keys(applied.changed).map((f) => PAGE[f]).filter(Boolean);
+    return json(res, 200, {
+      ok: true,
+      diffs: applied.results.map((r) => r.diff),
+      pages,                       // [{ url, label }] — "View on your website"
+      commitUrl: commit.htmlUrl,   // kept for the record/audit only
+    });
   } catch (e) {
     return json(res, 500, { error: String((e && e.message) || e) });
   }

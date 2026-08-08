@@ -30,8 +30,17 @@ Rough time: ~10–12 minutes total.
 > If the deployed URL ends up different from `skyline-chatbot.vercel.app`, just come back to this page
 > and edit **Homepage URL** + **Authorization callback URL** (keep the `/api/auth/callback` ending).
 
-**Decide the allow-list** while you're here: the exact GitHub usernames allowed to log in — yours and the
-Skyline owner's, e.g. `PiyushM-KK, skylineowner`. Send me these (they're not secret).
+**Decide the allow-list** (you ENTER it later, in Item 3b — not here). A GitHub OAuth App by itself lets
+ANY GitHub user log in; the restriction to just you two is enforced by our backend against the
+`PORTAL_ALLOWED_LOGINS` env var. So here you only *decide* the usernames.
+- A "username" = the handle in `github.com/<username>` (top of your GitHub profile) — not an email or
+  display name.
+- Format (Item 3b): comma-separated, e.g. `PiyushM-KK,skylineowner`.
+- **Add/remove someone later:** Vercel → project → Settings → Environment Variables → edit
+  `PORTAL_ALLOWED_LOGINS` → **Redeploy**. No GitHub change needed; removing a name revokes access even
+  though GitHub still lets them sign in.
+
+Send me the usernames (they're not secret).
 
 ---
 

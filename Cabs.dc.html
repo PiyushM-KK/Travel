@@ -173,6 +173,58 @@
 <!-- Main Content -->
 <div style="max-width: 1280px; margin: 0 auto; padding: 40px 24px 48px">
 
+  <!-- Fare Estimator: pick pickup + drop on the map, get an indicative fare, then book with a partner -->
+  <style>
+    .cab-est-grid{display:grid;grid-template-columns:1fr;gap:18px}
+    @media(min-width:860px){.cab-est-grid{grid-template-columns:390px 1fr}}
+    .fare-fld label{display:block;font-size:11px;font-weight:700;color:#8094a4;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+    .fare-row{display:flex;gap:8px}
+    .fare-in{flex:1;border:1.5px solid #e4ecf3;border-radius:10px;padding:10px 12px;font-family:inherit;font-size:14px;outline:none;color:#0b2440}
+    .fare-set{border:0;background:#0a5fd7;color:#fff;font-family:inherit;font-weight:700;font-size:13px;padding:0 14px;border-radius:10px;cursor:pointer}
+    .fare-set:hover{background:#0954bd}
+    #cab-map{height:340px;min-height:340px;border-radius:14px;overflow:hidden;border:1.5px solid #e5ecf5;background:#e9eef4}
+    .fare-tr{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #eef2f7;font-size:14px}
+    .fare-tr b{font-weight:800;color:#0b2440;font-variant-numeric:tabular-nums}
+    .fare-p{display:inline-block;background:#0a5fd7;color:#fff;font-weight:700;font-size:13px;padding:8px 14px;border-radius:8px;text-decoration:none;margin:4px 6px 0 0}
+  </style>
+  <div style="margin-bottom: 48px">
+    <h2 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:32px;margin:0 0 8px" data-en="Estimate your cab fare" data-hi="अपने कैब किराए का अनुमान लगाएं" data-gu="તમારા કૅબ ભાડાનો અંદાજ મેળવો">Estimate your cab fare</h2>
+    <p style="font-size:14px;color:#5c6f80;margin:0 0 20px;max-width:720px" data-en="Set your pickup and drop to see an approximate fare, then book with a trusted partner. Estimates are indicative — the exact fare is confirmed in the partner app. No payment is taken on this website." data-hi="अपना पिकअप और ड्रॉप सेट करें और अनुमानित किराया देखें, फिर किसी भरोसेमंद पार्टनर के साथ बुक करें। अनुमान सांकेतिक हैं — सटीक किराया पार्टनर ऐप में तय होता है। इस वेबसाइट पर कोई भुगतान नहीं लिया जाता।" data-gu="તમારું પિકઅપ અને ડ્રોપ સેટ કરો અને અંદાજિત ભાડું જુઓ, પછી વિશ્વસનીય પાર્ટનર સાથે બુક કરો. અંદાજ સાંકેતિક છે — સચોટ ભાડું પાર્ટનર એપમાં નક્કી થાય છે. આ વેબસાઇટ પર કોઈ ચુકવણી લેવાતી નથી.">Set your pickup and drop to see an approximate fare, then book with a trusted partner. Estimates are indicative — the exact fare is confirmed in the partner app. No payment is taken on this website.</p>
+    <div class="cab-est-grid">
+      <div style="background:#fff;border:1.5px solid #e5ecf5;border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:14px">
+        <div class="fare-fld">
+          <label data-en="Pickup" data-hi="पिकअप" data-gu="પિકઅપ">Pickup</label>
+          <div class="fare-row">
+            <input id="fare-pickup" class="fare-in" type="text" placeholder="Search a place, city or airport…" data-en-ph="Search a place, city or airport…" data-hi-ph="कोई स्थान, शहर या एयरपोर्ट खोजें…" data-gu-ph="કોઈ સ્થળ, શહેર કે એરપોર્ટ શોધો…">
+            <button id="fare-pickup-set" class="fare-set" data-en="Set" data-hi="सेट करें" data-gu="સેટ કરો">Set</button>
+          </div>
+        </div>
+        <div class="fare-fld">
+          <label data-en="Drop" data-hi="ड्रॉप" data-gu="ડ્રોપ">Drop</label>
+          <div class="fare-row">
+            <input id="fare-drop" class="fare-in" type="text" placeholder="Search a place, city or airport…" data-en-ph="Search a place, city or airport…" data-hi-ph="कोई स्थान, शहर या एयरपोर्ट खोजें…" data-gu-ph="કોઈ સ્થળ, શહેર કે એરપોર્ટ શોધો…">
+            <button id="fare-drop-set" class="fare-set" data-en="Set" data-hi="सेट करें" data-gu="સેટ કરો">Set</button>
+          </div>
+        </div>
+        <div id="fare-msg" style="font-size:13px;color:#8094a4" data-en="Tip: you can also click on the map to drop a pin." data-hi="टिप: आप मानचित्र पर क्लिक करके भी पिन लगा सकते हैं।" data-gu="ટિપ: તમે નકશા પર ક્લિક કરીને પણ પિન મૂકી શકો છો.">Tip: you can also click on the map to drop a pin.</div>
+        <div id="fare-result" style="display:none;border-top:1px solid #eef2f7;padding-top:12px">
+          <div style="font-size:14px;color:#5c6f80;margin-bottom:6px"><span data-en="Distance" data-hi="दूरी" data-gu="અંતર">Distance</span>: <b id="fare-km" style="color:#0b2440;font-variant-numeric:tabular-nums"></b></div>
+          <div style="font-weight:800;font-size:13px;color:#0a5fd7;text-transform:uppercase;letter-spacing:.04em;margin:8px 0 4px" data-en="Approx one-way fare" data-hi="अनुमानित एकतरफ़ा किराया" data-gu="અંદાજિત એકતરફી ભાડું">Approx one-way fare</div>
+          <div class="fare-tr"><span data-en="Hatchback" data-hi="हैचबैक" data-gu="હૅચબૅક">Hatchback</span><b id="fare-hatch"></b></div>
+          <div class="fare-tr"><span data-en="Sedan" data-hi="सेडान" data-gu="સેડાન">Sedan</span><b id="fare-sedan"></b></div>
+          <div class="fare-tr" style="border-bottom:0"><span data-en="SUV / Innova" data-hi="एसयूवी / इनोवा" data-gu="એસયૂવી / ઇનોવા">SUV / Innova</span><b id="fare-suv"></b></div>
+          <div style="font-size:11.5px;color:#8094a4;margin-top:8px" data-en="Indicative estimate incl. driver &amp; fuel; tolls, parking &amp; state permits extra. Confirm the exact fare in the partner app." data-hi="चालक और ईंधन सहित सांकेतिक अनुमान; टोल, पार्किंग और राज्य परमिट अतिरिक्त। सटीक किराया पार्टनर ऐप में तय करें।" data-gu="ડ્રાઇવર અને ઇંધણ સહિત સાંકેતિક અંદાજ; ટોલ, પાર્કિંગ અને રાજ્ય પરમિટ વધારાના. સચોટ ભાડું પાર્ટનર એપમાં નક્કી કરો.">Indicative estimate incl. driver &amp; fuel; tolls, parking &amp; state permits extra. Confirm the exact fare in the partner app.</div>
+          <div style="margin-top:10px"><span style="font-size:12px;font-weight:700;color:#5c6f80" data-en="Book with:" data-hi="इनके साथ बुक करें:" data-gu="આની સાથે બુક કરો:">Book with:</span><br>
+            <a class="fare-p" href="https://www.savaari.com" target="_blank" rel="noopener">Savaari</a>
+            <a class="fare-p" href="https://www.olacabs.com" target="_blank" rel="noopener">Ola</a>
+            <a class="fare-p" href="https://www.uber.com/in/en/" target="_blank" rel="noopener">Uber</a>
+          </div>
+        </div>
+      </div>
+      <div id="cab-map"></div>
+    </div>
+  </div>
+
   <!-- Ride Options -->
   <div style="margin-bottom: 48px">
     <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 32px; margin: 0 0 24px" data-en="Ride Options" data-hi="सवारी विकल्प" data-gu="સવારીના વિકલ્પો">Ride Options</h2>
@@ -307,6 +359,78 @@ class Component extends DCLogic {
   var t=0; setInterval(function(){ if(t++>40) return; apply(); }, 250); // covers late React mounts
   try{ new MutationObserver(function(){ apply(); }).observe(document.documentElement,{childList:true,subtree:true}); }catch(e){}
   apply();
+})();
+</script>
+<script>
+/* Skyline — Book-a-Cab fare estimator: an OpenStreetMap (Leaflet) map to pick Pickup + Drop, a road
+   distance (OSRM, haversine fallback) and an INDICATIVE per-cab fare. No key, no payment — it hands off
+   to the booking partners. Loads Leaflet from CDN on demand and waits out the Duda async render. */
+(function () {
+  var LEAF_CSS = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+  var LEAF_JS = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+  var RATES = [{ id: "hatch", base: 250, km: 11 }, { id: "sedan", base: 300, km: 13 }, { id: "suv", base: 400, km: 16 }];
+  var map, pMarker, dMarker, line, pick = null, drop = null, started = false;
+  var $ = function (id) { return document.getElementById(id); };
+
+  function ensureLeaflet(cb) {
+    if (window.L) return cb();
+    if (!document.querySelector("link[data-leaflet]")) { var l = document.createElement("link"); l.rel = "stylesheet"; l.href = LEAF_CSS; l.setAttribute("data-leaflet", "1"); document.head.appendChild(l); }
+    if (document.querySelector("script[data-leaflet]")) { var iv = setInterval(function () { if (window.L) { clearInterval(iv); cb(); } }, 120); setTimeout(function () { clearInterval(iv); if (!window.L) cb(new Error("timeout")); }, 9000); return; }
+    var s = document.createElement("script"); s.src = LEAF_JS; s.setAttribute("data-leaflet", "1"); s.onload = function () { cb(); }; s.onerror = function () { cb(new Error("leaflet failed")); }; document.head.appendChild(s);
+  }
+  function haversine(a, b) { var R = 6371, dLat = (b.lat - a.lat) * Math.PI / 180, dLon = (b.lon - a.lon) * Math.PI / 180, la1 = a.lat * Math.PI / 180, la2 = b.lat * Math.PI / 180; var x = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(la1) * Math.cos(la2) * Math.sin(dLon / 2) * Math.sin(dLon / 2); return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x)); }
+  function money(n) { return "₹" + (Math.round(n / 50) * 50).toLocaleString("en-IN"); }
+  function geocode(q) { return fetch("https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=in&q=" + encodeURIComponent(q)).then(function (r) { return r.json(); }).then(function (j) { return (j && j[0]) ? { lat: +j[0].lat, lon: +j[0].lon, label: j[0].display_name } : null; }).catch(function () { return null; }); }
+  function roadKm(a, b) { return fetch("https://router.project-osrm.org/route/v1/driving/" + a.lon + "," + a.lat + ";" + b.lon + "," + b.lat + "?overview=false").then(function (r) { return r.json(); }).then(function (j) { return (j.routes && j.routes[0]) ? j.routes[0].distance / 1000 : haversine(a, b) * 1.4; }).catch(function () { return haversine(a, b) * 1.4; }); }
+
+  function fit() {
+    var pts = []; if (pick) pts.push([pick.lat, pick.lon]); if (drop) pts.push([drop.lat, drop.lon]);
+    if (line) { map.removeLayer(line); line = null; }
+    if (pts.length === 2) { line = L.polyline(pts, { color: "#0a5fd7", weight: 4, opacity: .7 }).addTo(map); map.fitBounds(pts, { padding: [40, 40] }); }
+    else if (pts.length === 1) { map.setView(pts[0], 11); }
+  }
+  function setMarker(which, pt) {
+    var ll = [pt.lat, pt.lon];
+    if (which === "pick") { pick = pt; if (pMarker) pMarker.setLatLng(ll); else pMarker = L.marker(ll).addTo(map); }
+    else { drop = pt; if (dMarker) dMarker.setLatLng(ll); else dMarker = L.marker(ll).addTo(map); }
+    fit(); calc();
+  }
+  function calc() {
+    if (!pick || !drop) return;
+    roadKm(pick, drop).then(function (km) {
+      if ($("fare-km")) $("fare-km").textContent = "≈ " + Math.round(km) + " km";
+      RATES.forEach(function (rt) { var el = $("fare-" + rt.id); if (el) el.textContent = money(rt.base + rt.km * km); });
+      if ($("fare-result")) $("fare-result").style.display = "block";
+      var msg = $("fare-msg"); if (msg) msg.style.display = "none";
+    });
+  }
+  function doSet(which) {
+    var input = $(which === "pick" ? "fare-pickup" : "fare-drop");
+    var q = input && input.value.trim(); if (!q) return;
+    input.disabled = true;
+    geocode(q).then(function (pt) {
+      input.disabled = false;
+      var msg = $("fare-msg");
+      if (!pt) { if (msg) { msg.style.display = "block"; msg.textContent = "Couldn't find that place — try a nearby city or landmark."; } return; }
+      input.value = pt.label.split(",").slice(0, 2).join(",");
+      setMarker(which, pt);
+    });
+  }
+  function init() {
+    var el = $("cab-map"); if (!el || started || el._leaflet_id) return; started = true;
+    ensureLeaflet(function (err) {
+      if (err || !window.L) { el.innerHTML = '<div style="padding:20px;color:#5c6f80;font-size:13px">Map unavailable right now — enter your route in a partner app below for a fare.</div>'; return; }
+      map = L.map(el, { scrollWheelZoom: false }).setView([22.9734, 78.6569], 4.6);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 18, attribution: "© OpenStreetMap" }).addTo(map);
+      map.on("click", function (e) { var pt = { lat: e.latlng.lat, lon: e.latlng.lng, label: e.latlng.lat.toFixed(3) + ", " + e.latlng.lng.toFixed(3) }; if (!pick) setMarker("pick", pt); else setMarker("drop", pt); });
+      if ($("fare-pickup-set")) $("fare-pickup-set").onclick = function () { doSet("pick"); };
+      if ($("fare-drop-set")) $("fare-drop-set").onclick = function () { doSet("drop"); };
+      [["fare-pickup", "pick"], ["fare-drop", "drop"]].forEach(function (p) { var i = $(p[0]); if (i) i.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); doSet(p[1]); } }); });
+      setTimeout(function () { map.invalidateSize(); }, 250);
+    });
+  }
+  var tries = 0, iv = setInterval(function () { if ($("cab-map")) init(); if (started || tries++ > 60) clearInterval(iv); }, 250);
+  try { new MutationObserver(function () { if ($("cab-map") && !started) init(); }).observe(document.documentElement, { childList: true, subtree: true }); } catch (e) {}
 })();
 </script>
 </body>

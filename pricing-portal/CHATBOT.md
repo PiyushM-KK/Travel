@@ -1,5 +1,26 @@
 # Skyline Client Chatbot — update the website by chat (build spec)
 
+> ## ✅ BUILT · DEPLOYED · VERIFIED LIVE — 2026-08-08
+> Console: **https://skyline-chatbot-wheat.vercel.app** (the site's `Chatbot.dc.html` redirects there).
+> Owner logged in (GitHub OAuth → allow-list → session), edited Goa, approved the diff, the bot committed
+> it live (`2ad150e`). Everything below is BUILT. Files (all in `pricing-portal/`), tests = **104 checks**:
+> - **Auth:** `api/auth/{login,callback,logout}.js` + `lib/session.js` (HMAC cookie) + `lib/allowlist.js`.
+> - **Agent:** `agent/chatbot.js` (Claude tool-use, raw fetch) — tools `search_site` + `propose_changes`;
+>   PDF/image **vision**; vendor-net → **margin** rule. `api/chat.js` (propose) + `api/apply.js` (commit).
+> - **Writers (`lib/`):** apply-prices (3★) · apply-package (4★/5★ tiers + add/remove pkg) · apply-hotel
+>   (hotel-rate catalog) · apply-destination (destination "From") · apply-text (fix a reported typo/wording,
+>   allow-listed pages + syntax break-guard). `actions.js` routes typed actions; **`set_place_price`** syncs
+>   a place's price across package + home card + destination page. `lib/commit.js` = one atomic Git-Data-API
+>   commit via the scoped PAT. `catalog-remote.js` reads live source from the repo.
+> - **UI:** `public/index.html` — GitHub-login gate → chat → **diff Approve/Discard** → shows the live
+>   **website page** link (not a commit) + rate-sheet upload.
+> - **Env (Vercel `skyline-chatbot`, all set):** GITHUB_OAUTH_CLIENT_ID/SECRET, PORTAL_ALLOWED_LOGINS,
+>   GH_BOT_TOKEN, ANTHROPIC_API_KEY (reused from `../social-automation/.env`), SESSION_SECRET.
+> - **⚠️ Owner TODO:** rotate the PAT + client secret (passed through build chat); add the owner's GitHub
+>   username to PORTAL_ALLOWED_LOGINS. **Upload:** PDF+images ≤~4 MB or paste a table; `.docx` → convert or
+>   add a server-side parser. The build spec below is the original plan (kept for reference).
+
+
 > **The pivot (2026-08-07):** instead of a Word-upload portal, the client edits the live site through a
 > **conversational AI agent**. The client says what to change ("Goa is ₹17,500 now", "add a 4★ hotel
 > tier for Kashmir"); the agent reads the repo, proposes the exact edit, shows a **diff to approve**,

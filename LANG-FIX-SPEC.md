@@ -138,3 +138,24 @@ Collection `note` fields (region subtitles) — translate the `·`-joined place 
 - Keep English canonical: `data-en` and the base `name`/`route`/`price` stay English; the price NEVER changes.
 - Every `data-en` element must end with matching `data-hi` AND `data-gu`.
 - After editing, the widget `<script>` must still be valid JS (no syntax errors).
+
+---
+
+## 6. ADDENDUM (2026-08-08) — JS-rendered CARD ARRAYS + cross-page persistence
+
+Two gaps the first pass missed — fix these on any NEW page too:
+
+**A. JS-rendered card arrays.** Static `data-en/hi/gu` text swaps fine, but cards built from arrays in
+`renderVals()` (e.g. `cabTypes`, `partners`, `services`, `busTypes`, home `destinations`/`styles`/`steps`)
+render `{{ x.name }}`/`{{ x.desc }}` straight from English data and DON'T translate. Fix: add `_hi`/`_gu`
+siblings to the translatable fields, then map the array through `tr()` in the return, e.g.
+`services: services.map((s) => ({ ...s, name: this.tr(s,'name'), desc: this.tr(s,'desc') }))`. Keep BRAND
+names (Uber/Ola/IRCTC/redBus…), URLs, icons, prices, numbers as-is. `index.html` uses `const lang =
+this.state.lang` (not `data-*`); there add `const tr = (o,k) => (o && (o[k+'_'+lang] || o[k])) || '';`.
+Audit a page by rendering `renderVals()` under `state.lang='gu'` and checking every card string is Gujarati.
+
+**B. Language persists across pages (localStorage).** Each page's `state.lang` defaulted to `'en'`, so
+navigating reset the language. Every page now:
+- initialises `lang: (function(){ try { return localStorage.getItem('skyline_lang') || 'en'; } catch(e){ return 'en'; } })()`
+- on the switcher `pick`, writes `try { localStorage.setItem('skyline_lang', code); } catch(e){}` before `setState`.
+Use the key **`skyline_lang`** on any new page so the choice carries site-wide.

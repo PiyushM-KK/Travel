@@ -21,6 +21,14 @@ Both deferred items from the main pass (`ad247c7`) are done, so the whole site n
    no prices/ids/links/logic touched. Verified: all three script blocks re-parse, per-field balance +
    3-language render + base-text integrity checked, adversarial review found no defects introduced.
 
+### ✅ 2026-08-08 follow-on — JS card arrays + cross-page persistence (`0c952a9 653f3db 0da4fb4`)
+Two more gaps found + fixed so the site is TRULY fully 3-language:
+- **JS-rendered CARD arrays** (not `data-*`) stayed English: fixed `Cabs` (cabTypes/partners/routes), `Flights`
+  (airlines), `Trains` (services), `Buses` (busTypes), `index.html` home (destinations/international/tags/steps/
+  why-us) — added `_hi`/`_gu` + mapped through `tr()`; brands/URLs/prices kept.
+- **Language now persists across pages:** every page reads/writes `localStorage('skyline_lang')` (was: each page
+  reset to English on navigation). Pick once → all pages follow.
+
 ## B-CRONSECRET — ✅ DONE 2026-08-07 — package-post GitHub Action can now run
 The `CRON_SECRET` repo secret was set on **PiyushM-KK/Travel** (from `.env`), so
 `.github/workflows/package-post.yml` authenticates and fires (verified: manual dispatch → HTTP 200).

@@ -5,6 +5,71 @@ Scope: **only the `social-automation/` folder.** The rest of the Skyline project
 structure + provenance. **NOTE: this session also changed the WEBSITE (language fix) and started the
 client CHATBOT (`../pricing-portal/`) — see the checkpoint below; those live OUTSIDE this folder.**
 
+## ⭐ 2026-08-08 — CHECKPOINT: OWNER CHATBOT built & LIVE · full site 3-language · Goa price synced · Book-Cab map+fare
+
+**Everything below is on `main` (website = GitHub Pages `PiyushM-KK/Travel` → skylinetravelplanner.com).**
+Commits this session: `5c0c6b3 a674863 9e75e7e 4bc823f 38c0fc9 6d833a1 e73829a f8c450a 72af08a ef49d15 04ab895 3d4ef0b`
+(chatbot) · `2ad150e` (owner's live test) · `4933c2d` (Goa sync) · `6791881` (sync+fix-error capabilities) ·
+`0c952a9 653f3db 0da4fb4` (service+home card language + Book-Cab map + language-persists-across-pages).
+
+### 1. OWNER CONSOLE CHATBOT — BUILT, DEPLOYED, VERIFIED LIVE ✅  (was B-CHATBOT; now RESOLVED)
+An **owner-only** chatbot that updates the live website by chat. Console: **https://skyline-chatbot-wheat.vercel.app**
+(the site's `Chatbot.dc.html` redirects there). Lives in **`../pricing-portal/`** (Vercel project `skyline-chatbot`,
+scope full-firm). **Verified end-to-end:** owner logged in (GitHub OAuth → allow-list → HMAC session), said
+"set Goa to ₹9,999", approved the diff, the scoped bot committed it live (`2ad150e`).
+- **Auth:** GitHub OAuth (`api/auth/*`) + `lib/session.js` (signed cookie) + `lib/allowlist.js`
+  (`PORTAL_ALLOWED_LOGINS` — currently just `PiyushM-KK`; **add the owner's GitHub username**).
+- **Agent:** `agent/chatbot.js` — Claude tool-use (raw Anthropic fetch), grounded on the LIVE catalog; two
+  tools: `search_site` (find text) + `propose_changes` (typed actions). PDF/image **vision** upload (≤~4 MB;
+  bigger scans → paste a table). Vendor NET rates get the owner's **margin** before publishing.
+- **Writers (`lib/`, all bounded + tested — 104 checks):** apply-prices (3★), apply-package (4★/5★ tiers +
+  add/remove pkg), apply-hotel (city hotel-rate catalog), apply-destination (destination "From" price),
+  apply-text (fix a reported typo/wording — allow-listed pages + a syntax break-guard). `actions.js` routes
+  each typed action to the right file/writer; **`set_place_price` updates a place's price in ALL 3 spots**
+  (package + home card + destination page) so prices never drift. `lib/commit.js` = one atomic commit via the
+  Git Data API (least-privilege PAT). Every change is **previewed as a diff → owner approves → commit →** the
+  console shows the **live website page** link (not a git commit). `read-catalog`/`catalog-remote` read live
+  source from the repo.
+- **Site data model:** Hotels page has a hotel-rate catalog (ships EMPTY — owner fills real rates); packages
+  carry optional 4★/5★ `price4`/`price5`; International packages got `id`/`slug` so they're editable.
+- **Env (Vercel, all set):** GITHUB_OAUTH_CLIENT_ID/SECRET, PORTAL_ALLOWED_LOGINS, GH_BOT_TOKEN, ANTHROPIC_API_KEY
+  (reused from `social-automation/.env`), SESSION_SECRET. Local staging in gitignored `../pricing-portal/.env`.
+  **Spec:** `../pricing-portal/CHATBOT.md`; owner setup `../pricing-portal/OWNER-SETUP.md`.
+- **⚠️ OWNER TODO (security):** rotate the commit **PAT** + the OAuth **client secret** — both passed through the
+  build chat. Regenerate each, put in `../pricing-portal/.env`, and the next agent sets them via `vercel env`.
+
+### 2. FULL SITE 3-LANGUAGE — now truly complete (EN/HI/GU)
+The earlier pass wired static `data-en/hi/gu` + package grids, but **JS-rendered CARD ARRAYS** stayed English.
+Fixed by adding `_hi`/`_gu` + mapping through `tr()`: **Cabs** (cabTypes/partners/routes), **Flights** (airlines),
+**Trains** (services), **Buses** (busTypes), and **home page `index.html`** (destinations/international/tags/steps/
+why-us). Brand names/URLs/prices kept. AssistantWidget (`../AssistantWidget.dc.html`) already got its own toggle.
+Only residuals: the "English" switcher label (correct) + a bare "On request" price value (cosmetic).
+**Language now PERSISTS across pages** (`0da4fb4`): every page initialises its language from
+`localStorage('skyline_lang')` and writes it on switch — pick once (any page), all pages follow. Mechanism
+recap for future pages: `LANG-FIX-SPEC.md` (JS card arrays → `_hi`/`_gu` + `tr()`; persistence via localStorage).
+
+### 3. Goa price mismatch FIXED (`4933c2d`)
+Goa's 3★ "from" was ₹9,999 on the package but still ₹14,000 on the home + destination pages. Synced all three
+to **₹9,999** (via the console's own `set_place_price` logic); 4★/5★ untouched. Verified LIVE on the site.
+
+### 4. Book-a-Cab MAP + FARE ESTIMATOR (`653f3db`, `../Cabs.dc.html`)
+New "Estimate your cab fare" section: **OpenStreetMap/Leaflet** map, Pickup/Drop via **Nominatim** geocode
+(India) or map-click, road distance via **OSRM** (haversine fallback), **indicative** per-cab fare
+(Hatchback/Sedan/SUV = base + ₹/km) → book via partners. **No API key / no billing** (free map). Live-tested
+Delhi→Agra ≈202 km → ₹2,500–₹3,650. **Caveat:** uses public demo endpoints (Nominatim ~1 req/s, OSRM demo) —
+fine for low traffic; if volume grows, move to a keyed provider (Google Maps / ORS / Mapbox).
+
+**PENDING / NEXT AGENT (owner-gated or optional):**
+1. **Owner:** rotate the commit **PAT** + OAuth **client secret** (passed through the build chat) → put fresh
+   values in `../pricing-portal/.env`, then `vercel env rm`+`add` them; add the **owner's GitHub username** to
+   `PORTAL_ALLOWED_LOGINS` (Vercel) + redeploy. Owner may also `.docx` upload (agent can add server-side parse).
+2. **Optional hardening:** the Book-Cab map uses public Nominatim/OSRM demo endpoints — move to a keyed
+   provider if traffic grows. Cosmetic: translate the bare "On request" price value.
+3. **Social-automation** (this folder) unchanged this session — its own older checkpoints below still apply
+   (approve recreated Goa/Kashmir posts, priced-poster reseller test, standing security audit).
+
+---
+
 ## ⭐ 2026-08-07 (late) — CHECKPOINT: B-PKGCARD fixed · AI Scene Generator · reseller AI scenes · rejection-training · recreate override · website 3-language fix · chatbot kickoff
 
 **Committed to `main` (skyline-social auto-deploys; the website deploys via GitHub Pages).** Commits: `604fefb` `9e04931` `8c588f2` `b56533b` `2e7df5a` `9e31799` `538e3d6` `6a5d7b3` `ad247c7` `ecefa2d` (language follow-ups).

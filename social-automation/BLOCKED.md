@@ -39,7 +39,21 @@ now posts the FRESH AI scene, not the repeating stock photo, and (b) owner messa
 provenance. Tests `check_pkgcard_fix.js` (17). Superseded by the AI Scene Generator (`9e04931`) + the
 reseller-flow extension.
 
-## B-CHATBOT — owner setup for the OWNER-ONLY website-edit chatbot (Phase 2 unblock)
+## B-CHATBOT — ✅ BUILT + LIVE + VERIFIED 2026-08-07 (owner console shipped end-to-end)
+The owner-only website-edit chatbot is **done and working live**. Console: **https://skyline-chatbot-wheat.vercel.app**
+(the site's `Chatbot.dc.html` redirects there). Owner setup complete (OAuth App, scoped commit PAT, Vercel
+project, all env incl. SESSION_SECRET). **Verified end-to-end:** the owner logged in (GitHub → allow-list →
+session), chatted "set Goa to ₹9,999", approved the diff, and the scoped bot committed it live
+(`2ad150e`). Stack (all in `pricing-portal/`, tests 87 checks): `lib/commit.js` (Git Data API atomic
+commit), `api/auth/*` + `lib/session.js`/`allowlist.js` (GitHub OAuth + allow-list + HMAC session),
+`agent/chatbot.js` (Claude tool-use, PDF/image vision, propose→diff), `lib/actions.js` (typed action →
+bounded writer), `api/chat.js`/`api/apply.js`, `public/index.html` (console UI). After-publish shows the
+live **website page** link, not a commit. **Remaining (owner):** rotate the PAT + OAuth client secret
+(they passed through the build chat); add the Skyline owner's GitHub username to `PORTAL_ALLOWED_LOGINS`
+(currently just `PiyushM-KK`). Upload accepts PDF+images (≤~4 MB) + pasted tables; .docx needs conversion
+or a future server-side parser. Original owner-setup steps kept below for reference.
+
+### (original owner-setup — done; kept for reference/re-do)
 The `Chatbot.dc.html` page becomes an **owner-only console** to edit website prices/packages/hotels by
 chat: GitHub-login (allow-list of the owner + Piyush), Claude tool-use, preview→commit via a scoped bot.
 

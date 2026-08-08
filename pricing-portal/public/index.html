@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Skyline Owner Console</title>
+<style>
+  :root { color-scheme: light dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    background: linear-gradient(135deg, #0a5fd7 0%, #34c3f0 100%); color: #0b2440; }
+  .card { background: #fff; max-width: 460px; width: 100%; border-radius: 20px; padding: 32px 30px;
+    box-shadow: 0 30px 70px -24px rgba(7,59,102,.6); }
+  h1 { font-size: 20px; margin: 0 0 6px; letter-spacing: -.01em; }
+  p { font-size: 14px; line-height: 1.6; color: #40566b; margin: 0 0 12px; }
+  .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #16a34a;
+    margin-right: 7px; vertical-align: middle; box-shadow: 0 0 0 4px rgba(22,163,74,.15); }
+  .pill { display: inline-block; font-size: 12px; font-weight: 700; color: #0a5fd7;
+    background: #eaf3fd; border-radius: 999px; padding: 5px 11px; margin-top: 4px; }
+  a { color: #0a5fd7; font-weight: 600; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .muted { font-size: 12px; color: #7c8ea0; margin-top: 18px; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1><span class="dot"></span>Skyline Owner Console</h1>
+    <p>This is the private backend for updating Skyline Travel Planner's prices, packages and hotel
+       rates by chat. It is <strong>owner-only</strong> and not for public use.</p>
+    <p class="pill">Deploy healthy · sign-in lands in the next update</p>
+    <p style="margin-top:16px">Health check: <a href="/api/health">/api/health</a></p>
+    <p class="muted">If you reached this page by accident, there's nothing to do here — the customer
+       website is at <a href="https://skylinetravelplanner.com">skylinetravelplanner.com</a>.</p>
+  </div>
+</body>
+</html>

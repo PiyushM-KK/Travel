@@ -69,12 +69,15 @@ Recommended: a **fine-grained Personal Access Token** scoped to the one repo (si
 
 ## ITEM 3 — Anthropic API key + the Vercel project
 
-### 3a. Anthropic API key (the AI brain)
-1. Go to **https://console.anthropic.com** → sign in.
-2. Left sidebar → **API Keys** → **Create Key** → name it `skyline-chatbot` → **Create**.
-3. Copy the key (`sk-ant-…`). **Save it safely; do NOT send it to me.**
-4. Recommended: **Settings → Limits** (or Billing) → set a small **monthly spend cap** (e.g. $10–20) so
-   the bot can never run up a surprise bill.
+### 3a. Anthropic API key (the AI brain) — ✅ REUSING THE EXISTING KEY (nothing to create)
+The owner authorised reusing the Anthropic key already in `social-automation/.env` (gitignored, verified
+present). So there is **no new key to create** — at deploy I set the Vercel `ANTHROPIC_API_KEY` from that
+value (via `vercel env` with your go-ahead, or you paste it into the Vercel dashboard). It never enters a
+committed file or the chat.
+- Tradeoff to know: this one key is now shared by the customer travel-assistant Worker, the SMM/QA agents,
+  AND this console — one combined bill + rate limit. Fine to start; if you ever want them billed/limited
+  separately, create a dedicated key later (console.anthropic.com → API Keys → Create Key) and swap the
+  Vercel var. A small **monthly spend cap** under Anthropic **Billing → Limits** is still recommended.
 
 ### 3b. Vercel project (gives the chatbot its URL + holds the secrets)
 1. Go to **https://vercel.com** → **Log in** → **Continue with GitHub**.
@@ -94,12 +97,15 @@ Recommended: a **fine-grained Personal Access Token** scoped to the one repo (si
    | `GITHUB_OAUTH_CLIENT_SECRET` | Client Secret from Item 1 |
    | `PORTAL_ALLOWED_LOGINS` | your allow-list, e.g. `PiyushM-KK,skylineowner` |
    | `GH_BOT_TOKEN` | the fine-grained PAT from Item 2 |
-   | `ANTHROPIC_API_KEY` | the key from Item 3a |
+   | `ANTHROPIC_API_KEY` | reuse the value from `social-automation/.env` (I can set this for you at deploy) |
 
-6. Click **Deploy**. (This first deploy will be mostly empty / may 404 — that's expected; the code lands
-   in Phase 2. We just need the project + URL to exist.)
+6. Click **Deploy**. (The repo now has a small scaffold — `pricing-portal/public/index.html` +
+   `pricing-portal/api/health.js` — so the deploy is **clean, not a 404**: the root shows a "console"
+   landing and `/<url>/api/health` returns `{ ok: true, env: {…booleans…} }`.)
 7. After it finishes, note the **Production URL** at the top (should be `https://skyline-chatbot.vercel.app`).
    If it's different, go back to **Item 1** and update the OAuth App's Homepage + callback to match.
+8. Verify the env: open **`<your-url>/api/health`** — every var you set should read `true` (the page shows
+   booleans only, never the secret values). If one is `false`, re-check that env var in Vercel.
 
 ---
 

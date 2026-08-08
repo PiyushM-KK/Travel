@@ -18,16 +18,16 @@ Rough time: ~10–12 minutes total.
 2. Click **OAuth Apps** → **New OAuth App** (button top-right; may say "Register a new application").
 3. Fill in:
    - **Application name:** `Skyline Owner Console`
-   - **Homepage URL:** `https://skyline-chatbot.vercel.app`
+   - **Homepage URL:** `https://skyline-chatbot-wheat.vercel.app`
    - **Application description:** (optional) `Owner-only tool to update Skyline prices/packages/hotels`
-   - **Authorization callback URL:** `https://skyline-chatbot.vercel.app/api/auth/callback`
+   - **Authorization callback URL:** `https://skyline-chatbot-wheat.vercel.app/api/auth/callback`
    - **Enable Device Flow:** leave **unchecked**.
 4. Click **Register application**.
 5. On the app page, copy the **Client ID** → this is safe to send me.
 6. Click **Generate a new client secret** → copy the **Client Secret** now (shown once). **Save it in a
    safe place; do NOT send it to me.** You'll paste it into Vercel in Item 3.
 
-> If the deployed URL ends up different from `skyline-chatbot.vercel.app`, just come back to this page
+> If the deployed URL ends up different from `skyline-chatbot-wheat.vercel.app`, just come back to this page
 > and edit **Homepage URL** + **Authorization callback URL** (keep the `/api/auth/callback` ending).
 
 **Decide the allow-list** (you ENTER it later, in Item 3b — not here). A GitHub OAuth App by itself lets
@@ -85,7 +85,7 @@ committed file or the chat.
 3. Find **PiyushM-KK/Travel** in the list → **Import**. (If the repo isn't listed, click **Adjust GitHub
    App Permissions** / **Configure GitHub App** and grant Vercel access to the `Travel` repo.)
 4. In **Configure Project**:
-   - **Project Name:** `skyline-chatbot`  (this makes the URL `https://skyline-chatbot.vercel.app`).
+   - **Project Name:** `skyline-chatbot`  (this makes the URL `https://skyline-chatbot-wheat.vercel.app`).
    - **Framework Preset:** **Other**.
    - **Root Directory:** click **Edit** → select **`pricing-portal`**.  ← important
    - Leave Build/Output commands default (I add the config in Phase 2).
@@ -102,7 +102,7 @@ committed file or the chat.
 6. Click **Deploy**. (The repo now has a small scaffold — `pricing-portal/public/index.html` +
    `pricing-portal/api/health.js` — so the deploy is **clean, not a 404**: the root shows a "console"
    landing and `/<url>/api/health` returns `{ ok: true, env: {…booleans…} }`.)
-7. After it finishes, note the **Production URL** at the top (should be `https://skyline-chatbot.vercel.app`).
+7. After it finishes, note the **Production URL** at the top (should be `https://skyline-chatbot-wheat.vercel.app`).
    If it's different, go back to **Item 1** and update the OAuth App's Homepage + callback to match.
 8. Verify the env: open **`<your-url>/api/health`** — every var you set should read `true` (the page shows
    booleans only, never the secret values). If one is `false`, re-check that env var in Vercel.

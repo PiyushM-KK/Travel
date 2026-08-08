@@ -80,6 +80,11 @@ function catalogSummary(cat) {
   lines.push(`\nHOTELS (${cat.counts.hotels}) — id · city · name · stars · from/night:`);
   if (!cat.hotels.length) lines.push("  (none yet — the catalog is empty; add real hotels + rates)");
   for (const h of cat.hotels) lines.push(`  ${h.id} · ${h.city} · ${h.name} · ${h.stars}★ · ${h.price}`);
+  if (cat.destinations && cat.destinations.length) {
+    lines.push(`\nDESTINATION PAGES (${cat.destinations.length}) — slug · name · "From" price (shown on the destination + home page):`);
+    for (const d of cat.destinations) lines.push(`  ${d.key} · ${d.name} · ${d.fromPrice}`);
+    lines.push("Note: a place's price can appear as a TOUR PACKAGE and as a DESTINATION \"From\" price (+ a home-page card). To change a place's price everywhere, use set_place_price with its slug.");
+  }
   return lines.join("\n");
 }
 

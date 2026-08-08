@@ -13,10 +13,22 @@
 const prices = require("./apply-prices");
 const pkg = require("./apply-package");
 const hotel = require("./apply-hotel");
+const dest = require("./apply-destination");
+const { replaceTextInSource, validateSiteFile } = require("./apply-text");
 const { packagesFromSource } = require("./read-catalog");
+
+// The public site pages the owner console may fix text on (never touches pricing-portal code or secrets;
+// the bot token is repo-scoped, but this is the belt-and-braces allow-list of editable files).
+const EDITABLE_FILES = [
+  "index.html", "Domestic.dc.html", "International.dc.html", "Hotels.dc.html", "Destination.dc.html",
+  "Package.dc.html", "Flights.dc.html", "Trains.dc.html", "Buses.dc.html", "Cabs.dc.html",
+  "Customize.dc.html", "Privacy.dc.html", "WhatsApp.dc.html", "AssistantWidget.dc.html",
+];
 
 const PKG_FILES = ["Domestic.dc.html", "International.dc.html"];
 const HOTEL_FILE = "Hotels.dc.html";
+const HOME_FILE = "index.html";              // home-page destination cards (id/slug/price)
+const DEST_FILE = "Destination.dc.html";     // destination landing pages (keyed, fromPrice)
 
 // Which package file (Domestic/International) currently holds this id/slug.
 function findPkgFile(work, { id, slug }) {
@@ -79,6 +91,49 @@ function applyOne(work, a) {
       if (!r.ok) return { error: r.error };
       work[HOTEL_FILE] = r.src;
       return { file: HOTEL_FILE, diff: `${r.name || a.id} /night: ${r.before} → ${r.after}` };
+    }
+    case "set_destination_price": {
+      // Just the destination-page "From ₹X per person" (keyed by slug/key).
+      if (!work[DEST_FILE]) return { error: "Destination.dc.html not loaded" };
+      const r = dest.setDestinationPriceInSource(work[DEST_FILE], { key: a.slug || a.key || a.id, newPrice: a.price });
+      if (!r.ok) return { error: r.error };
+      work[DEST_FILE] = r.src;
+      return { file: DEST_FILE, diff: `${r.name || a.slug} (destination 'from'): ${r.before} → ${r.after}` };
+    }
+    case "set_place_price": {
+      // The SAME place's price shows in up to 3 spots — update them all so the site stays consistent:
+      //   the tour package (Domestic/International), the home-page card (index.html), the destination page.
+      const slug = a.slug || a.id;
+      if (!slug) return { error: "set_place_price needs a slug (e.g. 'goa')" };
+      const parts = [];
+      for (const f of PKG_FILES) {
+        if (!work[f]) continue;
+        const r = prices.applyPriceInSource(work[f], { slug, newPrice: a.price });
+        if (r.ok) { work[f] = r.src; parts.push(`package ${r.before} → ${r.after} [${f}]`); }
+      }
+      if (work[HOME_FILE]) {
+        const r = prices.applyPriceInSource(work[HOME_FILE], { slug, newPrice: a.price });
+        if (r.ok) { work[HOME_FILE] = r.src; parts.push(`home card ${r.before} → ${r.after} [${HOME_FILE}]`); }
+      }
+      if (work[DEST_FILE]) {
+        const r = dest.setDestinationPriceInSource(work[DEST_FILE], { key: slug, newPrice: a.price });
+        if (r.ok) { work[DEST_FILE] = r.src; parts.push(`destination 'from' ${r.before} → ${r.after} [${DEST_FILE}]`); }
+      }
+      if (!parts.length) return { error: `no price for '${slug}' found on any page (package/home/destination)` };
+      return { file: "multiple", diff: `${slug} → ${prices.normalizePrice(a.price)} everywhere: ` + parts.join("; ") };
+    }
+    case "replace_text": {
+      // Fix a reported error: an EXACT find→replace on one site page, guarded so it can't break the page.
+      const f = a.file;
+      if (!EDITABLE_FILES.includes(f)) return { error: `can't edit '${f}'. Editable pages: ${EDITABLE_FILES.join(", ")}` };
+      if (!work[f]) return { error: `${f} isn't loaded — search the site first so I can read it` };
+      const r = replaceTextInSource(work[f], { find: a.find, replace: a.replace, all: !!a.all });
+      if (!r.ok) return { error: r.error };
+      const broke = validateSiteFile(f, r.src);
+      if (broke) return { error: `that change would break the page (${broke}) — not applied` };
+      work[f] = r.src;
+      const s = (x) => JSON.stringify(String(x).slice(0, 70));
+      return { file: f, diff: `${f}: ${s(a.find)} → ${s(a.replace)}${r.count > 1 ? ` (×${r.count})` : ""}` };
     }
     default:
       return { error: `unknown action type "${a.type}"` };

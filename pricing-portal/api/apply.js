@@ -6,18 +6,18 @@
  */
 const { sessionFromReq } = require("../lib/session");
 const { readJson, json } = require("../lib/http");
-const { fetchSources } = require("../lib/catalog-remote");
+const { fetchFiles, FILES } = require("../lib/catalog-remote");
 const { applyActions } = require("../lib/actions");
 const { commitFiles } = require("../lib/commit");
 
 // The live public site (GitHub Pages custom domain). Each edited source file maps to the page the
 // owner can open to SEE the change — that's what we show them, not a git commit.
 const SITE = (process.env.SITE_URL || "https://skylinetravelplanner.com").replace(/\/+$/, "");
-const PAGE = {
-  "Domestic.dc.html": { url: SITE + "/Domestic.dc.html", label: "Domestic tours page" },
-  "International.dc.html": { url: SITE + "/International.dc.html", label: "International tours page" },
-  "Hotels.dc.html": { url: SITE + "/Hotels.dc.html", label: "Hotels page" },
-};
+function pageFor(file) {
+  if (file === "index.html") return { url: SITE + "/", label: "Home page" };
+  if (/\.dc\.html$/.test(file)) return { url: SITE + "/" + file, label: file.replace(/\.dc\.html$/, "") + " page" };
+  return { url: SITE + "/" + file, label: file };
+}
 
 module.exports = async (req, res) => {
   if (req.method !== "POST") return json(res, 405, { error: "POST only" });
@@ -32,8 +32,10 @@ module.exports = async (req, res) => {
     const token = process.env.GH_BOT_TOKEN;
     if (!token) return json(res, 500, { error: "commit bot not configured" });
 
-    // authoritative: re-fetch live source + re-apply (what the owner approved is recomputed, not trusted)
-    const sources = await fetchSources(token);
+    // authoritative: re-fetch live source + re-apply (what the owner approved is recomputed, not trusted).
+    // Fetch the catalog files + any page targeted by a replace_text fix.
+    const extra = changes.filter((c) => c && c.type === "replace_text" && c.file).map((c) => c.file);
+    const sources = await fetchFiles(token, Array.from(new Set([...FILES, ...extra])));
     const applied = applyActions(sources, changes);
     if (!applied.ok) return json(res, 400, { error: "validation failed", results: applied.results });
 
@@ -43,7 +45,7 @@ module.exports = async (req, res) => {
     const commit = await commitFiles({ token, message, author: { name: `${sess.login} (via Skyline Console)` }, files });
 
     // What the owner sees: the live page(s) where the change now shows (after the ~1-min rebuild).
-    const pages = Object.keys(applied.changed).map((f) => PAGE[f]).filter(Boolean);
+    const pages = Object.keys(applied.changed).map(pageFor);
     return json(res, 200, {
       ok: true,
       diffs: applied.results.map((r) => r.diff),

@@ -6,7 +6,7 @@
  */
 const { sessionFromReq } = require("../lib/session");
 const { readJson, json } = require("../lib/http");
-const { fetchSources, catalogFromSources } = require("../lib/catalog-remote");
+const { fetchSources, fetchFiles, catalogFromSources, searchSources, SITE_PAGES } = require("../lib/catalog-remote");
 const { catalogSummary } = require("../lib/read-catalog");
 const { runAgent } = require("../agent/chatbot");
 
@@ -36,14 +36,21 @@ module.exports = async (req, res) => {
   try {
     const token = process.env.GH_BOT_TOKEN;
     if (!token) return json(res, 500, { error: "commit bot not configured" });
-    const sources = await fetchSources(token);
+    const sources = await fetchSources(token);         // catalog files (mutable — search loads more)
     const cat = catalogFromSources(sources);
+    // Lazily load the rest of the pages the first time the agent searches (to fix a reported error).
+    const onSearch = async (query) => {
+      const missing = SITE_PAGES.filter((f) => !(f in sources));
+      if (missing.length) Object.assign(sources, await fetchFiles(token, missing));
+      return searchSources(sources, query);
+    };
     const out = await runAgent({
       messages: toAnthropic(body.messages, body.document),
       sources,
       catalogText: catalogSummary(cat),
       apiKey: process.env.ANTHROPIC_API_KEY,
       model: process.env.CHATBOT_MODEL,
+      onSearch,
     });
     return json(res, 200, { reply: out.reply, proposal: out.proposal, catalog: cat.counts, who: sess.login });
   } catch (e) {

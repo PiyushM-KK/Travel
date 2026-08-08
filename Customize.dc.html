@@ -285,7 +285,7 @@ class Component extends DCLogic {
   formEndpoint = 'https://formspree.io/f/xrewyvoz';
 
   state = {
-    lang: 'en', step: 0, submitted: false, submitError: '', calOpen: null, calY: null, calM: null,
+    lang: (function(){ try { return localStorage.getItem('skyline_lang') || 'en'; } catch (e) { return 'en'; } })(), step: 0, submitted: false, submitError: '', calOpen: null, calY: null, calM: null,
     data: {
       journey: '', dests: [], depCity: '', depDate: '', retDate: '', flexible: false,
       adults: 2, children: 0, seniors: 0, rooms: 1,
@@ -740,7 +740,7 @@ class Component extends DCLogic {
         style: this.state.lang === o.code ? { background: '#EAF5FD', color: '#0A84D6', fontWeight: 700 } : {},
         pick: () => {
           try { if (document.activeElement) document.activeElement.blur(); } catch (e) {}
-          this.setState({ lang: o.code });
+          try { localStorage.setItem('skyline_lang', o.code); } catch (e) {} this.setState({ lang: o.code });
         }
       })),
       formView: !this.state.submitted,

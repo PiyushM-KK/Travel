@@ -179,7 +179,7 @@ class Component extends DCLogic {
   LANGS() { return [{ code: 'en', name: 'English', mark: 'EN' }, { code: 'hi', name: 'हिंदी', mark: 'हिं' }, { code: 'gu', name: 'ગુજરાતી', mark: 'ગુ' }]; }
 
   state = {
-    lang: 'en',
+    lang: (function(){ try { return localStorage.getItem('skyline_lang') || 'en'; } catch (e) { return 'en'; } })(),
     open: false,
     thinking: false,
     unread: 0,
@@ -285,7 +285,7 @@ class Component extends DCLogic {
       launcherLabel: this.state.messages.length > 1 ? this.phrase('resume') : this.phrase('ask'),
       langOptions: this.LANGS().map((l) => ({
         name: l.name, mark: l.mark,
-        pick: () => this.setState({ lang: l.code }),
+        pick: () => { try { localStorage.setItem('skyline_lang', l.code); } catch (e) {} this.setState({ lang: l.code }); },
         style: 'background:' + (l.code === this.state.lang ? '#fff' : 'transparent') + ';color:' + (l.code === this.state.lang ? '#0A84D6' : '#fff'),
       })),
       hasUnread: this.state.unread > 0,

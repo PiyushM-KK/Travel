@@ -402,7 +402,7 @@
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
   state = {
-    lang: 'en',
+    lang: (function(){ try { return localStorage.getItem('skyline_lang') || 'en'; } catch (e) { return 'en'; } })(),
     cookieChoice: null,
     mobileOpen: false,
     heroImages: [
@@ -694,7 +694,7 @@ class Component extends DCLogic {
         style: lang === o.code ? { background: '#eaf3ff', color: '#0a5fd7', fontWeight: 700 } : {},
         pick: () => {
           try { if (document.activeElement) document.activeElement.blur(); } catch (e) {}
-          this.setState({ lang: o.code });
+          try { localStorage.setItem('skyline_lang', o.code); } catch (e) {} this.setState({ lang: o.code });
         }
       })),
       goToFlights: (e) => { e.preventDefault(); alert('Redirect to flights'); },

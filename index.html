@@ -418,53 +418,53 @@ class Component extends DCLogic {
     ],
     destFilter: 'all',
     destinations: [
-      { id: 'raj', slug: 'rajasthan', name: 'Rajasthan', duration: '4-7 days', price: '₹18,000', tags: ['heritage'], img: 'images/dest-rajasthan.jpg' },
-      { id: 'him', slug: 'himachal', name: 'Himachal Pradesh', duration: '5-7 days', price: '₹16,000', tags: ['mountains'], img: 'images/dest-himachal.avif' },
-      { id: 'kash', slug: 'kashmir', name: 'Kashmir', duration: '5-6 days', price: '₹22,000', tags: ['mountains'], img: 'images/dest-kashmir.webp' },
-      { id: 'ker', slug: 'kerala', name: 'Kerala', duration: '4-5 days', price: '₹18,000', tags: ['beaches', 'wildlife'], img: 'images/dest-kerala.webp' },
-      { id: 'goa', slug: 'goa', name: 'Goa', duration: '3-5 days', price: '₹9,999', tags: ['beaches'], img: 'images/dest-goa.jpg' },
-      { id: 'oot', slug: 'ooty', name: 'Ooty & Nilgiris', duration: '3-4 days', price: '₹12,000', tags: ['mountains'], img: 'images/dest-ooty.webp' },
-      { id: 'mys', slug: 'mysuru', name: 'Mysuru & Coorg', duration: '3-4 days', price: '₹13,000', tags: ['heritage', 'wildlife'], img: 'images/dest-mysuru.jpg' },
-      { id: 'agr', slug: 'agra', name: 'Agra & Taj Mahal', duration: '2-3 days', price: '₹9,000', tags: ['heritage'], img: 'images/dest-agra.jpg' },
-      { id: 'uk', slug: 'uttarakhand', name: 'Uttarakhand', duration: '5-7 days', price: '₹16,000', tags: ['mountains', 'wildlife'], img: 'images/dest-uttarakhand.jpg', imgs: ['images/dest-uttarakhand.jpg', 'images/uttarakhand-pine.jpg', 'images/uttarakhand-ridge.jpg', 'images/uttarakhand-waterfall.jpg'], spots: ['Kausani', 'Mukteshwar', 'Binsar', 'Bhalu Gaad Falls'] },
-      { id: 'sik', slug: 'sikkim', name: 'Sikkim', duration: '6-7 days', price: '₹20,000', tags: ['mountains', 'northeast'], img: 'images/dest-sikkim.jpg', imgs: ['images/dest-sikkim.jpg', 'images/dest-sikkim-tsomgo.jpg'], spots: ['Gangtok', 'Tsomgo Lake'] },
-      { id: 'megh', slug: 'meghalaya', name: 'Meghalaya', duration: '5-7 days', price: '₹20,000', tags: ['northeast'], img: 'images/dest-meghalaya.jpg' },
-      { id: 'asm', slug: 'assam', name: 'Assam · Kaziranga', duration: '4-6 days', price: '₹18,000', tags: ['northeast', 'wildlife'], img: 'images/dest-assam.jpg' },
-      { id: 'arun', slug: 'arunachal', name: 'Arunachal Pradesh', duration: '6-8 days', price: '₹26,000', tags: ['northeast', 'mountains'], img: 'images/dest-arunachal.jpg' },
-      { id: 'naga', slug: 'nagaland', name: 'Nagaland', duration: '5-7 days', price: '₹22,000', tags: ['northeast'], img: 'images/dest-nagaland.jpg' },
-      { id: 'mani', slug: 'manipur', name: 'Manipur · Loktak', duration: '4-6 days', price: '₹18,000', tags: ['northeast', 'wildlife'], img: 'images/dest-manipur.jpg' },
-      { id: 'mizo', slug: 'mizoram', name: 'Mizoram', duration: '5-7 days', price: '₹20,000', tags: ['northeast'], img: 'images/dest-mizoram.jpg' }
+      { id: 'raj', slug: 'rajasthan', name: 'Rajasthan', name_hi: 'राजस्थान', name_gu: 'રાજસ્થાન', duration: '4-7 days', price: '₹18,000', tags: ['heritage'], img: 'images/dest-rajasthan.jpg' },
+      { id: 'him', slug: 'himachal', name: 'Himachal Pradesh', name_hi: 'हिमाचल प्रदेश', name_gu: 'હિમાચલ પ્રદેશ', duration: '5-7 days', price: '₹16,000', tags: ['mountains'], img: 'images/dest-himachal.avif' },
+      { id: 'kash', slug: 'kashmir', name: 'Kashmir', name_hi: 'कश्मीर', name_gu: 'કાશ્મીર', duration: '5-6 days', price: '₹22,000', tags: ['mountains'], img: 'images/dest-kashmir.webp' },
+      { id: 'ker', slug: 'kerala', name: 'Kerala', name_hi: 'केरल', name_gu: 'કેરળ', duration: '4-5 days', price: '₹18,000', tags: ['beaches', 'wildlife'], img: 'images/dest-kerala.webp' },
+      { id: 'goa', slug: 'goa', name: 'Goa', name_hi: 'गोवा', name_gu: 'ગોવા', duration: '3-5 days', price: '₹9,999', tags: ['beaches'], img: 'images/dest-goa.jpg' },
+      { id: 'oot', slug: 'ooty', name: 'Ooty & Nilgiris', name_hi: 'ऊटी और नीलगिरि', name_gu: 'ઊટી અને નીલગિરી', duration: '3-4 days', price: '₹12,000', tags: ['mountains'], img: 'images/dest-ooty.webp' },
+      { id: 'mys', slug: 'mysuru', name: 'Mysuru & Coorg', name_hi: 'मैसूर और कूर्ग', name_gu: 'મૈસૂર અને કૂર્ગ', duration: '3-4 days', price: '₹13,000', tags: ['heritage', 'wildlife'], img: 'images/dest-mysuru.jpg' },
+      { id: 'agr', slug: 'agra', name: 'Agra & Taj Mahal', name_hi: 'आगरा और ताजमहल', name_gu: 'આગ્રા અને તાજમહેલ', duration: '2-3 days', price: '₹9,000', tags: ['heritage'], img: 'images/dest-agra.jpg' },
+      { id: 'uk', slug: 'uttarakhand', name: 'Uttarakhand', name_hi: 'उत्तराखंड', name_gu: 'ઉત્તરાખંડ', duration: '5-7 days', price: '₹16,000', tags: ['mountains', 'wildlife'], img: 'images/dest-uttarakhand.jpg', imgs: ['images/dest-uttarakhand.jpg', 'images/uttarakhand-pine.jpg', 'images/uttarakhand-ridge.jpg', 'images/uttarakhand-waterfall.jpg'], spots: ['Kausani', 'Mukteshwar', 'Binsar', 'Bhalu Gaad Falls'] },
+      { id: 'sik', slug: 'sikkim', name: 'Sikkim', name_hi: 'सिक्किम', name_gu: 'સિક્કિમ', duration: '6-7 days', price: '₹20,000', tags: ['mountains', 'northeast'], img: 'images/dest-sikkim.jpg', imgs: ['images/dest-sikkim.jpg', 'images/dest-sikkim-tsomgo.jpg'], spots: ['Gangtok', 'Tsomgo Lake'] },
+      { id: 'megh', slug: 'meghalaya', name: 'Meghalaya', name_hi: 'मेघालय', name_gu: 'મેઘાલય', duration: '5-7 days', price: '₹20,000', tags: ['northeast'], img: 'images/dest-meghalaya.jpg' },
+      { id: 'asm', slug: 'assam', name: 'Assam · Kaziranga', name_hi: 'असम · काज़ीरंगा', name_gu: 'આસામ · કાઝીરંગા', duration: '4-6 days', price: '₹18,000', tags: ['northeast', 'wildlife'], img: 'images/dest-assam.jpg' },
+      { id: 'arun', slug: 'arunachal', name: 'Arunachal Pradesh', name_hi: 'अरुणाचल प्रदेश', name_gu: 'અરુણાચલ પ્રદેશ', duration: '6-8 days', price: '₹26,000', tags: ['northeast', 'mountains'], img: 'images/dest-arunachal.jpg' },
+      { id: 'naga', slug: 'nagaland', name: 'Nagaland', name_hi: 'नागालैंड', name_gu: 'નાગાલેન્ડ', duration: '5-7 days', price: '₹22,000', tags: ['northeast'], img: 'images/dest-nagaland.jpg' },
+      { id: 'mani', slug: 'manipur', name: 'Manipur · Loktak', name_hi: 'मणिपुर · लोकतक', name_gu: 'મણિપુર · લોકતક', duration: '4-6 days', price: '₹18,000', tags: ['northeast', 'wildlife'], img: 'images/dest-manipur.jpg' },
+      { id: 'mizo', slug: 'mizoram', name: 'Mizoram', name_hi: 'मिज़ोरम', name_gu: 'મિઝોરમ', duration: '5-7 days', price: '₹20,000', tags: ['northeast'], img: 'images/dest-mizoram.jpg' }
     ],
     international: [
-      { id: 'thai', slug: 'thailand', name: 'Thailand', duration: '5-7 days', price: '₹42,000', img: 'images/dest-thailand.jpg' },
-      { id: 'bali', slug: 'bali', name: 'Bali', duration: '5-7 days', price: '₹46,000', img: 'images/dest-bali.jpg' },
-      { id: 'mal', slug: 'maldives', name: 'Maldives', duration: '4-6 days', price: '₹58,000', img: 'images/dest-maldives.webp' }
+      { id: 'thai', slug: 'thailand', name: 'Thailand', name_hi: 'थाईलैंड', name_gu: 'થાઇલેન્ડ', duration: '5-7 days', price: '₹42,000', img: 'images/dest-thailand.jpg' },
+      { id: 'bali', slug: 'bali', name: 'Bali', name_hi: 'बाली', name_gu: 'બાલી', duration: '5-7 days', price: '₹46,000', img: 'images/dest-bali.jpg' },
+      { id: 'mal', slug: 'maldives', name: 'Maldives', name_hi: 'मालदीव', name_gu: 'માલદીવ્સ', duration: '4-6 days', price: '₹58,000', img: 'images/dest-maldives.webp' }
     ],
     styles: [
-      { icon: '👨‍👩‍👧‍👦', name: 'Family' },
-      { icon: '💑', name: 'Honeymoon' },
-      { icon: '🙏', name: 'Religious' },
-      { icon: '👥', name: 'Group' },
-      { icon: '🏖️', name: 'Beach' },
-      { icon: '⛰️', name: 'Adventure' },
-      { icon: '👴', name: 'Senior' },
-      { icon: '✨', name: 'Luxury' },
-      { icon: '💰', name: 'Budget' },
-      { icon: '🏢', name: 'Corporate' },
-      { icon: '🎨', name: 'Custom' }
+      { icon: '👨‍👩‍👧‍👦', name: 'Family', name_hi: 'परिवार', name_gu: 'કુટુંબ' },
+      { icon: '💑', name: 'Honeymoon', name_hi: 'हनीमून', name_gu: 'હનીમૂન' },
+      { icon: '🙏', name: 'Religious', name_hi: 'धार्मिक', name_gu: 'ધાર્મિક' },
+      { icon: '👥', name: 'Group', name_hi: 'समूह', name_gu: 'જૂથ' },
+      { icon: '🏖️', name: 'Beach', name_hi: 'समुद्र तट', name_gu: 'દરિયાકિનારો' },
+      { icon: '⛰️', name: 'Adventure', name_hi: 'रोमांच', name_gu: 'સાહસ' },
+      { icon: '👴', name: 'Senior', name_hi: 'वरिष्ठ', name_gu: 'વરિષ્ઠ' },
+      { icon: '✨', name: 'Luxury', name_hi: 'लक्ज़री', name_gu: 'લક્ઝરી' },
+      { icon: '💰', name: 'Budget', name_hi: 'बजट', name_gu: 'બજેટ' },
+      { icon: '🏢', name: 'Corporate', name_hi: 'कॉर्पोरेट', name_gu: 'કોર્પોરેટ' },
+      { icon: '🎨', name: 'Custom', name_hi: 'कस्टम', name_gu: 'કસ્ટમ' }
     ],
     steps: [
-      { num: '1', title: 'Choose Destination', desc: 'Browse domestic or international destinations and packages' },
-      { num: '2', title: 'Share Details', desc: 'Tell us your dates, travellers, budget and preferences' },
-      { num: '3', title: 'Get Itinerary', desc: 'Receive a customized itinerary and quotation' },
-      { num: '4', title: 'Book & Travel', desc: 'Complete booking with official providers and enjoy' }
+      { num: '1', title: 'Choose Destination', title_hi: 'गंतव्य चुनें', title_gu: 'સ્થળ પસંદ કરો', desc: 'Browse domestic or international destinations and packages', desc_hi: 'भारतीय या अंतरराष्ट्रीय गंतव्य और पैकेज देखें', desc_gu: 'ભારતીય કે આંતરરાષ્ટ્રીય સ્થળો અને પેકેજ જુઓ' },
+      { num: '2', title: 'Share Details', title_hi: 'विवरण साझा करें', title_gu: 'વિગતો શેર કરો', desc: 'Tell us your dates, travellers, budget and preferences', desc_hi: 'हमें अपनी तारीख, यात्री, बजट और पसंद बताएं', desc_gu: 'અમને તમારી તારીખ, પ્રવાસીઓ, બજેટ અને પસંદ જણાવો' },
+      { num: '3', title: 'Get Itinerary', title_hi: 'यात्रा योजना पाएं', title_gu: 'પ્રવાસ યોજના મેળવો', desc: 'Receive a customized itinerary and quotation', desc_hi: 'एक कस्टमाइज्ड यात्रा योजना और कोटेशन प्राप्त करें', desc_gu: 'કસ્ટમાઇઝ્ડ પ્રવાસ યોજના અને ક્વોટ મેળવો' },
+      { num: '4', title: 'Book & Travel', title_hi: 'बुक करें और यात्रा करें', title_gu: 'બુક કરો અને પ્રવાસ કરો', desc: 'Complete booking with official providers and enjoy', desc_hi: 'आधिकारिक प्रदाताओं के साथ बुकिंग पूरी करें और आनंद लें', desc_gu: 'અધિકૃત પ્રદાતાઓ સાથે બુકિંગ પૂર્ણ કરો અને આનંદ માણો' }
     ],
     reasons: [
-      { icon: '🇮🇳', title: 'India Expertise', desc: 'Focused destination knowledge across all regions' },
-      { icon: '🌍', title: 'Global Reach', desc: 'Domestic and international packages' },
-      { icon: '⭐', title: 'Hotel Choice', desc: '3-star, 4-star and 5-star options' },
-      { icon: '📋', title: 'Customized', desc: 'Tailored itineraries for every traveller' },
-      { icon: '📞', title: 'WhatsApp Support', desc: 'Direct contact for assistance' }
+      { icon: '🇮🇳', title: 'India Expertise', title_hi: 'भारत विशेषज्ञता', title_gu: 'ભારત નિપુણતા', desc: 'Focused destination knowledge across all regions', desc_hi: 'सभी क्षेत्रों में केंद्रित गंतव्य ज्ञान', desc_gu: 'તમામ પ્રદેશોમાં કેન્દ્રિત સ્થળ જ્ઞાન' },
+      { icon: '🌍', title: 'Global Reach', title_hi: 'वैश्विक पहुंच', title_gu: 'વૈશ્વિક પહોંચ', desc: 'Domestic and international packages', desc_hi: 'भारतीय और अंतरराष्ट्रीय पैकेज', desc_gu: 'ભારતીય અને આંતરરાષ્ટ્રીય પેકેજ' },
+      { icon: '⭐', title: 'Hotel Choice', title_hi: 'होटल विकल्प', title_gu: 'હોટેલ પસંદગી', desc: '3-star, 4-star and 5-star options', desc_hi: '3-स्टार, 4-स्टार और 5-स्टार विकल्प', desc_gu: '3-સ્ટાર, 4-સ્ટાર અને 5-સ્ટાર વિકલ્પો' },
+      { icon: '📋', title: 'Customized', title_hi: 'अनुकूलित', title_gu: 'કસ્ટમાઇઝ્ડ', desc: 'Tailored itineraries for every traveller', desc_hi: 'हर यात्री के लिए अनुकूलित यात्रा योजना', desc_gu: 'દરેક પ્રવાસી માટે કસ્ટમાઇઝ્ડ પ્રવાસ યોજના' },
+      { icon: '📞', title: 'WhatsApp Support', title_hi: 'WhatsApp सहायता', title_gu: 'WhatsApp સપોર્ટ', desc: 'Direct contact for assistance', desc_hi: 'सहायता के लिए सीधा संपर्क', desc_gu: 'સહાય માટે સીધો સંપર્ક' }
     ]
   };
 
@@ -528,6 +528,7 @@ class Component extends DCLogic {
 
   renderVals() {
     const lang = this.state.lang;
+    const tr = (o, k) => (o && (o[k + '_' + lang] || o[k])) || '';
     const translations = {
       en: {
         siteTitle: 'Skyline Travel Planner',
@@ -738,7 +739,7 @@ class Component extends DCLogic {
         .filter((d) => this.state.destFilter === 'all' || (d.tags || []).includes(this.state.destFilter))
         .map((d) => ({
           id: d.id,
-          name: d.name,
+          name: tr(d, 'name'),
           href: 'Destination.dc.html?dest=' + d.slug,
           meta: metaOf(d.duration),
           hasSpots: !!(d.spots && d.spots.length),
@@ -754,10 +755,10 @@ class Component extends DCLogic {
             }
           }))
         })),
-      international: this.state.international.map((i) => ({ ...i, href: 'Destination.dc.html?dest=' + i.slug, meta: metaOf(i.duration), bg: { position: 'absolute', inset: 0, zIndex: 0, backgroundColor: '#dce6f2', backgroundImage: 'url("' + i.img + '")', backgroundSize: 'cover', backgroundPosition: 'center' } })),
-      styles: this.state.styles,
-      steps: this.state.steps,
-      reasons: this.state.reasons,
+      international: this.state.international.map((i) => ({ ...i, name: tr(i, 'name'), href: 'Destination.dc.html?dest=' + i.slug, meta: metaOf(i.duration), bg: { position: 'absolute', inset: 0, zIndex: 0, backgroundColor: '#dce6f2', backgroundImage: 'url("' + i.img + '")', backgroundSize: 'cover', backgroundPosition: 'center' } })),
+      styles: this.state.styles.map((s) => ({ ...s, name: tr(s, 'name') })),
+      steps: this.state.steps.map((st) => ({ ...st, title: tr(st, 'title'), desc: tr(st, 'desc') })),
+      reasons: this.state.reasons.map((r) => ({ ...r, title: tr(r, 'title'), desc: tr(r, 'desc') })),
       ...t
     };
   }

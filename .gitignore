@@ -14,7 +14,12 @@ uploads/
 
 # Local secrets — never commit
 .env
-.claude/
+.claude/*
+!.claude/skills/
+
+# scrollcraft: verification output is 30MB+ of frames and is regenerated
+# in one command (see scrollcraft/builds/<name>/README.md)
+scrollcraft/builds/*/verify-out/
 
 # social-automation (vendored firm platform)
 node_modules/

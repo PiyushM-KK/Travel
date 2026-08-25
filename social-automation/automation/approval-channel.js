@@ -115,27 +115,51 @@ function emailChannelFromEnv(opts = {}) {
   return emailChannel({ to: opts.to || process.env.APPROVAL_EMAIL, send: smtpSend(opts) });
 }
 
+/** One post rendered for a per-message WhatsApp send (used as an image caption, ≤1024 chars). */
+function renderDigestItemText(it) {
+  const code = it.code || it.id;
+  const lines = [`📌 POST #${code}  (${it.language}) → ${(it.platforms || []).join(", ")}`];
+  if (it.caption) lines.push(it.caption);
+  if (it.hashtags && it.hashtags.length) lines.push(it.hashtags.join(" "));
+  if (it.warnings) lines.push(`⚠ ${it.warnings}`);
+  lines.push(`✅ approve ${code}   ❌ reject ${code}   ✏ edit ${code} <new caption>`);
+  return lines.join("\n");
+}
+
 /**
- * WhatsApp channel (WhatsApp Cloud API, owner-gated B-16). Sends the approval
- * digest as a text message to the owner's number. The owner replies "approve
- * <id>" etc.; those replies are handled by the webhook (api/whatsapp-webhook.js).
- * The transport is injectable for tests.
+ * WhatsApp channel (WhatsApp Cloud API, owner-gated B-16). Sends the approval digest to the owner's
+ * number as a short header + ONE message PER POST, each WITH ITS IMAGE so the owner approves what will
+ * actually post (not just the words). Falls back to a text message for any post without a hosted image.
+ * The owner replies "approve <code>" / "reject <code>" / "edit <code> <caption>" — handled by the webhook
+ * (api/whatsapp-webhook.js). Transports are injectable for tests (opts.send text, opts.sendImage, opts.wa).
  */
 function whatsappChannel(opts = {}) {
   const to = opts.to || process.env.WHATSAPP_TO;
-  const send = opts.send; // injectable: (to, text) => Promise
-  if (!send && (!process.env.WHATSAPP_PHONE_NUMBER_ID || !process.env.WHATSAPP_TOKEN || !to)) {
+  const wa = opts.wa || require("./whatsapp");
+  const sendText = opts.send ? (t) => opts.send(to, t) : (t) => wa.sendText(to, t);
+  const sendImage = opts.sendImage ? (l, c) => opts.sendImage(to, l, c) : (wa.sendImage ? (l, c) => wa.sendImage(to, l, c) : null);
+  if (!opts.send && !opts.wa && (!process.env.WHATSAPP_PHONE_NUMBER_ID || !process.env.WHATSAPP_TOKEN || !to)) {
     throw new Error("whatsappChannel needs WHATSAPP_PHONE_NUMBER_ID + WHATSAPP_TOKEN + WHATSAPP_TO (owner-gated B-16)");
   }
   return {
     name: "whatsapp",
     async sendDigest(items) {
-      const text = renderDigestText(items);
-      if (send) await send(to, text);
-      else await require("./whatsapp").sendText(to, text);
-      return { ok: true, count: items.length };
+      if (!items.length) return { ok: true, count: 0, images: 0 };
+      await sendText(`${items.length} post${items.length === 1 ? "" : "s"} awaiting your approval 👇  Reply e.g. “approve ${items[0].code}” or “reject ${items[0].code}”.`);
+      let images = 0;
+      for (const it of items) {
+        const cap = renderDigestItemText(it);
+        const url = it.imageUrl && /^https?:\/\//.test(String(it.imageUrl)) ? String(it.imageUrl) : "";
+        if (url && sendImage) {
+          try { await sendImage(url, cap); images++; }
+          catch (e) { await sendText(cap + "\n(preview image couldn't be attached — approve/reject still works)"); }
+        } else {
+          await sendText(cap);
+        }
+      }
+      return { ok: true, count: items.length, images };
     },
   };
 }
 
-module.exports = { digestItem, renderDigestText, mockChannel, emailChannel, emailChannelFromEnv, smtpSend, whatsappChannel };
+module.exports = { digestItem, renderDigestText, renderDigestItemText, mockChannel, emailChannel, emailChannelFromEnv, smtpSend, whatsappChannel };

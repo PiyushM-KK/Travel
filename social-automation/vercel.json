@@ -20,10 +20,10 @@
   ],
   "functions": {
     "api/cron-package-post.js": {
-      "maxDuration": 60
+      "maxDuration": 300
     },
     "api/cron-prep.js": {
-      "maxDuration": 60
+      "maxDuration": 300
     },
     "api/cron-publish.js": {
       "maxDuration": 60

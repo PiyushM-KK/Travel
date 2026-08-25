@@ -181,9 +181,23 @@ async function buildAndDraftCard(store, ctx, { pkg, smid, source }) {
       const qaOn = ctx.imageQa !== false && process.env.SOCIAL_IMAGE_QA !== "off" &&
         !!(process.env.ANTHROPIC_API_KEY || ctx.qaClient || ctx.assessImage);
       const maxTries = Number.isFinite(ctx.imageQaMaxTries) ? Math.max(1, ctx.imageQaMaxTries) : 2;
+      // TIME BUDGET (B-504 kinship): each gpt-image-1 render is ~40–60s, so a QA re-roll needs a SECOND
+      // render — which blows a 60s serverless cap. Bound the re-roll: once this much wall-clock is spent,
+      // stop re-rolling and use what we have (→ decorative fallback) so the function returns in time. Env
+      // SOCIAL_IMAGE_QA_BUDGET_MS on the platform (e.g. 200000 under a 300s cap); UNSET = Infinity, so the
+      // local CLI / tests re-roll freely to get a clean scene. A re-roll only STARTS if it can likely finish.
+      const qaBudgetMs = Number.isFinite(ctx.imageQaBudgetMs) ? ctx.imageQaBudgetMs
+        : (Number(process.env.SOCIAL_IMAGE_QA_BUDGET_MS) || Infinity);
+      const qaStartMs = Date.now();
       let acceptedBuf = null; // bytes of a scene that passed QA (or the sole render when QA is off)
       const rejected = [];    // per-attempt QA notes (for the owner digest + function logs)
       for (let attempt = 1; attempt <= maxTries; attempt++) {
+        // Never START a re-roll we can't afford — the first render always runs; later ones only if there's budget.
+        if (attempt > 1 && Date.now() - qaStartMs > qaBudgetMs) {
+          rejected.push(`time budget reached (${qaBudgetMs}ms) — not re-rolling`);
+          try { console.warn(JSON.stringify({ evt: "image_qa_budget_stop", attempt, elapsedMs: Date.now() - qaStartMs, budgetMs: qaBudgetMs })); } catch { /* ignore */ }
+          break;
+        }
         const r = await resolveScenePrompt({ pkg, slug, store, client: ctx.client || "skyline", sceneGenClient: ctx.sceneGenClient, model: ctx.sceneModel, recent: ctx.recentScenes, avoid: feedback.avoidScenes });
         const gen = await imageGen(r.prompt, ctx.imageGenOpts || {});
         if (!qaOn) { acceptedBuf = gen.buffer; sceneMeta = r.sceneMeta; break; }

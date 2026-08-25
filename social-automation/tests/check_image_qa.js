@@ -128,5 +128,20 @@ function captureWarn(fn) {
     ok(img.prompts.length === 1, `imageQaMaxTries:${tries} → exactly ONE render (no silent ||2 retry)`);
   }
 
+  // (e) TIME BUDGET: even with tries left, a re-roll must NOT start once the budget is spent — the cron
+  //     must return before its serverless cap. First render always runs; the second is budget-blocked.
+  {
+    const store = new InMemoryStore(), host = mockHost(), img = fakeImageGen();
+    const events = await captureWarn(() => buildAndDraftCard(store, {
+      client: "skyline", hostImageBytes: host.hostImageBytes, deleteHosted: host.deleteHosted,
+      imageGen: img, sceneGenClient: sceneStub(),
+      assessImage: async () => ({ pass: false, score: 2, defects: ["warped"], note: "warped" }),
+      imageQaMaxTries: 5, imageQaBudgetMs: -1, // budget already exceeded → no re-roll after the first render
+    }, { pkg, smid: "qa-budget-1", source: "package-post" }));
+    ok(img.prompts.length === 1, "time budget spent → first render only, NO re-roll (despite maxTries:5)");
+    ok(events.some((e) => e.evt === "image_qa_budget_stop"), "budget stop is logged (image_qa_budget_stop)");
+    ok(events.some((e) => e.evt === "image_qa_fallback_decor"), "budget-stopped weird render → decorative fallback");
+  }
+
   console.log(`\nIMAGE-QA PASS: vision QA scores each AI scene; weird renders are re-rolled and, if still bad, replaced by the clean decorative card — the real-photo workflow is never touched. (${pass} checks)`);
 })().catch((e) => { console.error("FAIL:", e); process.exit(1); });

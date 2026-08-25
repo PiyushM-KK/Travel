@@ -99,15 +99,24 @@ async function buildResellerCards(ctx = {}, opts = {}) {
     const imageGen = ctx.imageGen !== undefined ? ctx.imageGen : require("./image-gen").resolveImageGen();
     let bufB;
     if (imageGen && (ctx.genUsed || 0) < imageGenMax) {
-      // Card B = a FRESH AI scene — the SAME production path as the own-catalogue cards: the dynamic
-      // Scene Generator (grounded to the matched Skyline package, avoiding recent history) with the
-      // static SCENES pool as the fallback. So resold posts get new images too, not the same decor.
+      // Card B = a FRESH AI scene — the SAME production path (and SAME image-QA gate, scene-qa.js) as the
+      // own-catalogue cards: the dynamic Scene Generator (grounded to the matched Skyline package, avoiding
+      // recent history) with the static SCENES pool as the fallback. A weird render is re-rolled; if every
+      // attempt still looks broken we post the code-drawn decorative card, never an AI-broken image.
       const { resolveScenePrompt } = require("./scene-generator");
-      const rs = await resolveScenePrompt({ pkg, slug: match.slug, store: ctx.store, client: ctx.client || "skyline", sceneGenClient: ctx.sceneGenClient, model: ctx.sceneModel, recent: ctx.recentScenes });
-      sceneMeta = rs.sceneMeta;
-      const gen = await imageGen(rs.prompt, ctx.imageGenOpts || {});
-      bufB = await _makeCard({ ...baseCard, photoBytes: gen.buffer, credit: "AI-generated scene · illustrative" });
-      bStyle = "AI scene";
+      const { resolveImageQaConfig, generateQaScene } = require("./scene-qa");
+      const scene = await generateQaScene({
+        nextScene: () => resolveScenePrompt({ pkg, slug: match.slug, store: ctx.store, client: ctx.client || "skyline", sceneGenClient: ctx.sceneGenClient, model: ctx.sceneModel, recent: ctx.recentScenes }),
+        imageGen, imageGenOpts: ctx.imageGenOpts, cfg: resolveImageQaConfig(ctx),
+      });
+      if (scene.buffer) {
+        sceneMeta = scene.sceneMeta;
+        bufB = await _makeCard({ ...baseCard, photoBytes: scene.buffer, credit: "AI-generated scene · illustrative" });
+        bStyle = "AI scene";
+      } else {
+        bufB = await _makeCard({ ...baseCard, decor: true }); bStyle = "decorative"; sceneMeta = null;
+        try { console.warn(JSON.stringify({ evt: "image_qa_fallback_decor", src: "reseller", notes: scene.rejected })); } catch { /* ignore */ }
+      }
     } else { bufB = await _makeCard({ ...baseCard, decor: true }); bStyle = "decorative"; }
     cardUrlB = await hostCard(bufB, `card-b-${smid}`);
   } catch (e) {

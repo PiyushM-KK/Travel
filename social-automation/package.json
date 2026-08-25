@@ -7,7 +7,7 @@
     "node": ">=18"
   },
   "scripts": {
-    "test": "node tests/check_skyline_social.js && node tests/check_skyline_automation.js && node tests/check_airtable_imagesource.js && node tests/check_ab_selection.js && node tests/check_calendar_cards.js && node tests/check_stale_draft_reaper.js && node tests/check_claim_atomicity.js && node tests/check_package_posts.js && node tests/check_parse_decision.js && node tests/check_ops_status.js && node tests/check_generate_deadline.js && node tests/check_reseller.js && node tests/check_pkgcard_fix.js && node tests/check_scene_generator.js && node tests/check_scene_intakes.js && node tests/check_feedback.js && node tests/check_image_qa.js",
+    "test": "node tests/check_skyline_social.js && node tests/check_skyline_automation.js && node tests/check_airtable_imagesource.js && node tests/check_ab_selection.js && node tests/check_calendar_cards.js && node tests/check_stale_draft_reaper.js && node tests/check_claim_atomicity.js && node tests/check_package_posts.js && node tests/check_parse_decision.js && node tests/check_ops_status.js && node tests/check_generate_deadline.js && node tests/check_reseller.js && node tests/check_pkgcard_fix.js && node tests/check_scene_generator.js && node tests/check_scene_intakes.js && node tests/check_feedback.js && node tests/check_image_qa.js && node tests/check_scene_qa.js",
     "prep": "node automation/run.js prep",
     "publish-pass": "node automation/run.js publish",
     "verify-live": "node automation/verify-live.js"

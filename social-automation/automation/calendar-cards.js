@@ -173,48 +173,23 @@ async function buildAndDraftCard(store, ctx, { pkg, smid, source }) {
       // package + avoiding recent history) when the AI Scene Generator is on, else the static SCENES
       // pool. The concept metadata rides on the row (imageSource.sceneMeta) so the next run avoids it.
       const { resolveScenePrompt } = require("./scene-generator");
-      // IMAGE-QUALITY QA GATE: gpt-image-1 routinely emits "weird" renders (warped/melted architecture,
-      // extra fingers, garbled signage, impossible geometry). A vision QA reviewer scores each scene; a
-      // failing scene is RE-ROLLED with a fresh concept (resolveScenePrompt varies every call), and if
-      // every attempt still looks broken we post the code-drawn DECORATIVE card rather than a bad image.
-      const assessImage = ctx.assessImage || require("../engine/generate").assessAiSceneQuality;
-      const qaOn = ctx.imageQa !== false && process.env.SOCIAL_IMAGE_QA !== "off" &&
-        !!(process.env.ANTHROPIC_API_KEY || ctx.qaClient || ctx.assessImage);
-      const maxTries = Number.isFinite(ctx.imageQaMaxTries) ? Math.max(1, ctx.imageQaMaxTries) : 2;
-      // TIME BUDGET (B-504 kinship): each gpt-image-1 render is ~40–60s, so a QA re-roll needs a SECOND
-      // render — which blows a 60s serverless cap. Bound the re-roll: once this much wall-clock is spent,
-      // stop re-rolling and use what we have (→ decorative fallback) so the function returns in time. Env
-      // SOCIAL_IMAGE_QA_BUDGET_MS on the platform (e.g. 200000 under a 300s cap); UNSET = Infinity, so the
-      // local CLI / tests re-roll freely to get a clean scene. A re-roll only STARTS if it can likely finish.
-      const qaBudgetMs = Number.isFinite(ctx.imageQaBudgetMs) ? ctx.imageQaBudgetMs
-        : (Number(process.env.SOCIAL_IMAGE_QA_BUDGET_MS) || Infinity);
-      const qaStartMs = Date.now();
-      let acceptedBuf = null; // bytes of a scene that passed QA (or the sole render when QA is off)
-      const rejected = [];    // per-attempt QA notes (for the owner digest + function logs)
-      for (let attempt = 1; attempt <= maxTries; attempt++) {
-        // Never START a re-roll we can't afford — the first render always runs; later ones only if there's budget.
-        if (attempt > 1 && Date.now() - qaStartMs > qaBudgetMs) {
-          rejected.push(`time budget reached (${qaBudgetMs}ms) — not re-rolling`);
-          try { console.warn(JSON.stringify({ evt: "image_qa_budget_stop", attempt, elapsedMs: Date.now() - qaStartMs, budgetMs: qaBudgetMs })); } catch { /* ignore */ }
-          break;
-        }
-        const r = await resolveScenePrompt({ pkg, slug, store, client: ctx.client || "skyline", sceneGenClient: ctx.sceneGenClient, model: ctx.sceneModel, recent: ctx.recentScenes, avoid: feedback.avoidScenes });
-        const gen = await imageGen(r.prompt, ctx.imageGenOpts || {});
-        if (!qaOn) { acceptedBuf = gen.buffer; sceneMeta = r.sceneMeta; break; }
-        const qa = await assessImage({ buffer: gen.buffer, contentType: gen.contentType || "image/png" }, { client: ctx.qaClient, minScore: ctx.imageQaMinScore });
-        if (qa.pass) { acceptedBuf = gen.buffer; sceneMeta = r.sceneMeta; break; }
-        rejected.push(qa.note || `attempt ${attempt} failed QA`);
-        try { console.warn(JSON.stringify({ evt: "image_qa_reject", attempt, score: qa.score, defects: qa.defects })); } catch { /* ignore */ }
-      }
-      if (acceptedBuf) {
-        bufB = await makeCard({ ...baseCard, photoBytes: acceptedBuf, credit: "AI-generated scene · illustrative" });
-        bStyle = AI_SCENE_STYLE;
-        if (rejected.length) qaNote = `🖼️ AI-scene QA re-rolled ${rejected.length} weird render(s) before this one.`;
+      // IMAGE-QUALITY QA GATE (shared, so EVERY intake's AI scene is checked the same way — see scene-qa.js):
+      // a 15-yr-photographer vision reviewer scores each gpt-image-1 scene; a weird one is RE-ROLLED with a
+      // fresh concept, bounded by a wall-clock budget, and if every attempt still looks broken we post the
+      // code-drawn DECORATIVE card rather than a bad image.
+      const { resolveImageQaConfig, generateQaScene } = require("./scene-qa");
+      const cfg = resolveImageQaConfig(ctx);
+      const scene = await generateQaScene({
+        nextScene: () => resolveScenePrompt({ pkg, slug, store, client: ctx.client || "skyline", sceneGenClient: ctx.sceneGenClient, model: ctx.sceneModel, recent: ctx.recentScenes, avoid: feedback.avoidScenes }),
+        imageGen, imageGenOpts: ctx.imageGenOpts, cfg,
+      });
+      if (scene.buffer) {
+        bufB = await makeCard({ ...baseCard, photoBytes: scene.buffer, credit: "AI-generated scene · illustrative" });
+        bStyle = AI_SCENE_STYLE; sceneMeta = scene.sceneMeta; qaNote = scene.qaNote;
       } else {
         // Every AI attempt looked broken → post the SAFE decorative card, never a weird scene.
-        bufB = await makeCard({ ...baseCard, decor: true }); bStyle = "decorative"; sceneMeta = null;
-        qaNote = `🖼️ AI scene skipped — ${rejected.length} render(s) failed quality QA (${rejected.slice(-1)[0] || "weird/broken"}). Posting the clean decorative card instead.`;
-        try { console.warn(JSON.stringify({ evt: "image_qa_fallback_decor", tries: maxTries, notes: rejected })); } catch { /* ignore */ }
+        bufB = await makeCard({ ...baseCard, decor: true }); bStyle = "decorative"; sceneMeta = null; qaNote = scene.qaNote;
+        try { console.warn(JSON.stringify({ evt: "image_qa_fallback_decor", tries: cfg.maxTries, notes: scene.rejected })); } catch { /* ignore */ }
       }
     } else {
       // No image generator resolved → card B is the code-drawn DECORATIVE gradient, NOT an AI scene.

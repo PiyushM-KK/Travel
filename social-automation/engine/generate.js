@@ -410,14 +410,21 @@ async function assessAiSceneQuality(image, opts = {}) {
         content: [
           { type: "image", source },
           { type: "text", text:
-            "You are a STRICT quality reviewer for AI-generated travel marketing images. Judge ONLY " +
-            "visual realism/coherence — NOT the subject or composition. Flag anything that makes it " +
-            "look AI-broken or 'weird': warped/melted/floating architecture, impossible geometry or " +
-            "perspective, distorted or extra human limbs/hands/fingers/faces, garbled or nonsense text " +
-            "on signs, duplicated or fused objects, smeared/blurred artefact regions, unnatural anatomy. " +
-            "Ignore any text overlaid as a caption/logo by us. Score 0–10 (0 grossly broken, 10 flawless " +
-            "photoreal). Set ok=false if a normal viewer would notice it looks fake or wrong. List each " +
-            "defect you actually see; empty list if genuinely clean." },
+            "You are a travel photographer and photo editor with 15 years of professional travel-" +
+            "photography experience, doing a STRICT final quality check on an AI-generated travel " +
+            "marketing image before it can be published to a client's feed. Judge it with a working " +
+            "photographer's trained eye for realism and craft — you have rejected thousands of frames " +
+            "and you know instantly when something is 'off'. Flag ANYTHING that makes it look AI-broken, " +
+            "fake, or amateur: warped/melted/floating architecture, impossible geometry or perspective, " +
+            "distorted or extra human limbs/hands/fingers/faces, garbled or nonsense text on signs, " +
+            "duplicated or fused objects, smeared/blurred artefact regions, unnatural anatomy, physically " +
+            "impossible light or shadow, plastic/over-smoothed 'AI skin', muddy or blown-out exposure, " +
+            "and cluttered or incoherent composition unfit for a professional post. Judge realism and " +
+            "craft, NOT the choice of subject. Ignore any text/logo we overlaid as a caption. Score 0–10 " +
+            "on a professional bar (0 grossly broken, 7 the MINIMUM you'd let a client publish, 10 " +
+            "indistinguishable from a real professional photograph). Set ok=false if you — as that " +
+            "photographer — would not let it go out. List every defect you actually see; empty list only " +
+            "if it is genuinely clean and publishable." },
         ],
       }],
     });

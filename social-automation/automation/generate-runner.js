@@ -228,11 +228,26 @@ async function generateOne(store, row, ctx) {
           mode: "regenerate", backend: ctx.enhanceBackend, aiEnhancer: ctx.aiEnhancer, prompt: ctx.enhancePrompt,
         });
         if (en.enhanced && en.aiAltered) {
-          regenBytes = { buffer: en.buffer, contentType: en.contentType };
-          imageBytes = regenBytes;                                    // vision sees the enhanced image
-          const d = describeEnhancement(en);
-          if (d.reviewFlag) enhanceFlag = d.reviewFlag;
-          enhanceNote = "✨ Image AI-enhanced — please check it still looks like the real place before approving.";
+          // IMAGE-QUALITY QA: an AI enhancement can WARP a real photo (melted faces, extra fingers,
+          // smeared textures). Check the enhanced result with the SAME 15-yr-photographer vision reviewer
+          // used for AI scenes; if it looks weird, REVERT to the untouched original rather than post a
+          // broken render. Single-shot (re-running the same enhance won't fix it) and fail-open.
+          const enhanced = { buffer: en.buffer, contentType: en.contentType };
+          const originalBytes = imageBytes;
+          const qcfg = require("./scene-qa").resolveImageQaConfig(ctx);
+          let qa = { pass: true };
+          if (qcfg.qaOn) { try { qa = await qcfg.assessImage(enhanced, { client: qcfg.qaClient, minScore: qcfg.minScore }); } catch { qa = { pass: true }; } }
+          if (qa.pass) {
+            regenBytes = enhanced;
+            imageBytes = regenBytes;                                  // vision sees the enhanced image
+            const d = describeEnhancement(en);
+            if (d.reviewFlag) enhanceFlag = d.reviewFlag;
+            enhanceNote = "✨ Image AI-enhanced — please check it still looks like the real place before approving.";
+          } else {
+            imageBytes = originalBytes;                               // keep the untouched photo; no regen preview
+            enhanceNote = "🖼️ AI enhancement discarded — it failed the image quality check (" + (qa.note || "weird/broken") + "). Posting your original image.";
+            try { console.warn(JSON.stringify({ evt: "image_qa_enhance_revert", note: qa.note, defects: qa.defects })); } catch { /* ignore */ }
+          }
         } else {
           // Enhance was requested but produced no AI-altered image — REPORT WHY (en.note
           // carries the reason, e.g. a Claid credit limit / HTTP error) so the owner knows.

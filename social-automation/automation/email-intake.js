@@ -114,14 +114,23 @@ async function runEmailIntake(store, ctx = {}) {
       if (imageGen && imageGenUsed < imageGenMax) {
         imageGenUsed++;
         // Card B = a FRESH AI scene — the shared resolver (dynamic Scene Generator → static SCENES pool),
-        // grounded to the matched Skyline package. Same production path as the own-catalogue cards, so
-        // Gmail-resold posts get new images too (the concept metadata rides on the row for the history loop).
+        // grounded to the matched Skyline package, through the SAME image-QA gate (scene-qa.js) as every
+        // other intake: a weird render is re-rolled, and if every attempt still looks broken we post the
+        // decorative card instead. So Gmail-resold posts get new — and quality-checked — images too.
         const { resolveScenePrompt } = require("./scene-generator");
-        const rs = await resolveScenePrompt({ pkg, slug: match.slug, store, client: ctx.client || "skyline", sceneGenClient: ctx.sceneGenClient, model: ctx.sceneModel });
-        sceneMeta = rs.sceneMeta;
-        const gen = await imageGen(rs.prompt, ctx.imageGenOpts || {});
-        bufB = await makeCard({ ...baseCard, photoBytes: gen.buffer, credit: "AI-generated scene · illustrative" });
-        bStyle = "AI scene";
+        const { resolveImageQaConfig, generateQaScene } = require("./scene-qa");
+        const scene = await generateQaScene({
+          nextScene: () => resolveScenePrompt({ pkg, slug: match.slug, store, client: ctx.client || "skyline", sceneGenClient: ctx.sceneGenClient, model: ctx.sceneModel }),
+          imageGen, imageGenOpts: ctx.imageGenOpts, cfg: resolveImageQaConfig(ctx),
+        });
+        if (scene.buffer) {
+          sceneMeta = scene.sceneMeta;
+          bufB = await makeCard({ ...baseCard, photoBytes: scene.buffer, credit: "AI-generated scene · illustrative" });
+          bStyle = "AI scene";
+        } else {
+          bufB = await makeCard({ ...baseCard, decor: true }); bStyle = "decorative"; sceneMeta = null;
+          try { console.warn(JSON.stringify({ evt: "image_qa_fallback_decor", src: "gmail", notes: scene.rejected })); } catch { /* ignore */ }
+        }
       } else {
         bufB = await makeCard({ ...baseCard, decor: true });
         bStyle = "decorative";

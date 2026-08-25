@@ -19,6 +19,7 @@
 const { factSheet } = require("./kb-adapter");
 const { SOCIAL_PLAYBOOK } = require("./social-playbook");
 const { validatePost } = require("./validate-post");
+const { redact } = require("./publish"); // secret-safe error text (no cycle: publish.js never requires generate.js)
 
 // Lazy: the SDK is only needed when we actually call the API. Requiring it at
 // runtime (not import time) keeps the engine importable offline — e.g. tests
@@ -359,6 +360,80 @@ async function classifyImageForEnhance(image, opts = {}) {
   }
 }
 
+// The QA vision gate returns its verdict through a forced tool call, so we parse structured
+// fields instead of prose. `ok` is the headline pass/fail; `score` (0–10) and `defects` explain it.
+const IMAGE_QA_TOOL = {
+  name: "report_image_quality",
+  description: "Report the visual-quality verdict for an AI-generated marketing image.",
+  input_schema: {
+    type: "object",
+    properties: {
+      ok: { type: "boolean", description: "true only if the image is clean enough to publish" },
+      score: { type: "integer", minimum: 0, maximum: 10, description: "0 = grossly broken, 10 = flawless photoreal" },
+      defects: {
+        type: "array",
+        items: { type: "string" },
+        description: "each visible AI defect, e.g. 'six-fingered hand', 'melted railing', 'garbled signage text'",
+      },
+    },
+    required: ["ok", "score", "defects"],
+  },
+};
+
+/**
+ * assessAiSceneQuality — a QA reviewer for AI-GENERATED scene imagery (gpt-image-1 output for the
+ * "B" card, or an AI-regenerated photo). AI image models routinely produce "weird" renders: warped
+ * or melted architecture, extra/fused limbs and fingers, distorted faces, garbled text on signs,
+ * impossible perspective, duplicated or smeared objects, uncanny artefacts. Those must never reach
+ * the owner's approval — let alone the feed. This looks at the raw scene and scores its realism.
+ *
+ * Returns { pass, score (0–10|null), defects[], note }. FAIL-OPEN by design: with no image, no API
+ * key, or a flaky call it returns pass:true (a QA blip must never halt all posting — the human still
+ * approves). The CALLER decides what a fail means (retry a fresh scene, or fall back to a safe card).
+ *
+ * @param opts.minScore  pass threshold (default 7). opts.client injectable for offline tests.
+ */
+async function assessAiSceneQuality(image, opts = {}) {
+  const source = await imageBlockSource(image);
+  if (!source) return { pass: true, score: null, defects: [], note: "no image to assess" };
+  const client = opts.client || newClient();
+  const minScore = Number.isFinite(opts.minScore) ? opts.minScore : 7;
+  try {
+    const msg = await client.messages.create({
+      // Defect-spotting needs a strong vision model — haiku misses subtle warping. Default Sonnet.
+      model: opts.model || CAPTION_MODEL,
+      max_tokens: 400,
+      tools: [IMAGE_QA_TOOL],
+      tool_choice: { type: "tool", name: "report_image_quality" },
+      messages: [{
+        role: "user",
+        content: [
+          { type: "image", source },
+          { type: "text", text:
+            "You are a STRICT quality reviewer for AI-generated travel marketing images. Judge ONLY " +
+            "visual realism/coherence — NOT the subject or composition. Flag anything that makes it " +
+            "look AI-broken or 'weird': warped/melted/floating architecture, impossible geometry or " +
+            "perspective, distorted or extra human limbs/hands/fingers/faces, garbled or nonsense text " +
+            "on signs, duplicated or fused objects, smeared/blurred artefact regions, unnatural anatomy. " +
+            "Ignore any text overlaid as a caption/logo by us. Score 0–10 (0 grossly broken, 10 flawless " +
+            "photoreal). Set ok=false if a normal viewer would notice it looks fake or wrong. List each " +
+            "defect you actually see; empty list if genuinely clean." },
+        ],
+      }],
+    });
+    const use = (msg.content || []).find((b) => b.type === "tool_use");
+    const out = (use && use.input) || {};
+    const score = Number.isFinite(out.score) ? out.score : null;
+    const defects = Array.isArray(out.defects) ? out.defects.filter(Boolean).map(String) : [];
+    // Fail if the model said not-ok OR the score is below threshold. A null score (malformed reply)
+    // defers to `ok`, and `ok` itself defaults to true only when the model omitted it (fail-open).
+    const pass = out.ok !== false && (score == null || score >= minScore);
+    return { pass, score, defects, note: pass ? "" : (defects.join("; ") || `low quality (score ${score}/10)`) };
+  } catch (e) {
+    return { pass: true, score: null, defects: [], note: "QA skipped — " + redact(String((e && e.message) || e)) };
+  }
+}
+
 /**
  * describeOffer — pull ONLY the travel destinations/places + season/theme from a vendor's
  * offer image, for the #3 "idea, not poster" flow: we use it to brief a SKYLINE post, and we
@@ -620,6 +695,7 @@ module.exports = {
   generateReviewReply,
   describeImage,
   classifyImageForEnhance,
+  assessAiSceneQuality,
   detectForeignBrand,
   describeOffer,
   extractPrices,

@@ -53,7 +53,7 @@ async function runPackagePosts(store, ctx = {}) {
   if (built.status === "skipped") return { considered: built.skipped[0] === smid ? 1 : 0, slot, published: [], notified: [], held: [], skipped: built.skipped };
   if (built.status === "held") return { considered: 1, slot, published: [], notified: [], held: built.held, skipped: [] };
 
-  const { fresh, cardUrlA, cardUrlB, bStyle, options, rp, sweepCards, sceneMeta, caution } = built;
+  const { fresh, cardUrlA, cardUrlB, bStyle, options, rp, sweepCards, sceneMeta, caution, qaNote } = built;
   const code = shortCode(fresh.id);
   const flags = riskFlags(fresh);
   // Carry the AI Scene Generator's concept metadata onto every imageSource we persist, so the scene-
@@ -85,7 +85,7 @@ async function runPackagePosts(store, ctx = {}) {
         return { considered: 1, slot, published: [], notified: [], held: [{ id: fresh.id, reason: `hold failed — could not demote from '${fresh.status}' to pending_approval; NOT notifying (row may still be publishable)` }], skipped: [] };
       }
     }
-    const details = `📦 Skyline package post — HELD for your OK\n   ${pkg.item} — ${pkg.route}\n   Price on card: ${rp.line} (Skyline rate)\n   ${sourceLine(pkg, now)}${caution ? "\n   " + caution : ""}\n   ⚠️ ${holdReason}`;
+    const details = `📦 Skyline package post — HELD for your OK\n   ${pkg.item} — ${pkg.route}\n   Price on card: ${rp.line} (Skyline rate)\n   ${sourceLine(pkg, now)}${caution ? "\n   " + caution : ""}${qaNote ? "\n   " + qaNote : ""}\n   ⚠️ ${holdReason}`;
     const instr = cardUrlB
       ? `\n\nReply:\n🅰️ A ${code} → post the real-photo card\n🅱️ B ${code} → post the ${bStyle} card\n➕ both ${code}\n❌ reject ${code}`
       : `\n\n✅ approve ${code} → posts to Instagram + Facebook   |   ❌ reject ${code}`;

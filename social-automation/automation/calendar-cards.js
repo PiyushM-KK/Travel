@@ -164,6 +164,7 @@ async function buildAndDraftCard(store, ctx, { pkg, smid, source }) {
   try {
     cardUrlA = await hostCard(await makeCard({ ...baseCard, photoPath: pickPhoto(fs, PHOTOS, slug), credit: "Photo: Wikimedia CC" }), `card-a-${smid}`);
   } catch (e) { await store.update(row.id, { status: "held", lastError: "card A render/host failed: " + String((e && e.message) || e) }); return { status: "held", held: [{ id: row.id, reason: "card A render/host failed" }], sweepCards }; }
+  let qaNote = ""; // surfaced to the owner when an AI scene was re-rolled or replaced by the QA gate
   try {
     const imageGen = ctx.imageGen || require("./image-gen").resolveImageGen();
     let bufB;
@@ -172,11 +173,35 @@ async function buildAndDraftCard(store, ctx, { pkg, smid, source }) {
       // package + avoiding recent history) when the AI Scene Generator is on, else the static SCENES
       // pool. The concept metadata rides on the row (imageSource.sceneMeta) so the next run avoids it.
       const { resolveScenePrompt } = require("./scene-generator");
-      const r = await resolveScenePrompt({ pkg, slug, store, client: ctx.client || "skyline", sceneGenClient: ctx.sceneGenClient, model: ctx.sceneModel, recent: ctx.recentScenes, avoid: feedback.avoidScenes });
-      sceneMeta = r.sceneMeta;
-      const gen = await imageGen(r.prompt, ctx.imageGenOpts || {});
-      bufB = await makeCard({ ...baseCard, photoBytes: gen.buffer, credit: "AI-generated scene · illustrative" });
-      bStyle = AI_SCENE_STYLE;
+      // IMAGE-QUALITY QA GATE: gpt-image-1 routinely emits "weird" renders (warped/melted architecture,
+      // extra fingers, garbled signage, impossible geometry). A vision QA reviewer scores each scene; a
+      // failing scene is RE-ROLLED with a fresh concept (resolveScenePrompt varies every call), and if
+      // every attempt still looks broken we post the code-drawn DECORATIVE card rather than a bad image.
+      const assessImage = ctx.assessImage || require("../engine/generate").assessAiSceneQuality;
+      const qaOn = ctx.imageQa !== false && process.env.SOCIAL_IMAGE_QA !== "off" &&
+        !!(process.env.ANTHROPIC_API_KEY || ctx.qaClient || ctx.assessImage);
+      const maxTries = Number.isFinite(ctx.imageQaMaxTries) ? Math.max(1, ctx.imageQaMaxTries) : 2;
+      let acceptedBuf = null; // bytes of a scene that passed QA (or the sole render when QA is off)
+      const rejected = [];    // per-attempt QA notes (for the owner digest + function logs)
+      for (let attempt = 1; attempt <= maxTries; attempt++) {
+        const r = await resolveScenePrompt({ pkg, slug, store, client: ctx.client || "skyline", sceneGenClient: ctx.sceneGenClient, model: ctx.sceneModel, recent: ctx.recentScenes, avoid: feedback.avoidScenes });
+        const gen = await imageGen(r.prompt, ctx.imageGenOpts || {});
+        if (!qaOn) { acceptedBuf = gen.buffer; sceneMeta = r.sceneMeta; break; }
+        const qa = await assessImage({ buffer: gen.buffer, contentType: gen.contentType || "image/png" }, { client: ctx.qaClient, minScore: ctx.imageQaMinScore });
+        if (qa.pass) { acceptedBuf = gen.buffer; sceneMeta = r.sceneMeta; break; }
+        rejected.push(qa.note || `attempt ${attempt} failed QA`);
+        try { console.warn(JSON.stringify({ evt: "image_qa_reject", attempt, score: qa.score, defects: qa.defects })); } catch { /* ignore */ }
+      }
+      if (acceptedBuf) {
+        bufB = await makeCard({ ...baseCard, photoBytes: acceptedBuf, credit: "AI-generated scene · illustrative" });
+        bStyle = AI_SCENE_STYLE;
+        if (rejected.length) qaNote = `🖼️ AI-scene QA re-rolled ${rejected.length} weird render(s) before this one.`;
+      } else {
+        // Every AI attempt looked broken → post the SAFE decorative card, never a weird scene.
+        bufB = await makeCard({ ...baseCard, decor: true }); bStyle = "decorative"; sceneMeta = null;
+        qaNote = `🖼️ AI scene skipped — ${rejected.length} render(s) failed quality QA (${rejected.slice(-1)[0] || "weird/broken"}). Posting the clean decorative card instead.`;
+        try { console.warn(JSON.stringify({ evt: "image_qa_fallback_decor", tries: maxTries, notes: rejected })); } catch { /* ignore */ }
+      }
     } else {
       // No image generator resolved → card B is the code-drawn DECORATIVE gradient, NOT an AI scene.
       // This is silent-by-design (it's a valid fallback), but a MISSING/misnamed OPENAI_API_KEY looks
@@ -204,7 +229,7 @@ async function buildAndDraftCard(store, ctx, { pkg, smid, source }) {
   if (fresh.imageUrl !== cardUrlA) { await store.update(fresh.id, { imageUrl: cardUrlA, imageSource: imgSrc() }); fresh.imageUrl = cardUrlA; }
   if (res.outcome !== "pending" && res.outcome !== "approved") { await sweepCards([cardUrlA, cardUrlB]); return { status: "held", held: [{ id: fresh.id, reason: res.reason || fresh.lastError || "" }], sweepCards }; }
 
-  return { status: "drafted", fresh, cardUrlA, cardUrlB, bStyle, options, rp, pkg, res, sweepCards, sceneMeta, caution };
+  return { status: "drafted", fresh, cardUrlA, cardUrlB, bStyle, options, rp, pkg, res, sweepCards, sceneMeta, caution, qaNote };
 }
 
 async function runCalendarCards(store, ctx = {}) {
@@ -221,9 +246,9 @@ async function runCalendarCards(store, ctx = {}) {
   if (built.status === "skipped") return { considered: built.skipped[0] === smid ? 1 : 0, notified: [], held: [], skipped: built.skipped };
   if (built.status === "held") return { considered: 1, notified: [], held: built.held, skipped: [] };
 
-  const { fresh, cardUrlA, cardUrlB, bStyle, rp, options, caution } = built;
+  const { fresh, cardUrlA, cardUrlB, bStyle, rp, options, caution, qaNote } = built;
   const code = shortCode(fresh.id);
-  const details = `📅 Skyline package feature (auto)\n   Package: ${pkg.item} — ${pkg.route}\n   Price on card: ${rp.line} (Skyline rate)\n   ${sourceLine(pkg, now)}${caution ? "\n   " + caution : ""}`;
+  const details = `📅 Skyline package feature (auto)\n   Package: ${pkg.item} — ${pkg.route}\n   Price on card: ${rp.line} (Skyline rate)\n   ${sourceLine(pkg, now)}${caution ? "\n   " + caution : ""}${qaNote ? "\n   " + qaNote : ""}`;
   const instr = cardUrlB
     ? `\n\nReply:\n🅰️ A ${code} → post the real-photo card\n🅱️ B ${code} → post the ${bStyle} card\n➕ both ${code} → post both\n❌ reject ${code}`
     : `\n\n✅ approve ${code} → posts to Instagram + Facebook   |   ❌ reject ${code}`;

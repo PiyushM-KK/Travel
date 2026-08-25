@@ -306,9 +306,26 @@
   }
 
   /* =================================================================== BOOT */
+  /* Reduced motion is a DOCUMENT, not a corpse. The stages un-pin in CSS, and
+     the engine must then stop driving opacity entirely: a window on a progress
+     value the reader is never going to travel through would leave that content
+     at opacity 0 forever, which is worse than the animation it replaced. */
+  function revealAll() {
+    var acts = document.querySelectorAll('[data-sc-in]');
+    for (var i = 0; i < acts.length; i++) {
+      var el = acts[i];
+      el.style.opacity = '1';
+      el.style.visibility = 'visible';
+      el.style.transform = 'none';
+      el.style.filter = 'none';
+      el.style.setProperty('--sc-lp', '1');
+    }
+  }
+
   function boot() {
     collectStages();
     wireCues();
+    if (reduced) { revealAll(); DOC.classList.add('sc-ready'); return; }
     wireVideo();
     frame();
     window.addEventListener('scroll', request, { passive: true });

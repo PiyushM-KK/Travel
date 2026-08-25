@@ -212,7 +212,10 @@ h2.act--quiet { font-size: clamp(24px, 3vw, 42px); letter-spacing: -.022em; line
   .sc-stage__fixed { display: block }
   .sc-layer { position: relative; height: 78vh; opacity: 1 !important; visibility: visible !important; filter: none !important }
   .plate, .strip, .railwrap, .veil { position: relative; inset: auto; width: auto; transform: none !important; opacity: 1 !important; visibility: visible !important; padding: var(--sc-5) var(--sc-pad-x) }
-  .veil { display: none }
+  .veil, .strip__bg--light { display: none }
+  .strip__bg { position: absolute; inset: -14px -18px }
+  .strip__rows { background: none }
+  .row { border-bottom: 1px solid var(--sc-line) }
   .sample { position: static }
 }
 </style>

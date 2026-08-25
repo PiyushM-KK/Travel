@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Skyline Travel Planner — sample scroll build (not the live site)</title>
+<meta name="description" content="A scrollcraft sample build. Not linked from and not part of skylinetravelplanner.com.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="engine/scrollcraft.css">
+<style>
+/* ===========================================================================
+   THEME LAYER — the six colour roles and two families. Nothing else.
+   Skyline's own brand: ink #1a2332, blue #0a5fd7, sky #5fc2f0, sand #f5efe6.
+   The engine is untouched; the ground and ink TRAVEL, so these are the values
+   the page starts from, not the values it keeps.
+   ========================================================================= */
+:root {
+  --sc-ground:   #0b1018;
+  --sc-ground-2: #131a24;
+  --sc-ink:      #f4f7fb;
+  --sc-ink-2:    #c9d8e8;   /* the brand blue, desaturated and lifted. Not grey. */
+  --sc-line:     #26313e;
+  --sc-accent:   #5fc2f0;
+  /* Skyline's two live families. The fallbacks are chosen, not left to chance:
+     both are grotesques, so a blocked font request degrades the page's weight
+     and colour rather than its character. */
+  --sc-display: 'Bricolage Grotesque', 'Trebuchet MS', 'Segoe UI', system-ui, sans-serif;
+  --sc-text:    'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --sc-far-blur: 4px;
+}
+
+/* ===========================================================================
+   THIS PAGE. None of it belongs to any other page.
+   ========================================================================= */
+
+/* --- the world: full-bleed photography, one continuous place --- */
+.world img { object-position: center 52%; }
+.world .sc-layer { transform-origin: 52% 56%; }
+
+/* a scrim that is measured rather than decorative: the verifier grades the
+   composited result, so these are tuned against its report, not by eye */
+.veil {
+  position: absolute; inset: 0; pointer-events: none; z-index: 5;
+  background:
+    linear-gradient(102deg, rgba(6,10,16,.90) 0%, rgba(6,10,16,.70) 36%, rgba(6,10,16,.14) 64%, rgba(6,10,16,.40) 100%),
+    linear-gradient(0deg, rgba(6,10,16,.78) 0%, rgba(6,10,16,.30) 34%, rgba(6,10,16,0) 56%);
+}
+.veil--light {
+  background:
+    linear-gradient(102deg, rgba(250,247,242,.84) 0%, rgba(250,247,242,.58) 36%, rgba(250,247,242,.08) 64%, rgba(250,247,242,.26) 100%),
+    linear-gradient(0deg, rgba(250,247,242,.52) 0%, rgba(250,247,242,.16) 36%, rgba(250,247,242,0) 58%);
+}
+
+/* --- copy plates --- */
+.plate {
+  position: absolute; z-index: 10;
+  left: var(--sc-pad-x); bottom: clamp(88px, 13vh, 140px);
+  width: min(52ch, calc(100vw - var(--sc-pad-x) * 2 - 280px));
+}
+.plate--hero { width: min(900px, calc(100vw - var(--sc-pad-x) * 2 - 300px)); }
+.plate--mid { top: 50%; bottom: auto; transform: translateY(-50%); }
+.plate--card {
+  padding: var(--sc-6) var(--sc-6) var(--sc-5);
+  border-radius: 3px;
+  background: linear-gradient(178deg, rgba(9,14,20,.80), rgba(9,14,20,.66));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 26px 64px -34px rgba(0,0,0,.95);
+}
+.plate--card-light {
+  background: linear-gradient(178deg, rgba(253,251,247,.90), rgba(250,246,240,.80));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 24px 60px -36px rgba(26,35,50,.42);
+}
+.plate--wide { width: min(64ch, calc(100vw - var(--sc-pad-x) * 2 - 280px)); }
+
+.eyebrow {
+  font-size: 11px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--sc-accent); margin: 0 0 var(--sc-4);
+}
+.eyebrow--dark { color: #0a51bd; }
+
+h1.hero {
+  font-family: var(--sc-display); font-weight: 700;
+  font-size: clamp(40px, 7.6vw, 112px);
+  line-height: .93; letter-spacing: -.042em; margin: 0;
+}
+h2.act {
+  font-family: var(--sc-display); font-weight: 700;
+  font-size: clamp(30px, 4.6vw, 68px);
+  line-height: .98; letter-spacing: -.032em; margin: 0;
+}
+h2.act--quiet { font-size: clamp(24px, 3vw, 42px); letter-spacing: -.022em; line-height: 1.12; }
+
+.lede {
+  font-size: clamp(15.5px, 1.1vw, 18px); line-height: 1.62;
+  color: var(--sc-ink-2); max-width: 46ch; margin: var(--sc-5) 0 0;
+}
+.lede--dark { color: #3d4c5c; }
+.note {
+  font-size: 13px; line-height: 1.55; color: var(--sc-ink-2);
+  max-width: 44ch; margin: var(--sc-4) 0 0; opacity: .82;
+}
+
+/* museum label: place, then the facts, on a hairline */
+.label { border-left: 1px solid var(--sc-line); padding-left: var(--sc-4); }
+.label .where { font-family: var(--sc-display); font-weight: 700; font-size: clamp(26px,3.4vw,46px); letter-spacing: -.026em; line-height: 1.04; margin: 0; }
+.label .facts { font-size: 14px; line-height: 1.6; color: var(--sc-ink-2); margin: var(--sc-3) 0 0; max-width: 34ch; }
+
+/* ---------------------------------------------------------------------------
+   THE SIGNATURE MOVE — the itinerary strip.
+   A column present from the first viewport, empty. It writes itself one day at
+   a time as you travel, it never erases, and at the end it is the only thing
+   left. The page builds the thing the business actually sells, in front of you.
+   ------------------------------------------------------------------------- */
+.strip {
+  position: absolute; z-index: 20;
+  top: clamp(24px, 5vh, 56px); right: var(--sc-pad-x);
+  width: 230px;
+  font-size: 13px;
+}
+.strip__bg { position: absolute; inset: -18px -22px -22px -24px; z-index: -1; border-radius: 3px; border: 1px solid rgba(255,255,255,.09); }
+.strip__bg--dark  { background: linear-gradient(196deg, rgba(6,10,16,.88) 0%, rgba(6,10,16,.80) 58%, rgba(6,10,16,.66) 100%); }
+.strip__bg--light { border-color: rgba(26,35,50,.12); background: linear-gradient(196deg, rgba(253,251,247,.95) 0%, rgba(251,248,243,.90) 58%, rgba(250,246,240,.80) 100%); }
+
+.strip__head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: var(--sc-3); padding-bottom: var(--sc-3);
+  border-bottom: 1px solid var(--sc-line);
+}
+.strip__title { font-size: 10.5px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: var(--sc-ink-2); }
+.strip__count { font-family: var(--sc-display); font-weight: 700; font-size: 15px; color: var(--sc-accent); font-variant-numeric: tabular-nums; }
+
+.strip__rows {
+  position: relative; margin-top: var(--sc-1);
+  background: repeating-linear-gradient(180deg, transparent 0 41px, var(--sc-line) 41px 42px);
+}
+.row {
+  display: grid; grid-template-columns: 62px 1fr; gap: var(--sc-3);
+  padding: var(--sc-3) 0 calc(var(--sc-3) - 1px);
+  border-bottom: 1px solid var(--sc-line);
+  position: relative;
+  align-items: baseline;
+}
+.row .day { white-space: nowrap; font-size: 10.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--sc-ink-2); }
+.row .place { font-family: var(--sc-display); font-weight: 500; font-size: 15px; letter-spacing: -.012em; color: var(--sc-ink); }
+/* the entry is written, not revealed: the rule under it draws in as it arrives */
+.row::after {
+  content: ''; position: absolute; left: 0; bottom: -1px; height: 1px;
+  width: calc(var(--sc-lp, 0) * 100%); background: var(--sc-accent); opacity: .55;
+}
+.strip__foot { padding-top: var(--sc-3); font-size: 11.5px; line-height: 1.5; color: var(--sc-ink-2); }
+
+/* --- the rail: peers, none of them the point --- */
+.railwrap { position: absolute; z-index: 10; left: 0; right: 0; bottom: clamp(90px, 15vh, 170px); overflow: hidden; }
+.rail { gap: var(--sc-4); padding: 0 var(--sc-pad-x); align-items: flex-end; }
+.rail figure { margin: 0; flex: 0 0 auto; }
+.rail img { display: block; border-radius: 2px; box-shadow: 0 18px 44px -26px rgba(0,0,0,.95), inset 0 1px 0 rgba(255,255,255,.08); }
+.rail figcaption { font-size: 12px; color: var(--sc-ink-2); padding-top: var(--sc-2); letter-spacing: .01em; }
+.rail figcaption b { color: var(--sc-ink); font-weight: 600; }
+/* real aspect ratios, deliberately uneven. Uniform crops are what make a set
+   of photographs look like a template. */
+.rail .r1 img { width: 190px; height: 250px; object-fit: cover }
+.rail .r2 img { width: 300px; height: 190px; object-fit: cover }
+.rail .r3 img { width: 220px; height: 290px; object-fit: cover }
+.rail .r4 img { width: 340px; height: 215px; object-fit: cover }
+.rail .r5 img { width: 200px; height: 200px; object-fit: cover }
+
+/* --- how it is planned: a continuous readout, not four cards --- */
+.beats { margin: var(--sc-6) 0 0; padding: 0; list-style: none; max-width: 40ch; }
+.beats li { display: grid; grid-template-columns: 74px 1fr; gap: var(--sc-4); padding: var(--sc-4) 0; border-top: 1px solid var(--sc-line); align-items: baseline; }
+.beats .n { font-size: 10.5px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--sc-accent); }
+.beats .b { font-size: 15px; line-height: 1.5; color: var(--sc-ink); }
+.beats .b span { display: block; color: var(--sc-ink-2); font-size: 13.5px; padding-top: 2px; }
+
+/* --- the close: running text, not a button band --- */
+.close p { font-size: clamp(19px, 2.1vw, 30px); line-height: 1.42; letter-spacing: -.018em; max-width: 24ch; margin: 0; color: #16202c; font-family: var(--sc-display); font-weight: 500; }
+.close .eyebrow { font-family: var(--sc-text); font-weight: 600; font-size: 11px; letter-spacing: .2em; margin: 0 0 var(--sc-5); }
+.close a { color: #0a4bad; text-decoration: none; border-bottom: 1px solid rgba(10,95,215,.42); }
+.close a:hover { border-bottom-color: #0a5fd7; }
+.close .fine { font-family: var(--sc-text); font-weight: 400; font-size: 12.5px; line-height: 1.6; color: #3d4c5c; max-width: 46ch; margin: var(--sc-6) 0 0; letter-spacing: 0; }
+
+/* the sample marker. This build is not the live site and must never read as it. */
+.sample {
+  position: fixed; z-index: 90; left: var(--sc-pad-x); top: clamp(24px, 5vh, 56px);
+  font-size: 10.5px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase;
+  display: flex; align-items: center; gap: var(--sc-2);
+}
+.sample { padding: 7px 12px 7px 10px; border-radius: 2px; background: rgba(6,10,16,.78); color: #dbe6f2; }
+.sample::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--sc-accent); }
+
+/* --- phones: the strip goes to the foot and keeps only what is legible --- */
+@media (max-width: 900px) {
+  .plate, .plate--wide { width: auto; right: var(--sc-pad-x); }
+  .plate { bottom: clamp(150px, 26vh, 230px); }
+  .strip { top: auto; bottom: var(--sc-4); left: var(--sc-pad-x); right: var(--sc-pad-x); width: auto; }
+  .strip__rows { display: flex; gap: var(--sc-4); overflow: hidden; background: none; }
+  .row { border-bottom: none; padding: var(--sc-2) 0 0; grid-template-columns: 1fr; gap: 0; }
+  .row .place { font-size: 13.5px; }
+  .strip__foot { display: none; }
+  .railwrap { bottom: clamp(210px, 34vh, 280px); }
+}
+@media (max-width: 560px) {
+  .rail .r1 img, .rail .r3 img { width: 132px; height: 176px }
+  .rail .r2 img, .rail .r4 img { width: 200px; height: 132px }
+  .rail .r5 img { width: 140px; height: 140px }
+}
+
+/* reduced motion: the stage un-pins into an ordinary document, so the layers
+   must stop being absolutely positioned on top of one another */
+@media (prefers-reduced-motion: reduce) {
+  .sc-stage__fixed { display: block }
+  .sc-layer { position: relative; height: 78vh; opacity: 1 !important; visibility: visible !important; filter: none !important }
+  .plate, .strip, .railwrap, .veil { position: relative; inset: auto; width: auto; transform: none !important; opacity: 1 !important; visibility: visible !important; padding: var(--sc-5) var(--sc-pad-x) }
+  .veil, .strip__bg--light { display: none }
+  .strip__bg { position: absolute; inset: -14px -18px }
+  .strip__rows { background: none }
+  .row { border-bottom: 1px solid var(--sc-line) }
+  .sample { position: static }
+}
+</style>
+</head>
+<body>
+
+<p class="sample">Sample build · not the live site</p>
+
+<!-- ONE stage for the entire document. There is no section boundary anywhere on
+     this page, and the last leg returns you to the first. -->
+<main class="sc-stage" style="--sc-legs: 10"
+      data-sc-stage
+      data-sc-ground="0 #0b1018 | .12 #10202c | .30 #14161c | .50 #0c1015 | .64 #1b2a3a | .82 #172029 | .8934 #f6f2ec | 1 #f6f2ec"
+      data-sc-ink="0 #f4f7fb | .889 #f4f7fb | .8934 #16202c | 1 #16202c"
+      data-sc-ink-2="0 #c9d8e8 | .889 #c9d8e8 | .8934 #46586c | 1 #46586c"
+      data-sc-accent="0 #5fc2f0 | .889 #5fc2f0 | .8934 #0a51bd | 1 #0a51bd">
+<div class="sc-stage__fixed world sc-grain">
+
+  <!-- The veil is CONTINUOUS, because the world is. It rides above every layer
+       and below every plate, and hands over to its light twin at the return. -->
+  <div class="sc-layer veil" data-sc-in="0" data-sc-out=".902" data-sc-hold="start" data-sc-fade=".012"></div>
+  <div class="sc-layer veil veil--light" data-sc-in=".889" data-sc-out="1" data-sc-hold="end" data-sc-fade=".04"></div>
+
+  <!-- ===================== LEG 1 · unhurried · the backwaters at first light -->
+  <div class="sc-layer" data-depth="mid"
+       data-sc-in="0" data-sc-out=".12" data-sc-hold="start" data-sc-fade=".2"
+       data-sc-scale="1.06 1.15" data-sc-y="0 -2">
+    <img src="../../../images/hero-kerala.jpg" alt="Still backwater at first light, palms holding the far bank, a single channel opening into mist.">
+  </div>
+
+  <div class="plate plate--hero" data-sc-in="0" data-sc-out=".11" data-sc-hold="start" data-sc-fade=".22" data-sc-y="0 -3">
+    <p class="eyebrow">Skyline Travel Planner</p>
+    <h1 class="hero sc-lines"><span>Your India,</span><span>in the order</span><span>you want it.</span></h1>
+    <p class="lede">Every trip we plan begins as an empty column and fills in one day at a time. This is one of them, being written as you go.</p>
+  </div>
+
+  <!-- ============================================ LEG 2 · curious · the coast -->
+  <div class="sc-layer" data-depth="mid"
+       data-sc-in=".10" data-sc-out=".23" data-sc-fade=".2"
+       data-sc-scale="1.14 1.02" data-sc-blur="5 0">
+    <img src="../../../images/dest-goa.jpg" alt="Warm surf running up an empty beach on the Arabian Sea, late afternoon light along the sand.">
+  </div>
+  <div class="plate" data-sc-in=".115" data-sc-out=".225" data-sc-fade=".24" data-sc-y="3 -3">
+    <div class="label">
+      <p class="where">The coast, first</p>
+      <p class="facts">Three to five days on the Arabian Sea. From ₹9,999 per person, with three, four and five star stays priced separately.</p>
+    </div>
+  </div>
+
+  <!-- ============================================ LEG 3 · implicated · the river -->
+  <div class="sc-layer" data-depth="mid"
+       data-sc-in=".21" data-sc-out=".35" data-sc-fade=".2"
+       data-sc-scale="1.02 1.13" data-sc-y="3 -4">
+    <img src="../../../images/hero-ghats.jpg" alt="Stone steps crowded down to the river at the ghats, boats moored against the bank in flat morning light.">
+  </div>
+  <div class="plate" data-sc-in=".225" data-sc-out=".345" data-sc-fade=".24" data-sc-y="3 -3">
+    <div class="label">
+      <p class="where">Then the river</p>
+      <p class="facts">The old ghats at the hour they are actually used, which is early. We build the day around that, not around the coach.</p>
+    </div>
+  </div>
+
+  <!-- ================================================= LEG 4 · braced · Agra -->
+  <div class="sc-layer" data-depth="mid"
+       data-sc-in=".33" data-sc-out=".46" data-sc-fade=".2"
+       data-sc-scale="1.12 1.02" data-sc-blur="4 0">
+    <img src="../../../images/hero-taj.jpg" alt="The Taj Mahal held small in the frame, its dome pale against a washed sky.">
+  </div>
+  <div class="plate" data-sc-in=".345" data-sc-out=".455" data-sc-fade=".24" data-sc-y="3 -3">
+    <div class="label">
+      <p class="where">Agra, briefly</p>
+      <p class="facts">Two to three days, from ₹9,000 per person. Long enough to see it twice, in two different lights.</p>
+    </div>
+  </div>
+
+  <!-- ================================== LEG 5 · REST · the silence before the peak
+       Deliberately almost nothing. One line, a slow push, the ground going dark.
+       This viewport is the peak's asset budget. -->
+  <div class="sc-layer" data-depth="far"
+       data-sc-in=".44" data-sc-out=".58" data-sc-fade=".26"
+       data-sc-scale="1.2 1.32" data-sc-blur="10 22">
+    <img src="../../../images/uttarakhand-ridge.jpg" alt="A pine ridge dissolving into cloud, almost entirely out of focus.">
+  </div>
+  <div class="plate plate--mid" data-sc-in=".455" data-sc-out=".565" data-sc-fade=".3">
+    <h2 class="act act--quiet">And then the road runs out of country.</h2>
+  </div>
+
+  <!-- ============================ LEG 6 · PEAK · small · Dal Lake, Kashmir
+       The best asset in the library, the most scroll room, and the only place on
+       this page where more than two devices fire at once. -->
+  <div class="sc-layer" data-depth="near"
+       data-sc-in=".55" data-sc-out=".72" data-sc-fade=".16"
+       data-sc-scale="1.16 1.0" data-sc-y="4 -3" data-sc-pointer="14">
+    <img src="../../../images/dest-kashmir.webp" alt="One shikara crossing Dal Lake, tiny on still water, snow mountains standing behind it in cold blue haze.">
+  </div>
+  <div class="plate" data-sc-in=".585" data-sc-out=".715" data-sc-fade=".2" data-sc-y="4 -4">
+    <p class="eyebrow">Day seven</p>
+    <h2 class="act sc-lines"><span>You are very small</span><span>and it is very quiet.</span></h2>
+    <p class="lede">Five to six days in the valley, from ₹22,000 per person. One boat, one lake, and the part of the trip nobody writes down afterwards because there is nothing to write.</p>
+  </div>
+
+  <!-- ================================= LEG 7 · restless · everywhere else it goes -->
+  <div class="sc-layer" data-depth="far"
+       data-sc-in=".71" data-sc-out=".83" data-sc-fade=".2"
+       data-sc-scale="1.16 1.06" data-sc-blur="14 9">
+    <img src="../../../images/dest-meghalaya.jpg" alt="Green hill country under heavy cloud, ridge behind ridge going soft with distance.">
+  </div>
+
+  <div class="plate" data-sc-in=".72" data-sc-out=".83" data-sc-fade=".22" data-sc-y="2 -2" style="bottom:auto; top:clamp(96px,17vh,168px)">
+    <p class="eyebrow">Nineteen routes, not one</p>
+    <h2 class="act act--quiet">That was a sample. Here is the rest of the map.</h2>
+  </div>
+
+  <div class="railwrap" data-sc-in=".705" data-sc-out=".855" data-sc-fade=".16">
+    <div class="sc-rail rail" data-sc-rail data-sc-rail-at=".732 .828">
+      <figure class="r1"><img src="../../../images/dest-rajasthan.jpg" alt="A carved sandstone facade in low sun, deep shadow in every opening."><figcaption><b>Rajasthan</b> · 4 to 7 days</figcaption></figure>
+      <figure class="r2"><img src="../../../images/dest-himachal.avif" alt="Deodar slopes falling away below a hill road."><figcaption><b>Himachal</b> · 5 to 7 days</figcaption></figure>
+      <figure class="r3"><img src="../../../images/dest-sikkim.jpg" alt="A monastery roof against high snow, prayer flags strung across the frame."><figcaption><b>Sikkim</b> · 6 to 7 days</figcaption></figure>
+      <figure class="r4"><img src="../../../images/dest-kerala.webp" alt="A houseboat moving through narrow backwater, palms closing overhead."><figcaption><b>Kerala</b> · 4 to 5 days</figcaption></figure>
+      <figure class="r5"><img src="../../../images/dest-assam.jpg" alt="Tall elephant grass in flat river light, Kaziranga."><figcaption><b>Assam and Kaziranga</b> · 4 to 6 days</figcaption></figure>
+      <figure class="r2"><img src="../../../images/dest-arunachal.jpg" alt="A high pass road curling into cloud."><figcaption><b>Arunachal</b> · 6 to 8 days</figcaption></figure>
+      <figure class="r1"><img src="../../../images/dest-thailand.jpg" alt="Limestone stacks standing out of green water."><figcaption><b>Thailand</b> · 5 to 7 days</figcaption></figure>
+      <figure class="r3"><img src="../../../images/dest-bali.jpg" alt="Stepped rice terraces in wet morning light."><figcaption><b>Bali</b> · 5 to 7 days</figcaption></figure>
+      <figure class="r5"><img src="../../../images/dest-maldives.webp" alt="A single overwater room on pale shallow water."><figcaption><b>Maldives</b> · 4 to 6 days</figcaption></figure>
+    </div>
+  </div>
+
+  <!-- ============================================ LEG 8 · trusted · how it is made -->
+  <div class="sc-layer" data-depth="far"
+       data-sc-in=".82" data-sc-out=".898" data-sc-fade=".2"
+       data-sc-scale="1.14 1.06" data-sc-blur="16 12">
+    <img src="../../../images/hero-hotel-2.jpg" alt="A quiet hotel room in the afternoon, curtain half drawn, the bed made.">
+  </div>
+
+  <div class="plate plate--wide plate--card" data-sc-in=".825" data-sc-out=".884" data-sc-fade=".22" data-sc-y="2 -2" style="bottom:auto; top:50%; transform:translateY(-50%)">
+    <p class="eyebrow">How the column gets written</p>
+    <ol class="beats">
+      <li><span class="n">One</span><span class="b">You pick a direction<span>A place, or just a month and a rough idea.</span></span></li>
+      <li><span class="n">Two</span><span class="b">You tell us the awkward parts<span>Dates, how many of you, who does not walk far, what the budget really is.</span></span></li>
+      <li><span class="n">Three</span><span class="b">We send the column back filled in<span>A day by day itinerary and a quotation, with hotel tiers priced separately.</span></span></li>
+      <li><span class="n">Four</span><span class="b">You change it<span>Most people do. That is the point of it being a column and not a brochure.</span></span></li>
+    </ol>
+  </div>
+
+  <!-- ============ LEG 9 · at home · the return. The first frame again, in daylight,
+       with the column now full. Nothing here is new except that you have been. -->
+  <div class="sc-layer" data-depth="near"
+       data-sc-in=".872" data-sc-out="1" data-sc-hold="end" data-sc-fade=".1"
+       data-sc-scale="1.1 1.02">
+    <img src="../../../images/hero-kerala.jpg" alt="The same backwater as the opening frame, now in full daylight.">
+  </div>
+
+  <div class="plate close plate--card plate--card-light" data-sc-in=".925" data-sc-out="1" data-sc-hold="end" data-sc-fade=".14" data-sc-y="2 0">
+    <p class="eyebrow eyebrow--dark">Back where you started</p>
+    <p>You have just watched one get written. Yours takes about a day, costs nothing to ask for, and starts with a message on
+      <a href="https://wa.me/918866050291?text=Hi%20Skyline%2C%20I%27d%20like%20a%20custom%20itinerary." rel="noopener">WhatsApp</a>.</p>
+    <p class="fine">Prices shown are indicative starting-from estimates per person and can change with season, hotel availability and current rates. This page is a sample build and is not the live Skyline site, which is at <a href="https://skylinetravelplanner.com/" rel="noopener">skylinetravelplanner.com</a>.</p>
+  </div>
+
+  <!-- ======================================================= THE ITINERARY STRIP -->
+  <aside class="strip" aria-label="The itinerary, filling in as you scroll">
+    <div class="strip__bg strip__bg--dark" data-sc-in="0" data-sc-out=".898" data-sc-hold="start" data-sc-fade=".01"></div>
+    <div class="strip__bg strip__bg--light" data-sc-in=".889" data-sc-out="1" data-sc-hold="end" data-sc-fade=".04"></div>
+    <div class="strip__head">
+      <span class="strip__title">Sample itinerary</span>
+      <span class="strip__count" data-sc-in="0" data-sc-out="1" data-sc-hold="both" data-sc-no-fade>9 days</span>
+    </div>
+    <div class="strip__rows">
+      <div class="row" data-sc-in=".12"  data-sc-out=".2"  data-sc-hold="end" data-sc-fade=".3"><span class="day">Day 1–3</span><span class="place">Goa</span></div>
+      <div class="row" data-sc-in=".235" data-sc-out=".31" data-sc-hold="end" data-sc-fade=".3"><span class="day">Day 4</span><span class="place">The ghats</span></div>
+      <div class="row" data-sc-in=".355" data-sc-out=".43" data-sc-hold="end" data-sc-fade=".3"><span class="day">Day 5</span><span class="place">Agra</span></div>
+      <div class="row" data-sc-in=".47"  data-sc-out=".54" data-sc-hold="end" data-sc-fade=".3"><span class="day">Day 6</span><span class="place">The road north</span></div>
+      <div class="row" data-sc-in=".60"  data-sc-out=".68" data-sc-hold="end" data-sc-fade=".3"><span class="day">Day 7–8</span><span class="place">Dal Lake</span></div>
+      <div class="row" data-sc-in=".845" data-sc-out=".90" data-sc-hold="end" data-sc-fade=".3"><span class="day">Day 9</span><span class="place">Home</span></div>
+    </div>
+    <p class="strip__foot" data-sc-in=".932" data-sc-out="1" data-sc-hold="end" data-sc-fade=".18">Nine days, five stops, one column. Yours will look nothing like it.</p>
+  </aside>
+
+</div>
+</main>
+
+<script src="engine/scrollcraft.js"></script>
+</body>
+</html>

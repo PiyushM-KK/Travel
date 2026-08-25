@@ -6,6 +6,15 @@ the real values live in the local `.env` (gitignored) and the Vercel project env
 
 ---
 
+## B-WA-APPROVAL-IMG — ✅ RESOLVED 2026-08-08 (`06685e6`) — WhatsApp approvals now include the IMAGE
+**Was:** the owner got approval digests as TEXT ONLY — no picture — even though 16-17/19 drafts already had
+a public hosted image URL and `whatsapp.js` had a built `sendImage()`. Cause: `whatsappChannel.sendDigest`
+only called `sendText`. **Fix:** it now sends a short header + ONE message per post WITH ITS IMAGE (falls
+back to text for image-less drafts). Verified live (WhatsApp accepted image sends; the owner's 19-post
+queue was re-sent with images). Also this session: cron-prep 504 fixed (see B-504), the 26 "held for
+review" clutter rows were cleared (→ rejected) on owner request, and `SOCIAL_CALENDAR_COUNT=0` was set on
+`skyline-social` to stop generating new image-less calendar briefs.
+
 ## B-LANG-FOLLOWUP — ✅ RESOLVED 2026-08-07 (`ecefa2d`) — the site is now fully 3-language
 Both deferred items from the main pass (`ad247c7`) are done, so the whole site now switches EN/हिं/ગુ:
 1. `AssistantWidget.dc.html` — instead of the fragile "read the parent page via localStorage" idea, the

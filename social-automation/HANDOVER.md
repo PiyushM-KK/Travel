@@ -5,6 +5,34 @@ Scope: **only the `social-automation/` folder.** The rest of the Skyline project
 structure + provenance. **NOTE: this session also changed the WEBSITE (language fix) and started the
 client CHATBOT (`../pricing-portal/`) — see the checkpoint below; those live OUTSIDE this folder.**
 
+## ⭐ 2026-08-08 (later) — CHECKPOINT: social-automation HEALTH CHECK → all GREEN (2 real bugs fixed live)
+
+Ran a full health check of the deployed pipeline (`skyline-social-nine.vercel.app`: ops-status, render-selftest,
+all crons, Airtable queue, heartbeats). Found + fixed two real breakages; health went **RED → GREEN** ("All
+systems operational"). Commits: `d43d4a6` (cron-prep 504) · `06685e6` (WhatsApp approval images) · `78e5ef7`
+`06d454b` (docs). Details in BLOCKED **B-504** + **B-WA-APPROVAL-IMG**.
+
+1. **cron-prep was 504-timing-out for ~43h → daily drafts stalled.** In `api/cron-prep.js` the slow AI-image
+   `calendar-cards` step (~40-50s) ran BEFORE the critical `intake→generate→approve`, so on Vercel Hobby's 60s
+   cap `generate` never ran (heartbeat stuck 43h; board RED; 1 stuck draft). **Fix (`d43d4a6`): reordered** —
+   email(light) → **generate (deadline-bounded, persists drafts+heartbeat to Airtable as it goes)** →
+   calendar-cards (best-effort, last). Verified: cron-prep now 200 in ~42s; generate age 0; all 5 workflows
+   "Running on schedule"; stuck draft cleared. The B-504 deadline still bounds generate; ordering was the miss.
+2. **WhatsApp approvals were TEXT-ONLY (owner got no image).** `automation/approval-channel.js`
+   `whatsappChannel.sendDigest` only called `sendText`, despite `whatsapp.js` having `sendImage()` and 17/19
+   drafts already carrying a public hosted image URL. **Fix (`06685e6`):** it now sends a header + ONE message
+   per post WITH ITS IMAGE (text fallback for image-less drafts). Verified live (WhatsApp accepted image
+   sends); **the owner's 19-post pending queue was re-sent WITH images** so they can approve.
+3. **Cleaned up:** cleared the 26 "held for review" clutter rows (→ rejected, on owner request); set
+   **`SOCIAL_CALENDAR_COUNT=0`** on `skyline-social` (Production) to stop generating image-less calendar
+   briefs (takes effect next deploy). What's healthy + unchanged: publishing (IG+FB, 20 live), the twice-daily
+   package-post GitHub Action, image render + Vercel-Blob hosting, the /ops dashboard, vendor-email intake.
+
+**NEXT AGENT — social-automation pending:** 19 posts await the owner's WhatsApp approval (now with images);
+the caption generator occasionally produces food/restaurant-flavoured copy for TRAVEL posts (QA correctly
+holds these — worth tuning `engine/generate.js` / the SMM prompt); the ~19 `planned` rows drain across daily
+cron-prep runs. Owner security TODO (unchanged): rotate leaked keys per `SECURITY-AUDIT-*.md` if any.
+
 ## ⭐ 2026-08-08 — CHECKPOINT: OWNER CHATBOT built & LIVE · full site 3-language · Goa price synced · Book-Cab map+fare
 
 **Everything below is on `main` (website = GitHub Pages `PiyushM-KK/Travel` → skylinetravelplanner.com).**

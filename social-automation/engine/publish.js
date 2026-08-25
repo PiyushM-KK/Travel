@@ -54,6 +54,7 @@ const SENSITIVE_ENV = [
   "GMAIL_OAUTH_PRIVATE_KEY", "GMAIL_OAUTH_KEY_JSON", "GMAIL_OAUTH_KEY_B64", // service-account key
   "AI_ENHANCER_KEY", // external AI image-edit provider key (B-22) — arbitrary shape, value-mask only
   "OPENAI_API_KEY", "IMAGE_API_KEY", // decor scene image-gen key — value-mask + the sk- shape rule below
+  "HF_CREDENTIALS", "HF_API_KEY_ID", "HF_API_KEY_SECRET", // Higgsfield video API creds — arbitrary shape, value-mask only
 ];
 
 function redact(text) {

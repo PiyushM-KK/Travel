@@ -441,6 +441,90 @@ async function assessAiSceneQuality(image, opts = {}) {
   }
 }
 
+// The VIDEO QA verdict comes back through a forced tool call (structured, no prose parsing). `ok` is the
+// headline pass/fail; `score` (0–10) and `defects` explain it. Same shape as the image gate so callers
+// can treat image and video verdicts uniformly.
+const VIDEO_QA_TOOL = {
+  name: "report_video_quality",
+  description: "Report the cinematic-quality verdict for an AI-generated travel video, judged from ordered sample frames.",
+  input_schema: {
+    type: "object",
+    properties: {
+      ok: { type: "boolean", description: "true only if the clip is polished enough to publish" },
+      score: { type: "integer", minimum: 0, maximum: 10, description: "0 = grossly broken, 7 = minimum publishable, 10 = pro cinematic travel film" },
+      defects: {
+        type: "array",
+        items: { type: "string" },
+        description: "each visible flaw — per-frame (warped building, six-fingered hand) OR temporal across frames (subject morphing between frames, flicker, identity drift, impossible motion)",
+      },
+    },
+    required: ["ok", "score", "defects"],
+  },
+};
+
+/**
+ * assessVideoQuality — a CINEMATIC QA reviewer for an AI-generated travel VIDEO. Claude's API takes
+ * images, not video, so the caller extracts ordered SAMPLE FRAMES (see automation/video-qa.js) and passes
+ * them here; the reviewer judges both per-frame craft AND the telltale AI-video temporal flaws visible
+ * across frames (a subject MORPHING between frames, flicker, warping, identity drift, impossible motion).
+ *
+ * Returns { pass, score (0–10|null), defects[], frames, note }. FAIL-OPEN by design (no frames, no key, or
+ * a flaky call → pass:true) so a QA blip never blocks a post; the human still approves. Persona: a travel
+ * videographer / cinematographer with 15+ years of professional experience.
+ *
+ * @param frames    an ORDERED array of frame images (Buffer or {buffer,contentType}); first = earliest.
+ * @param opts.minScore  pass threshold (default 7). opts.maxFrames (default 8). opts.client injectable.
+ */
+async function assessVideoQuality(frames, opts = {}) {
+  const list = Array.isArray(frames) ? frames.filter(Boolean) : (frames ? [frames] : []);
+  if (!list.length) return { pass: true, score: null, defects: [], frames: 0, note: "no frames to assess" };
+  const sources = [];
+  const maxFrames = Number.isFinite(opts.maxFrames) ? Math.max(1, opts.maxFrames) : 8;
+  for (const f of list.slice(0, maxFrames)) {
+    const src = await imageBlockSource(f);
+    if (src) sources.push(src);
+  }
+  if (!sources.length) return { pass: true, score: null, defects: [], frames: 0, note: "no readable frames" };
+  const client = opts.client || newClient();
+  const minScore = Number.isFinite(opts.minScore) ? opts.minScore : 7;
+  const content = [];
+  sources.forEach((s, i) => {
+    content.push({ type: "text", text: `Frame ${i + 1} of ${sources.length} (in time order):` });
+    content.push({ type: "image", source: s });
+  });
+  content.push({ type: "text", text:
+    "You are a travel videographer and cinematographer with 15+ years of professional experience shooting " +
+    "cinematic travel films, doing a STRICT final quality check on a short AI-GENERATED travel video before " +
+    "it can be published to a client's feed. You are shown SAMPLE FRAMES in TIME ORDER (not the full motion) " +
+    "— read them as a sequence. Judge cinematic craft AND realism with a working cinematographer's trained " +
+    "eye. Flag PER-FRAME flaws (warped/melted architecture, distorted or extra hands/fingers/faces, garbled " +
+    "signage, impossible geometry, muddy or blown-out exposure, flat/ugly colour, plastic 'AI skin', weak " +
+    "framing/composition) AND the telltale AI-VIDEO TEMPORAL flaws visible ACROSS the frames: a subject or " +
+    "object MORPHING or changing shape/identity between frames, flicker, warping, limbs/objects appearing or " +
+    "disappearing, unnatural or physically impossible motion, background 'swimming'. Ignore any text/logo we " +
+    "overlaid as a caption. Score 0–10 on a professional bar (0 grossly broken, 7 the MINIMUM you'd let a " +
+    "client publish, 10 indistinguishable from a real cinematic travel film). Set ok=false if you — as that " +
+    "cinematographer — would not let it go out. List every flaw you actually see across the frames; empty " +
+    "list only if the clip is genuinely clean and publishable." });
+  try {
+    const msg = await client.messages.create({
+      model: opts.model || CAPTION_MODEL,
+      max_tokens: 500,
+      tools: [VIDEO_QA_TOOL],
+      tool_choice: { type: "tool", name: "report_video_quality" },
+      messages: [{ role: "user", content }],
+    });
+    const use = (msg.content || []).find((b) => b.type === "tool_use");
+    const out = (use && use.input) || {};
+    const score = Number.isFinite(out.score) ? out.score : null;
+    const defects = Array.isArray(out.defects) ? out.defects.filter(Boolean).map(String) : [];
+    const pass = out.ok !== false && (score == null || score >= minScore);
+    return { pass, score, defects, frames: sources.length, note: pass ? "" : (defects.join("; ") || `low quality (score ${score}/10)`) };
+  } catch (e) {
+    return { pass: true, score: null, defects: [], frames: sources.length, note: "video QA skipped — " + redact(String((e && e.message) || e)) };
+  }
+}
+
 /**
  * describeOffer — pull ONLY the travel destinations/places + season/theme from a vendor's
  * offer image, for the #3 "idea, not poster" flow: we use it to brief a SKYLINE post, and we
@@ -703,6 +787,7 @@ module.exports = {
   describeImage,
   classifyImageForEnhance,
   assessAiSceneQuality,
+  assessVideoQuality,
   detectForeignBrand,
   describeOffer,
   extractPrices,

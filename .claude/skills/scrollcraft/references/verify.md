@@ -68,6 +68,32 @@ still your job, and the contact sheet is the cheapest way to do it, because
 seeing forty frames in a row makes a page's rhythm — or its absence — obvious in
 a way that scrolling never does.
 
+## Sample density, and where to spend it
+
+The harness samples a fixed number of scroll positions. A defect narrower than
+the gap between two samples does not exist as far as the report is concerned,
+and the report will say `ok` with complete confidence.
+
+This bites hardest at a **ground hand-over** — the point where a page swaps from
+a dark ground to a light one, or the reverse. If the surfaces cross over faster
+than the ink travelling on them, there is a narrow band where a panel has
+already turned light while its text is only half way to dark. A 52-step walk can
+straddle that band and see nothing; a 30-step walk of the same page can land
+inside it and fail fourteen lines at a single scroll position.
+
+Two rules follow:
+
+1. **Make every colour role turn together.** Ground, ink, secondary ink and
+   accent should share one short window, so there is no intermediate state for a
+   sample to land in and no reader can catch the page mid-swap either. Alignment
+   is the fix; more sampling only tells you whether you need it.
+2. **Re-run at a different step count before believing a pass.** A defect that
+   survives 52 steps and 90 steps is genuinely absent. A defect that only
+   appears at one of them was always there.
+
+Run the final pass at `--steps 90` or higher. It is slower and it is the run
+that counts.
+
 ## What the harness cannot check
 
 - whether the feeling curve is real

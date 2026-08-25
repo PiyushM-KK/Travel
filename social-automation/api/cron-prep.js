@@ -61,23 +61,26 @@ module.exports = async (req, res) => {
       const capMs = Number(rawCap);
       deadlineMs = Date.now() + (Number.isFinite(capMs) && capMs > 0 ? capMs : 50 * 1000);
     }
-    // Run the #3 VENDOR-EMAIL idea flow FIRST (it's light + the owner's priority), so it always
-    // completes even if the heavier calendar prep below runs long against the 60s function limit.
-    // Folded in here so we don't need a 3rd Vercel cron on the Hobby plan. It turns new vendor
-    // offers into Skyline post IDEAS and WhatsApps them to the owner — never publishes, never
-    // posts a vendor poster. A failure must not fail the whole run — surfaced as email.error.
+    // Run the #3 VENDOR-EMAIL idea flow FIRST — it's light (~10s) + the owner's priority. It turns new
+    // vendor offers into Skyline post IDEAS and WhatsApps them to the owner — never publishes, never posts
+    // a vendor poster. A failure must not fail the whole run — surfaced as email.error.
     let email;
     try { email = (await runJob({ job: "email", clientId, runner: "vercel-email" })).email; }
     catch (e) { email = { error: redact(String((e && e.message) || e)) }; }
-    // 3rd intake: feature ONE Skyline package/day as a publishable A/B card (own packages, own price).
-    // Also light + owner-priority; a failure must not fail the whole run.
+    // prep = intake -> generate -> approve. This is the CRITICAL pipeline (drafts → owner approval) and it
+    // runs BEFORE calendar-cards (ORDER MATTERS, was the B-504 hang): calendar-cards can render an AI image
+    // (~40-50s) which alone can eat the whole 60s budget and starve generate — leaving "Prep behind" for
+    // days. generate carries the wall-clock deadline AND persists its drafts + heartbeat to Airtable as it
+    // goes, so the moment it finishes the pipeline is durable — even if the slow calendar step below is then
+    // killed at the 60s cap, the important work is already saved and Prep is no longer behind.
+    const out = await runJob({ job: "prep", clientId, runner: "vercel-prep", ...(deadlineMs != null ? { deadlineMs } : {}) });
+    // Feature ONE Skyline package/day as a publishable A/B card. BEST-EFFORT + LAST: with whatever budget
+    // remains after email + generate. If it's cut off by the 60s cap on a busy day, generate already
+    // succeeded (above) so nothing critical is lost; it catches up on a lighter run, and the twice-daily
+    // `package-post` GitHub Action independently produces publishable package cards regardless.
     let calendarCards;
     try { calendarCards = (await runJob({ job: "calendar-cards", clientId, runner: "vercel-calendar" })).calendarCards; }
     catch (e) { calendarCards = { error: redact(String((e && e.message) || e)) }; }
-    // prep = intake -> generate -> approve; generate is the unbounded, expensive step, so it carries
-    // the deadline. If email+calendar already spent most of the window, generate drafts what it can
-    // and defers the rest (never a 504).
-    const out = await runJob({ job: "prep", clientId, runner: "vercel-prep", ...(deadlineMs != null ? { deadlineMs } : {}) });
     res.status(out.ok ? 200 : 500).json({ runner: "vercel", ...out, email, calendarCards });
   } catch (e) {
     // Never leak a secret in an error surfaced to the caller (all shapes).

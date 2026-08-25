@@ -6,6 +6,35 @@ the real values live in the local `.env` (gitignored) and the Vercel project env
 
 ---
 
+## B-VIDEO — 🎬 AI travel-VIDEO posts (every ~2 days) — QA + generation BUILT (`e384ecf`); owner keys + posting flow PENDING
+**Goal (owner):** a short cinematic AI travel clip, ~every 2 days → AI VIDEO QA → WhatsApp approval → post to IG Reels / FB.
+
+**Done & tested (this session):**
+- `engine/generate.assessVideoQuality()` — a 15-yr travel-cinematographer vision reviewer over ordered sample
+  frames (per-frame craft + AI-video temporal flaws: morphing/flicker/identity drift). Fail-open, 7/10 bar.
+- `automation/video-qa.js` — ffmpeg frame sampler + CLI (`node automation/video-qa.js <clip.mp4> [--frames 6] [--min 7]`).
+- `automation/higgsfield.js` — AI video gen via the official `@higgsfield/client` SDK (image-to-video), returns the clip URL.
+- Reviewed clean (Bug Hunter + App Security); 17 offline checks + a real-ffmpeg smoke test.
+
+**Owner-gated to make it LIVE (do these, then a next agent wires the cron):**
+1. **Higgsfield API keys** — create an API key at platform.higgsfield.ai. Set on the `skyline-social` Vercel project
+   (and local `.env`): either `HF_CREDENTIALS="<KEY_ID>:<KEY_SECRET>"` **or** `HF_API_KEY_ID` + `HF_API_KEY_SECRET`.
+   Never paste them in chat or here.
+2. **Install the optional deps** on the deploy: they're now in `package.json` optionalDependencies
+   (`@ffmpeg-installer/ffmpeg`, `@higgsfield/client`) — a normal Vercel build installs them. Locally: `npm install`.
+3. **Verify the SDK contract** — `@higgsfield/client` is early (v0.2.1); the code targets the documented
+   `/v2` `subscribe('/v1/image2video/dop', {input:{model,prompt,input_images}})` shape. Once keys exist, run a single
+   live gen and confirm the endpoint/model + the finished-URL path (`jobs[0].results.raw.url`). Endpoint/model are
+   env-overridable: `HIGGSFIELD_VIDEO_ENDPOINT`, `HIGGSFIELD_MODEL` (default `dop-turbo`).
+
+**Still to BUILD (next agent, after keys):** the video POST pipeline is NOT wired yet —
+- a `video-post` job/cron on a ~2-day cadence: pick a package → seed image (real photo or a QA'd AI scene) + cinematic
+  prompt → `higgsfield.generateVideo` → download clip → `video-qa.assessVideoFile` gate (re-gen once on fail, else hold)
+  → WhatsApp approval (send the clip) → on approve, **post to IG Reels + FB video**.
+- **Meta Reels/video posting is a NEW publish surface** (resumable video upload / Reels container), distinct from the
+  current image post — needs its own build + a real end-to-end test. Video hosting: Meta needs a public video URL.
+- ffmpeg on Vercel comes from `@ffmpeg-installer/ffmpeg` (declared) — verify it resolves in the serverless runtime.
+
 ## B-WA-APPROVAL-IMG — ✅ RESOLVED 2026-08-08 (`06685e6`) — WhatsApp approvals now include the IMAGE
 **Was:** the owner got approval digests as TEXT ONLY — no picture — even though 16-17/19 drafts already had
 a public hosted image URL and `whatsapp.js` had a built `sendImage()`. Cause: `whatsappChannel.sendDigest`

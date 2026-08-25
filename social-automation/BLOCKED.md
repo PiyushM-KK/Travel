@@ -202,7 +202,20 @@ read-only **`OPS_KEY`** (set on `skyline-social` + in the local `.env`; CRON_SEC
 from `GET /api/ops-status`. Full detail: `SKYLINE-SOCIAL-AUTOMATION.md` §11b. Scale by adding clients
 to the `CLIENTS` list in `site/ops.html`.
 
-## B-504 — ✅ FIXED IN CODE 2026-08-06 (cron-prep 504) — ⏳ deploy pending
+## B-504 — ✅ RESOLVED + DEPLOYED + VERIFIED 2026-08-08 (cron-prep 504 → 200)
+
+**2026-08-08 update:** the deadline fix (below) was deployed but cron-prep STILL 504'd — because the deadline
+only bounds `generate`, which ran LAST, after the slow AI-image `calendar-cards` (~40-50s) had already eaten
+the 60s budget, so `generate` never started (heartbeat stuck ~43h; board RED; 1 stuck draft). **Real fix
+(`d43d4a6`): reorder cron-prep** so the critical `intake→generate→approve` runs BEFORE `calendar-cards`;
+generate persists its drafts + heartbeat to Airtable as it goes, so it's durable even if calendar-cards is
+then cut off at 60s. **Verified live:** cron-prep now returns **HTTP 200 in ~42s**, `generate` ran (age 0,
+was 43h), all 5 workflows "Running on schedule", health RED→AMBER. `calendar-cards` is best-effort/last (the
+twice-daily `package-post` GHA makes publishable package cards regardless). **Optional cleanup:** the 26
+AMBER "held" rows are image-less calendar BRIEFS that QA always holds — set `SOCIAL_CALENDAR_COUNT=0` on
+`skyline-social` to stop generating them (removes clutter + shortens the generate queue).
+
+### (original, kept for reference) — ✅ FIXED IN CODE 2026-08-06 — ⏳ deploy pending
 
 **Was:** `cron-prep` (the daily prep composite: email + calendar-cards + intake + generate + approve)
 exceeded Vercel Hobby's 60 s cap → `generate` was killed mid-pass, never heartbeated, and a card

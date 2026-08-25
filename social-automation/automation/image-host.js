@@ -100,8 +100,12 @@ async function hostImageBytes(input = {}, opts = {}) {
   if (!opts.put && !token) throw new Error("image-host needs BLOB_READ_WRITE_TOKEN (owner-gated — create a Vercel Blob store)");
 
   try {
-    // addRandomSuffix:false so our content-hash key stays stable (re-send -> same URL).
-    const result = await put(key, buffer, { access: "public", contentType, token, addRandomSuffix: false });
+    // addRandomSuffix:false so our content-hash key stays stable (re-send -> same URL). allowOverwrite:true
+    // because that stable key is the WHOLE point: the same card content re-hosted (a retry, a held-then-
+    // reprocessed post, or the fallback cron running after the primary already hosted) must idempotently
+    // return the same URL, NOT throw. Newer @vercel/blob rejects an existing key unless this is set — that
+    // rejection surfaced as "card A render/host failed: This blob already exists" and HELD good posts.
+    const result = await put(key, buffer, { access: "public", contentType, token, addRandomSuffix: false, allowOverwrite: true });
     if (!result || !result.url) throw new Error("image-host: Blob upload returned no url");
     return { url: result.url, contentType, bytes: buffer.length, key };
   } catch (e) {

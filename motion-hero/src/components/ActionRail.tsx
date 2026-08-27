@@ -88,7 +88,8 @@ export function ActionRail({ destinationTitle, index, total, shareUrl, shareTitl
 
   return (
     <div
-      className="absolute bottom-6 right-4 z-20 flex flex-row items-center gap-4 sm:right-6 md:bottom-10 md:flex-col md:items-center md:gap-5"
+      className="absolute right-4 z-20 flex flex-row items-center gap-2 sm:right-6 sm:gap-4 md:flex-col md:items-center md:gap-5"
+      style={{ bottom: 'var(--rail-bottom)' }}
       aria-label="Destination actions"
     >
       <button

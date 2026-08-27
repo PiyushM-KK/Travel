@@ -191,9 +191,12 @@ export function DestinationCarousel({ destinations, isMobile, onActiveChange }: 
       <div
         role="tablist"
         aria-label="Choose a destination"
-        className="absolute bottom-24 left-1/2 z-20 flex -translate-x-1/2 gap-2 md:bottom-28"
+        className="absolute left-1/2 z-20 flex -translate-x-1/2"
+        style={{ bottom: 'var(--dots-bottom)' }}
       >
         {destinations.map((destination, index) => (
+          // The visible dot stays small, but the button around it is a full
+          // 44px tap target — a 6px dot is far too small to hit on a phone.
           <button
             key={destination.id}
             type="button"
@@ -201,10 +204,16 @@ export function DestinationCarousel({ destinations, isMobile, onActiveChange }: 
             aria-selected={index === currentIndex}
             aria-label={`Show ${destination.title}`}
             onClick={() => goTo(index)}
-            className={`h-1.5 rounded-full transition-all duration-300 ${
-              index === currentIndex ? 'w-6 bg-white' : 'w-1.5 bg-white/40 hover:bg-white/70'
-            }`}
-          />
+            className="group flex h-11 w-11 items-center justify-center"
+          >
+            <span
+              className={`block h-1.5 rounded-full transition-all duration-300 ${
+                index === currentIndex
+                  ? 'w-6 bg-white'
+                  : 'w-1.5 bg-white/40 group-hover:bg-white/70'
+              }`}
+            />
+          </button>
         ))}
       </div>
     </div>

@@ -78,7 +78,9 @@ export function MotionHero() {
 
   return (
     <section
-      className="relative h-svh min-h-[560px] w-full overflow-hidden bg-neutral-950 text-white"
+      // min-h rather than a fixed h: on a landscape phone (~390px tall) a hard
+      // height clipped the content instead of letting the section grow.
+      className="motion-hero relative min-h-svh w-full overflow-hidden bg-neutral-950 text-white"
       aria-label={`${BRAND} hero — ${destination.title}`}
     >
       <DestinationCarousel destinations={destinations} isMobile={isMobile} onActiveChange={setActive} />
@@ -86,13 +88,17 @@ export function MotionHero() {
       {/* Cinematic gradient overlay: keeps text legible without looking heavy-handed. */}
       <div className="motion-hero-overlay pointer-events-none absolute inset-0 z-10" aria-hidden="true" />
 
-      <nav className="absolute inset-x-0 top-0 z-30 flex items-center justify-between px-5 py-5 sm:px-8 md:px-12">
-        <span className="text-base font-medium tracking-wide sm:text-lg">{BRAND}</span>
+      <nav className="motion-hero-nav absolute inset-x-0 top-0 z-30 flex items-center justify-between">
+        <span className="motion-hero-brand font-medium tracking-wide">{BRAND}</span>
 
-        <ul className="hidden items-center gap-8 text-sm tracking-wide text-white/85 md:flex">
+        <ul className="hidden items-center gap-6 text-sm tracking-wide text-white/85 md:flex lg:gap-8">
           {NAV_LINKS.map((link) => (
             <li key={link}>
-              <a href={`#${link.toLowerCase()}`} className="transition hover:text-white">
+              {/* Padded so the tap/click target is comfortably larger than the text itself. */}
+              <a
+                href={`#${link.toLowerCase()}`}
+                className="-mx-2 inline-block px-2 py-3 transition hover:text-white"
+              >
                 {link}
               </a>
             </li>
@@ -105,7 +111,7 @@ export function MotionHero() {
           aria-expanded={menuOpen}
           aria-controls="motion-hero-mobile-menu"
           aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-          className="flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-white/10 md:hidden"
+          className="-mr-2 flex h-11 w-11 items-center justify-center rounded-full transition hover:bg-white/10 md:hidden"
         >
           <MenuIcon open={menuOpen} />
         </button>
@@ -136,11 +142,11 @@ export function MotionHero() {
         )}
       </AnimatePresence>
 
-      <div className="pointer-events-none relative z-20 flex h-full flex-col justify-end px-5 pb-28 sm:px-8 md:px-12 md:pb-16 lg:max-w-2xl">
+      <div className="motion-hero-content pointer-events-none relative z-20 flex min-h-svh flex-col justify-end">
         <AnimatePresence mode="wait">
           <motion.div
             key={destination.id}
-            className="pointer-events-auto"
+            className="motion-hero-measure pointer-events-auto"
             initial="hidden"
             animate="visible"
             exit={{ opacity: 0, y: -12, transition: { duration: 0.35 } }}
@@ -148,12 +154,16 @@ export function MotionHero() {
             <motion.p
               custom={0}
               variants={lineVariants}
-              className="mb-4 text-xs font-semibold tracking-[0.25em] text-white/80"
+              className="motion-hero-label font-semibold tracking-[0.25em] text-white/80"
+              style={{ marginBottom: 'var(--hero-stack)' }}
             >
               {destination.label}
             </motion.p>
 
-            <h1 className="mb-5 text-4xl font-medium leading-[1.08] tracking-tight sm:text-5xl md:text-6xl">
+            <h1
+              className="motion-hero-headline font-medium tracking-tight"
+              style={{ marginBottom: 'var(--hero-stack)' }}
+            >
               {destination.headline.map((line, i) => (
                 <motion.span key={line} custom={i + 1} variants={lineVariants} className="block">
                   {line}
@@ -164,7 +174,8 @@ export function MotionHero() {
             <motion.p
               custom={destination.headline.length + 1}
               variants={lineVariants}
-              className="mb-8 max-w-md text-sm leading-relaxed text-white/85 sm:text-base"
+              className="motion-hero-body max-w-[46ch] leading-relaxed text-white/85"
+              style={{ marginBottom: 'calc(var(--hero-stack) * 1.75)' }}
             >
               {destination.description}
             </motion.p>
@@ -176,7 +187,7 @@ export function MotionHero() {
             >
               <a
                 href={destination.ctaUrl}
-                className="rounded-full bg-white px-7 py-3 text-sm font-medium text-neutral-900 transition hover:scale-[1.03] hover:bg-white/90 active:scale-[0.98]"
+                className="rounded-full bg-white px-7 py-3.5 text-sm font-medium text-neutral-900 transition hover:scale-[1.03] hover:bg-white/90 active:scale-[0.98]"
               >
                 Explore Journeys
               </a>
@@ -184,7 +195,7 @@ export function MotionHero() {
               <button
                 type="button"
                 onClick={() => active?.unmute()}
-                className="flex items-center gap-2 rounded-full border border-white/40 px-5 py-3 text-sm tracking-wide text-white transition hover:border-white hover:bg-white/10"
+                className="flex items-center gap-2 rounded-full border border-white/40 px-5 py-3.5 text-sm tracking-wide text-white transition hover:border-white hover:bg-white/10"
               >
                 <SoundIcon />
                 Watch with Sound
@@ -203,7 +214,10 @@ export function MotionHero() {
       />
 
       {active && (
-        <div className="absolute bottom-6 left-5 z-20 sm:left-8 md:left-12">
+        <div
+          className="absolute z-20"
+          style={{ bottom: 'var(--controls-bottom)', left: 'var(--hero-gutter)' }}
+        >
           <VideoControls
             isPlaying={active.isPlaying}
             isMuted={active.isMuted}

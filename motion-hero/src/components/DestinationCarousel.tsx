@@ -45,7 +45,7 @@ interface VideoSlideProps {
 /** One slide's video layer: poster underneath, video on top, crossfade-safe. */
 function VideoSlide({ destination, isActive, isMobile, onPlaybackChange }: VideoSlideProps) {
   const playback = useVideoPlayback({ active: isActive });
-  const { videoRef, containerRef, isPlaying, isMuted, progress, hasError, prefersReducedMotion, togglePlay, toggleMute, unmute } = playback;
+  const { videoRef, containerRef, isPlaying, isMuted, progress, hasError, prefersReducedMotion, shouldRenderVideo, togglePlay, toggleMute, unmute } = playback;
 
   useEffect(() => {
     if (!isActive) return;
@@ -53,7 +53,6 @@ function VideoSlide({ destination, isActive, isMobile, onPlaybackChange }: Video
   }, [isActive, isPlaying, isMuted, progress, hasError, prefersReducedMotion, togglePlay, toggleMute, unmute, onPlaybackChange]);
 
   const poster = isMobile ? destination.mobilePoster : destination.poster;
-  const showVideo = !hasError && !prefersReducedMotion;
 
   return (
     <div ref={containerRef} className="absolute inset-0">
@@ -64,7 +63,7 @@ function VideoSlide({ destination, isActive, isMobile, onPlaybackChange }: Video
         className="motion-hero-bg-zoom absolute inset-0 h-full w-full object-cover"
         loading={isActive ? 'eager' : 'lazy'}
       />
-      {showVideo && (
+      {shouldRenderVideo && (
         <video
           ref={videoRef}
           className="motion-hero-bg-zoom absolute inset-0 h-full w-full object-cover"

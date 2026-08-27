@@ -22,6 +22,11 @@ export interface UseVideoPlaybackResult {
   /** True once autoplay has failed or the source could not load. */
   hasError: boolean;
   prefersReducedMotion: boolean;
+  /**
+   * Whether the <video> should be in the DOM at all. False under reduced
+   * motion until the viewer presses play, and false once the source failed.
+   */
+  shouldRenderVideo: boolean;
   togglePlay: () => void;
   toggleMute: () => void;
   unmute: () => void;
@@ -68,6 +73,9 @@ export function useVideoPlayback({
   const [progress, setProgress] = useState(0);
   const [hasError, setHasError] = useState(false);
   const [userPaused, setUserPaused] = useState(false);
+  // Reduced motion suppresses *unrequested* motion. If the viewer presses play
+  // they have asked for it explicitly, so honour that rather than staying inert.
+  const [userInitiatedPlay, setUserInitiatedPlay] = useState(false);
 
   useEffect(() => {
     const node = containerRef.current;
@@ -87,8 +95,12 @@ export function useVideoPlayback({
     return () => document.removeEventListener('visibilitychange', handleVisibility);
   }, []);
 
+  // Motion is allowed when the viewer hasn't asked to reduce it, or has since
+  // opted in via the play button.
+  const motionAllowed = !prefersReducedMotion || userInitiatedPlay;
+  const shouldRenderVideo = !hasError && motionAllowed;
   const shouldPlay =
-    active && isInViewport && isTabVisible && !prefersReducedMotion && !hasError && !userPaused;
+    active && isInViewport && isTabVisible && motionAllowed && !hasError && !userPaused;
 
   useEffect(() => {
     const video = videoRef.current;
@@ -156,8 +168,14 @@ export function useVideoPlayback({
   }, []);
 
   const togglePlay = useCallback(() => {
+    // First press under reduced motion is the opt-in that mounts the video.
+    if (prefersReducedMotion && !userInitiatedPlay) {
+      setUserInitiatedPlay(true);
+      setUserPaused(false);
+      return;
+    }
     setUserPaused((wasPaused) => !wasPaused);
-  }, []);
+  }, [prefersReducedMotion, userInitiatedPlay]);
 
   const toggleMute = useCallback(() => {
     setIsMuted((muted) => {
@@ -180,6 +198,7 @@ export function useVideoPlayback({
     progress,
     hasError,
     prefersReducedMotion,
+    shouldRenderVideo,
     togglePlay,
     toggleMute,
     unmute,

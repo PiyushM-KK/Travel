@@ -129,14 +129,27 @@ export function useVideoPlayback({
     };
     const handlePlay = () => setIsPlaying(true);
     const handlePause = () => setIsPlaying(false);
+    // When every <source> fails the element ends up here rather than firing a
+    // media error, so treat "no source left to try" as a load failure too.
+    const handleSourceExhausted = () => {
+      if (video.networkState === video.NETWORK_NO_SOURCE) handleError();
+    };
 
     video.addEventListener('timeupdate', handleTimeUpdate);
-    video.addEventListener('error', handleError);
+    // Capture phase: an `error` from a <source> child is dispatched at that
+    // child and does not bubble, so a plain listener on the <video> misses it
+    // and a missing file would never fall back to the poster. A capturing
+    // listener on the element sees both its own errors and its sources'.
+    video.addEventListener('error', handleError, true);
+    video.addEventListener('emptied', handleSourceExhausted);
+    video.addEventListener('stalled', handleSourceExhausted);
     video.addEventListener('play', handlePlay);
     video.addEventListener('pause', handlePause);
     return () => {
       video.removeEventListener('timeupdate', handleTimeUpdate);
-      video.removeEventListener('error', handleError);
+      video.removeEventListener('error', handleError, true);
+      video.removeEventListener('emptied', handleSourceExhausted);
+      video.removeEventListener('stalled', handleSourceExhausted);
       video.removeEventListener('play', handlePlay);
       video.removeEventListener('pause', handlePause);
     };

@@ -1,0 +1,174 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { RefObject } from 'react';
+
+export interface UseVideoPlaybackOptions {
+  /**
+   * Whether this video should be allowed to autoplay when it becomes visible.
+   * Used by the carousel to make sure only the active clip ever plays.
+   */
+  active: boolean;
+  /** Start muted (required for reliable autoplay across browsers). */
+  initialMuted?: boolean;
+}
+
+export interface UseVideoPlaybackResult {
+  videoRef: RefObject<HTMLVideoElement | null>;
+  /** Attach to the element that should be watched for viewport visibility. */
+  containerRef: RefObject<HTMLDivElement | null>;
+  isPlaying: boolean;
+  isMuted: boolean;
+  /** 0..1 playback position, driven by `timeupdate`. */
+  progress: number;
+  /** True once autoplay has failed or the source could not load. */
+  hasError: boolean;
+  prefersReducedMotion: boolean;
+  togglePlay: () => void;
+  toggleMute: () => void;
+  unmute: () => void;
+}
+
+function usePrefersReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(() =>
+    typeof window === 'undefined'
+      ? false
+      : window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+  );
+
+  useEffect(() => {
+    const query = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const handleChange = (event: MediaQueryListEvent) => setReduced(event.matches);
+    query.addEventListener('change', handleChange);
+    return () => query.removeEventListener('change', handleChange);
+  }, []);
+
+  return reduced;
+}
+
+/**
+ * Drives autoplay/pause behaviour for a single hero/carousel video:
+ * - plays only while in the viewport, the tab is active, and `active` is true
+ * - respects prefers-reduced-motion by never autoplaying
+ * - falls back to the poster (via `hasError`) if `play()` rejects or the
+ *   source errors, per browser autoplay restrictions
+ */
+export function useVideoPlayback({
+  active,
+  initialMuted = true,
+}: UseVideoPlaybackOptions): UseVideoPlaybackResult {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  const prefersReducedMotion = usePrefersReducedMotion();
+  const [isInViewport, setIsInViewport] = useState(false);
+  const [isTabVisible, setIsTabVisible] = useState(
+    typeof document === 'undefined' ? true : document.visibilityState === 'visible',
+  );
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(initialMuted);
+  const [progress, setProgress] = useState(0);
+  const [hasError, setHasError] = useState(false);
+  const [userPaused, setUserPaused] = useState(false);
+
+  useEffect(() => {
+    const node = containerRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsInViewport(entry.isIntersecting),
+      { threshold: 0.4 },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const handleVisibility = () => setIsTabVisible(document.visibilityState === 'visible');
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, []);
+
+  const shouldPlay =
+    active && isInViewport && isTabVisible && !prefersReducedMotion && !hasError && !userPaused;
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (shouldPlay) {
+      video.play()?.catch((error: unknown) => {
+        // Autoplay was blocked or the source failed — fall back to the poster.
+        // `isPlaying` itself is kept in sync via the 'play'/'pause' listeners below.
+        setHasError(true);
+        if (import.meta.env.DEV) {
+          console.warn('[MotionHero] video autoplay failed, falling back to poster:', error);
+        }
+      });
+    } else {
+      video.pause();
+    }
+  }, [shouldPlay]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleTimeUpdate = () => {
+      if (video.duration > 0) {
+        setProgress(video.currentTime / video.duration);
+      }
+    };
+    const handleError = () => {
+      setHasError(true);
+      setIsPlaying(false);
+      if (import.meta.env.DEV) {
+        console.warn(
+          '[MotionHero] video failed to load, falling back to poster:',
+          video.currentSrc || video.src,
+        );
+      }
+    };
+    const handlePlay = () => setIsPlaying(true);
+    const handlePause = () => setIsPlaying(false);
+
+    video.addEventListener('timeupdate', handleTimeUpdate);
+    video.addEventListener('error', handleError);
+    video.addEventListener('play', handlePlay);
+    video.addEventListener('pause', handlePause);
+    return () => {
+      video.removeEventListener('timeupdate', handleTimeUpdate);
+      video.removeEventListener('error', handleError);
+      video.removeEventListener('play', handlePlay);
+      video.removeEventListener('pause', handlePause);
+    };
+  }, []);
+
+  const togglePlay = useCallback(() => {
+    setUserPaused((wasPaused) => !wasPaused);
+  }, []);
+
+  const toggleMute = useCallback(() => {
+    setIsMuted((muted) => {
+      const next = !muted;
+      if (videoRef.current) videoRef.current.muted = next;
+      return next;
+    });
+  }, []);
+
+  const unmute = useCallback(() => {
+    setIsMuted(false);
+    if (videoRef.current) videoRef.current.muted = false;
+  }, []);
+
+  return {
+    videoRef,
+    containerRef,
+    isPlaying,
+    isMuted,
+    progress,
+    hasError,
+    prefersReducedMotion,
+    togglePlay,
+    toggleMute,
+    unmute,
+  };
+}

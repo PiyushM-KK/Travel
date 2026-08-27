@@ -1,0 +1,63 @@
+/* Styles for the Instagram-style motion hero. Kept separate from Tailwind
+   utility classes for the handful of effects (glass panel, slow zoom,
+   gradient overlay, scroll indicator) that read more clearly as plain CSS. */
+
+/* Glass-effect panel used by the mobile menu and the video controls pill. */
+.motion-hero-glass {
+  background: rgba(20, 20, 22, 0.35);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+}
+
+/* Soft cinematic gradient: darker at the edges where text and controls sit,
+   clear through the center so the footage still reads. No neon, no glow. */
+.motion-hero-overlay {
+  background:
+    linear-gradient(to top, rgba(6, 6, 8, 0.82) 0%, rgba(6, 6, 8, 0.35) 32%, rgba(6, 6, 8, 0) 55%),
+    linear-gradient(to bottom, rgba(6, 6, 8, 0.55) 0%, rgba(6, 6, 8, 0) 22%),
+    linear-gradient(to right, rgba(6, 6, 8, 0.35) 0%, rgba(6, 6, 8, 0) 40%);
+}
+
+/* Very slow background zoom: 1.0 -> 1.04 over the length of one clip. */
+@keyframes motion-hero-zoom {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.04);
+  }
+}
+
+.motion-hero-bg-zoom {
+  animation: motion-hero-zoom 16s ease-out forwards;
+  will-change: transform;
+}
+
+@keyframes motion-hero-scroll-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateY(6px);
+    opacity: 1;
+  }
+}
+
+.motion-hero-scroll-indicator {
+  animation: motion-hero-scroll-bounce 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-hero-bg-zoom {
+    animation: none;
+    transform: none;
+  }
+
+  .motion-hero-scroll-indicator {
+    animation: none;
+  }
+}

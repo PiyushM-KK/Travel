@@ -1,0 +1,67 @@
+name: Skyline AI video Reel (scheduled)
+
+# The AI VIDEO Reel pipeline (B-VIDEO). Unlike the image crons (which just curl a Vercel endpoint),
+# this runs the work HERE because it needs ffmpeg + a long timeout that Vercel functions don't have:
+#   pick 3 destinations -> Higgsfield text-to-video montage -> video QA -> brand (ffmpeg) -> host ->
+#   publish (gated by SOCIAL_VIDEO_LIVE) or HOLD and WhatsApp the owner a preview link.
+#
+# SAFE BY DEFAULT: with SOCIAL_VIDEO_LIVE unset it never auto-posts — it holds the Reel for the owner.
+# It also SKIPS cleanly (no error, no spend) until the owner adds Higgsfield creds (HF_CREDENTIALS).
+#
+# SETUP (owner, one-time): add these as repository secrets (Settings -> Secrets and variables -> Actions):
+#   HF_CREDENTIALS ("KEY_ID:KEY_SECRET")   — Higgsfield API (required to generate; skips without it)
+#   META_PAGE_TOKEN, META_PAGE_ID, META_IG_USER_ID   — to publish (else it holds for approval)
+#   BLOB_READ_WRITE_TOKEN                  — Vercel Blob (host the Reel)
+#   ANTHROPIC_API_KEY                      — the video-QA reviewer (optional; QA is skipped without it)
+#   AIRTABLE_API_KEY, AIRTABLE_BASE_ID     — the queue store
+#   WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_TOKEN, WHATSAPP_TO   — the owner preview/approval message
+# Optional repository VARIABLES: SOCIAL_VIDEO_LIVE ("true" to auto-post), HIGGSFIELD_T2V_ENDPOINT,
+# HIGGSFIELD_T2V_MODEL (once the SDK's text-to-video contract is confirmed — see B-VIDEO).
+
+on:
+  schedule:
+    - cron: '30 5 */3 * *'   # 05:30 UTC = 11:00 IST, every 3rd day
+  workflow_dispatch:          # manual run
+
+concurrency:
+  group: skyline-video-post
+  cancel-in-progress: false
+
+jobs:
+  video:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: social-automation
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Install deps (incl. optional @vercel/blob + @higgsfield/client)
+        run: npm install --no-audit --no-fund
+
+      - name: Run video-post
+        env:
+          SOCIAL_CLIENT: skyline
+          SOCIAL_VIDEO_LIVE: ${{ vars.SOCIAL_VIDEO_LIVE }}
+          HF_CREDENTIALS: ${{ secrets.HF_CREDENTIALS }}
+          HIGGSFIELD_T2V_ENDPOINT: ${{ vars.HIGGSFIELD_T2V_ENDPOINT }}
+          HIGGSFIELD_T2V_MODEL: ${{ vars.HIGGSFIELD_T2V_MODEL }}
+          META_PAGE_TOKEN: ${{ secrets.META_PAGE_TOKEN }}
+          META_PAGE_ID: ${{ secrets.META_PAGE_ID }}
+          META_IG_USER_ID: ${{ secrets.META_IG_USER_ID }}
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+          WHATSAPP_PHONE_NUMBER_ID: ${{ secrets.WHATSAPP_PHONE_NUMBER_ID }}
+          WHATSAPP_TOKEN: ${{ secrets.WHATSAPP_TOKEN }}
+          WHATSAPP_TO: ${{ secrets.WHATSAPP_TO }}
+        run: node automation/run.js video-post

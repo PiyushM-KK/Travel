@@ -6,34 +6,44 @@ the real values live in the local `.env` (gitignored) and the Vercel project env
 
 ---
 
-## B-VIDEO — 🎬 AI travel-VIDEO posts (every ~2 days) — QA + generation BUILT (`e384ecf`); owner keys + posting flow PENDING
-**Goal (owner):** a short cinematic AI travel clip, ~every 2 days → AI VIDEO QA → WhatsApp approval → post to IG Reels / FB.
+## B-VIDEO — 🎬 AI travel-VIDEO Reels — PIPELINE BUILT + on a schedule; owner keys the ONLY thing left
+**Goal (owner):** a short cinematic AI travel Reel on a schedule → AI VIDEO QA → post to IG Reels / FB (or hold for approval).
 
-**Done & tested (this session):**
-- `engine/generate.assessVideoQuality()` — a 15-yr travel-cinematographer vision reviewer over ordered sample
-  frames (per-frame craft + AI-video temporal flaws: morphing/flicker/identity drift). Fail-open, 7/10 bar.
-- `automation/video-qa.js` — ffmpeg frame sampler + CLI (`node automation/video-qa.js <clip.mp4> [--frames 6] [--min 7]`).
-- `automation/higgsfield.js` — AI video gen via the official `@higgsfield/client` SDK (image-to-video), returns the clip URL.
-- Reviewed clean (Bug Hunter + App Security); 17 offline checks + a real-ffmpeg smoke test.
+**Proven manually (this session):** two 4K montage Reels (Kling `4k` via the Higgsfield connector) were branded
+(logo + timed "EXPLORE <place>" labels + WhatsApp CTA, 1080×1920) and **published live to IG + FB** — Agra/Kerala/
+Kashmir and Rajasthan/Goa/Meghalaya. That end-to-end flow is now CODE:
 
-**Owner-gated to make it LIVE (do these, then a next agent wires the cron):**
-1. **Higgsfield API keys** — create an API key at platform.higgsfield.ai. Set on the `skyline-social` Vercel project
-   (and local `.env`): either `HF_CREDENTIALS="<KEY_ID>:<KEY_SECRET>"` **or** `HF_API_KEY_ID` + `HF_API_KEY_SECRET`.
-   Never paste them in chat or here.
-2. **Install the optional deps** on the deploy: they're now in `package.json` optionalDependencies
-   (`@ffmpeg-installer/ffmpeg`, `@higgsfield/client`) — a normal Vercel build installs them. Locally: `npm install`.
-3. **Verify the SDK contract** — `@higgsfield/client` is early (v0.2.1); the code targets the documented
-   `/v2` `subscribe('/v1/image2video/dop', {input:{model,prompt,input_images}})` shape. Once keys exist, run a single
-   live gen and confirm the endpoint/model + the finished-URL path (`jobs[0].results.raw.url`). Endpoint/model are
-   env-overridable: `HIGGSFIELD_VIDEO_ENDPOINT`, `HIGGSFIELD_MODEL` (default `dop-turbo`).
+**Built & tested (offline; 34 new checks across `check_video_publish` + `check_video_pipeline` + the 17 `check_video_qa`):**
+- `automation/video-scenes.js` — per-destination cinematic DRONE shot descriptions + `pickScenes` (rotates a fresh
+  distinct trio each run, avoids recent) + `buildVideoPrompt`.
+- `automation/higgsfield.js` — now also `generateVideoFromText` / `resolveHiggsfieldText` (the montage is TEXT-to-video).
+- `automation/video-branding.js` — ffmpeg overlay: `detectCuts` (scene cuts), `resolveCuts` (even-split fallback),
+  `buildBrandFilter` (timed labels, logo, CTA, credit — normalises to 1080×1920), `brandVideo` (injectable runner).
+- `automation/video-publish.js` — Meta **IG Reel** (container → poll `status_code` → media_publish) + **FB /videos**,
+  per-platform error isolation.
+- `automation/video-runner.js` — `runVideoPost`: pick → generate → QA (re-gen once on fail) → brand → host → PUBLISH
+  (gated by `SOCIAL_VIDEO_LIVE`) or HOLD + WhatsApp the owner a preview link. Idempotent per day.
+- `.github/workflows/video-post.yml` — runs it every 3 days (needs ffmpeg + a long timeout → GitHub Actions, NOT Vercel).
+- `automation/video-qa.js` + `engine/generate.assessVideoQuality` — the cinematic frame QA (montage-aware, fails soft faces).
 
-**Still to BUILD (next agent, after keys):** the video POST pipeline is NOT wired yet —
-- a `video-post` job/cron on a ~2-day cadence: pick a package → seed image (real photo or a QA'd AI scene) + cinematic
-  prompt → `higgsfield.generateVideo` → download clip → `video-qa.assessVideoFile` gate (re-gen once on fail, else hold)
-  → WhatsApp approval (send the clip) → on approve, **post to IG Reels + FB video**.
-- **Meta Reels/video posting is a NEW publish surface** (resumable video upload / Reels container), distinct from the
-  current image post — needs its own build + a real end-to-end test. Video hosting: Meta needs a public video URL.
-- ffmpeg on Vercel comes from `@ffmpeg-installer/ffmpeg` (declared) — verify it resolves in the serverless runtime.
+**SAFE by default:** with `SOCIAL_VIDEO_LIVE` unset it never auto-posts — it holds the Reel and sends the owner a
+preview. It SKIPS cleanly (no error, no credit spend) until Higgsfield creds are set.
+
+**Owner-gated — the ONE remaining step to go live (add GitHub *repo secrets*, Settings → Secrets and variables → Actions):**
+1. **`HF_CREDENTIALS`** = `"<KEY_ID>:<KEY_SECRET>"` (from platform.higgsfield.ai) — required to generate. Never paste in chat.
+2. `META_PAGE_TOKEN`, `META_PAGE_ID`, `META_IG_USER_ID`, `BLOB_READ_WRITE_TOKEN`, `ANTHROPIC_API_KEY`,
+   `AIRTABLE_API_KEY`, `AIRTABLE_BASE_ID`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_TOKEN`, `WHATSAPP_TO` (same values as the
+   Vercel project). Optional repo *variables*: `SOCIAL_VIDEO_LIVE="true"` to auto-post; else it holds for approval.
+3. **Verify the text-to-video SDK contract** — `@higgsfield/client` is early (v0.2.1). `generateVideoFromText` targets
+   `subscribe(HIGGSFIELD_T2V_ENDPOINT, {input:{model,prompt}})` (default endpoint `/v1/text2video`, guessed). Once keys
+   exist, run the Action once (workflow_dispatch) and, if it errors, set repo vars `HIGGSFIELD_T2V_ENDPOINT` /
+   `HIGGSFIELD_T2V_MODEL` to the real values from the Higgsfield docs — no code change needed.
+   NOTE: the interactive **Higgsfield connector (MCP)** used for the manual Reels is NOT available in a headless Action,
+   so the scheduled path needs this HTTP-SDK contract confirmed.
+
+**Also new (owner rule):** daily QUEUE HYGIENE — `automation/queue-sweep.js` clears any `pending_approval`/`held` row
+older than ~20h (`SOCIAL_QUEUE_MAX_AGE_H`, default 20) for BOTH the image and video workflows, so unapproved drafts
+never pile up. Runs at the start of the daily `prep` job and the `video-post` job.
 
 ## B-WA-APPROVAL-IMG — ✅ RESOLVED 2026-08-08 (`06685e6`) — WhatsApp approvals now include the IMAGE
 **Was:** the owner got approval digests as TEXT ONLY — no picture — even though 16-17/19 drafts already had

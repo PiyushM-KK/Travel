@@ -85,7 +85,7 @@ async function generateVideo(params = {}, opts = {}) {
 
   const job = jobSet && Array.isArray(jobSet.jobs) ? jobSet.jobs[0] : null;
   const rawUrl = job && job.results && job.results.raw && job.results.raw.url ? String(job.results.raw.url) : "";
-  const url = /^https?:\/\//.test(rawUrl) ? rawUrl : ""; // only trust a real http(s) url as the finished clip
+  const url = /^https:\/\//.test(rawUrl) ? rawUrl : ""; // https-only (harden: no http/SSRF via a bad clip URL) // only trust a real http(s) url as the finished clip
 
   // Cost/observability meter — one line per job, never the credentials.
   try { console.log(JSON.stringify({ evt: "higgsfield_video", status, endpoint, model, jobId: (job && (job.id || job.request_id)) || "", hasUrl: !!url })); } catch { /* ignore */ }
@@ -95,6 +95,41 @@ async function generateVideo(params = {}, opts = {}) {
     throw new Error(redact(`higgsfield video not usable — status=${status}${url ? "" : " (no usable url)"}`));
   }
   return { url, status, jobId, raw: jobSet };
+}
+
+const DEFAULT_T2V_ENDPOINT = "/v1/text2video"; // TEXT-to-video (env-overridable; verify once keys exist)
+
+/**
+ * Generate ONE short video from a TEXT prompt only (no seed image) — the auto Reel montage path. Same
+ * result shape/guarding as generateVideo. The exact endpoint/model for text-to-video is ENV-CONFIGURABLE
+ * (HIGGSFIELD_T2V_ENDPOINT / HIGGSFIELD_T2V_MODEL) because the public SDK's t2v spec couldn't be fully
+ * verified without keys (see B-VIDEO) — the owner sets/confirms these once, no code change.
+ *
+ * @param params.prompt  cinematic montage prompt.
+ * @param params.input   extra fields (duration, aspect_ratio, resolution, sound…), merged API-safely.
+ */
+async function generateVideoFromText(params = {}, opts = {}) {
+  const prompt = String(params.prompt || "").trim();
+  if (!prompt) throw new Error("higgsfield.generateVideoFromText needs a prompt");
+  const endpoint = params.endpoint || process.env.HIGGSFIELD_T2V_ENDPOINT || DEFAULT_T2V_ENDPOINT;
+  const model = params.model || process.env.HIGGSFIELD_T2V_MODEL || process.env.HIGGSFIELD_MODEL || DEFAULT_MODEL;
+  const client = buildClient(opts);
+  const input = { model, prompt, ...(params.input || {}) };
+  let jobSet;
+  try { jobSet = await client.subscribe(endpoint, { input, withPolling: true }); }
+  catch (e) { throw new Error(redact("higgsfield text-to-video failed — " + String((e && e.message) || e))); }
+
+  const status = jobSet && jobSet.isFailed ? "failed"
+    : jobSet && jobSet.isNsfw ? "nsfw"
+    : jobSet && jobSet.isCompleted ? "completed"
+    : jobSet && jobSet.isQueued ? "queued"
+    : jobSet && jobSet.isInProgress ? "in_progress" : "unknown";
+  const job = jobSet && Array.isArray(jobSet.jobs) ? jobSet.jobs[0] : null;
+  const rawUrl = job && job.results && job.results.raw && job.results.raw.url ? String(job.results.raw.url) : "";
+  const url = /^https:\/\//.test(rawUrl) ? rawUrl : ""; // https-only (harden: no http/SSRF via a bad clip URL)
+  try { console.log(JSON.stringify({ evt: "higgsfield_t2v", status, endpoint, model, jobId: (job && (job.id || job.request_id)) || "", hasUrl: !!url })); } catch { /* ignore */ }
+  if (status !== "completed" || !url) throw new Error(redact(`higgsfield t2v not usable — status=${status}${url ? "" : " (no usable url)"}`));
+  return { url, status, jobId: (job && (job.id || job.request_id)) || "", raw: jobSet };
 }
 
 /**
@@ -107,4 +142,10 @@ function resolveHiggsfield(opts = {}) {
   return (params) => generateVideo(params, opts);
 }
 
-module.exports = { generateVideo, resolveHiggsfield, resolveCredentials, DEFAULT_ENDPOINT, DEFAULT_MODEL };
+/** Text-to-video resolver for the auto Reel runner: returns (prompt, o) => {url}, or null when off. */
+function resolveHiggsfieldText(opts = {}) {
+  if (!opts.client && !resolveCredentials(opts)) return null;
+  return (prompt, o = {}) => generateVideoFromText({ prompt, input: o.input, model: o.model, endpoint: o.endpoint }, opts);
+}
+
+module.exports = { generateVideo, generateVideoFromText, resolveHiggsfield, resolveHiggsfieldText, resolveCredentials, DEFAULT_ENDPOINT, DEFAULT_MODEL, DEFAULT_T2V_ENDPOINT };

@@ -32,7 +32,7 @@ const { redact } = require("../engine/publish");
 const { mockChannel } = require("./approval-channel");
 const { loadClient } = require("./clients");
 
-const JOBS = ["intake", "generate", "approve", "publish", "report", "pr", "prep", "email", "calendar-cards", "package-post"];
+const JOBS = ["intake", "generate", "approve", "publish", "report", "pr", "prep", "email", "calendar-cards", "package-post", "video-post"];
 
 function makeStore(injected) {
   if (injected) return { store: injected, kind: "injected" };
@@ -198,6 +198,13 @@ async function runJob(opts = {}) {
     // (no live gate needed); each sub-step surfaces its own failures. The Gmail
     // trigger (v2 Phase 1d) rides in here: intake pulls new mail → generate writes a
     // post FROM the email's contents → approve sends it to the owner to approve.
+    // QUEUE HYGIENE FIRST: clear yesterday's un-approved / held drafts so the queue never piles up
+    // (owner's rule) — best-effort, never sinks the prep pass.
+    let sweep = { swept: 0 };
+    try {
+      const { sweepStaleQueue } = require("./queue-sweep");
+      sweep = await sweepStaleQueue(store, { now, sweepHosted: require("./image-host").deleteHosted, imageOpts: imageOptsFor(opts) });
+    } catch (e) { /* best-effort */ }
     const reader = resolveGmailReader(opts);
     const calOpt = calendarBriefOpt(opts);
     const intake = await runIntake(store, {
@@ -223,7 +230,7 @@ async function runJob(opts = {}) {
     }
     const channel = resolveApprovalChannel(opts);
     const approve = await runApprove(store, { channel, runner, now });
-    return { ok: true, ...base, prep: { intake, generate, approve } };
+    return { ok: true, ...base, prep: { sweep, intake, generate, approve } };
   }
 
   // -------------------------------------------------------------- EMAIL (Gmail vendor idea)
@@ -313,6 +320,43 @@ async function runJob(opts = {}) {
     });
     await store.heartbeat("package-post", { runner, considered: out.considered, published: (out.published || []).length, notified: (out.notified || []).length, held: (out.held || []).length });
     return { ok: true, ...base, packagePost: out };
+  }
+
+  // -------------------------------------------------------------- VIDEO-POST (B-VIDEO, GitHub Actions)
+  if (job === "video-post") {
+    // The scheduled AI VIDEO Reel: pick 3 destinations -> Higgsfield text-to-video montage -> video QA
+    // -> brand (ffmpeg) -> host -> publish (gated by SOCIAL_VIDEO_LIVE) or HOLD + WhatsApp the owner a
+    // preview. Runs in GitHub Actions (ffmpeg + long timeout), never a Vercel function.
+    const path = require("path");
+    const { runVideoPost } = require("./video-runner");
+    const { resolveHiggsfieldText } = require("./higgsfield");
+    const { sendText } = require("./whatsapp");
+    // QUEUE HYGIENE: clear any stale pending/held VIDEO Reels first (owner's rule — never let them pile up).
+    try {
+      const { sweepStaleQueue } = require("./queue-sweep");
+      await sweepStaleQueue(store, { now, statuses: ["pending_approval", "held"], sweepHosted: (u, o) => require("./image-host").deleteHosted(u, o) });
+    } catch (e) { /* best-effort */ }
+    let assessVideo = null;
+    try { const vq = require("./video-qa"); assessVideo = (f, o) => vq.assessVideoFile(f, o); } catch { /* video-qa optional */ }
+    const live = opts.live === true || process.env.SOCIAL_VIDEO_LIVE === "true";
+    const out = await runVideoPost(store, {
+      client: client.id, now,
+      generateVideo: opts.generateVideo || resolveHiggsfieldText(),
+      assessVideo,
+      logoPath: path.join(__dirname, "..", "assets", "Skyline_Logo.jpg"),
+      fontDir: path.join(__dirname, "..", "assets", "fonts"),
+      cwd: path.join(__dirname, ".."),
+      phone: (client.facts && client.facts.locations && client.facts.locations[0] && client.facts.locations[0].phone) || "+91 88660 50291",
+      creds: client.creds,
+      live: live && !!client.live,
+      sendText: opts.sendText || ((to, body) => sendText(to, body)),
+      to: opts.notifyTo || process.env.WHATSAPP_TO,
+      ...(opts.videoGenOpts ? { videoGenOpts: opts.videoGenOpts } : {}),
+      ...(opts.duration ? { duration: opts.duration } : {}),
+      ...(opts.now ? { now: opts.now } : {}),
+    });
+    await store.heartbeat("video-post", { runner, status: out.status, id: out.id || "" });
+    return { ok: true, ...base, videoPost: out };
   }
 
   // -------------------------------------------------------------- REPORT

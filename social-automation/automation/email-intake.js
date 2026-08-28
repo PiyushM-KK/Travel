@@ -110,13 +110,12 @@ async function runEmailIntake(store, ctx = {}) {
     let cardUrlB = "", bStyle = "", sceneMeta = null;
     try {
       const imageGen = ctx.imageGen || require("./image-gen").resolveImageGen();
-      let bufB;
+      let bufB = null; // built ONLY when a real AI scene passes QA — never a blank decorative card
       if (imageGen && imageGenUsed < imageGenMax) {
         imageGenUsed++;
-        // Card B = a FRESH AI scene — the shared resolver (dynamic Scene Generator → static SCENES pool),
-        // grounded to the matched Skyline package, through the SAME image-QA gate (scene-qa.js) as every
-        // other intake: a weird render is re-rolled, and if every attempt still looks broken we post the
-        // decorative card instead. So Gmail-resold posts get new — and quality-checked — images too.
+        // Card B = a FRESH AI scene through the SAME image-QA gate (scene-qa.js) as every other intake: a
+        // weird OR blank render is re-rolled, and if every attempt still fails QA we DROP card B and offer
+        // the real photo (card A) alone — a blank/decorative gradient card is never posted.
         const { resolveScenePrompt } = require("./scene-generator");
         const { resolveImageQaConfig, generateQaScene } = require("./scene-qa");
         const scene = await generateQaScene({
@@ -128,21 +127,13 @@ async function runEmailIntake(store, ctx = {}) {
           bufB = await makeCard({ ...baseCard, photoBytes: scene.buffer, credit: "AI-generated scene · illustrative" });
           bStyle = "AI scene";
         } else {
-          bufB = await makeCard({ ...baseCard, decor: true }); bStyle = "decorative"; sceneMeta = null;
-          try { console.warn(JSON.stringify({ evt: "image_qa_fallback_decor", src: "gmail", notes: scene.rejected })); } catch { /* ignore */ }
+          try { console.warn(JSON.stringify({ evt: "image_qa_no_bcard", src: "gmail", notes: scene.rejected })); } catch { /* ignore */ }
         }
-      } else {
-        bufB = await makeCard({ ...baseCard, decor: true });
-        bStyle = "decorative";
       }
-      cardUrlB = await hostCard(bufB, `card-b-${smid}`);
+      if (bufB) cardUrlB = await hostCard(bufB, `card-b-${smid}`);
     } catch (e) {
-      // B is best-effort. If the generator failed, fall back to the gradient decor; if THAT fails, offer A only.
-      try {
-        const bufB = await makeCard({ ...baseCard, decor: true });
-        cardUrlB = await hostCard(bufB, `card-b-${smid}`);
-        bStyle = "decorative"; sceneMeta = null;
-      } catch (e2) { cardUrlB = ""; bStyle = ""; sceneMeta = null; }
+      // B is best-effort; on any error offer the real photo (A) alone rather than a blank card.
+      cardUrlB = ""; bStyle = ""; sceneMeta = null;
     }
     if (bStyle !== "AI scene") sceneMeta = null; // only record a concept the AI scene actually used
 

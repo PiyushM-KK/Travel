@@ -164,19 +164,18 @@ async function buildAndDraftCard(store, ctx, { pkg, smid, source }) {
   try {
     cardUrlA = await hostCard(await makeCard({ ...baseCard, photoPath: pickPhoto(fs, PHOTOS, slug), credit: "Photo: Wikimedia CC" }), `card-a-${smid}`);
   } catch (e) { await store.update(row.id, { status: "held", lastError: "card A render/host failed: " + String((e && e.message) || e) }); return { status: "held", held: [{ id: row.id, reason: "card A render/host failed" }], sweepCards }; }
-  let qaNote = ""; // surfaced to the owner when an AI scene was re-rolled or replaced by the QA gate
+  let qaNote = ""; // surfaced to the owner when an AI scene was re-rolled or dropped by the QA gate
   try {
     const imageGen = ctx.imageGen || require("./image-gen").resolveImageGen();
-    let bufB;
+    let bufB = null; // built ONLY when a real AI scene passes QA — we NEVER emit a blank decorative card
     if (imageGen) {
-      // Card B image prompt — the shared resolver: a fresh, unique DYNAMIC scene (grounded to the
-      // package + avoiding recent history) when the AI Scene Generator is on, else the static SCENES
-      // pool. The concept metadata rides on the row (imageSource.sceneMeta) so the next run avoids it.
+      // Card B image prompt — the shared resolver: a fresh, unique DYNAMIC scene grounded to the package.
       const { resolveScenePrompt } = require("./scene-generator");
       // IMAGE-QUALITY QA GATE (shared, so EVERY intake's AI scene is checked the same way — see scene-qa.js):
-      // a 15-yr-photographer vision reviewer scores each gpt-image-1 scene; a weird one is RE-ROLLED with a
-      // fresh concept, bounded by a wall-clock budget, and if every attempt still looks broken we post the
-      // code-drawn DECORATIVE card rather than a bad image.
+      // a 15-yr-photographer vision reviewer scores each gpt-image-1 scene (weird OR blank/empty → fail); a
+      // failing scene is RE-ROLLED with a fresh concept, bounded by a wall-clock budget. If every attempt
+      // still fails, we DROP card B entirely — the real destination photo (card A) stands alone. A blank /
+      // decorative gradient card is NEVER produced or posted (owner: "blank images should not be generated").
       const { resolveImageQaConfig, generateQaScene } = require("./scene-qa");
       const cfg = resolveImageQaConfig(ctx);
       const scene = await generateQaScene({
@@ -187,22 +186,18 @@ async function buildAndDraftCard(store, ctx, { pkg, smid, source }) {
         bufB = await makeCard({ ...baseCard, photoBytes: scene.buffer, credit: "AI-generated scene · illustrative" });
         bStyle = AI_SCENE_STYLE; sceneMeta = scene.sceneMeta; qaNote = scene.qaNote;
       } else {
-        // Every AI attempt looked broken → post the SAFE decorative card, never a weird scene.
-        bufB = await makeCard({ ...baseCard, decor: true }); bStyle = "decorative"; sceneMeta = null; qaNote = scene.qaNote;
-        try { console.warn(JSON.stringify({ evt: "image_qa_fallback_decor", tries: cfg.maxTries, notes: scene.rejected })); } catch { /* ignore */ }
+        qaNote = scene.qaNote; // no usable AI scene → real photo A only, NO card B
+        try { console.warn(JSON.stringify({ evt: "image_qa_no_bcard", tries: cfg.maxTries, notes: scene.rejected })); } catch { /* ignore */ }
       }
     } else {
-      // No image generator resolved → card B is the code-drawn DECORATIVE gradient, NOT an AI scene.
-      // This is silent-by-design (it's a valid fallback), but a MISSING/misnamed OPENAI_API_KEY looks
-      // identical to "intentionally off" — which is exactly how a typo'd env var (OPEN_API_KEY) shipped
-      // decorative B for days unnoticed. Log it so the fallback is visible in the function logs.
-      try { console.warn(JSON.stringify({ evt: "image_gen_unconfigured", note: "OPENAI_API_KEY (or IMAGE_API_KEY) not set — card B is the decorative gradient, not an AI scene" })); } catch { /* ignore */ }
-      bufB = await makeCard({ ...baseCard, decor: true }); bStyle = "decorative";
+      // No image generator resolved (OPENAI_API_KEY missing/misnamed). Do NOT ship a blank decorative card —
+      // leave card B empty so only the real photo A is offered. Logged so the misconfig is visible.
+      try { console.warn(JSON.stringify({ evt: "image_gen_unconfigured", note: "OPENAI_API_KEY (or IMAGE_API_KEY) not set — no AI scene; posting the real photo only" })); } catch { /* ignore */ }
     }
-    cardUrlB = await hostCard(bufB, `card-b-${smid}`);
+    if (bufB) cardUrlB = await hostCard(bufB, `card-b-${smid}`);
   } catch (e) {
-    try { cardUrlB = await hostCard(await makeCard({ ...baseCard, decor: true }), `card-b-${smid}`); bStyle = "decorative"; sceneMeta = null; }
-    catch (e2) { cardUrlB = ""; bStyle = ""; sceneMeta = null; }
+    // B is best-effort; on any error offer the real photo (A) alone rather than a blank card.
+    cardUrlB = ""; bStyle = ""; sceneMeta = null;
   }
   // Invariant: only keep sceneMeta if the AI scene was actually the card we built (a fallback to the
   // photo/decor means that concept was never rendered, so it must not enter the history as "seen").

@@ -13,7 +13,7 @@ function ok(cond, label) { console.log(`  ${cond ? "ok" : "FAIL"} - ${label}`); 
 function ctx(over = {}) {
   return {
     requirePrice: true,
-    imageGen: null, // force the decorative B card (no gpt-image-1 call)
+    imageGen: null, // no gpt-image-1 → no AI scene; card B is DROPPED (never a blank decorative card)
     describeOffer: async () => "Rajasthan tour — Jaipur Jodhpur Udaipur Jaisalmer",
     extractPrices: async () => [24900],
     makeCard: async () => Buffer.from([0xff, 0xd8, 0xff, 0x00]), // pretend-JPEG bytes
@@ -32,7 +32,7 @@ function ctx(over = {}) {
     ok(r.rp && r.rp.amount === 27400, `repriced vendor ₹24,900 +10% → ₹27,400 (got ${r.rp && r.rp.amount})`);
     ok(/27,400/.test(r.rp.main || ""), "the +10% price string is formatted (₹27,400)");
     ok(r.cardUrlA === "https://blob.example/card-a-t1.jpg", "card A hosted with the row's smid");
-    ok(r.options && r.options.A && r.options.B, "both A (photo) and B (decor) card options are offered");
+    ok(r.options && r.options.A && !r.options.B, "no AI scene → real photo A offered ALONE (no blank/decorative B card)");
     ok(/plan a CUSTOM/i.test(r.hint) && !/price/i.test(r.hint.replace(/no.*price/i, "")), "caption hint stays grounded + doesn't restate a price");
   }
 

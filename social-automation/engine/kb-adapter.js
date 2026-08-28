@@ -128,7 +128,14 @@ function factSheet(facts) {
   for (const category of facts.categories) {
     const inCat = facts.items.filter((i) => i.category === category);
     lines.push(`  ${category}:`);
-    for (const i of inCat) lines.push(`    - ${i.name} — ${i.price}`);
+    for (const i of inCat) {
+      // Include a travel package's OWN duration + route stops so the fact-check / SMM can VERIFY a
+      // caption that names them (e.g. "Sikkim Discovery … Gangtok · Pelling · Lachung"). Without this the
+      // route lived only on the card, so a grounded caption naming the package's real stops got rejected
+      // as "not in the facts". A dish carries no duration/route, so this line is unchanged for restaurants.
+      const extras = [i.duration, i.route].filter(Boolean).map((s) => String(s).trim()).filter(Boolean).join(" · ");
+      lines.push(`    - ${i.name} — ${i.price}${extras ? " · " + extras : ""}`);
+    }
   }
 
   if (facts.popular.length) lines.push("", `MOST POPULAR: ${facts.popular.join(", ")}`);

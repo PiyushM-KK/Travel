@@ -97,12 +97,11 @@ async function buildResellerCards(ctx = {}, opts = {}) {
   let cardUrlB = "", bStyle = "", sceneMeta = null;
   try {
     const imageGen = ctx.imageGen !== undefined ? ctx.imageGen : require("./image-gen").resolveImageGen();
-    let bufB;
+    let bufB = null; // built ONLY when a real AI scene passes QA — never a blank decorative card
     if (imageGen && (ctx.genUsed || 0) < imageGenMax) {
       // Card B = a FRESH AI scene — the SAME production path (and SAME image-QA gate, scene-qa.js) as the
-      // own-catalogue cards: the dynamic Scene Generator (grounded to the matched Skyline package, avoiding
-      // recent history) with the static SCENES pool as the fallback. A weird render is re-rolled; if every
-      // attempt still looks broken we post the code-drawn decorative card, never an AI-broken image.
+      // own-catalogue cards. A weird OR blank render is re-rolled; if every attempt still fails QA we DROP
+      // card B and offer the real photo (card A) alone — a blank/decorative gradient is never posted.
       const { resolveScenePrompt } = require("./scene-generator");
       const { resolveImageQaConfig, generateQaScene } = require("./scene-qa");
       const scene = await generateQaScene({
@@ -114,15 +113,13 @@ async function buildResellerCards(ctx = {}, opts = {}) {
         bufB = await _makeCard({ ...baseCard, photoBytes: scene.buffer, credit: "AI-generated scene · illustrative" });
         bStyle = "AI scene";
       } else {
-        bufB = await _makeCard({ ...baseCard, decor: true }); bStyle = "decorative"; sceneMeta = null;
-        try { console.warn(JSON.stringify({ evt: "image_qa_fallback_decor", src: "reseller", notes: scene.rejected })); } catch { /* ignore */ }
+        try { console.warn(JSON.stringify({ evt: "image_qa_no_bcard", src: "reseller", notes: scene.rejected })); } catch { /* ignore */ }
       }
-    } else { bufB = await _makeCard({ ...baseCard, decor: true }); bStyle = "decorative"; }
-    cardUrlB = await hostCard(bufB, `card-b-${smid}`);
+    }
+    if (bufB) cardUrlB = await hostCard(bufB, `card-b-${smid}`);
   } catch (e) {
-    // B is best-effort: fall back to the gradient decor; if THAT fails, offer A alone.
-    try { cardUrlB = await hostCard(await _makeCard({ ...baseCard, decor: true }), `card-b-${smid}`); bStyle = "decorative"; sceneMeta = null; }
-    catch (e2) { cardUrlB = ""; bStyle = ""; sceneMeta = null; }
+    // B is best-effort; on any error offer the real photo (A) alone rather than a blank card.
+    cardUrlB = ""; bStyle = ""; sceneMeta = null;
   }
   if (bStyle !== "AI scene") sceneMeta = null; // only record a concept the AI scene actually used
 

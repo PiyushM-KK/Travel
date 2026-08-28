@@ -419,12 +419,17 @@ async function assessAiSceneQuality(image, opts = {}) {
             "distorted or extra human limbs/hands/fingers/faces, garbled or nonsense text on signs, " +
             "duplicated or fused objects, smeared/blurred artefact regions, unnatural anatomy, physically " +
             "impossible light or shadow, plastic/over-smoothed 'AI skin', muddy or blown-out exposure, " +
-            "and cluttered or incoherent composition unfit for a professional post. Judge realism and " +
-            "craft, NOT the choice of subject. Ignore any text/logo we overlaid as a caption. Score 0–10 " +
-            "on a professional bar (0 grossly broken, 7 the MINIMUM you'd let a client publish, 10 " +
-            "indistinguishable from a real professional photograph). Set ok=false if you — as that " +
-            "photographer — would not let it go out. List every defect you actually see; empty list only " +
-            "if it is genuinely clean and publishable." },
+            "and cluttered or incoherent composition unfit for a professional post. " +
+            "CRITICAL — a BLANK or EMPTY frame is an automatic FAIL: if the image is a plain solid colour, " +
+            "a plain gradient, a near-featureless wash, or otherwise has NO real photographic travel scene / " +
+            "no recognizable subject (mountains, water, streets, people, food, etc.), set ok=false with a " +
+            "score of 0–2 no matter how 'clean' it looks — an empty background is NOT publishable imagery. " +
+            "Judge realism and craft, NOT the choice of subject. Ignore any text/logo we overlaid as a " +
+            "caption (their presence does NOT make an otherwise-empty frame acceptable). Score 0–10 on a " +
+            "professional bar (0 grossly broken/blank, 7 the MINIMUM you'd let a client publish, 10 " +
+            "indistinguishable from a real professional photograph). ALWAYS return an integer score. Set " +
+            "ok=false if you — as that photographer — would not let it go out. List every defect you " +
+            "actually see; empty list only if it is genuinely clean and publishable." },
         ],
       }],
     });
@@ -432,10 +437,13 @@ async function assessAiSceneQuality(image, opts = {}) {
     const out = (use && use.input) || {};
     const score = Number.isFinite(out.score) ? out.score : null;
     const defects = Array.isArray(out.defects) ? out.defects.filter(Boolean).map(String) : [];
-    // Fail if the model said not-ok OR the score is below threshold. A null score (malformed reply)
-    // defers to `ok`, and `ok` itself defaults to true only when the model omitted it (fail-open).
-    const pass = out.ok !== false && (score == null || score >= minScore);
-    return { pass, score, defects, note: pass ? "" : (defects.join("; ") || `low quality (score ${score}/10)`) };
+    // To PASS, the returned verdict must be positive AND carry a real score at/above the bar. A null/
+    // missing score means the reviewer didn't actually grade it (malformed reply) — that must NOT sail
+    // through as "good enough"; treat it as a fail so the caller re-rolls (a thrown/errored call is the
+    // separate fail-OPEN case in catch, so a QA outage still never blocks all posting).
+    const pass = out.ok !== false && Number.isFinite(score) && score >= minScore;
+    const note = pass ? "" : (defects.join("; ") || (score == null ? "no quality score returned" : `low quality (score ${score}/10)`));
+    return { pass, score, defects, note };
   } catch (e) {
     return { pass: true, score: null, defects: [], note: "QA skipped — " + redact(String((e && e.message) || e)) };
   }

@@ -64,6 +64,11 @@ function captureWarn(fn) {
     const custom = await assessAiSceneQuality(PNG, { client: qaClientReturning({ ok: true, score: 6, defects: [] }), minScore: 6 });
     ok(custom.pass === true, "minScore is honoured (6 >= 6 → pass)");
 
+    // A RETURNED-but-malformed verdict (ok:true but no score) must NOT auto-pass — the reviewer never
+    // actually graded it, so treat it as a fail and re-roll (regression: null score used to sail through).
+    const noScore = await assessAiSceneQuality(PNG, { client: qaClientReturning({ ok: true, defects: [] }) });
+    ok(noScore.pass === false && noScore.score === null && /no quality score/.test(noScore.note), "missing/null score → FAIL (never auto-pass on a malformed verdict)");
+
     const errored = await assessAiSceneQuality(PNG, { client: qaClientThrows() });
     ok(errored.pass === true && /QA skipped/.test(errored.note), "a thrown QA call FAILS OPEN (pass:true) — a blip never halts all posting");
 
@@ -101,7 +106,7 @@ function captureWarn(fn) {
     ok(img.prompts.length === 2 && n === 2, "weird-then-clean → re-rolled a fresh scene (2 renders, 2 QA passes)");
   }
 
-  // (c) EVERY scene weird → decorative fallback (never a broken AI scene), and the fallback is logged.
+  // (c) EVERY scene weird → NO card B at all (never a blank/decorative gradient); real photo A stands alone.
   {
     const store = new InMemoryStore(), host = mockHost(), img = fakeImageGen();
     const events = await captureWarn(() => buildAndDraftCard(store, {
@@ -111,12 +116,13 @@ function captureWarn(fn) {
       imageQaMaxTries: 2,
     }, { pkg, smid: "qa-fallback-1", source: "package-post" }));
     ok(img.prompts.length === 2, "all-weird → exhausted exactly imageQaMaxTries (2) render attempts");
-    ok(events.some((e) => e.evt === "image_qa_fallback_decor"), "all-weird → fell back to the DECORATIVE card (logged image_qa_fallback_decor)");
-    ok(host.cards.some((c) => /card-b-/.test(c.keyHint)), "all-weird → still hosts a card-B (the safe decorative one, not a weird scene)");
+    ok(events.some((e) => e.evt === "image_qa_no_bcard"), "all-weird → card B dropped (logged image_qa_no_bcard)");
+    ok(!host.cards.some((c) => /card-b-/.test(c.keyHint)), "all-weird → NO card-B hosted (no blank/decorative card; real photo A alone)");
+    ok(host.cards.some((c) => /card-a-/.test(c.keyHint)), "all-weird → the real photo card A is still hosted");
   }
 
   // (d) imageQaMaxTries honours a finite value incl. edge cases — 1 = ONE shot, no retry (and 0 → 1,
-  //     never the silent `|| 2` default). A weird single render falls straight back to decorative.
+  //     never the silent `|| 2` default). A weird single render drops card B (real photo alone).
   for (const tries of [1, 0]) {
     const store = new InMemoryStore(), host = mockHost(), img = fakeImageGen();
     await buildAndDraftCard(store, {
@@ -140,8 +146,8 @@ function captureWarn(fn) {
     }, { pkg, smid: "qa-budget-1", source: "package-post" }));
     ok(img.prompts.length === 1, "time budget spent → first render only, NO re-roll (despite maxTries:5)");
     ok(events.some((e) => e.evt === "image_qa_budget_stop"), "budget stop is logged (image_qa_budget_stop)");
-    ok(events.some((e) => e.evt === "image_qa_fallback_decor"), "budget-stopped weird render → decorative fallback");
+    ok(events.some((e) => e.evt === "image_qa_no_bcard"), "budget-stopped weird render → card B dropped (real photo alone)");
   }
 
-  console.log(`\nIMAGE-QA PASS: vision QA scores each AI scene; weird renders are re-rolled and, if still bad, replaced by the clean decorative card — the real-photo workflow is never touched. (${pass} checks)`);
+  console.log(`\nIMAGE-QA PASS: vision QA scores each AI scene (weird OR blank → fail); a failing scene is re-rolled and, if still bad, card B is DROPPED so the real photo stands alone — a blank card is never produced. (${pass} checks)`);
 })().catch((e) => { console.error("FAIL:", e); process.exit(1); });

@@ -10,9 +10,18 @@ const { allPackages, photoSlug } = require("../automation/packages");
 let pass = 0;
 const ok = (c, m) => { assert.ok(c, m); console.log("  ok -", m); pass++; };
 
+// With NO image API configured (this test env), only the photographed packages rotate (safe fallback).
+const savedKey = process.env.OPENAI_API_KEY, savedImg = process.env.IMAGE_API_KEY;
+delete process.env.OPENAI_API_KEY; delete process.env.IMAGE_API_KEY;
 const N = featurablePackages().length;
-ok(N > 1 && N < allPackages().length, `only featurable packages rotate: ${N} of ${allPackages().length} (rest lack a real photo)`);
-ok(featurablePackages().every((p) => photoSlug(p.item + " " + (p.route || "")) !== "generic"), "every featurable package has a REAL matching photo (no generic-slug fallback)");
+ok(N > 1 && N < allPackages().length, `no image API → only photographed packages rotate: ${N} of ${allPackages().length}`);
+ok(featurablePackages().every((p) => photoSlug(p.item + " " + (p.route || "")) !== "generic"), "no-API fallback: every featurable package has a REAL matching photo");
+// With the AI Scene Generator available, EVERY package is featurable — a no-photo package uses its
+// QA-gated AI scene as card A, so all destinations rotate (fixes "only ~8 locations ever appear").
+process.env.OPENAI_API_KEY = "sk-test-key";
+ok(featurablePackages().length === allPackages().length, `AI available → ALL ${allPackages().length} packages rotate (no-photo ones use an AI scene)`);
+if (savedKey === undefined) delete process.env.OPENAI_API_KEY; else process.env.OPENAI_API_KEY = savedKey;
+if (savedImg !== undefined) process.env.IMAGE_API_KEY = savedImg;
 
 const d0 = new Date("2026-01-01T12:00:00Z");
 const d1 = new Date("2026-01-02T12:00:00Z");

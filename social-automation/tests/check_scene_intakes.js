@@ -109,5 +109,34 @@ function mockHost() {
     void out;
   }
 
-  console.log(`\nSCENE-INTAKES PASS: image generation works end-to-end (dynamic scene → image API → real card render → host) for own-catalogue, WhatsApp reseller and Gmail reseller. (${pass} checks)`);
+  // ---- INTAKE 4: a NO-PHOTO package uses its QA-gated AI scene AS card A (every package can feature) ----
+  {
+    const store = new InMemoryStore();
+    const host = mockHost();
+    const img = fakeImageGen();
+    // "Thailand Explorer" has no stock photo (generic slug) — card A must come from the AI scene, not a wrong photo.
+    await buildAndDraftCard(store, {
+      client: "skyline", hostImageBytes: host.hostImageBytes, deleteHosted: host.deleteHosted,
+      imageGen: img, sceneGenClient: sceneStub(),
+    }, { pkg: { item: "Thailand Explorer", route: "Bangkok · Phuket · Krabi", price: "₹48,000" }, smid: "test-nophoto-1", source: "package-post" });
+    const cardA = host.cards.find((c) => /card-a-/.test(c.keyHint));
+    ok(!!cardA && isImage(cardA.buffer), "no-photo package: card A is built from the AI SCENE (not a wrong stock photo)");
+    ok(img.prompts.length >= 1 && img.prompts[0].includes("PROMPT-MARKER"), "no-photo package: the DYNAMIC scene prompt reached the image API for card A");
+  }
+
+  // ---- INTAKE 5: a NO-PHOTO package whose AI scene FAILS QA is DEFERRED (no image, no blank, row dropped) ----
+  {
+    const store = new InMemoryStore();
+    const host = mockHost();
+    const img = fakeImageGen();
+    const res = await buildAndDraftCard(store, {
+      client: "skyline", hostImageBytes: host.hostImageBytes, deleteHosted: host.deleteHosted,
+      imageGen: img, sceneGenClient: sceneStub(), assessImage: async () => ({ pass: false, score: 1, defects: ["warped"], note: "warped" }),
+    }, { pkg: { item: "Bali Honeymoon", route: "Ubud · Seminyak · Nusa Penida", price: "₹52,000" }, smid: "test-nophoto-2", source: "package-post" });
+    ok(res.status === "skipped", "no-photo package + AI scene fails QA → DEFERRED (skipped), never a blank/wrong card");
+    ok(!host.cards.some((c) => /card-a-/.test(c.keyHint)), "deferred no-photo package: NO card hosted at all");
+    ok(!(await store.findBySourceMessageId("test-nophoto-2")), "deferred no-photo package: the empty row was actually removed (store.delete works)");
+  }
+
+  console.log(`\nSCENE-INTAKES PASS: image generation works end-to-end (dynamic scene → image API → real card render → host) for own-catalogue, WhatsApp/Gmail reseller, AND no-photo packages (AI scene as card A, deferred if it fails QA). (${pass} checks)`);
 })().catch((e) => { console.error("FAIL:", e); process.exit(1); });

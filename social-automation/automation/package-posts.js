@@ -54,6 +54,9 @@ async function runPackagePosts(store, ctx = {}) {
   if (built.status === "held") return { considered: 1, slot, published: [], notified: [], held: built.held, skipped: [] };
 
   const { fresh, cardUrlA, cardUrlB, bStyle, options, rp, sweepCards, sceneMeta, caution, qaNote } = built;
+  // No stock photo for this destination → card A IS the QA-gated AI scene; label it honestly to the owner
+  // (never report an AI scene as a "real photo"/"destination photo"). The public card credits it already.
+  const aIsScene = bStyle === AI_SCENE_STYLE && !cardUrlB;
   const code = shortCode(fresh.id);
   const flags = riskFlags(fresh);
   // Carry the AI Scene Generator's concept metadata onto every imageSource we persist, so the scene-
@@ -91,7 +94,7 @@ async function runPackagePosts(store, ctx = {}) {
       : `\n\n✅ approve ${code} → posts to Instagram + Facebook   |   ❌ reject ${code}`;
     if (notify && to) {
       try {
-        if (ctx.sendImage && cardUrlA) await ctx.sendImage(to, cardUrlA, (details + "\n\n🅰️ REAL PHOTO").slice(0, 1024));
+        if (ctx.sendImage && cardUrlA) await ctx.sendImage(to, cardUrlA, (details + "\n\n" + (aIsScene ? "🅰️ AI SCENE (illustrative — no stock photo for this destination)" : "🅰️ REAL PHOTO")).slice(0, 1024));
         if (ctx.sendImage && cardUrlB) await ctx.sendImage(to, cardUrlB, `🅱️ ${bStyle.toUpperCase()} — ${pkg.item} ${pkg.route || ""}`.trim().slice(0, 1024));
         if (ctx.sendText) await ctx.sendText(to, (`Caption:\n${(fresh.caption || "").trim()}${instr}`).slice(0, 4000));
       } catch (e) { /* best-effort */ }
@@ -137,7 +140,7 @@ async function runPackagePosts(store, ctx = {}) {
   // Tell the owner the outcome (informational — no action needed on a clean auto-post).
   if (notify && to && ctx.sendText) {
     let line;
-    if (publishedOk) line = `📦✅ Auto-posted to Instagram + Facebook:\n${pkg.item} — ${pkg.route}\n   ${sourceLine(pkg, now)}\n   Image: ${useScene ? "fresh AI scene (illustrative)" : "destination photo"}${caution ? "\n   " + caution : ""}\n"${(fresh.caption || "").trim().slice(0, 180)}"`;
+    if (publishedOk) line = `📦✅ Auto-posted to Instagram + Facebook:\n${pkg.item} — ${pkg.route}\n   ${sourceLine(pkg, now)}\n   Image: ${(useScene || aIsScene) ? "fresh AI scene (illustrative)" : "destination photo"}${caution ? "\n   " + caution : ""}\n"${(fresh.caption || "").trim().slice(0, 180)}"`;
     else if (pub && pub.dryRun) line = `📦 Prepared "${pkg.item}" — live posting is off, so it'll go out on the next live publish run. (id ${code})`;
     else line = `📦⚠️ Prepared "${pkg.item}" but publishing didn't complete (${(after && after.status) || "unknown"}${after && after.lastError ? ": " + after.lastError : ""}). It stays approved and will retry. (id ${code})`;
     try { await ctx.sendText(to, line.slice(0, 4000)); } catch (e) { /* best-effort */ }

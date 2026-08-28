@@ -114,6 +114,13 @@ class InMemoryStore {
     return { ...r };
   }
 
+  // Mirror AirtableStore.delete — used by the card builder's defer path (a no-photo package whose AI
+  // scene fails QA drops its empty row). Keep the two store shapes in parity so offline/dry-run behave
+  // like production. Idempotent: deleting a missing id is a no-op.
+  async delete(id) {
+    return this.rows.delete(id);
+  }
+
   /**
    * Atomically claim a row IF it is currently in `fromStatus`. Returns the
    * claimed row, or null if it wasn't claimable (already claimed / wrong status).

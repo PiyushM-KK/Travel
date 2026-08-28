@@ -112,5 +112,29 @@ function fakeBuilder(store, rowId, freshOverrides) {
     ok(held.published.length === 0 && held.held.length === 1, "a build/host hold passes through (no publish)");
   }
 
-  console.log(`\nPACKAGE-POSTS PASS: distinct twice-daily slots; clean→auto-publish, flagged→held; dedup/held pass-through. (${pass} checks)`);
+  // ---- 6. HONESTY: a no-photo package (card A IS the AI scene) is labeled truthfully, not "REAL PHOTO" ----
+  {
+    const store = new InMemoryStore();
+    const row = await store.create({ status: "planned", client: "skyline", subject: "Thailand Explorer" });
+    const build = async () => ({
+      status: "drafted",
+      fresh: { ...(await store.get(row.id)), caption: "Plan your Thailand trip with Skyline.", reviewNotes: "SMM 9/10 (pass)", lastError: "", language: "en" },
+      cardUrlA: "https://blob/a-scene.jpg", cardUrlB: "", // no stock photo → card A IS the AI scene, no card B
+      options: { A: "https://blob/a-scene.jpg" },
+      rp: { line: "₹48,000 / person", main: "₹48,000", suffix: "/ person", short: "₹48,000" },
+      bStyle: "AI scene", pkg: { item: "Thailand Explorer", route: "Bangkok · Phuket · Krabi" },
+      sweepCards: async () => {},
+    });
+    const imgCaps = [];
+    // live gate OFF → held-for-approval branch, which sends the card image with its A label.
+    await runPackagePosts(store, {
+      slot: 0, now: d0, buildAndDraftCard: build, notifyTo: "+1",
+      sendImage: async (to, url, cap) => imgCaps.push(cap), sendText: async () => {},
+      publishFn: async () => ({ dryRun: true }),
+    });
+    ok(imgCaps.some((c) => /AI SCENE/i.test(c)) && !imgCaps.some((c) => /REAL PHOTO/i.test(c)),
+      "no-photo card A is labeled 'AI SCENE' to the owner, never 'REAL PHOTO' (honesty)");
+  }
+
+  console.log(`\nPACKAGE-POSTS PASS: distinct twice-daily slots; clean→auto-publish, flagged→held; dedup/held pass-through; honest AI-scene labeling. (${pass} checks)`);
 })().catch((e) => { console.error("FAIL:", e); process.exit(1); });

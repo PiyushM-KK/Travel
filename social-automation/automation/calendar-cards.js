@@ -39,13 +39,19 @@ async function toJpeg(buffer) {
 }
 
 /**
- * Only packages that have a REAL matching destination photo are eligible to auto-feature. The others
- * would fall back to the `generic` seed (a Himalayas-from-space shot) under the wrong headline — a real
- * photo of the WRONG place, which no agent catches (card A isn't vision-reviewed). So we exclude them
- * until real photos exist. Card B (AI scene) is fine for any slug; the gate is purely about card A.
+ * Which packages the rotation may feature. EVERY package is eligible when the AI Scene Generator is
+ * available: a package WITH a real matching destination photo uses it for card A (+ an AI scene as the
+ * alternative card B); a package WITHOUT a stock photo uses its QA-gated AI scene AS card A. This is only
+ * safe now that the image-QA gate vision-reviews card A too (a blank/weird/wrong-looking scene is failed
+ * and re-rolled) — historically card A had to be a stock photo because it was never reviewed, which is
+ * why only the ~8 photographed locations ever rotated. With NO image API configured we fall back to the
+ * photographed packages only, so a no-photo slot never ends up with no image at all.
  */
 function featurablePackages() {
-  return allPackages().filter((p) => photoSlug(p.item + " " + (p.route || "")) !== "generic");
+  const all = allPackages();
+  const aiAvailable = !!(process.env.OPENAI_API_KEY || process.env.IMAGE_API_KEY);
+  if (aiAvailable) return all;
+  return all.filter((p) => photoSlug(p.item + " " + (p.route || "")) !== "generic");
 }
 
 /** The package to feature on a given day — a stateless round-robin through the FEATURABLE packages. */
@@ -160,44 +166,58 @@ async function buildAndDraftCard(store, ctx, { pkg, smid, source }) {
   try { feedback = await rejectionFeedback(store, { client: ctx.client || "skyline" }); } catch (e) { /* best-effort */ }
   const caution = feedbackCautionFor(feedback, pkg.item);
 
+  const hasRealPhoto = slug !== "generic";
   let cardUrlA = "", cardUrlB = "", bStyle = "", sceneMeta = null;
-  try {
-    cardUrlA = await hostCard(await makeCard({ ...baseCard, photoPath: pickPhoto(fs, PHOTOS, slug), credit: "Photo: Wikimedia CC" }), `card-a-${smid}`);
-  } catch (e) { await store.update(row.id, { status: "held", lastError: "card A render/host failed: " + String((e && e.message) || e) }); return { status: "held", held: [{ id: row.id, reason: "card A render/host failed" }], sweepCards }; }
   let qaNote = ""; // surfaced to the owner when an AI scene was re-rolled or dropped by the QA gate
+
+  // Card A = a REAL matching destination photo when we HAVE one. The `generic` seed is a photo of the
+  // WRONG place, so it is NEVER used under a real headline — a no-photo package instead gets its QA-gated
+  // AI scene AS card A (below), so every package can be featured, not only the ~8 photographed ones.
+  if (hasRealPhoto) {
+    try {
+      cardUrlA = await hostCard(await makeCard({ ...baseCard, photoPath: pickPhoto(fs, PHOTOS, slug), credit: "Photo: Wikimedia CC" }), `card-a-${smid}`);
+    } catch (e) { await store.update(row.id, { status: "held", lastError: "card A render/host failed: " + String((e && e.message) || e) }); return { status: "held", held: [{ id: row.id, reason: "card A render/host failed" }], sweepCards }; }
+  }
+
+  // The QA-gated AI SCENE — card B (the alternative to a real photo A) for a photographed package, or
+  // card A ITSELF for a package with no stock photo. IMAGE-QUALITY QA GATE (shared — scene-qa.js): a
+  // 15-yr-photographer vision reviewer scores each gpt-image-1 scene (weird OR blank/empty → fail); a
+  // failing scene is RE-ROLLED (steered by the prior verdict), bounded by a wall-clock budget. A blank /
+  // decorative gradient card is NEVER produced. If a photographed package's scene fails, card B is simply
+  // dropped (photo A stands alone); if a NO-photo package's scene fails, it has no image → we DEFER it.
   try {
     const imageGen = ctx.imageGen || require("./image-gen").resolveImageGen();
-    let bufB = null; // built ONLY when a real AI scene passes QA — we NEVER emit a blank decorative card
+    let sceneBuf = null;
     if (imageGen) {
-      // Card B image prompt — the shared resolver: a fresh, unique DYNAMIC scene grounded to the package.
       const { resolveScenePrompt } = require("./scene-generator");
-      // IMAGE-QUALITY QA GATE (shared, so EVERY intake's AI scene is checked the same way — see scene-qa.js):
-      // a 15-yr-photographer vision reviewer scores each gpt-image-1 scene (weird OR blank/empty → fail); a
-      // failing scene is RE-ROLLED with a fresh concept, bounded by a wall-clock budget. If every attempt
-      // still fails, we DROP card B entirely — the real destination photo (card A) stands alone. A blank /
-      // decorative gradient card is NEVER produced or posted (owner: "blank images should not be generated").
       const { resolveImageQaConfig, generateQaScene } = require("./scene-qa");
       const cfg = resolveImageQaConfig(ctx);
       const scene = await generateQaScene({
         nextScene: () => resolveScenePrompt({ pkg, slug, store, client: ctx.client || "skyline", sceneGenClient: ctx.sceneGenClient, model: ctx.sceneModel, recent: ctx.recentScenes, avoid: feedback.avoidScenes }),
         imageGen, imageGenOpts: ctx.imageGenOpts, cfg,
       });
-      if (scene.buffer) {
-        bufB = await makeCard({ ...baseCard, photoBytes: scene.buffer, credit: "AI-generated scene · illustrative" });
-        bStyle = AI_SCENE_STYLE; sceneMeta = scene.sceneMeta; qaNote = scene.qaNote;
-      } else {
-        qaNote = scene.qaNote; // no usable AI scene → real photo A only, NO card B
-        try { console.warn(JSON.stringify({ evt: "image_qa_no_bcard", tries: cfg.maxTries, notes: scene.rejected })); } catch { /* ignore */ }
-      }
+      sceneBuf = scene.buffer; qaNote = scene.qaNote;
+      if (sceneBuf) sceneMeta = scene.sceneMeta;
+      else { try { console.warn(JSON.stringify({ evt: "image_qa_no_bcard", tries: cfg.maxTries, notes: scene.rejected })); } catch { /* ignore */ } }
     } else {
-      // No image generator resolved (OPENAI_API_KEY missing/misnamed). Do NOT ship a blank decorative card —
-      // leave card B empty so only the real photo A is offered. Logged so the misconfig is visible.
-      try { console.warn(JSON.stringify({ evt: "image_gen_unconfigured", note: "OPENAI_API_KEY (or IMAGE_API_KEY) not set — no AI scene; posting the real photo only" })); } catch { /* ignore */ }
+      try { console.warn(JSON.stringify({ evt: "image_gen_unconfigured", note: "OPENAI_API_KEY (or IMAGE_API_KEY) not set — no AI scene" })); } catch { /* ignore */ }
     }
-    if (bufB) cardUrlB = await hostCard(bufB, `card-b-${smid}`);
+    if (sceneBuf) {
+      const sceneCard = await makeCard({ ...baseCard, photoBytes: sceneBuf, credit: "AI-generated scene · illustrative" });
+      if (hasRealPhoto) cardUrlB = await hostCard(sceneCard, `card-b-${smid}`); // alternative to the real photo
+      else cardUrlA = await hostCard(sceneCard, `card-a-${smid}`);               // the ONLY card for a no-photo package
+      bStyle = AI_SCENE_STYLE;
+    }
   } catch (e) {
-    // B is best-effort; on any error offer the real photo (A) alone rather than a blank card.
+    // Best-effort: a scene error just means no AI card. A photographed package still has its real photo A.
     cardUrlB = ""; bStyle = ""; sceneMeta = null;
+  }
+
+  // A NO-photo package that produced no usable AI scene has NO image at all — DEFER it (drop the empty
+  // row) so the rotation advances, rather than post the wrong generic photo or a blank card.
+  if (!cardUrlA) {
+    try { await store.delete(row.id); } catch (e) { /* best-effort */ }
+    return { status: "skipped", skipped: [`${smid}: no stock photo and the AI scene didn't pass the quality check — deferred to the next rotation`], sweepCards };
   }
   // Invariant: only keep sceneMeta if the AI scene was actually the card we built (a fallback to the
   // photo/decor means that concept was never rendered, so it must not enter the history as "seen").
@@ -232,13 +252,17 @@ async function runCalendarCards(store, ctx = {}) {
 
   const { fresh, cardUrlA, cardUrlB, bStyle, rp, options, caution, qaNote } = built;
   const code = shortCode(fresh.id);
+  // When a package has no stock photo, card A IS the QA-gated AI scene — label it honestly to the owner
+  // (never call an AI scene a "real photo"). cardUrlB empty + bStyle AI_SCENE = "card A is the scene".
+  const aIsScene = bStyle === AI_SCENE_STYLE && !cardUrlB;
+  const aLabel = aIsScene ? "🅰️ AI SCENE (illustrative — no stock photo for this destination)" : "🅰️ REAL PHOTO";
   const details = `📅 Skyline package feature (auto)\n   Package: ${pkg.item} — ${pkg.route}\n   Price on card: ${rp.line} (Skyline rate)\n   ${sourceLine(pkg, now)}${caution ? "\n   " + caution : ""}${qaNote ? "\n   " + qaNote : ""}`;
   const instr = cardUrlB
     ? `\n\nReply:\n🅰️ A ${code} → post the real-photo card\n🅱️ B ${code} → post the ${bStyle} card\n➕ both ${code} → post both\n❌ reject ${code}`
     : `\n\n✅ approve ${code} → posts to Instagram + Facebook   |   ❌ reject ${code}`;
   if (notify && to) {
     try {
-      if (ctx.sendImage && cardUrlA) await ctx.sendImage(to, cardUrlA, (details + "\n\n🅰️ REAL PHOTO").slice(0, 1024));
+      if (ctx.sendImage && cardUrlA) await ctx.sendImage(to, cardUrlA, (details + "\n\n" + aLabel).slice(0, 1024));
       if (ctx.sendImage && cardUrlB) await ctx.sendImage(to, cardUrlB, `🅱️ ${bStyle.toUpperCase()} — ${pkg.item} ${pkg.route || ""}`.trim().slice(0, 1024));
       if (ctx.sendText) await ctx.sendText(to, (`Caption:\n${(fresh.caption || "").trim()}${instr}`).slice(0, 4000));
     } catch (e) { /* best-effort */ }

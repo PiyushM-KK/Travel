@@ -242,7 +242,13 @@ function validatePost(post, facts, profile = {}) {
       errors.push(`BANNED WORD: "${word}" (client brand rule)`);
     }
   }
-  if (profile.requireCta && !String(post.cta || "").trim()) {
+  // A CTA counts whether it's in the structured `cta` field OR written into the caption itself (our
+  // captions end with "Message us on WhatsApp at …", so the structured field is often empty even though
+  // the ask is right there). Detect the common CTA phrasings in the caption so a real CTA isn't flagged
+  // as missing (that false "no CTA" warning was holding every clean auto-post for manual approval).
+  const CTA_RE = /(whats\s?app|message (us|me)|\bdm (us|me)\b|book (now|your)|call us|contact us|enquir|get in touch|reach out|plan your|start planning|tap the link|link in bio|order (now|online))/i;
+  const hasCta = !!String(post.cta || "").trim() || CTA_RE.test(caption);
+  if (profile.requireCta && !hasCta) {
     warnings.push("no call to action on a post type that normally carries one");
   }
   if (profile.emojiPolicy === "none" && /\p{Extended_Pictographic}/u.test(caption)) {

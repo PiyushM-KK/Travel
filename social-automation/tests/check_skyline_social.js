@@ -54,6 +54,14 @@ const good = {
 const goodRes = validatePost(good, facts, PROFILE);
 ok(goodRes.ok, "a truthful, hedged travel post PASSES" + (goodRes.ok ? "" : ` — ${goodRes.errors.join("; ")}`));
 
+// CTA detection: our captions put the ask IN the caption ("Message us on WhatsApp …") with the
+// structured `cta` field often empty. That must satisfy requireCta — the false "no CTA" warning was
+// holding every clean auto-post for manual approval.
+const capCta = validatePost({ ...base, caption: "Tell us your dates and we'll plan it. Message us on WhatsApp at +91 88660 50291.", cta: "" }, facts, PROFILE);
+ok(!capCta.warnings.some((w) => /no call to action/i.test(w)), "a CTA written into the caption (WhatsApp) satisfies requireCta even with an empty cta field");
+const noCta = validatePost({ ...base, caption: "The Kumaon hills have a quiet way of slowing you down.", cta: "" }, facts, PROFILE);
+ok(noCta.warnings.some((w) => /no call to action/i.test(w)), "a caption with NO call to action still warns (detection is not over-suppressed)");
+
 function blocks(label, caption, needle, extra = {}) {
   const r = validatePost({ ...base, caption, ...extra }, facts, PROFILE);
   const hit = !r.ok && r.errors.some((e) => e.toLowerCase().includes(needle.toLowerCase()));

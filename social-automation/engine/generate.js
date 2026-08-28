@@ -420,6 +420,14 @@ async function assessAiSceneQuality(image, opts = {}) {
             "duplicated or fused objects, smeared/blurred artefact regions, unnatural anatomy, physically " +
             "impossible light or shadow, plastic/over-smoothed 'AI skin', muddy or blown-out exposure, " +
             "and cluttered or incoherent composition unfit for a professional post. " +
+            "CRITICAL — FACES: any human face that is even PARTLY visible must be SHARP, clear and naturally " +
+            "rendered. A face that is blurry, soft, smudged, waxy, melted, asymmetric, oddly proportioned, or " +
+            "just INDISTINCT / low-detail — where the eyes, nose or mouth are muddy, mushy, ambiguous or 'not " +
+            "quite right' EVEN IF NOT grossly deformed — is an automatic FAIL (a fuzzy or subtly-off face is the " +
+            "#1 AI tell and instantly looks fake in a marketing photo). Be especially strict on the SECONDARY " +
+            "face in a couple/group, and on any face turned partly away — those are where AI softens features. " +
+            "If people cannot be rendered with clean, crisp, believable faces, prefer/expect a people-free or " +
+            "faces-not-visible composition; when a visible face is unclear, cap the score at 5 and set ok=false. " +
             "CRITICAL — a BLANK or EMPTY frame is an automatic FAIL: if the image is a plain solid colour, " +
             "a plain gradient, a near-featureless wash, or otherwise has NO real photographic travel scene / " +
             "no recognizable subject (mountains, water, streets, people, food, etc.), set ok=false with a " +
@@ -509,7 +517,13 @@ async function assessVideoQuality(frames, opts = {}) {
     "signage, impossible geometry, muddy or blown-out exposure, flat/ugly colour, plastic 'AI skin', weak " +
     "framing/composition) AND the telltale AI-VIDEO TEMPORAL flaws visible ACROSS the frames: a subject or " +
     "object MORPHING or changing shape/identity between frames, flicker, warping, limbs/objects appearing or " +
-    "disappearing, unnatural or physically impossible motion, background 'swimming'. Ignore any text/logo we " +
+    "disappearing, unnatural or physically impossible motion, background 'swimming'. " +
+    "FACES: any human face visible in a frame must be SHARP, clear and naturally rendered — a blurry, soft, " +
+    "smudged, waxy, asymmetric or INDISTINCT face (eyes/nose/mouth muddy or 'not quite right', even if not " +
+    "grossly deformed) is a FAIL; be strict on the secondary face in a couple/group and any face turned away. " +
+    "IMPORTANT — this may be a MONTAGE: a hard CUT to a clearly DIFFERENT location/scene between frames is a " +
+    "normal edit, NOT a defect — do NOT score it as morphing/identity-drift. Only flag morphing/warping that " +
+    "happens WITHIN what is obviously one continuous shot. Ignore any text/logo we " +
     "overlaid as a caption. Score 0–10 on a professional bar (0 grossly broken, 7 the MINIMUM you'd let a " +
     "client publish, 10 indistinguishable from a real cinematic travel film). Set ok=false if you — as that " +
     "cinematographer — would not let it go out. List every flaw you actually see across the frames; empty " +

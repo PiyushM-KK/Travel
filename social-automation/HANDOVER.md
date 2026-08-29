@@ -5,6 +5,64 @@ Scope: **only the `social-automation/` folder.** The rest of the Skyline project
 structure + provenance. **NOTE: this session also changed the WEBSITE (language fix) and started the
 client CHATBOT (`../pricing-portal/`) — see the checkpoint below; those live OUTSIDE this folder.**
 
+---
+
+## ✅ CHECKPOINT 2026-08-29 — AI IMAGE-QUALITY overhaul + scheduled AI VIDEO Reel pipeline (`faf06de`..`ba11de0`)
+
+**All reviewed by Bug Hunter + App Security; full test suite green (~19 files). Recent commits: faf06de 2a225f6
+009e766 c788ab1 e384ecf de06150 ce92f08 f778c34 26688ce 57727c9 ba11de0.**
+
+1. **Image-quality QA gate** (`engine/generate.assessAiSceneQuality`, `automation/scene-qa.js`) — a "15-yr travel
+   photographer" vision reviewer scores EVERY AI scene before it posts. Fails weird renders (warped hands, melted
+   architecture, garbled text), BLANK/empty/gradient frames, and **soft/unclear faces** (owner-flagged). A
+   malformed reply (null score) no longer auto-passes. One SHARED gate covers calendar-card, package-post,
+   WhatsApp-reseller and Gmail-reseller.
+2. **QA FEEDBACK → regeneration** — a rejected scene's defects feed the next image prompt; an anatomy defect
+   steers the re-roll to a PEOPLE-FREE landscape. Bounded by `imageQaMaxTries` (3) + `SOCIAL_IMAGE_QA_BUDGET_MS`
+   (200000 on Vercel; cron `maxDuration` 60→300).
+3. **NO blank cards** — the decorative-gradient fallback is GONE. A failed AI scene drops card B (real photo stands
+   alone); a no-photo package with a failed scene is DEFERRED to next rotation.
+4. **ALL 22 destinations rotate** (was ~8) — `featurablePackages()` returns every package when an image API is set;
+   a no-stock-photo package uses its QA-gated AI scene AS card A. Proven live (Maldives posted). An AI-scene card A
+   is honestly labelled (never "REAL PHOTO").
+5. **Grounding + CTA fixes** — the fact sheet now carries each package's route (SMM stopped false-rejecting real
+   itinerary stops); a WhatsApp CTA in the caption now satisfies `requireCta` (fixed the false "no CTA" auto-post
+   hold).
+6. **🎬 SCHEDULED AI VIDEO REEL PIPELINE (B-VIDEO) — BUILT & wired** (`ba11de0`). New: `video-scenes.js`,
+   `video-branding.js` (ffmpeg overlay), `video-publish.js` (Meta IG Reel + FB video), `video-runner.js`,
+   `queue-sweep.js`, `higgsfield.js` text-to-video, `.github/workflows/video-post.yml` (every 3 days on GitHub
+   Actions — needs ffmpeg). Flow: pick 3 destinations → Higgsfield drone montage → video-QA (re-gen once) → brand
+   (logo + timed EXPLORE labels + WhatsApp CTA, 1080×1920) → host → PUBLISH (gated) or HOLD + WhatsApp the owner.
+   **Safe by default** (holds until `SOCIAL_VIDEO_LIVE=true`); **skips cleanly** until Higgsfield creds are set.
+7. **Daily QUEUE HYGIENE** (`queue-sweep.js`) — clears `pending_approval`/`held` rows older than ~20h
+   (`SOCIAL_QUEUE_MAX_AGE_H`, default 20) for BOTH image + video workflows; runs at the start of `prep` + `video-post`.
+
+**Done LIVE this session (manual, proven):** posted image posts (Kashmir, a Sikkim AI scene, a **Maldives** no-photo
+AI scene) and **TWO 4K branded video Reels** to IG + FB (Agra·Kerala·Kashmir; Rajasthan·Goa·Meghalaya) via the Meta
+Graph Reels/video flow. Higgsfield **connector (MCP)** used for the manual Reels (~120 credits). The scheduled path
+uses the Higgsfield **HTTP SDK** (the MCP isn't available headless).
+
+**PENDING — owner-gated (the ONLY things blocking the video Reel):**
+- Add GitHub *repo secrets* — chiefly `HF_CREDENTIALS` (`KEY_ID:KEY_SECRET`), plus `META_PAGE_TOKEN/PAGE_ID/
+  IG_USER_ID`, `BLOB_READ_WRITE_TOKEN`, `ANTHROPIC_API_KEY`, `AIRTABLE_API_KEY/BASE_ID`, `WHATSAPP_*`. Optional repo
+  var `SOCIAL_VIDEO_LIVE="true"` to auto-post. See **B-VIDEO** in `BLOCKED.md`.
+- **Verify the Higgsfield text-to-video SDK contract** on the first Action run — if it errors, set repo vars
+  `HIGGSFIELD_T2V_ENDPOINT` / `HIGGSFIELD_T2V_MODEL` (no code change). `@higgsfield/client` is early (v0.2.1).
+- **WhatsApp is a Meta TEST number** (+1 555-672-3214): free-form approval msgs only deliver inside a 24h window the
+  owner opens by replying; outside it only templates deliver. Long-term: register a real business number.
+- Still open from earlier: rotate the chatbot commit PAT + OAuth client secret; add the Skyline owner's GitHub login
+  to `pricing-portal` `PORTAL_ALLOWED_LOGINS`.
+
+**PENDING — next agent (optional):** caption generator sometimes drifts to food/restaurant copy for travel posts (QA
+holds it) — tune `engine/generate.js`/SMM prompt.
+
+**How to work:** `npm test` (all offline, no keys). Live-publish gated by `SOCIAL_LIVE`/`SOCIAL_VIDEO_LIVE` + client.live
++ creds. `.env` has no dotenv — CLI uses `load-env`; ad-hoc scripts parse `.env` manually. For the Blob token locally:
+`vercel env pull .env.pulled --environment=production --scope full-firm`, load AFTER `.env` (so `.env`'s Airtable base
+wins), then DELETE `.env.pulled` (it holds all prod secrets).
+
+---
+
 ## ⭐ 2026-08-08 (later) — CHECKPOINT: social-automation HEALTH CHECK → all GREEN (2 real bugs fixed live)
 
 Ran a full health check of the deployed pipeline (`skyline-social-nine.vercel.app`: ops-status, render-selftest,

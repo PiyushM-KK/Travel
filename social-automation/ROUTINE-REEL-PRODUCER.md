@@ -61,8 +61,22 @@ and the failure modes that have already been diagnosed — do not re-derive them
      `aspect_ratio: "9:16"`, `sound: "on"` — preflight it too and stop if it exceeds 35 credits.
      If that also fails, stop and report; do not fall back to the silent API path.
 
-5. **Hand the clip to the pipeline** — it does the branding, QA, hosting, notification and approval:
+5. **Hand the clip to the pipeline** — it does the branding, QA, hosting, notification and approval.
+   **Dispatch from `main`, NEVER from your working branch.** You may be sitting on a `claude/*` branch;
+   one that forked before the latest branding change renders the OLD furniture and the Reel looks wrong
+   even though nothing errored. This has already happened once.
    ```
+   git fetch origin main
+   gh workflow run video-post.yml --repo PiyushM-KK/Travel --ref main \
+     -f clip_url="<result_url>" -f place="<scene label, e.g. Himachal>"
+   ```
+   Then CONFIRM the run really built from main before trusting it:
+   ```
+   gh run list --repo PiyushM-KK/Travel --workflow=video-post.yml --limit 1 --json databaseId,headSha
+   git rev-parse origin/main
+   ```
+   If the run's headSha differs from origin/main, STOP and report — never approve a Reel built from a
+   stale sha. A stale build does not error; it just ships the wrong design.
    gh workflow run video-post.yml --repo PiyushM-KK/Travel --ref main \
      -f clip_url="<result_url>" -f place="<scene label, e.g. Himachal>"
    ```
@@ -88,6 +102,9 @@ call). The route line is read from the real catalogue and is left BLANK where a 
   blank where no package exists. A made-up figure or itinerary on a client's ad is worse than a blank line.
   The video carries no price at all; do not add one.
 - **Spend cap: 35 credits per run.** If a run would exceed it, stop and report instead.
+- **Do NOT commit, push, or edit code.** You are a producer, not a maintainer. If you find a bug — and
+  one run genuinely did — **report it in your summary and leave it**. Fixing it on your own branch and
+  then dispatching from that branch is exactly how a Reel ships with stale branding.
 - Never commit secrets. Never edit the website or the package catalogue from this routine.
 - If anything is ambiguous or a second failure occurs, **stop and report** — a missed Reel costs nothing,
   a wrong one goes out on the client's account.

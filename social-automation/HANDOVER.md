@@ -7,6 +7,73 @@ client CHATBOT (`../pricing-portal/`) — see the checkpoint below; those live O
 
 ---
 
+## CHECKPOINT 2026-09-10 - website photo overhaul + a live SECURITY fix + CI fix (94ef4c1..b548b71)
+
+**All pushed to `main` and verified live. Reviewed by Bug Hunter + App Security (both clean).**
+
+**1. SECURITY (live hole, fixed) - 94ef4c1, e8b1026.** `image-slot.js` is a mockup/prototype component that shipped
+to production; it made every destination card a **drag-drop + click-to-browse upload zone**, and its Replace/Remove
+buttons were only CSS-hidden so they stayed **keyboard-reachable (Tab+Enter)**. A visitor could put their own image
+on a card *in their own session* and screenshot the client's site with arbitrary imagery. Nothing persisted
+server-side (the editor bridge `window.omelette.writeFile` does not exist in prod), so it was never a defacement for
+other users. Fix: every input path (drag/drop, file picker, Replace, Remove) is gated behind one `isEditable()`
+check, and the controls are `disabled` so they leave the tab order.
+
+**2. CI (my earlier regression, fixed) - 897fe6c.** package-post failed ~every other day. Cause: the Action curled
+with `-m 120` while cron-package-post is allowed `maxDuration: 300` (I raised it on 08-29 for the image-QA re-rolls
+and never raised the caller). **Verified in Airtable: NO posts were lost** - all four "failures" published 2-5 min
+after curl gave up. Now `-m 330` + `timeout-minutes: 8`, with a comment tying the three numbers together.
+
+**3. PHOTOS - every destination place and every package now has a real, licensed photo.**
+- 647d1af Destination "Top places to visit" cards (were text-only).
+- b9e13ec Package pages showed **"Add Photos of <package>"** - an *editor prompt* visible to customers - with 6
+  empty upload boxes that (after fix #1) could never be filled. Replaced with real photos.
+- 371ccd5 **5 package pages had EMPTY galleries**: my extraction regex only matched *unquoted* object keys, so
+  PKG_PHOTOS had 18 of 23; quoted ones ('shimla-manali': etc.) were missed. All 23 wired now (98 refs). Also added
+  4K Spiti photos (Spiti must NOT borrow Shimla/Manali shots) and enlarged the photo grids (minmax 240px -> 340px).
+- 3e269dd Images rendered **tall/portrait**: the `height` attribute becomes a CSS hint, and `aspect-ratio` is only
+  honoured when one dimension is `auto`. Added `height:auto` on both grids.
+- d966e6b + dba9243 **4K nature standard** (owner request): sourced TRUE 4K (>=3840px) originals, nature-first for
+  scenic places, monuments stay monuments. Reviewed EVERY candidate by eye at the exact card crop; installed 37
+  upgrades and kept the existing photo wherever it was already better.
+- 0f5dd02 first image per grid is loading="eager" + fetchpriority="high" (the grids sit near the fold).
+
+**Accuracy is the hard part - automated matching is NOT trustworthy.** Rejected along the way: a butterfly for
+Thekkady; moths for Nainital/Shillong/Chiang Mai (museum specimens tagged with a collection locality); a temple in
+West Bengal for Vrindavan; an office building for Loktak Lake; dry tea leaves for two tea-garden cards; a police tow
+truck for Aizawl; a **Great Barrier Reef** starfish for Maldives house reefs (looked fine - only GPS/category
+metadata caught it); Meghamalai (~250km off) for Nilgiri tea; an **1903 map** for Tawang; a 1944 battlefield for
+Kohima. **Always verify visually AND against Commons metadata before shipping a photo.**
+
+**State: 74 of 76 places have a photo.** Only manipur/Sendra Island and manipur/Keibul Lamjao are deliberately
+photo-less (every candidate was a bird, a signboard, or a duplicate) - the card renders text-only via `hasImg`.
+`photo-credits.html` lists all 74 with author, licence linked to its deed, and source; authors are parsed tag-first
+so no raw HTML (and no contributor e-mail) reaches the page. `images/places` is now **18 MB** in the repo.
+
+**4. VIDEO REEL - diagnosed: NOT broken, never configured.** Every run exits
+`"status":"skipped","reason":"video generation not configured - set Higgsfield creds (HF_CREDENTIALS)"`.
+`gh secret list` shows **only CRON_SECRET**; `gh variable list` is empty. The Actions read *repo secrets*, not
+`social-automation/.env`. Added `sync-gh-secrets.sh` (b548b71) which pipes values to `gh secret set` on stdin so
+nothing is printed. In `.env` I added an `HF_CREDENTIALS=` field and **filled BLOB_READ_WRITE_TOKEN from the
+skyline-social Vercel project**.
+
+**PENDING - owner (the only blocker):** create a Higgsfield API key at platform.higgsfield.ai, put
+`HF_CREDENTIALS=KEYID:KEYSECRET` in `social-automation/.env`, then run `bash social-automation/sync-gh-secrets.sh`
+and trigger the video-post Action. NOTE: the Higgsfield **MCP connector** used for the two manual Reels is OAuth via
+claude.ai and exposes **no API key** - hence nothing is stored anywhere; a real key must be created. Each Reel cost
+~60 credits, so check the balance before enabling SOCIAL_VIDEO_LIVE. If the first run errors on text-to-video, set
+repo vars HIGGSFIELD_T2V_ENDPOINT / HIGGSFIELD_T2V_MODEL (SDK is v0.2.1) - no code change.
+
+**PENDING - next agent (optional):** the 2 photo-less places above; the Dharamshala photo is hazy/grey vs the
+others; images/places at 18 MB may want a CDN rather than git; caption generator still drifts to food copy sometimes.
+
+**Useful:** headless screenshots work - `chrome --headless=new --screenshot=OUT.png --window-size=1500,1400
+--virtual-time-budget=40000 URL` (pass a Windows-style output path). Lazy images below the fold can capture blank;
+confirm with `--dump-dom` before believing a "missing image".
+
+
+---
+
 ## ✅ CHECKPOINT 2026-08-29 — AI IMAGE-QUALITY overhaul + scheduled AI VIDEO Reel pipeline (`faf06de`..`ba11de0`)
 
 **All reviewed by Bug Hunter + App Security; full test suite green (~19 files). Recent commits: faf06de 2a225f6

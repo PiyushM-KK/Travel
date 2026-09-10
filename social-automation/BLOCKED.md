@@ -6,7 +6,19 @@ the real values live in the local `.env` (gitignored) and the Vercel project env
 
 ---
 
-## B-VIDEO — 🎬 AI travel-VIDEO Reels — PIPELINE BUILT + on a schedule; owner keys the ONLY thing left
+## B-VIDEO - AI VIDEO Reels - DIAGNOSED 2026-09-10: not broken, never configured
+**Every scheduled run exits cleanly with** `"status":"skipped","reason":"video generation not configured - set
+Higgsfield creds (HF_CREDENTIALS)"`. `gh secret list` shows ONLY CRON_SECRET; `gh variable list` is empty. The
+GitHub Actions read **repo secrets**, not social-automation/.env.
+**DO THIS:** (1) create an API key at platform.higgsfield.ai -> put `HF_CREDENTIALS=KEYID:KEYSECRET` in
+social-automation/.env (the field is already there, waiting); (2) run `bash social-automation/sync-gh-secrets.sh`
+- it pipes each value to `gh secret set` on stdin so nothing is printed; (3) trigger the video-post Action.
+BLOB_READ_WRITE_TOKEN is ALREADY filled in .env (pulled from the skyline-social Vercel project).
+The Higgsfield **MCP connector** used for the two manual Reels is OAuth via claude.ai and exposes **no API key**,
+which is why none is stored anywhere. Each Reel cost ~60 credits - check the balance before setting
+SOCIAL_VIDEO_LIVE=true (leave it unset and each Reel is held for WhatsApp approval).
+
+## B-VIDEO (original build notes)
 **Goal (owner):** a short cinematic AI travel Reel on a schedule → AI VIDEO QA → post to IG Reels / FB (or hold for approval).
 
 **Proven manually (this session):** two 4K montage Reels (Kling `4k` via the Higgsfield connector) were branded

@@ -39,6 +39,21 @@ daily guard matches rows in ANY status, so a failed run otherwise blocks the slo
 **Free probes:** auth -> `GET /requests/<fake-uuid>/status` = 404 valid / 401 invalid. Path -> POST an
 invalid body = 400/422 exists, 404 does not. Cost -> `POST /estimate/<path>`.
 
+## B-ROUTINE - move generation to a Claude Code routine (owner: create it)
+**The audio + vertical problem is solved by moving GENERATION off the GitHub Action.** Veo 3.1 / Kling 3.0
+have native audio AND native 9:16, but live on the Higgsfield **app**, reachable only via the claude.ai
+connector (OAuth) - a headless Action cannot authenticate there. A **Claude Code routine** is a real
+session, so it can. The seam already exists: `video-post.yml` takes `clip_url` + `place`, so the routine
+generates and the Action still does branding / QA / hosting / approval / publishing.
+
+**OWNER ACTION:** create a routine at **https://claude.ai/code/routines** named **Skyline Reel Producer**
+using the prompt in **`social-automation/ROUTINE-REEL-PRODUCER.md`** (same pattern as the Kaelmoor Producer
+routine in FullFirm). Verify the routine session can actually reach the Higgsfield connector - that is the
+one unknown; Kaelmoor Producer is the test case.
+
+**NOTE this changes B-MUSIC:** connector clips carry their own audio, so a licensed music track is only
+needed if we ever fall back to the Action's own (silent) API generation.
+
 ## B-MUSIC - Reels have NO audio; a licensed track is needed (owner)
 **Every Reel is silent, and no code change can fix it** - the clips themselves carry no audio. Verified
 against the API, not assumed: of the models enabled on this account, kling v2.5-turbo / v2.1 master and

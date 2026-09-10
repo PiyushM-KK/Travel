@@ -36,6 +36,26 @@ function coerceDuration(value, fallback) {
   return ALLOWED_DURATIONS.includes(n) ? n : fallback;
 }
 
+/**
+ * Read a generation result. The SDK's v2 `subscribe` resolves to a V2Response
+ * ({ status, request_id, video:{url}, images:[{url}] }) while the older v1 path resolves to a JobSet
+ * (is* booleans + jobs[0].results.raw.url). We call v2 endpoints, so v2 is read FIRST and v1 is kept
+ * as a fallback. Reading only the v1 shape is what made a completed 10s clip look like
+ * "status=unknown (no usable url)" and get thrown away after it had already been paid for.
+ */
+function readResult(res) {
+  const v2Status = res && typeof res.status === "string" ? res.status : "";
+  const status = v2Status || (
+    res && res.isFailed ? "failed" : res && res.isNsfw ? "nsfw" : res && res.isCompleted ? "completed"
+    : res && res.isQueued ? "queued" : res && res.isInProgress ? "in_progress" : "unknown");
+  const job = res && Array.isArray(res.jobs) ? res.jobs[0] : null;
+  const raw = (res && res.video && res.video.url)
+    || (res && Array.isArray(res.images) && res.images[0] && res.images[0].url)
+    || (job && job.results && job.results.raw && job.results.raw.url) || "";
+  const url = /^https:\/\//.test(String(raw)) ? String(raw) : ""; // https-only (no http/SSRF via a bad clip URL)
+  return { status, url, jobId: (res && res.request_id) || (job && (job.id || job.request_id)) || "" };
+}
+
 /** Combine the two credential shapes into the SDK's "KEY_ID:KEY_SECRET" string, or "" if unset. */
 function resolveCredentials(opts = {}) {
   if (opts.credentials) return String(opts.credentials);
@@ -98,21 +118,11 @@ async function generateVideo(params = {}, opts = {}) {
     throw new Error(redact("higgsfield video generation failed — " + String((e && e.message) || e)));
   }
 
-  // Check failure/NSFW BEFORE completed so a content-flagged job reports the true reason, not "no url".
-  const status = jobSet && jobSet.isFailed ? "failed"
-    : jobSet && jobSet.isNsfw ? "nsfw"
-    : jobSet && jobSet.isCompleted ? "completed"
-    : jobSet && jobSet.isQueued ? "queued"
-    : jobSet && jobSet.isInProgress ? "in_progress" : "unknown";
-
-  const job = jobSet && Array.isArray(jobSet.jobs) ? jobSet.jobs[0] : null;
-  const rawUrl = job && job.results && job.results.raw && job.results.raw.url ? String(job.results.raw.url) : "";
-  const url = /^https:\/\//.test(rawUrl) ? rawUrl : ""; // https-only (harden: no http/SSRF via a bad clip URL) // only trust a real http(s) url as the finished clip
+  const { status, url, jobId } = readResult(jobSet);
 
   // Cost/observability meter — one line per job, never the credentials.
-  try { console.log(JSON.stringify({ evt: "higgsfield_video", status, endpoint, model, jobId: (job && (job.id || job.request_id)) || "", hasUrl: !!url })); } catch { /* ignore */ }
+  try { console.log(JSON.stringify({ evt: "higgsfield_video", status, endpoint, model, jobId, hasUrl: !!url })); } catch { /* ignore */ }
 
-  const jobId = (job && (job.id || job.request_id)) || (jobSet && jobSet.request_id) || "";
   if (status !== "completed" || !url) {
     throw new Error(redact(`higgsfield video not usable — status=${status}${url ? "" : " (no usable url)"}`));
   }
@@ -143,17 +153,12 @@ async function generateVideoFromText(params = {}, opts = {}) {
   try { jobSet = await client.subscribe(endpoint, { input, withPolling: true }); }
   catch (e) { throw new Error(redact("higgsfield text-to-video failed — " + String((e && e.message) || e))); }
 
-  const status = jobSet && jobSet.isFailed ? "failed"
-    : jobSet && jobSet.isNsfw ? "nsfw"
-    : jobSet && jobSet.isCompleted ? "completed"
-    : jobSet && jobSet.isQueued ? "queued"
-    : jobSet && jobSet.isInProgress ? "in_progress" : "unknown";
-  const job = jobSet && Array.isArray(jobSet.jobs) ? jobSet.jobs[0] : null;
-  const rawUrl = job && job.results && job.results.raw && job.results.raw.url ? String(job.results.raw.url) : "";
-  const url = /^https:\/\//.test(rawUrl) ? rawUrl : ""; // https-only (harden: no http/SSRF via a bad clip URL)
-  try { console.log(JSON.stringify({ evt: "higgsfield_t2v", status, endpoint, model, jobId: (job && (job.id || job.request_id)) || "", hasUrl: !!url })); } catch { /* ignore */ }
+  const { status, url, jobId } = readResult(jobSet);
+  // jobId (v2 request_id) is logged so a failed/unusable generation can still be traced - and, since the
+  // credits are already spent by this point, its output recovered via /requests/<id>/status.
+  try { console.log(JSON.stringify({ evt: "higgsfield_t2v", status, endpoint, model, jobId, hasUrl: !!url })); } catch { /* ignore */ }
   if (status !== "completed" || !url) throw new Error(redact(`higgsfield t2v not usable — status=${status}${url ? "" : " (no usable url)"}`));
-  return { url, status, jobId: (job && (job.id || job.request_id)) || "", raw: jobSet };
+  return { url, status, jobId, raw: jobSet };
 }
 
 /**

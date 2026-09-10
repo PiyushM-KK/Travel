@@ -341,7 +341,21 @@ async function runJob(opts = {}) {
     const live = opts.live === true || process.env.SOCIAL_VIDEO_LIVE === "true";
     const out = await runVideoPost(store, {
       client: client.id, now,
-      generateVideo: opts.generateVideo || resolveHiggsfieldText(),
+      // PRE-GENERATED CLIP: the models with native audio + native 9:16 (Veo 3.1, Kling 3.0) live on
+      // the Higgsfield APP, reachable only through the OAuth connector - a headless Action cannot
+      // authenticate there. So a clip generated in-session can be handed to this job by URL, and the
+      // pipeline still does the branding, QA, hosting, approval and publishing exactly as before.
+      // Pin the destination when a pre-generated clip is supplied: the on-screen name must describe
+      // THAT footage. Unknown place -> no override, and the job falls back to the normal rotation.
+      ...(process.env.SOCIAL_VIDEO_PLACE
+        ? (() => { const { SCENES } = require("./video-scenes");
+            const want = String(process.env.SOCIAL_VIDEO_PLACE).trim().toLowerCase();
+            const hit = SCENES.find((x) => x.label.toLowerCase() === want || x.slug.toLowerCase() === want);
+            return hit ? { scenes: [hit] } : {}; })()
+        : {}),
+      generateVideo: opts.generateVideo
+        || (process.env.SOCIAL_VIDEO_CLIP_URL ? async () => ({ url: String(process.env.SOCIAL_VIDEO_CLIP_URL) }) : null)
+        || resolveHiggsfieldText(),
       assessVideo,
       logoPath: path.join(__dirname, "..", "assets", "Skyline_Logo.jpg"),
       fontDir: path.join(__dirname, "..", "assets", "fonts"),

@@ -162,11 +162,27 @@ function buildBrandFilter(opts = {}) {
     const nxt = `nm${i}`;
     p.push(`[${cur}]drawtext=fontfile=${B}:text=${label}:fontcolor=white:fontsize=${fsz}:x=60:y=218:shadowcolor=black@0.75:shadowx=2:shadowy=3:enable='${en}'[${nxt}]`);
     cur = nxt;
+    // PRICE - drawn ONLY when the caller resolved a REAL package price for this destination. Never
+    // invented, and omitted entirely where no package exists (Ladakh has none), because a made-up figure
+    // on a client's ad is far worse than no figure. Wording matches the website's own convention.
+    // fgClean STRIPS commas (they separate filters), which would turn "₹21,500" into "₹21 500". A price
+    // needs its thousands separator, so protect it across the clean and escape it for drawtext instead.
+    const price = sc.price
+      ? fgClean(String(sc.price).replace(/,/g, "")).replace(//g, "\,")
+      : "";
+    if (price) {
+      const pn = `pr${i}`;
+      p.push(`[${cur}]drawtext=fontfile=${S}:text=From ${price} per person*:fontcolor=0xF4A21E:fontsize=26:x=62:y=298:shadowcolor=black@0.7:shadowx=2:shadowy=2:enable='${en}'[${pn}]`);
+      cur = pn;
+    }
   });
+  const anyPrice = scenes.some((sc) => sc.price);
   p.push(`[${cur}]drawtext=fontfile=${S}:text=Tailor-made India trips · planned with you on WhatsApp:fontcolor=white:fontsize=26:x=40:y=1823:shadowcolor=black@0.6:shadowx=1:shadowy=2[c1]`);
   p.push(`[c1]drawtext=fontfile=${S}:text=WhatsApp ${phone}:fontcolor=0x25D366:fontsize=27:x=40:y=1868:shadowcolor=black@0.6:shadowx=1:shadowy=2[c2]`);
   p.push(`[c2]drawtext=fontfile=${R}:text=·  ${handle}  ·  ${tagline}:fontcolor=white@0.9:fontsize=23:x=455:y=1870:shadowcolor=black@0.6:shadowx=1:shadowy=2[c3]`);
-  p.push(`[c3]drawtext=fontfile=${R}:text=AI-generated · illustrative:fontcolor=white@0.62:fontsize=15:x=w-tw-20:y=1783[vout]`);
+  // The asterisk on the price is explained here; the website carries the same indicative wording.
+  const credit = anyPrice ? "AI-generated · illustrative · *prices indicative, per person" : "AI-generated · illustrative";
+  p.push(`[c3]drawtext=fontfile=${R}:text=${credit}:fontcolor=white@0.62:fontsize=15:x=w-tw-20:y=1783[vout]`);
   return p.join(";\n");
 }
 

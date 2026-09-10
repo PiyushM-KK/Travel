@@ -14,6 +14,7 @@ const os = require("os");
 const path = require("path");
 const { pickScenes, buildVideoPrompt } = require("./video-scenes");
 const { resolveCuts, hasRealCuts, concatClips, probeDuration } = require("./video-branding");
+const { allPackages, priceNum } = require("./packages");
 const { redact } = require("../engine/publish"); // secret-safe error text on the failure paths
 
 function dateKey(now) { return (now || new Date()).toISOString().slice(0, 10); }
@@ -77,6 +78,22 @@ async function notifyOwner(ctx, kind, text) {
   catch (e) { log({ sent: false, error: String((e && e.message) || e).slice(0, 200) }); return false; }
 }
 
+/**
+ * The REAL "from" price for a destination, or "" when the catalogue has none.
+ *
+ * Never invents a figure - Ladakh, for one, has no package at all, and a made-up price on a client's ad
+ * is far worse than no price. Picks the CHEAPEST matching package so the on-screen "From ..." is true,
+ * and reads the same catalogue the website renders so the Reel cannot contradict the site.
+ */
+function priceForLabel(label, pkgs) {
+  const L = String(label || "").trim().toLowerCase();
+  if (!L) return "";
+  const hits = (pkgs || []).filter((p) => `${p.item} ${p.route || ""}`.toLowerCase().includes(L));
+  let best = null, bestN = Infinity;
+  for (const h of hits) { const n = priceNum(h); if (n && n < bestN) { bestN = n; best = h; } }
+  return best ? String(best.price) : "";
+}
+
 async function runVideoPost(store, ctx = {}) {
   const now = ctx.now || new Date();
   const smid = ctx.smid || `video-${dateKey(now)}`;
@@ -93,7 +110,10 @@ async function runVideoPost(store, ctx = {}) {
   }
 
   const recent = await recentSceneSlugs(store);
-  let scenes = pickScenes({ now, count: ctx.count || 1, recent }); // ONE destination per Reel - the label must match the footage // `let`: the honesty gate below may narrow this to one
+  // ctx.scenes pins the destination - required when branding a PRE-GENERATED clip, because the label
+  // must name the place actually in that footage rather than whatever the rotation would have picked.
+  let scenes = (Array.isArray(ctx.scenes) && ctx.scenes.length ? ctx.scenes
+    : pickScenes({ now, count: ctx.count || 1, recent })); // ONE destination per Reel - label must match footage // `let`: the honesty gate below may narrow this to one
   const prompt = buildVideoPrompt(scenes); // kept for the row/caption record: what the Reel is meant to show
   // TRUE MONTAGE: one generation PER destination, joined locally. Kling's duration is an enum (5|10), so
   // 3 places x 5s = a 15s Reel. `duration` is the WHOLE montage; perClip is what we ask the model for.
@@ -166,7 +186,11 @@ async function runVideoPost(store, ctx = {}) {
       return { status: "held", id: row.id, reason, rejected };
     }
     const brandedFile = path.join(tmp, `vbrand-${smid}.mp4`);
-    await brand({ inputPath: rawFile, logoPath: ctx.logoPath, outPath: brandedFile, scenes, cuts, phone: ctx.phone,
+    // Attach each destination's REAL catalogue price (blank where no package exists - never invented).
+    const pkgs = ctx.packages || allPackages();
+    const priced = scenes.map((sc) => ({ ...sc, price: sc.price || priceForLabel(sc.label, pkgs) }));
+    try { console.log(JSON.stringify({ evt: "video_prices", labels: priced.map((x) => `${x.label}=${x.price || "none"}`) })); } catch { /* ignore */ }
+    await brand({ inputPath: rawFile, logoPath: ctx.logoPath, outPath: brandedFile, scenes: priced, cuts, phone: ctx.phone,
       cwd: ctx.cwd, fontDir: ctx.fontDir,
       // Music is muxed HERE: no video model enabled on this account produces audio, so every clip
       // arrives silent and a silent Reel performs badly. Missing track -> silent, never a failure.

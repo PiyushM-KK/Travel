@@ -27,6 +27,14 @@ on:
         description: "Retry tag - re-run after a FAILED attempt on the same day (the daily guard would otherwise skip it, blocking any re-test until the next scheduled run). Leave blank normally."
         required: false
         default: ""
+      clip_url:
+        description: "Brand+publish a PRE-GENERATED clip at this https URL instead of generating one (used for Veo/Kling clips made via the connector, which have native audio and 9:16). Leave blank normally."
+        required: false
+        default: ""
+      place:
+        description: "Destination label for the on-screen title when using clip_url (e.g. Ladakh). Leave blank to use the normal rotation."
+        required: false
+        default: ""
 
 concurrency:
   group: skyline-video-post
@@ -57,6 +65,8 @@ jobs:
           SOCIAL_CLIENT: skyline
           SOCIAL_VIDEO_LIVE: ${{ vars.SOCIAL_VIDEO_LIVE }}
           SOCIAL_VIDEO_RETRY: ${{ inputs.retry }}
+          SOCIAL_VIDEO_CLIP_URL: ${{ inputs.clip_url }}
+          SOCIAL_VIDEO_PLACE: ${{ inputs.place }}
           HF_CREDENTIALS: ${{ secrets.HF_CREDENTIALS }}
           # higgsfield.js accepts EITHER the joined form above OR these two halves.
           # Forward both, so setting only the split pair can't silently skip the run.

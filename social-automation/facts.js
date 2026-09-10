@@ -128,7 +128,7 @@ const BUSINESS = {
  * routes, not just the packages. Extracted from the route fields across all
  * pages on 2026-07-20.
  *
- * THIS IS THE CONTENT ASSET. 22 packages is a good year of posts; ~90 named
+ * THIS IS THE CONTENT ASSET. 23 packages is a good year of posts; ~90 named
  * places is several years, because each one is a post in its own right and most
  * of them nobody else is writing about. Dawki, Khonoma, Hmuifang and Vantawng
  * are the whole differentiator — you cannot buy those trips from a big OTA.

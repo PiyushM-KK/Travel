@@ -22,6 +22,11 @@ on:
   schedule:
     - cron: '30 5 */3 * *'   # 05:30 UTC = 11:00 IST, every 3rd day
   workflow_dispatch:          # manual run
+    inputs:
+      retry:
+        description: "Retry tag - re-run after a FAILED attempt on the same day (the daily guard would otherwise skip it, blocking any re-test until the next scheduled run). Leave blank normally."
+        required: false
+        default: ""
 
 concurrency:
   group: skyline-video-post
@@ -51,6 +56,7 @@ jobs:
         env:
           SOCIAL_CLIENT: skyline
           SOCIAL_VIDEO_LIVE: ${{ vars.SOCIAL_VIDEO_LIVE }}
+          SOCIAL_VIDEO_RETRY: ${{ inputs.retry }}
           HF_CREDENTIALS: ${{ secrets.HF_CREDENTIALS }}
           # higgsfield.js accepts EITHER the joined form above OR these two halves.
           # Forward both, so setting only the split pair can't silently skip the run.

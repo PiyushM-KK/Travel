@@ -351,6 +351,13 @@ async function runJob(opts = {}) {
       live: live && !!client.live,
       sendText: opts.sendText || ((to, body) => sendText(to, body)),
       to: opts.notifyTo || process.env.WHATSAPP_TO,
+      // RETRY ESCAPE HATCH: the once-per-day guard keys off `video-<date>`, so a run that FAILED still
+      // occupies the day and blocks any re-test until the next scheduled run (3 days later). Setting
+      // SOCIAL_VIDEO_RETRY gives this run its own key. Opt-in only, and it does NOT bypass the posting
+      // gate - `live` still requires SOCIAL_VIDEO_LIVE, so a retry can only ever produce a held draft.
+      ...(process.env.SOCIAL_VIDEO_RETRY
+        ? { smid: `video-${new Date(now).toISOString().slice(0, 10)}-retry-${String(process.env.SOCIAL_VIDEO_RETRY).slice(0, 20)}` }
+        : {}),
       ...(opts.videoGenOpts ? { videoGenOpts: opts.videoGenOpts } : {}),
       ...(opts.duration ? { duration: opts.duration } : {}),
       ...(opts.now ? { now: opts.now } : {}),

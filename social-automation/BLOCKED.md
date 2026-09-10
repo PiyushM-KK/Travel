@@ -6,36 +6,38 @@ the real values live in the local `.env` (gitignored) and the Vercel project env
 
 ---
 
-## B-VIDEO - AI VIDEO Reels - code is FIXED and proven; blocked on API CREDITS (owner)
-**Everything on our side now works.** Key created at cloud.higgsfield.ai, all 15 values synced to GitHub repo
-secrets, endpoints corrected, and a real run reaches Higgsfield's billing check. Sequence of the three real runs
-on 2026-09-10, each one getting further:
-1. `"not configured"` -> keys were pasted onto still-**commented-out** `.env` lines, and `video-post.yml` forwarded
-   only `HF_CREDENTIALS`, never the split pair. Both fixed (de69c9b).
-2. `404` -> `DEFAULT_T2V_ENDPOINT` was `/v1/text2video`, a **guess** made when there was no key to check it against.
-   It never existed. Real v2 API is model-per-path with a FLAT body (231fe42, b7f023a).
-3. `"Not enough credits"` <- **where it stands now.** Path, auth and body are all correct; the request reaches
-   billing and is refused.
+## B-VIDEO - AI VIDEO Reels - ✅ WORKING END-TO-END (2026-09-10). Owner decision left: go live?
+**First fully automated Reel produced and held for approval.** Run 34503381435:
+`status: pending_approval`, scenes Sikkim/Himachal/Ladakh, hosted on Vercel Blob.
+Verified with ffprobe: **H.264, 1080x1920, 24fps, 10.04s, 10.7 MB** - correct Reel format, and the 10s
+runtime confirms the clip length now matches the branded label timing.
 
-**OWNER ACTION - the only remaining blocker: the API account has no usable credits.**
-The claude.ai Higgsfield **connector** reports **1800.5 credits on the `max` plan**, but the **API** refuses the
-generation. The docs do not state whether API credits and app-subscription credits are the same wallet, so it is one
-of two things and only the owner can tell which:
-  (a) same account, but API usage draws on a SEPARATE balance that needs topping up; or
-  (b) **the API key was created under a different Higgsfield login** than the connector is signed in as.
-**DO THIS:** open cloud.higgsfield.ai, check which e-mail it is signed in as and what credit balance it shows. If it
-is a different account from the app, either create the key under the app's account or top that account up.
+**Five real bugs stood between "credentials set" and "working". Each one printed a message that looked
+like the previous problem, so read the ACTUAL error before assuming:**
+1. `"not configured"` - keys pasted onto still-**commented-out** `.env` lines, AND `video-post.yml`
+   forwarded only `HF_CREDENTIALS`, never the `HF_API_KEY_ID`/`SECRET` pair (de69c9b).
+2. `404 model_not_found` - `DEFAULT_T2V_ENDPOINT` was `/v1/text2video`, invented when there was no key to
+   check it against. The real v2 API is model-per-path with a FLAT body (231fe42).
+3. `"Not enough credits"` - API credits are a **separate wallet** from the higgsfield.ai app subscription.
+   The app pool (2300 credits, `max` plan, one workspace) is NOT spendable via the API.
+4. `status=unknown (no usable url)` - we called v2 but parsed the **v1 SDK result shape**. A completed,
+   already-paid-for clip was discarded. `readResult()` now reads V2Response first (d4fe93b).
+5. `Unrecognized option '/filter_complex'` - typo for `-filter_complex_script`; ffmpeg rejects the entire
+   arg list on one bad option. **The test had encoded the typo as its expected value**, so the suite was
+   green throughout (a586df1).
 
-**Re-testing:** the daily guard keys off `video-<date>` and matches rows in ANY status, so a FAILED run occupies the
-whole day and (schedule = every 3 days) would block re-testing for 3 days. Use the retry input:
-`gh workflow run video-post.yml --repo PiyushM-KK/Travel --ref main -f retry=<tag>` (265108c). It never bypasses the
-posting gate - `SOCIAL_VIDEO_LIVE` is still required to publish, so a retry can only produce a held draft.
+**COST - the "~60 credits per Reel" in older notes was WRONG** (that was the manual 4K connector path).
+Measured via the free estimate endpoint (`POST /estimate/<path>`, generates nothing):
+kling v2.5-turbo pro **11.2 credits ($0.70) at 10s**, 5.6 at 5s; kling v2.1 master 44.8; minimax
+hailuo-2.3 standard 8.96; wan-25 16.0. So **200 API credits ~ 17 Reels ~ 51 days** at the 3-day cadence.
 
-**Free checks that cost no credits:** auth -> `GET api.higgsfield.ai/requests/<fake-uuid>/status` returns 404 when
-the key is good, 401 when it is not. Path existence -> POST an invalid body: 400/422 means the path exists, 404
-(`model_not_found`) means it does not. Both were used to find the bug above.
+**OWNER DECISION - the only thing left:** every Reel is currently HELD for approval. To auto-post, set
+`gh variable set SOCIAL_VIDEO_LIVE --body true --repo PiyushM-KK/Travel`. Watch a few held previews first.
 
-**Behaviour under failure is correct:** all three runs HELD the row, notified, and left nothing stuck as `planned`.
+**Re-testing:** `gh workflow run video-post.yml --repo PiyushM-KK/Travel --ref main -f retry=<tag>` - the
+daily guard matches rows in ANY status, so a failed run otherwise blocks the slot for 3 days.
+**Free probes:** auth -> `GET /requests/<fake-uuid>/status` = 404 valid / 401 invalid. Path -> POST an
+invalid body = 400/422 exists, 404 does not. Cost -> `POST /estimate/<path>`.
 
 ## B-VIDEO (original build notes)
 **Goal (owner):** a short cinematic AI travel Reel on a schedule → AI VIDEO QA → post to IG Reels / FB (or hold for approval).

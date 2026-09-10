@@ -116,6 +116,7 @@ async function runVideoPost(store, ctx = {}) {
   // never crash the job leaving an orphaned `planned` row (which the queue sweep wouldn't clean up).
   const maxTries = Math.max(1, ctx.maxTries || 2);
   let rawFile = null, cuts = null, qa = { pass: true }, clipUrl = null, videoUrl = null, caption = null, sceneMeta = null;
+  let montageDuration = duration; // real joined length, set once the clips are concatenated (loop-scoped `joined` is not visible below)
   const rejected = [];
   try {
     for (let attempt = 1; attempt <= maxTries; attempt++) {
@@ -140,12 +141,13 @@ async function runVideoPost(store, ctx = {}) {
       const concat = ctx.concatClips || concatClips; // injectable, like brand/hostVideo (tests use a stub)
       const joined = await concat(files, rawFile, { cwd: ctx.cwd });
       cuts = joined.cuts;
+      montageDuration = joined.duration || duration;
       // Safety net: if probing failed and we could not derive real boundaries, do NOT fall back to even
       // splits across several place names - narrow to a single label instead.
-      if (!hasRealCuts(cuts, scenes.length, joined.duration || duration) && scenes.length > 1) {
+      if (!hasRealCuts(cuts, scenes.length, montageDuration) && scenes.length > 1) {
         try { console.log(JSON.stringify({ evt: "video_cuts_unverified", asked: scenes.length, kept: 1, place: scenes[0].label })); } catch { /* ignore */ }
         scenes = [scenes[0]];
-        cuts = resolveCuts([], scenes.length, joined.duration || duration);
+        cuts = resolveCuts([], scenes.length, montageDuration);
       }
       if (assessVideo) {
         try { qa = await assessVideo(rawFile, { minScore: ctx.videoMinScore || 7 }); }
@@ -161,7 +163,12 @@ async function runVideoPost(store, ctx = {}) {
       return { status: "held", id: row.id, reason, rejected };
     }
     const brandedFile = path.join(tmp, `vbrand-${smid}.mp4`);
-    await brand({ inputPath: rawFile, logoPath: ctx.logoPath, outPath: brandedFile, scenes, cuts, phone: ctx.phone, cwd: ctx.cwd, fontDir: ctx.fontDir });
+    await brand({ inputPath: rawFile, logoPath: ctx.logoPath, outPath: brandedFile, scenes, cuts, phone: ctx.phone,
+      cwd: ctx.cwd, fontDir: ctx.fontDir,
+      // Music is muxed HERE: no video model enabled on this account produces audio, so every clip
+      // arrives silent and a silent Reel performs badly. Missing track -> silent, never a failure.
+      musicPath: ctx.musicPath || path.join(__dirname, "..", "assets", "music", "reel-bed.mp3"),
+      duration: montageDuration });
     const hosted = await hostVideo(fs.readFileSync(brandedFile), `video-reel-${smid}`, ctx.hostOpts || {});
     videoUrl = hosted.url;
     caption = buildCaption(scenes, ctx);

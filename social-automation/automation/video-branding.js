@@ -162,14 +162,34 @@ async function brandVideo(opts = {}) {
   const ffmpeg = opts.ffmpeg || process.env.FFMPEG_PATH || "ffmpeg";
   const run = opts.run || defaultRun;
   const cwd = opts.cwd || process.cwd(); // fontDir is relative to here
-  const filter = buildBrandFilter({ scenes, cuts, fontDir: opts.fontDir, phone: opts.phone, handle: opts.handle, tagline: opts.tagline });
+  let filter = buildBrandFilter({ scenes, cuts, fontDir: opts.fontDir, phone: opts.phone, handle: opts.handle, tagline: opts.tagline });
+
+  // MUSIC BED. No video model enabled on this account generates audio (Kling and MiniMax have no audio
+  // field; Veo 3.1 / Sora 2, which do, are model_not_found here), so a silent clip is what we always get
+  // and a silent Reel performs badly. The track is muxed in here instead: free, reusable, and the same
+  // sound on every Reel. Looped to cover the video, faded in and out, and ducked well under speech level.
+  const musicWanted = opts.musicPath || process.env.REEL_MUSIC_PATH || "";
+  // A configured-but-missing track must degrade to a silent Reel, never fail the render.
+  const musicPath = musicWanted && (opts.run || fs.existsSync(musicWanted)) ? musicWanted : "";
+  if (musicWanted && !musicPath) { try { console.log(JSON.stringify({ evt: "reel_music_missing", path: musicWanted })); } catch { /* ignore */ } }
+  const total = Number(opts.duration) || 0;
+  if (musicPath) {
+    const vol = Number.isFinite(opts.musicVolume) ? opts.musicVolume : 0.35;
+    const outAt = total > 3 ? Math.round((total - 1.5) * 1000) / 1000 : 0;
+    filter += `;[2:a]volume=${vol},afade=t=in:st=0:d=1` +
+      (outAt ? `,afade=t=out:st=${outAt}:d=1.5` : "") +
+      ",aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo[aout]";
+  }
   const filterFile = opts.filterFile || path.join(os.tmpdir(), `vbrand-${scenes.map((s) => s.label).join("-")}-${cuts.join("_")}.txt`);
   fs.writeFileSync(filterFile, filter, "utf8");
   try {
+    // -stream_loop -1 so a short track covers a longer Reel; -shortest then trims it to the video.
     const args = ["-y", "-hide_banner", "-loglevel", "error", "-i", inputPath, "-i", logoPath,
+      ...(musicPath ? ["-stream_loop", "-1", "-i", musicPath] : []),
       // The graph is written to a FILE (it is far past any safe command-line length), so this must be
       // -filter_complex_script, NOT -filter_complex. ffmpeg rejects the whole arg list otherwise.
-      "-filter_complex_script", filterFile, "-map", "[vout]", "-map", "0:a?",
+      "-filter_complex_script", filterFile, "-map", "[vout]",
+      ...(musicPath ? ["-map", "[aout]", "-shortest"] : ["-map", "0:a?"]),
       "-c:v", "libx264", "-crf", "20", "-preset", "medium", "-pix_fmt", "yuv420p", "-profile:v", "high",
       "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", outPath];
     const r = await run(ffmpeg, args, { cwd });

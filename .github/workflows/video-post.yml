@@ -35,6 +35,10 @@ on:
         description: "Destination label for the on-screen title when using clip_url (e.g. Ladakh). Leave blank to use the normal rotation."
         required: false
         default: ""
+      live:
+        description: "Set to 'true' to PUBLISH this run to Instagram + Facebook instead of holding it for approval. Blank = hold (the safe default). Per-run on purpose, so a test dispatch can never auto-post."
+        required: false
+        default: ""
 
 concurrency:
   group: skyline-video-post
@@ -63,7 +67,9 @@ jobs:
       - name: Run video-post
         env:
           SOCIAL_CLIENT: skyline
-          SOCIAL_VIDEO_LIVE: ${{ vars.SOCIAL_VIDEO_LIVE }}
+          # Per-run input wins; otherwise the repo variable (deliberately unset) decides. Keeping this
+          # per-run means a manual re-brand or a test dispatch can never publish by accident.
+          SOCIAL_VIDEO_LIVE: ${{ inputs.live || vars.SOCIAL_VIDEO_LIVE }}
           SOCIAL_VIDEO_RETRY: ${{ inputs.retry }}
           SOCIAL_VIDEO_CLIP_URL: ${{ inputs.clip_url }}
           SOCIAL_VIDEO_PLACE: ${{ inputs.place }}

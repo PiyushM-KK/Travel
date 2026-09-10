@@ -89,6 +89,7 @@ const BUSINESS = {
         { item: "Himachal Hills", price: "₹21,500", duration: "6N / 7D", tag: "Family", route: "Shimla · Manali · Dharamshala" },
         { item: "Kashmir Valley", price: "₹27,800", duration: "5N / 6D", tag: "Honeymoon", route: "Srinagar · Gulmarg · Pahalgam · Sonamarg" },
         { item: "Kausani & Kumaon", price: "₹19,700", duration: "5N / 6D", tag: "Off-beat", route: "Kausani · Baijnath · Almora · Bageshwar" },
+        { item: "Shimla & Manali", price: "₹10,999", duration: "5N / 6D", tag: "Family", route: "Shimla · Kufri · Kullu · Solang · Manali" },
       ],
       "Western India": [
         { item: "Gujarat Darshan", price: "₹22,400", duration: "6N / 7D", tag: "Religious", route: "Dwarka · Somnath · Statue of Unity · Kutch" },

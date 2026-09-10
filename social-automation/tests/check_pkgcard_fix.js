@@ -18,6 +18,7 @@ const { InMemoryStore } = require(path.join(__dirname, "..", "automation", "stor
 const { runPackagePosts } = require(path.join(__dirname, "..", "automation", "package-posts.js"));
 const { briefFromRow } = require(path.join(__dirname, "..", "automation", "generate-runner.js"));
 const { sourceLine } = require(path.join(__dirname, "..", "automation", "calendar-cards.js"));
+const { allPackages } = require(path.join(__dirname, "..", "automation", "packages.js"));
 
 let pass = 0;
 const ok = (c, m) => { assert.ok(c, m); console.log("  ok -", m); pass++; };
@@ -106,6 +107,9 @@ function fakeBuilder(store, rowId, { bStyle }) {
     const b = fakeBuilder(store, row.id, { bStyle: "AI scene" });
     const texts = [], imgs = [];
     await runPackagePosts(store, {
+      // Pin the package instead of relying on the date/slot rotation landing on Goa: the rotation is
+      // over the whole catalogue, so ANY package added to facts.js reshuffles it and would break this.
+      pkg: allPackages().find((p) => p.item === "Goa Getaway"),
       slot: 0, now: d0, /* live off → held */ buildAndDraftCard: b.fn, notifyTo: "+1",
       sendText: async (to, t) => texts.push(t), sendImage: async (to, u, cap) => imgs.push(cap),
       publishFn: async () => ({ dryRun: true }),

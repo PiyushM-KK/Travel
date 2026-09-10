@@ -28,7 +28,7 @@ const facts = buildFactBase(BUSINESS);
 
 // ---------------------------------------------- the engine is client-agnostic
 ok(facts.business.name === "Skyline Travel Planner", "loads a non-restaurant client");
-ok(facts.items.length === 22, `all 22 packages loaded incl. 3 international (got ${facts.items.length})`);
+ok(facts.items.length === 23, `all 23 packages loaded incl. 3 international (got ${facts.items.length})`); // 23 since Shimla & Manali got a published price (2026-09-10)
 ok(facts.categories.length === 6, `5 India regions + International (got ${facts.categories.length})`);
 ok(facts.priceByItem.get("royal rajasthan") === "₹24,900", "package price read from the fact base");
 ok(facts.items.some((i) => i.duration && i.tag && i.route), "extra travel fields (duration/tag/route) survive the adapter");

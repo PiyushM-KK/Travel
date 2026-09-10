@@ -77,9 +77,6 @@ and the failure modes that have already been diagnosed — do not re-derive them
    ```
    If the run's headSha differs from origin/main, STOP and report — never approve a Reel built from a
    stale sha. A stale build does not error; it just ships the wrong design.
-   gh workflow run video-post.yml --repo PiyushM-KK/Travel --ref main \
-     -f clip_url="<result_url>" -f place="<scene label, e.g. Himachal>"
-   ```
 
 6. **Verify.** Watch the run to completion. A good run ends `"status":"pending_approval"` with a
    `videoUrl`, and logs `{"evt":"video_notify","kind":"awaiting_approval","sent":true}`.

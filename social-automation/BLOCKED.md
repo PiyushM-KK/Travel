@@ -52,6 +52,15 @@ own instructions forbid using the music model for standalone audio.
 `-stream_loop -1` so a short track covers the Reel, volume ducked to 0.35, 1s fade in, 1.5s fade out,
 `-shortest` to trim. A missing file logs `reel_music_missing` and renders silent rather than failing.
 
+**CANVA IS NOT AN OPTION - checked 2026-09-10, do not revisit.** Canva's Content License Agreement says Pro
+Music "can't be made available ... on a standalone basis, which means making it available outside of Canva
+or without being part of a Canva Design", and that you "can't repackage the music pieces or upload or use
+them as **audio samples, sound effects, music beds**". Extracting a Canva MP3 to mux into a clip generated
+outside Canva is the expressly prohibited case, and a Content ID claim would land on the CLIENT's account.
+(Building the Reel AS a Canva design and exporting the MP4 with audio inside IS permitted - but that moves
+branding out of ffmpeg, and the Canva connector is OAuth via claude.ai so it cannot run in a headless
+Action, exactly like the Higgsfield connector.)
+
 **OWNER ACTION - supply ONE licensed instrumental track** at `social-automation/assets/music/reel-bed.mp3`
 (15s+; it loops). It plays on a CLIENT's commercial Instagram/Facebook, so the licence must permit
 commercial use - a copyright claim would hit Skyline's account, not ours. Safe sources: YouTube Audio

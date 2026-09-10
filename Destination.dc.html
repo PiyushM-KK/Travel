@@ -91,7 +91,7 @@
       <sc-for list="{{ d.places }}" as="p" hint-placeholder-count="4">
         <div class="pcard" style="background:#fff;border:1px solid #EAEFF3;border-radius:16px;padding:20px;box-shadow:0 12px 28px -24px rgba(7,59,102,.5)">
           <sc-if value="{{ p.hasImg }}" hint-placeholder-val="{{ true }}">
-            <img src="{{ p.img }}" alt="{{ p.name }}" loading="lazy" decoding="async" width="800" height="500" style="width:100%;height:auto;aspect-ratio:8/5;object-fit:cover;border-radius:12px;margin-bottom:12px;display:block;background:#EAEFF3">
+            <img src="{{ p.img }}" alt="{{ p.name }}" loading="{{ p.loading }}" fetchpriority="{{ p.priority }}" decoding="async" width="800" height="500" style="width:100%;height:auto;aspect-ratio:8/5;object-fit:cover;border-radius:12px;margin-bottom:12px;display:block;background:#EAEFF3">
           </sc-if>
           <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:18px;margin-bottom:6px;color:#0B2440">{{ p.name }}</div>
           <div style="font-size:14px;line-height:1.55;color:#5C6F80">{{ p.desc }}</div>
@@ -268,7 +268,9 @@ class Component extends DCLogic {
           // Photos are language-independent, so they live in their own index-aligned
           // array rather than inside each translated [name, desc] tuple.
           const im = (d0.placeImgs || [])[i] || '';
-          return { name, desc, img: im, hasImg: !!im };
+          // First card is near the top of the page: load it eagerly so it never flashes empty.
+          return { name, desc, img: im, hasImg: !!im,
+                   loading: i === 0 ? 'eager' : 'lazy', priority: i === 0 ? 'high' : 'auto' };
         }),
         highlights: this.tr(d0, 'highlights'),
       },

@@ -60,7 +60,7 @@
     <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 32px; margin: 0 0 24px"><span data-en="Photos of" data-hi="तस्वीरें:" data-gu="ફોટા:">Photos of</span> {{ packageName }}</h2>
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 18px">
       <sc-for list="{{ photoSlots }}" as="slot" hint-placeholder-count="6">
-        <img src="{{ slot.src }}" alt="{{ slot.alt }}" loading="lazy" decoding="async" width="800" height="533" style="width: 100%; height: auto; aspect-ratio: 3/2; object-fit: cover; border-radius: 14px; display: block; background: #EAEFF3">
+        <img src="{{ slot.src }}" alt="{{ slot.alt }}" loading="{{ slot.loading }}" fetchpriority="{{ slot.priority }}" decoding="async" width="800" height="533" style="width: 100%; height: auto; aspect-ratio: 3/2; object-fit: cover; border-radius: 14px; display: block; background: #EAEFF3">
       </sc-for>
     </div>
   </div>
@@ -1071,9 +1071,13 @@ class Component extends DCLogic {
     const pkgName = this.tr(pkg, 'name');
     // Real, credited photographs (shared with the Destination page) instead of the
     // empty editor upload slots that used to render here on the public site.
-    const photoSlots = (PKG_PHOTOS[this.state.packageSlug] || []).map((p) => ({
+    const photoSlots = (PKG_PHOTOS[this.state.packageSlug] || []).map((p, i) => ({
       src: p.src,
-      alt: p.place ? `${p.place} — ${pkgName}` : pkgName
+      alt: p.place ? `${p.place} — ${pkgName}` : pkgName,
+      // This grid sits near the top of the page, so lazy-loading the FIRST image only
+      // delays it (and can flash an empty box). Eager + high priority for the leader.
+      loading: i === 0 ? 'eager' : 'lazy',
+      priority: i === 0 ? 'high' : 'auto'
     }));
 
     return {

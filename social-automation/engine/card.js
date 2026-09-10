@@ -181,6 +181,60 @@ async function renderSatori(opts) {
   return png;
 }
 
+// ---------------------------------------------------------------- VIDEO OVERLAY (Reels)
+const VW = 1080, VH = 1920;
+
+/**
+ * makeVideoOverlay — the SAME branded furniture as the image card, rendered as a TRANSPARENT
+ * 1080x1920 PNG to composite over a Reel.
+ *
+ * Why a PNG and not ffmpeg drawtext: drawtext needs fontconfig (absent/crashy on Windows), escapes
+ * every comma and colon by hand, and cannot draw a rounded pill at all - the logo chip and the green
+ * WhatsApp button in the card design are impossible with drawbox. Rendering through satori reuses the
+ * card's exact fonts, icons, radii and colours, so a Reel and a feed post look like the same brand.
+ *
+ * NO PRICE by design (owner, 2026-09-10): neither the top-right badge nor the bottom price line.
+ */
+async function makeVideoOverlay(opts = {}) {
+  const satori = require("satori").default || require("satori");
+  const { Resvg } = require("@resvg/resvg-js");
+  const logo = opts.logoPath ? dataUri(opts.logoPath, "image/jpeg") : "";
+  const badges = opts.badges && opts.badges.length ? opts.badges : DEFAULT_BADGES;
+
+  const tree = box({ position: "relative", width: `${VW}px`, height: `${VH}px`, fontFamily: "Poppins" }, [
+    // Legibility scrims only - the middle stays fully transparent so the footage shows through.
+    box({ position: "absolute", top: 0, left: 0, width: `${VW}px`, height: "300px", background: "linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0) 100%)" }),
+    box({ position: "absolute", left: 0, bottom: 0, width: `${VW}px`, height: "820px", background: "linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.55) 42%, rgba(0,0,0,0) 100%)" }),
+    // logo chip (top-left) - same white rounded chip as the card
+    logo ? box({ position: "absolute", top: "48px", left: "48px", background: "white", borderRadius: "16px", padding: "12px 18px" }, [img(logo, { width: "230px", height: "78px", objectFit: "contain" })]) : box({}),
+    // bottom content block
+    box({ position: "absolute", left: "60px", right: "60px", bottom: "70px", flexDirection: "column" }, [
+      txt({ fontSize: "82px", fontWeight: 700, color: "white", lineHeight: 1.05, marginBottom: "8px" }, opts.headline || ""),
+      opts.subtitle ? txt({ fontSize: "30px", fontWeight: 400, color: CREAM, marginBottom: "26px" }, opts.subtitle) : box({ marginBottom: "10px" }),
+      box({ marginBottom: "26px", flexWrap: "wrap" }, badges.map((b) => badge(b.icon, b.label))),
+      opts.cta ? box({ backgroundColor: "#25D366", borderRadius: "40px", padding: "16px 30px 16px 24px", alignSelf: "flex-start", alignItems: "center", marginBottom: "22px" }, [
+        img(whatsappIcon("white"), { width: "34px", height: "34px", marginRight: "12px" }),
+        txt({ fontSize: "28px", fontWeight: 600, color: "white" }, opts.cta),
+      ]) : box({}),
+      box({ alignItems: "center", marginBottom: "8px" }, [
+        txt({ fontSize: "24px", fontWeight: 600, color: "white" }, opts.handle || "@skylinetravelplanner"),
+        txt({ fontSize: "24px", fontWeight: 400, color: CREAM, marginLeft: "14px" }, "| " + (opts.tagline || "Your Journey, Our Passion")),
+      ]),
+      opts.phone ? box({ alignItems: "center" }, [
+        img(whatsappIcon("#25D366"), { width: "22px", height: "22px", marginRight: "8px" }),
+        txt({ fontSize: "22px", fontWeight: 600, color: CREAM }, opts.phone),
+      ]) : box({}),
+    ]),
+    // AI disclosure stays - it is a compliance requirement, not decoration.
+    txt({ position: "absolute", right: "18px", bottom: "12px", fontSize: "15px", color: "rgba(255,255,255,0.62)" }, String(opts.credit || "AI-generated · illustrative")),
+  ]);
+
+  const svg = await satori(tree, { width: VW, height: VH, fonts: loadFonts() });
+  // background:"rgba(0,0,0,0)" keeps the alpha channel - without it resvg fills the canvas white and
+  // the overlay would hide the video completely.
+  return new Resvg(svg, { fitTo: { mode: "width", value: VW }, background: "rgba(0,0,0,0)" }).render().asPng();
+}
+
 /** jimp fallback so a render failure never blocks a post. */
 async function renderFallback(opts) {
   const { Jimp, loadFont } = require("jimp");
@@ -225,4 +279,4 @@ function pickPhoto(fsMod, dir, slug) {
   return path.join(dir, pool[Math.floor(Math.random() * pool.length)]);
 }
 
-module.exports = { makeCard, pickPhoto, renderSatori, renderFallback, decorBackgroundUri, W, H };
+module.exports = { makeCard, makeVideoOverlay, pickPhoto, renderSatori, renderFallback, decorBackgroundUri, W, H, VW, VH };

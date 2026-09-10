@@ -85,6 +85,16 @@ async function notifyOwner(ctx, kind, text) {
  * is far worse than no price. Picks the CHEAPEST matching package so the on-screen "From ..." is true,
  * and reads the same catalogue the website renders so the Reel cannot contradict the site.
  */
+/** The route line ("Shimla · Manali · Dharamshala") from the destination's cheapest package, or "". */
+function routeForLabel(label, pkgs) {
+  const L = String(label || "").trim().toLowerCase();
+  if (!L) return "";
+  const hits = (pkgs || []).filter((p) => `${p.item} ${p.route || ""}`.toLowerCase().includes(L));
+  let best = null, bestN = Infinity;
+  for (const h of hits) { const n = priceNum(h); if (n && n < bestN) { bestN = n; best = h; } }
+  return best && best.route ? String(best.route) : (hits[0] && hits[0].route ? String(hits[0].route) : "");
+}
+
 function priceForLabel(label, pkgs) {
   const L = String(label || "").trim().toLowerCase();
   if (!L) return "";
@@ -186,11 +196,32 @@ async function runVideoPost(store, ctx = {}) {
       return { status: "held", id: row.id, reason, rejected };
     }
     const brandedFile = path.join(tmp, `vbrand-${smid}.mp4`);
-    // Attach each destination's REAL catalogue price (blank where no package exists - never invented).
+    // BRAND FURNITURE as transparent PNGs, from the same satori template as the feed cards - logo chip,
+    // big place name, route line, service badges, green WhatsApp pill, handle, phone. NO PRICE (owner).
     const pkgs = ctx.packages || allPackages();
-    const priced = scenes.map((sc) => ({ ...sc, price: sc.price || priceForLabel(sc.label, pkgs) }));
-    try { console.log(JSON.stringify({ evt: "video_prices", labels: priced.map((x) => `${x.label}=${x.price || "none"}`) })); } catch { /* ignore */ }
-    await brand({ inputPath: rawFile, logoPath: ctx.logoPath, outPath: brandedFile, scenes: priced, cuts, phone: ctx.phone,
+    const overlays = [];
+    if (ctx.overlays) { overlays.push(...ctx.overlays); }
+    else {
+      const { makeVideoOverlay } = require("../engine/card");
+      for (let i = 0; i < scenes.length; i++) {
+        const sc = scenes[i];
+        const png = await makeVideoOverlay({
+          headline: sc.label,
+          subtitle: sc.route || routeForLabel(sc.label, pkgs),
+          cta: "WhatsApp us to plan",
+          phone: ctx.phone,
+          handle: ctx.handle,
+          tagline: ctx.tagline,
+          logoPath: ctx.logoPath,
+        });
+        const op = path.join(tmp, `vov-${smid}-${i}.png`);
+        fs.writeFileSync(op, png);
+        // One overlay per scene, each live only for its own slice so a label never sits over another place.
+        overlays.push({ path: op, ...(scenes.length > 1 ? { start: i === 0 ? 0 : cuts[i - 1], ...(i < scenes.length - 1 ? { end: cuts[i] } : {}) } : {}) });
+      }
+    }
+    try { console.log(JSON.stringify({ evt: "video_overlays", n: overlays.length, places: scenes.map((x) => x.label) })); } catch { /* ignore */ }
+    await brand({ inputPath: rawFile, logoPath: ctx.logoPath, outPath: brandedFile, scenes, cuts, overlays, phone: ctx.phone,
       cwd: ctx.cwd, fontDir: ctx.fontDir,
       // Music is muxed HERE: no video model enabled on this account produces audio, so every clip
       // arrives silent and a silent Reel performs badly. Missing track -> silent, never a failure.

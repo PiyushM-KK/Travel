@@ -190,7 +190,63 @@ function buildBrandFilter(opts = {}) {
  * Render the branded Reel. inputPath = raw clip, logoPath = Skyline logo, scenes = [{label}] (in order),
  * cuts = interior cut times. Writes outPath (1080x1920 H.264 + AAC, faststart). Returns outPath.
  */
+/**
+ * Build the filtergraph for the OVERLAY path: cover-crop the footage, then composite one transparent
+ * 1080x1920 PNG per scene, each enabled only for its own slice of the timeline.
+ *
+ * This replaces hand-drawn drawtext furniture. drawtext cannot draw a rounded pill (so no logo chip and
+ * no green WhatsApp button), needs fontconfig (absent/crashy on Windows), and makes every comma and
+ * colon an escaping hazard. The PNG comes from the same satori template as the feed cards, so a Reel
+ * and a post look like the same brand.
+ */
+function buildOverlayFilter(overlays) {
+  const p = ["[0:v]scale=1080:1920:force_original_aspect_ratio=increase:flags=lanczos,crop=1080:1920,setsar=1[b0]"];
+  overlays.forEach((ov, i) => {
+    const inp = `[b${i}]`, out = i === overlays.length - 1 ? "[vout]" : `[b${i + 1}]`;
+    // input 1 is the logo in the legacy path; here overlay PNGs start at input 1.
+    const en = (ov.start != null && ov.end != null) ? `:enable='between(t,${ov.start},${ov.end})'`
+      : (ov.start != null ? `:enable='gte(t,${ov.start})'` : "");
+    p.push(`${inp}[${i + 1}:v]overlay=0:0${en}${out}`);
+  });
+  return p.join(";" + String.fromCharCode(10));
+}
+
+async function brandVideoOverlay(opts = {}) {
+  const { inputPath, outPath, overlays = [] } = opts;
+  const ffmpeg = opts.ffmpeg || process.env.FFMPEG_PATH || "ffmpeg";
+  const run = opts.run || defaultRun;
+  if (!overlays.length) throw new Error("brandVideoOverlay needs at least one overlay PNG");
+
+  const musicWanted = opts.musicPath || process.env.REEL_MUSIC_PATH || "";
+  const musicPath = musicWanted && (opts.run || fs.existsSync(musicWanted)) ? musicWanted : "";
+  const total = Number(opts.duration) || 0;
+  let filter = buildOverlayFilter(overlays);
+  if (musicPath) {
+    const vol = Number.isFinite(opts.musicVolume) ? opts.musicVolume : 0.35;
+    const outAt = total > 3 ? Math.round((total - 1.5) * 1000) / 1000 : 0;
+    const aIdx = overlays.length + 1; // after the video and every overlay input
+    filter += `;[${aIdx}:a]volume=${vol},afade=t=in:st=0:d=1` + (outAt ? `,afade=t=out:st=${outAt}:d=1.5` : "") +
+      ",aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo[aout]";
+  }
+
+  const args = ["-y", "-hide_banner", "-loglevel", "error", "-i", inputPath];
+  for (const ov of overlays) args.push("-i", ov.path);
+  if (musicPath) args.push("-stream_loop", "-1", "-i", musicPath);
+  args.push("-filter_complex", filter, "-map", "[vout]",
+    ...(musicPath ? ["-map", "[aout]", "-shortest"] : ["-map", "0:a?"]),
+    "-c:v", "libx264", "-crf", "20", "-preset", "medium", "-pix_fmt", "yuv420p", "-profile:v", "high",
+    "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", outPath);
+
+  const r = await run(ffmpeg, args, { cwd: opts.cwd });
+  if (!opts.run && !fs.existsSync(outPath)) {
+    throw new Error("ffmpeg produced no output" + (r && r.stderr ? ": " + String(r.stderr).slice(-400) : ""));
+  }
+  return outPath;
+}
+
 async function brandVideo(opts = {}) {
+  // Overlay path when the caller rendered PNG furniture (the normal route now); drawtext otherwise.
+  if (Array.isArray(opts.overlays) && opts.overlays.length) return brandVideoOverlay(opts);
   const { inputPath, logoPath, outPath, scenes, cuts } = opts;
   const ffmpeg = opts.ffmpeg || process.env.FFMPEG_PATH || "ffmpeg";
   const run = opts.run || defaultRun;
@@ -235,4 +291,4 @@ async function brandVideo(opts = {}) {
   }
 }
 
-module.exports = { detectCuts, resolveCuts, hasRealCuts, concatClips, probeDuration, filterFileFlag, buildBrandFilter, brandVideo, defaultRun, fgClean };
+module.exports = { detectCuts, resolveCuts, hasRealCuts, concatClips, probeDuration, filterFileFlag, brandVideoOverlay, buildOverlayFilter, buildBrandFilter, brandVideo, defaultRun, fgClean };

@@ -6,27 +6,36 @@ the real values live in the local `.env` (gitignored) and the Vercel project env
 
 ---
 
-## B-VIDEO - AI VIDEO Reels - RESOLVED 2026-09-10: credentials in place, awaiting a first run
-**The owner blocker is CLEARED.** A Higgsfield Cloud API key was created at cloud.higgsfield.ai and all 15 values
-in `social-automation/.env` are now synced to GitHub **repo secrets** (`HF_CREDENTIALS`, `HF_API_KEY_ID`,
-`HF_API_KEY_SECRET`, `BLOB_READ_WRITE_TOKEN`, Meta, Airtable, WhatsApp, Anthropic, OpenAI, CRON_SECRET).
-Verified against the live API: `GET api.higgsfield.ai/requests/<fake-id>/status` returns **404 Not found** with the
-real key and **401 Invalid credentials** with a bad one - i.e. the key authenticates. That probe generates nothing
-and costs no credits; it is the cheapest way to re-check the key later.
+## B-VIDEO - AI VIDEO Reels - code is FIXED and proven; blocked on API CREDITS (owner)
+**Everything on our side now works.** Key created at cloud.higgsfield.ai, all 15 values synced to GitHub repo
+secrets, endpoints corrected, and a real run reaches Higgsfield's billing check. Sequence of the three real runs
+on 2026-09-10, each one getting further:
+1. `"not configured"` -> keys were pasted onto still-**commented-out** `.env` lines, and `video-post.yml` forwarded
+   only `HF_CREDENTIALS`, never the split pair. Both fixed (de69c9b).
+2. `404` -> `DEFAULT_T2V_ENDPOINT` was `/v1/text2video`, a **guess** made when there was no key to check it against.
+   It never existed. Real v2 API is model-per-path with a FLAT body (231fe42, b7f023a).
+3. `"Not enough credits"` <- **where it stands now.** Path, auth and body are all correct; the request reaches
+   billing and is refused.
 
-**Two failure modes cost time here - both now fixed, worth remembering:**
-1. The keys were pasted onto the **commented-out** `# HF_API_KEY_ID=` / `# HF_API_KEY_SECRET=` lines, so nothing
-   read them and the run still reported "not configured" - identical to having set nothing at all.
-2. `video-post.yml` forwarded **only** `HF_CREDENTIALS`, never the split pair, so even a correctly-saved split
-   credential produced the same silent skip. It now forwards all three (de69c9b), and `.env` carries the joined
-   `HF_CREDENTIALS` as well.
+**OWNER ACTION - the only remaining blocker: the API account has no usable credits.**
+The claude.ai Higgsfield **connector** reports **1800.5 credits on the `max` plan**, but the **API** refuses the
+generation. The docs do not state whether API credits and app-subscription credits are the same wallet, so it is one
+of two things and only the owner can tell which:
+  (a) same account, but API usage draws on a SEPARATE balance that needs topping up; or
+  (b) **the API key was created under a different Higgsfield login** than the connector is signed in as.
+**DO THIS:** open cloud.higgsfield.ai, check which e-mail it is signed in as and what credit balance it shows. If it
+is a different account from the app, either create the key under the app's account or top that account up.
 
-**STILL PENDING - the first real run has NOT happened.** `SOCIAL_VIDEO_LIVE` is deliberately unset, so the next run
-generates a Reel and **holds** it, WhatsApping the owner a preview instead of auto-posting. Two unknowns only a real
-run can settle: (a) whether the guessed text-to-video contract is right - if it errors, set repo *variables*
-`HIGGSFIELD_T2V_ENDPOINT` / `HIGGSFIELD_T2V_MODEL`, no code change; (b) whether the output looks good enough to
-enable `SOCIAL_VIDEO_LIVE=true`. Balance at handover: **1800 credits on the `max` plan, ~60 per Reel (~30 Reels)**.
-Next scheduled run: cron `30 5 */3 * *` (05:30 UTC / 11:00 IST, every 3rd day).
+**Re-testing:** the daily guard keys off `video-<date>` and matches rows in ANY status, so a FAILED run occupies the
+whole day and (schedule = every 3 days) would block re-testing for 3 days. Use the retry input:
+`gh workflow run video-post.yml --repo PiyushM-KK/Travel --ref main -f retry=<tag>` (265108c). It never bypasses the
+posting gate - `SOCIAL_VIDEO_LIVE` is still required to publish, so a retry can only produce a held draft.
+
+**Free checks that cost no credits:** auth -> `GET api.higgsfield.ai/requests/<fake-uuid>/status` returns 404 when
+the key is good, 401 when it is not. Path existence -> POST an invalid body: 400/422 means the path exists, 404
+(`model_not_found`) means it does not. Both were used to find the bug above.
+
+**Behaviour under failure is correct:** all three runs HELD the row, notified, and left nothing stuck as `planned`.
 
 ## B-VIDEO (original build notes)
 **Goal (owner):** a short cinematic AI travel Reel on a schedule → AI VIDEO QA → post to IG Reels / FB (or hold for approval).

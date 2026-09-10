@@ -102,7 +102,9 @@ async function runVideoPost(store, ctx = {}) {
   const rejected = [];
   try {
     for (let attempt = 1; attempt <= maxTries; attempt++) {
-      const gen = await generateVideo(prompt, ctx.videoGenOpts || {});
+      // Pass the SAME duration used for resolveCuts below, so the clip we ask for and the labels we
+      // time over it can never drift apart (Kling's own default is 5s, our label math assumes 10s).
+      const gen = await generateVideo(prompt, { ...(ctx.videoGenOpts || {}), duration });
       clipUrl = gen && (gen.url || gen);
       if (!clipUrl) { rejected.push("no clip url from generator"); continue; }
       rawFile = path.join(tmp, `vraw-${smid}-${attempt}.mp4`);

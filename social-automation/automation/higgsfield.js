@@ -28,6 +28,14 @@ const DEFAULT_MODEL = "";                       // v2 needs no model field; set 
 const DEFAULT_DURATION = 10;                    // seconds; enum is 5|10. MUST match video-runner's `duration`
                                                 // (default 10) or the branded labels are timed for the wrong length.
 
+/** Kling's duration is an ENUM (5|10). Coerce anything else — a typo'd repo var, a stray caller
+ *  override — back to the default rather than letting `duration: null` reach the API as a 422. */
+const ALLOWED_DURATIONS = [5, 10];
+function coerceDuration(value, fallback) {
+  const n = Number(value);
+  return ALLOWED_DURATIONS.includes(n) ? n : fallback;
+}
+
 /** Combine the two credential shapes into the SDK's "KEY_ID:KEY_SECRET" string, or "" if unset. */
 function resolveCredentials(opts = {}) {
   if (opts.credentials) return String(opts.credentials);
@@ -69,18 +77,19 @@ async function generateVideo(params = {}, opts = {}) {
 
   const endpoint = params.endpoint || process.env.HIGGSFIELD_VIDEO_ENDPOINT || DEFAULT_ENDPOINT;
   const model = params.model || process.env.HIGGSFIELD_MODEL || DEFAULT_MODEL;
-  const duration = Number(params.duration || process.env.HIGGSFIELD_DURATION || DEFAULT_DURATION);
+  const duration = coerceDuration(params.duration || process.env.HIGGSFIELD_DURATION, DEFAULT_DURATION);
   const client = buildClient(opts);
 
   // v2 takes image_url as a plain string and rejects nothing but a flat body; `model` is omitted unless
   // explicitly configured, because on a v2 path it is an unknown property.
   const input = {
-    prompt,
     image_url: imageUrl,
     duration,
     ...(model ? { model } : {}),
     ...(params.input || {}),
+    prompt, // last: a caller's params.input must never silently replace the validated prompt
   };
+  input.duration = coerceDuration(input.duration, DEFAULT_DURATION);
 
   let jobSet;
   try {
@@ -126,9 +135,10 @@ async function generateVideoFromText(params = {}, opts = {}) {
   if (!prompt) throw new Error("higgsfield.generateVideoFromText needs a prompt");
   const endpoint = params.endpoint || process.env.HIGGSFIELD_T2V_ENDPOINT || DEFAULT_T2V_ENDPOINT;
   const model = params.model || process.env.HIGGSFIELD_T2V_MODEL || process.env.HIGGSFIELD_MODEL || DEFAULT_MODEL;
-  const duration = Number(params.duration || process.env.HIGGSFIELD_T2V_DURATION || DEFAULT_DURATION);
+  const duration = coerceDuration(params.duration || process.env.HIGGSFIELD_T2V_DURATION, DEFAULT_DURATION);
   const client = buildClient(opts);
-  const input = { prompt, duration, ...(model ? { model } : {}), ...(params.input || {}) };
+  const input = { duration, ...(model ? { model } : {}), ...(params.input || {}), prompt };
+  input.duration = coerceDuration(input.duration, DEFAULT_DURATION);
   let jobSet;
   try { jobSet = await client.subscribe(endpoint, { input, withPolling: true }); }
   catch (e) { throw new Error(redact("higgsfield text-to-video failed — " + String((e && e.message) || e))); }
@@ -159,7 +169,8 @@ function resolveHiggsfield(opts = {}) {
 /** Text-to-video resolver for the auto Reel runner: returns (prompt, o) => {url}, or null when off. */
 function resolveHiggsfieldText(opts = {}) {
   if (!opts.client && !resolveCredentials(opts)) return null;
-  return (prompt, o = {}) => generateVideoFromText({ prompt, input: o.input, model: o.model, endpoint: o.endpoint }, opts);
+  // forward o.duration too: without it the runner's clip length and its label timing can never agree.
+  return (prompt, o = {}) => generateVideoFromText({ prompt, input: o.input, model: o.model, endpoint: o.endpoint, duration: o.duration }, opts);
 }
 
 module.exports = { generateVideo, generateVideoFromText, resolveHiggsfield, resolveHiggsfieldText, resolveCredentials, DEFAULT_ENDPOINT, DEFAULT_MODEL, DEFAULT_T2V_ENDPOINT };

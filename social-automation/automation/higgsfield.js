@@ -16,8 +16,17 @@
 
 const { redact } = require("../engine/publish");
 
-const DEFAULT_ENDPOINT = "/v1/image2video/dop"; // documented image-to-video path (SDK example)
-const DEFAULT_MODEL = "dop-turbo";              // fast tier; override via HIGGSFIELD_MODEL
+// Higgsfield's v2 API encodes the MODEL IN THE PATH and takes a FLAT body ({prompt, duration, ...}).
+// There is no /v1/text2video and no `model` body field — the old defaults here were guesses and 404'd
+// ("model_not_found"). Verified 2026-09-10 against docs.higgsfield.ai/docs/openapi.json and by probing
+// the live API with an invalid body: an existing path answers 400/422 ("prompt is a required property"),
+// a non-existent one answers 404 — neither generates anything, so it is a free way to re-check a path.
+// Kling matches the two Reels published manually. Both api.higgsfield.ai and platform.higgsfield.ai
+// serve these paths identically, so the SDK's default baseURL is fine.
+const DEFAULT_ENDPOINT = "/kling-video/v2.5-turbo/pro/image-to-video";
+const DEFAULT_MODEL = "";                       // v2 needs no model field; set HIGGSFIELD_MODEL only for a /v1/* endpoint
+const DEFAULT_DURATION = 10;                    // seconds; enum is 5|10. MUST match video-runner's `duration`
+                                                // (default 10) or the branded labels are timed for the wrong length.
 
 /** Combine the two credential shapes into the SDK's "KEY_ID:KEY_SECRET" string, or "" if unset. */
 function resolveCredentials(opts = {}) {
@@ -60,12 +69,16 @@ async function generateVideo(params = {}, opts = {}) {
 
   const endpoint = params.endpoint || process.env.HIGGSFIELD_VIDEO_ENDPOINT || DEFAULT_ENDPOINT;
   const model = params.model || process.env.HIGGSFIELD_MODEL || DEFAULT_MODEL;
+  const duration = Number(params.duration || process.env.HIGGSFIELD_DURATION || DEFAULT_DURATION);
   const client = buildClient(opts);
 
+  // v2 takes image_url as a plain string and rejects nothing but a flat body; `model` is omitted unless
+  // explicitly configured, because on a v2 path it is an unknown property.
   const input = {
-    model,
     prompt,
-    input_images: [{ type: "image_url", image_url: imageUrl }],
+    image_url: imageUrl,
+    duration,
+    ...(model ? { model } : {}),
     ...(params.input || {}),
   };
 
@@ -97,7 +110,7 @@ async function generateVideo(params = {}, opts = {}) {
   return { url, status, jobId, raw: jobSet };
 }
 
-const DEFAULT_T2V_ENDPOINT = "/v1/text2video"; // TEXT-to-video (env-overridable; verify once keys exist)
+const DEFAULT_T2V_ENDPOINT = "/kling-video/v2.5-turbo/pro/text-to-video"; // TEXT-to-video (env-overridable)
 
 /**
  * Generate ONE short video from a TEXT prompt only (no seed image) — the auto Reel montage path. Same
@@ -113,8 +126,9 @@ async function generateVideoFromText(params = {}, opts = {}) {
   if (!prompt) throw new Error("higgsfield.generateVideoFromText needs a prompt");
   const endpoint = params.endpoint || process.env.HIGGSFIELD_T2V_ENDPOINT || DEFAULT_T2V_ENDPOINT;
   const model = params.model || process.env.HIGGSFIELD_T2V_MODEL || process.env.HIGGSFIELD_MODEL || DEFAULT_MODEL;
+  const duration = Number(params.duration || process.env.HIGGSFIELD_T2V_DURATION || DEFAULT_DURATION);
   const client = buildClient(opts);
-  const input = { model, prompt, ...(params.input || {}) };
+  const input = { prompt, duration, ...(model ? { model } : {}), ...(params.input || {}) };
   let jobSet;
   try { jobSet = await client.subscribe(endpoint, { input, withPolling: true }); }
   catch (e) { throw new Error(redact("higgsfield text-to-video failed — " + String((e && e.message) || e))); }

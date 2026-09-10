@@ -60,7 +60,7 @@
     <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 32px; margin: 0 0 24px"><span data-en="Photos of" data-hi="तस्वीरें:" data-gu="ફોટા:">Photos of</span> {{ packageName }}</h2>
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px">
       <sc-for list="{{ photoSlots }}" as="slot" hint-placeholder-count="6">
-        <img src="{{ slot.src }}" alt="{{ slot.alt }}" loading="lazy" decoding="async" width="800" height="533" style="width: 100%; aspect-ratio: 3/2; object-fit: cover; border-radius: 14px; display: block; background: #EAEFF3">
+        <img src="{{ slot.src }}" alt="{{ slot.alt }}" loading="lazy" decoding="async" width="800" height="533" style="width: 100%; height: auto; aspect-ratio: 3/2; object-fit: cover; border-radius: 14px; display: block; background: #EAEFF3">
       </sc-for>
     </div>
   </div>

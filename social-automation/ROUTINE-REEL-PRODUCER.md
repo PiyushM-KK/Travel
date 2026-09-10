@@ -69,16 +69,24 @@ and the failure modes that have already been diagnosed — do not re-derive them
 
 6. **Verify.** Watch the run to completion. A good run ends `"status":"pending_approval"` with a
    `videoUrl`, and logs `{"evt":"video_notify","kind":"awaiting_approval","sent":true}`.
-   Check the `{"evt":"video_prices"}` line: a destination with a package shows its price; one without
-   (Ladakh has no package) correctly shows none.
+   It also logs `{"evt":"video_overlays","n":1,"places":["<Place>"]}` - one overlay per scene. If `n`
+   does not match the number of places, stop and report rather than approving.
 
 7. **Report** in 3-4 lines: destination, credits spent, the Reel URL, and whether WhatsApp delivered.
+
+**Branding is automatic - do not rebuild it.** The Action composites a transparent PNG rendered by the
+SAME satori template as the feed cards (`engine/card.js` -> `makeVideoOverlay`): white Skyline logo chip,
+the place name, the route line, the four service badges, the green "WhatsApp us to plan" pill, handle +
+tagline, phone, and the AI-generated disclosure. **There is deliberately NO PRICE on the video** (owner's
+call). The route line is read from the real catalogue and is left BLANK where a destination has no package
+(Ladakh has none). Do not add a price, do not write a route, do not hand-edit the overlay.
 
 **Hard rules:**
 - **Never publish.** `SOCIAL_VIDEO_LIVE` stays unset so every Reel is held for the owner. Do not set it,
   and do not publish by any other route.
-- **Never invent a price.** The pipeline resolves prices from the real catalogue and omits them where no
-  package exists. Do not override that.
+- **Never invent a price or a route.** The pipeline resolves both from the real catalogue and leaves them
+  blank where no package exists. A made-up figure or itinerary on a client's ad is worse than a blank line.
+  The video carries no price at all; do not add one.
 - **Spend cap: 35 credits per run.** If a run would exceed it, stop and report instead.
 - Never commit secrets. Never edit the website or the package catalogue from this routine.
 - If anything is ambiguous or a second failure occurs, **stop and report** — a missed Reel costs nothing,

@@ -58,7 +58,7 @@
   <!-- Image Gallery -->
   <div style="margin-bottom: 48px">
     <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 32px; margin: 0 0 24px"><span data-en="Photos of" data-hi="तस्वीरें:" data-gu="ફોટા:">Photos of</span> {{ packageName }}</h2>
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px">
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 18px">
       <sc-for list="{{ photoSlots }}" as="slot" hint-placeholder-count="6">
         <img src="{{ slot.src }}" alt="{{ slot.alt }}" loading="lazy" decoding="async" width="800" height="533" style="width: 100%; height: auto; aspect-ratio: 3/2; object-fit: cover; border-radius: 14px; display: block; background: #EAEFF3">
       </sc-for>
@@ -1041,6 +1041,11 @@ class Component extends DCLogic {
     };
 
     const PKG_PHOTOS = {
+      'shimla-manali': [{ src: 'images/dest-himachal.avif' }, { src: 'images/places/himachal-shimla.jpg', place: 'Shimla' }, { src: 'images/places/himachal-manali.jpg', place: 'Manali' }, { src: 'images/places/himachal-kasol-and-parvati-valley.jpg', place: 'Parvati Valley' }],
+      'spiti-valley': [{ src: 'images/places/spiti-valley.jpg', place: 'Spiti Valley' }, { src: 'images/places/spiti-key-monastery.jpg', place: 'Key Monastery' }, { src: 'images/places/spiti-chandratal.jpg', place: 'Chandratal' }, { src: 'images/places/spiti-kaza.jpg', place: 'Kaza' }],
+      'nainital-corbett': [{ src: 'images/dest-uttarakhand.jpg' }, { src: 'images/places/uttarakhand-nainital.jpg', place: 'Nainital' }, { src: 'images/places/uttarakhand-mukteshwar.jpg', place: 'Mukteshwar' }, { src: 'images/places/uttarakhand-jim-corbett.jpg', place: 'Jim Corbett' }],
+      'sikkim-darjeeling': [{ src: 'images/dest-sikkim.jpg' }, { src: 'images/places/sikkim-gangtok.jpg', place: 'Gangtok' }, { src: 'images/places/sikkim-tsomgo-lake-and-nathu-la.jpg', place: 'Tsomgo Lake' }, { src: 'images/places/sikkim-lachung-and-yumthang.jpg', place: 'Yumthang Valley' }, { src: 'images/dest-darjeeling.jpg', place: 'Darjeeling' }],
+      'ooty-coorg-mysore': [{ src: 'images/dest-ooty.webp' }, { src: 'images/places/ooty-ooty.jpg', place: 'Ooty' }, { src: 'images/places/ooty-tea-estates.jpg', place: 'Nilgiri Tea Estates' }, { src: 'images/places/mysuru-coorg.jpg', place: 'Coorg' }, { src: 'images/places/mysuru-mysore-palace.jpg', place: 'Mysore Palace' }],
       rajasthan: [{ src: 'images/dest-rajasthan.jpg' }, { src: 'images/places/rajasthan-jaipur.jpg', place: 'Jaipur' }, { src: 'images/places/rajasthan-udaipur.jpg', place: 'Udaipur' }, { src: 'images/places/rajasthan-jodhpur.jpg', place: 'Jodhpur' }, { src: 'images/places/rajasthan-jaisalmer.jpg', place: 'Jaisalmer' }],
       himachal: [{ src: 'images/dest-himachal.avif' }, { src: 'images/places/himachal-shimla.jpg', place: 'Shimla' }, { src: 'images/places/himachal-manali.jpg', place: 'Manali' }, { src: 'images/places/himachal-dharamshala-and-mcleodganj.jpg', place: 'Dharamshala & McLeodganj' }, { src: 'images/places/himachal-kasol-and-parvati-valley.jpg', place: 'Kasol & Parvati Valley' }],
       kashmir: [{ src: 'images/dest-kashmir.webp' }, { src: 'images/places/kashmir-srinagar.jpg', place: 'Srinagar' }, { src: 'images/places/kashmir-gulmarg.jpg', place: 'Gulmarg' }, { src: 'images/places/kashmir-pahalgam.jpg', place: 'Pahalgam' }, { src: 'images/places/kashmir-sonamarg.jpg', place: 'Sonamarg' }],

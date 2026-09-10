@@ -39,6 +39,27 @@ daily guard matches rows in ANY status, so a failed run otherwise blocks the slo
 **Free probes:** auth -> `GET /requests/<fake-uuid>/status` = 404 valid / 401 invalid. Path -> POST an
 invalid body = 400/422 exists, 404 does not. Cost -> `POST /estimate/<path>`.
 
+## B-MUSIC - Reels have NO audio; a licensed track is needed (owner)
+**Every Reel is silent, and no code change can fix it** - the clips themselves carry no audio. Verified
+against the API, not assumed: of the models enabled on this account, kling v2.5-turbo / v2.1 master and
+minimax hailuo-2.3 have **no audio field at all**, and wan-25-preview has `audio_url` (you SUPPLY audio,
+it does not generate it). The two that do generate audio natively - **veo3.1** (which also offers a native
+`aspect_ratio: 9:16`, removing the need to crop) and **sora-2** - both return `model_not_found` here.
+The claude.ai Higgsfield **connector cannot fill the gap either**: its audio tool is speech-only and its
+own instructions forbid using the music model for standalone audio.
+
+**Code side is DONE** (8d30d8f): `brandVideo` muxes `assets/music/reel-bed.mp3` when present -
+`-stream_loop -1` so a short track covers the Reel, volume ducked to 0.35, 1s fade in, 1.5s fade out,
+`-shortest` to trim. A missing file logs `reel_music_missing` and renders silent rather than failing.
+
+**OWNER ACTION - supply ONE licensed instrumental track** at `social-automation/assets/music/reel-bed.mp3`
+(15s+; it loops). It plays on a CLIENT's commercial Instagram/Facebook, so the licence must permit
+commercial use - a copyright claim would hit Skyline's account, not ours. Safe sources: YouTube Audio
+Library, Pixabay Music, Free Music Archive (CC0/CC-BY), or a paid Epidemic Sound / Artlist subscription.
+Record the source + licence the way `photo-credits.html` does for images.
+ALTERNATIVE: if veo3.1 can be enabled on the Higgsfield account, it solves audio AND vertical framing in
+one move - worth asking their support before buying a music subscription.
+
 ## B-VIDEO (original build notes)
 **Goal (owner):** a short cinematic AI travel Reel on a schedule → AI VIDEO QA → post to IG Reels / FB (or hold for approval).
 

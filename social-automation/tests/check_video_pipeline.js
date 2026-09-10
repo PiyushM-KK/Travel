@@ -8,7 +8,7 @@ const os = require("os");
 const fs = require("fs");
 const path = require("path");
 const { pickScenes, buildVideoPrompt, SCENES } = require("../automation/video-scenes");
-const { buildBrandFilter, resolveCuts, detectCuts, brandVideo } = require("../automation/video-branding");
+const { buildBrandFilter, resolveCuts, hasRealCuts, detectCuts, brandVideo } = require("../automation/video-branding");
 const { sweepStaleQueue } = require("../automation/queue-sweep");
 const { runVideoPost } = require("../automation/video-runner");
 const { InMemoryStore } = require("../automation/store");
@@ -67,6 +67,17 @@ const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "vpipe-"));
     // A mocked runner can never catch a malformed flag, so check the shape of every option here.
     const badOpts = gotArgs.filter((a) => typeof a === "string" && a.startsWith("-") && /[\/]/.test(a));
     ok(badOpts.length === 0, `every ffmpeg option is well-formed, no stray slashes (got ${JSON.stringify(badOpts)})`);
+
+    // ---- geometry: a 16:9 source must be COVER-CROPPED, never squeezed into 9:16 ----
+    const geo = buildBrandFilter({ scenes: [{ label: "SIKKIM", shot: "" }], cuts: [], fontDir: "assets/fonts", phone: "+91 88660 50291" });
+    ok(/force_original_aspect_ratio=increase/.test(geo) && /crop=1080:1920/.test(geo), "source is scaled to COVER then centre-cropped (aspect preserved)");
+    ok(!/scale=1080:1920:flags/.test(geo), "no bare scale=1080:1920 — that stretches a 16:9 clip vertically");
+
+    // ---- honesty: never label a single continuous shot with several destinations ----
+    ok(hasRealCuts([3.3, 6.6], 3, 10) === true, "two real cuts + three scenes = a genuine montage");
+    ok(hasRealCuts([], 3, 10) === false, "NO detected cuts + three scenes = one shot; caller must not claim three places");
+    ok(hasRealCuts([5.0], 3, 10) === false, "too few cuts for the scene count is also not a montage");
+    ok(badOpts.length === 0, `every ffmpeg option is well-formed, no stray slashes (got ${JSON.stringify(badOpts)})`);
   }
 
   // ---------- queue sweep ----------
@@ -87,12 +98,16 @@ const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "vpipe-"));
 
   // ---------- runner: orchestration ----------
   const scenesFixed = SCENES.slice(0, 3);
+  let genCalls = 0;
   function baseCtx(over = {}) {
     return {
       client: "skyline", now: new Date("2026-08-28T00:00:00Z"), tmpDir: tmp, logoPath: "logo.jpg", duration: 10,
-      generateVideo: async () => ({ url: "https://clip.test/raw.mp4" }),
+      generateVideo: async () => { genCalls++; return { url: "https://clip.test/raw.mp4" }; },
       download: async (url, dest) => { fs.writeFileSync(dest, Buffer.from("rawvid")); return dest; },
       detectCuts: async () => [3.3, 6.6],
+      // One clip is generated PER destination and joined locally, so the cut boundaries are known
+      // exactly rather than inferred - that is what keeps each label over its own footage.
+      concatClips: async (files, outPath) => { fs.writeFileSync(outPath, Buffer.from("joined")); return { outPath, cuts: [5, 10], duration: 15 }; },
       assessVideo: async () => ({ pass: true, score: 8 }),
       brand: async ({ outPath }) => { fs.writeFileSync(outPath, Buffer.from("branded")); return outPath; },
       hostVideo: async () => ({ url: "https://blob/reel.mp4" }),
@@ -104,11 +119,14 @@ const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "vpipe-"));
   // (a) default (no live) -> HOLD for approval + owner notified with the link
   {
     const store = new InMemoryStore(); const sent = [];
+    genCalls = 0;
     const out = await runVideoPost(store, baseCtx({ sendText: async (to, t) => sent.push(t) }));
     ok(out.status === "pending_approval" && out.videoUrl === "https://blob/reel.mp4", "not live -> Reel HELD for approval (never auto-posts)");
     ok(sent.some((t) => /ready for your OK/i.test(t) && t.includes("https://blob/reel.mp4")), "owner is sent a WhatsApp preview link");
     const row = await store.get(out.id);
     ok(row.status === "pending_approval" && row.sceneMeta && row.sceneMeta.slugs.length === 3, "the row records status + the 3 scene slugs (rotation history)");
+    ok(row.sceneMeta.cuts.length === 2, "cuts come from the join (2 boundaries for 3 clips), not from guessed even splits");
+    ok(genCalls === 3, `one generation PER destination, never one clip labelled as three places (got ${genCalls})`);
   }
 
   // (b) live + creds -> publishes to IG + FB
@@ -123,7 +141,10 @@ const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "vpipe-"));
   {
     const store = new InMemoryStore(); let gens = 0;
     const out = await runVideoPost(store, baseCtx({ maxTries: 2, generateVideo: async () => { gens++; return { url: "https://clip.test/raw.mp4" }; }, assessVideo: async () => ({ pass: false, score: 3, note: "flicker" }) }));
-    ok(out.status === "held" && gens === 2, "video QA fail -> re-generated once (2 attempts) then HELD");
+    // 6, not 2: each attempt generates one clip PER destination (3 scenes x 2 attempts). The point of
+    // the assertion is that re-rolling stays BOUNDED - it is now 3x costlier per attempt, so an
+    // unbounded retry would burn real credits fast.
+    ok(out.status === "held" && gens === 6, `video QA fail -> re-generated once (2 attempts x 3 clips) then HELD (got ${gens})`);
   }
 
   // (d) dedup: a Reel already exists for the key -> skipped

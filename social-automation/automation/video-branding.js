@@ -37,6 +37,18 @@ async function detectCuts(videoPath, opts = {}) {
  * number, use it; otherwise fall back to EVEN splits over `duration` (so the labels are still sensibly
  * timed even when the detector under/over-fires). Returns ascending interior times.
  */
+/**
+ * Were REAL scene cuts detected, or would resolveCuts have to invent them? This matters for honesty, not
+ * cosmetics: text-to-video models return ONE continuous shot, so falling back to even splits stamps three
+ * different place names over thirds of a single location - telling the viewer they are seeing places that
+ * are not in the footage. Callers must check this before labelling a clip with more than one destination.
+ */
+function hasRealCuts(rawCuts, sceneCount, duration) {
+  const need = Math.max(0, sceneCount - 1);
+  const clean = (rawCuts || []).filter((t) => Number.isFinite(t) && t > 0.2 && t < duration - 0.2);
+  return clean.length === need;
+}
+
 function resolveCuts(rawCuts, sceneCount, duration) {
   const need = Math.max(0, sceneCount - 1);
   const clean = (rawCuts || []).filter((t) => Number.isFinite(t) && t > 0.2 && t < duration - 0.2).sort((a, b) => a - b);
@@ -55,6 +67,58 @@ function fgClean(s) {
   return String(s == null ? "" : s).replace(/[:'\[\];,\\%\r\n]/g, " ").replace(/\s+/g, " ").trim();
 }
 
+/** Probe a clip's duration in seconds via ffprobe (ships with ffmpeg). 0 if unreadable. */
+async function probeDuration(file, opts = {}) {
+  const bin = opts.ffprobe || process.env.FFPROBE_PATH || "ffprobe";
+  const run = opts.run || defaultRun;
+  try {
+    const { stdout } = await run(bin, ["-v", "error", "-show_entries", "format=duration", "-of", "default=nw=1:nk=1", file]);
+    const n = parseFloat(String(stdout).trim());
+    return Number.isFinite(n) && n > 0 ? n : 0;
+  } catch { return 0; }
+}
+
+/**
+ * Concatenate per-destination clips into ONE 1080x1920 montage, and return the EXACT cut boundaries.
+ *
+ * This is what makes a montage honest. A text-to-video model returns one continuous shot no matter how
+ * the prompt is worded, so a single generation can never show three places - scene detection then finds
+ * nothing and the labels get guessed. Generating one clip PER destination and joining them here means we
+ * KNOW where each place starts and ends, so "EXPLORE LADAKH" is always over Ladakh footage.
+ *
+ * Every input is cover-cropped and normalised to a common size/fps/SAR first: ffmpeg's concat filter
+ * requires identical geometry and will otherwise produce a garbled result rather than an error.
+ */
+async function concatClips(files, outPath, opts = {}) {
+  const ffmpeg = opts.ffmpeg || process.env.FFMPEG_PATH || "ffmpeg";
+  const run = opts.run || defaultRun;
+  const fps = opts.fps || 24;
+  if (!Array.isArray(files) || files.length === 0) throw new Error("concatClips needs at least one clip");
+
+  const norm = files.map((_, i) =>
+    `[${i}:v]scale=1080:1920:force_original_aspect_ratio=increase:flags=lanczos,crop=1080:1920,setsar=1,fps=${fps}[c${i}]`);
+  const chain = files.map((_, i) => `[c${i}]`).join("");
+  const graph = `${norm.join(";")};${chain}concat=n=${files.length}:v=1:a=0[vout]`;
+
+  const args = ["-y", "-hide_banner", "-loglevel", "error"];
+  for (const f of files) args.push("-i", f);
+  args.push("-filter_complex", graph, "-map", "[vout]",
+    "-c:v", "libx264", "-crf", "20", "-preset", "medium", "-pix_fmt", "yuv420p", "-movflags", "+faststart", outPath);
+  const r = await run(ffmpeg, args, { cwd: opts.cwd });
+  if (!opts.run && !fs.existsSync(outPath)) {
+    throw new Error("concat produced no output" + (r && r.stderr ? ": " + String(r.stderr).slice(-400) : ""));
+  }
+
+  // Interior boundaries = cumulative durations, so they line up with the labels exactly.
+  const durs = [];
+  for (const f of files) durs.push(await probeDuration(f, opts));
+  const cuts = [];
+  let acc = 0;
+  for (let i = 0; i < durs.length - 1; i++) { acc += durs[i]; if (acc > 0) cuts.push(Math.round(acc * 1000) / 1000); }
+  const total = durs.reduce((a, b) => a + b, 0);
+  return { outPath, cuts, duration: Math.round(total * 1000) / 1000 };
+}
+
 /** Build the ffmpeg filtergraph string (1080x1920 canvas) for the branded overlay. Pure — testable. */
 function buildBrandFilter(opts = {}) {
   const { scenes, cuts, fontDir = "assets/fonts" } = opts;
@@ -63,7 +127,10 @@ function buildBrandFilter(opts = {}) {
   const tagline = fgClean(opts.tagline || "Your Journey · Our Passion");
   const B = `${fontDir}/Poppins-Bold.ttf`, S = `${fontDir}/Poppins-SemiBold.ttf`, R = `${fontDir}/Poppins-Regular.ttf`;
   const p = [];
-  p.push("[0:v]scale=1080:1920:flags=lanczos[base]");
+  // COVER-CROP, never a plain scale=1080:1920 - that squeezes a 16:9 source into a 9:16 frame and
+  // stretches everything vertically (same bug class as the stretched website images). Scale so both
+  // dimensions cover the canvas, then centre-crop, and reset SAR so no player re-stretches it.
+  p.push("[0:v]scale=1080:1920:force_original_aspect_ratio=increase:flags=lanczos,crop=1080:1920,setsar=1[base]");
   p.push("[base]drawbox=x=0:y=0:w=1080:h=330:color=black@0.28:t=fill,drawbox=x=0:y=1800:w=1080:h=120:color=black@0.58:t=fill,drawbox=x=32:y=40:w=330:h=104:color=white@0.95:t=fill[bgx]");
   p.push("[1:v]scale=270:-1[lg]");
   p.push("[bgx][lg]overlay=62:55[v1]");
@@ -114,4 +181,4 @@ async function brandVideo(opts = {}) {
   }
 }
 
-module.exports = { detectCuts, resolveCuts, buildBrandFilter, brandVideo, defaultRun, fgClean };
+module.exports = { detectCuts, resolveCuts, hasRealCuts, concatClips, probeDuration, buildBrandFilter, brandVideo, defaultRun, fgClean };

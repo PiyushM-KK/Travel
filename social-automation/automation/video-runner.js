@@ -13,7 +13,7 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { pickScenes, buildVideoPrompt } = require("./video-scenes");
-const { resolveCuts } = require("./video-branding");
+const { resolveCuts, hasRealCuts, concatClips } = require("./video-branding");
 const { redact } = require("../engine/publish"); // secret-safe error text on the failure paths
 
 function dateKey(now) { return (now || new Date()).toISOString().slice(0, 10); }
@@ -93,9 +93,12 @@ async function runVideoPost(store, ctx = {}) {
   }
 
   const recent = await recentSceneSlugs(store);
-  const scenes = pickScenes({ now, count: ctx.count || 3, recent });
-  const prompt = buildVideoPrompt(scenes);
-  const duration = ctx.duration || 10;
+  let scenes = pickScenes({ now, count: ctx.count || 3, recent }); // `let`: the honesty gate below may narrow this to one
+  const prompt = buildVideoPrompt(scenes); // kept for the row/caption record: what the Reel is meant to show
+  // TRUE MONTAGE: one generation PER destination, joined locally. Kling's duration is an enum (5|10), so
+  // 3 places x 5s = a 15s Reel. `duration` is the WHOLE montage; perClip is what we ask the model for.
+  const perClip = ctx.perClip || 5;
+  const duration = ctx.duration || perClip * scenes.length;
 
   const row = await store.create({
     status: "planned", source: "video-post", sourceMessageId: smid, client: ctx.client || "skyline",
@@ -116,16 +119,34 @@ async function runVideoPost(store, ctx = {}) {
   const rejected = [];
   try {
     for (let attempt = 1; attempt <= maxTries; attempt++) {
-      // Pass the SAME duration used for resolveCuts below, so the clip we ask for and the labels we
-      // time over it can never drift apart (Kling's own default is 5s, our label math assumes 10s).
-      const gen = await generateVideo(prompt, { ...(ctx.videoGenOpts || {}), duration });
-      clipUrl = gen && (gen.url || gen);
-      if (!clipUrl) { rejected.push("no clip url from generator"); continue; }
+      // ONE clip per destination. A single text-to-video call returns one continuous shot however the
+      // prompt is worded, so asking it for a 3-place montage yielded footage of ONE place with three
+      // different place names stamped over it. Generating each place separately costs more (3 x 5s
+      // instead of 1 x 10s) and is the only way a label can be guaranteed to sit over its own footage.
+      const files = [];
+      for (const sc of scenes) {
+        const g = await generateVideo(buildVideoPrompt([sc]), { ...(ctx.videoGenOpts || {}), duration: perClip });
+        const u = g && (g.url || g);
+        if (!u) break;
+        const cf = path.join(tmp, `vclip-${smid}-${attempt}-${files.length}.mp4`);
+        await download(u, cf);
+        files.push(cf);
+      }
+      if (files.length !== scenes.length) { rejected.push(`generator returned ${files.length}/${scenes.length} clips`); continue; }
+      clipUrl = files.length === 1 ? files[0] : "";
       rawFile = path.join(tmp, `vraw-${smid}-${attempt}.mp4`);
-      await download(clipUrl, rawFile);
-      let raw = [];
-      try { raw = await detectCuts(rawFile); } catch { raw = []; }
-      cuts = resolveCuts(raw, scenes.length, duration);
+      // Cuts come from the join itself - we made the boundaries, so we know them exactly and never
+      // have to infer them with scene detection.
+      const concat = ctx.concatClips || concatClips; // injectable, like brand/hostVideo (tests use a stub)
+      const joined = await concat(files, rawFile, { cwd: ctx.cwd });
+      cuts = joined.cuts;
+      // Safety net: if probing failed and we could not derive real boundaries, do NOT fall back to even
+      // splits across several place names - narrow to a single label instead.
+      if (!hasRealCuts(cuts, scenes.length, joined.duration || duration) && scenes.length > 1) {
+        try { console.log(JSON.stringify({ evt: "video_cuts_unverified", asked: scenes.length, kept: 1, place: scenes[0].label })); } catch { /* ignore */ }
+        scenes = [scenes[0]];
+        cuts = resolveCuts([], scenes.length, joined.duration || duration);
+      }
       if (assessVideo) {
         try { qa = await assessVideo(rawFile, { minScore: ctx.videoMinScore || 7 }); }
         catch { qa = { pass: true, note: "QA errored — passing" }; } // fail-open on QA outage

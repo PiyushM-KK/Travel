@@ -13,7 +13,7 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { pickScenes, buildVideoPrompt } = require("./video-scenes");
-const { resolveCuts, hasRealCuts, concatClips } = require("./video-branding");
+const { resolveCuts, hasRealCuts, concatClips, probeDuration } = require("./video-branding");
 const { redact } = require("../engine/publish"); // secret-safe error text on the failure paths
 
 function dateKey(now) { return (now || new Date()).toISOString().slice(0, 10); }
@@ -93,7 +93,7 @@ async function runVideoPost(store, ctx = {}) {
   }
 
   const recent = await recentSceneSlugs(store);
-  let scenes = pickScenes({ now, count: ctx.count || 3, recent }); // `let`: the honesty gate below may narrow this to one
+  let scenes = pickScenes({ now, count: ctx.count || 1, recent }); // ONE destination per Reel - the label must match the footage // `let`: the honesty gate below may narrow this to one
   const prompt = buildVideoPrompt(scenes); // kept for the row/caption record: what the Reel is meant to show
   // TRUE MONTAGE: one generation PER destination, joined locally. Kling's duration is an enum (5|10), so
   // 3 places x 5s = a 15s Reel. `duration` is the WHOLE montage; perClip is what we ask the model for.
@@ -139,7 +139,10 @@ async function runVideoPost(store, ctx = {}) {
       // Cuts come from the join itself - we made the boundaries, so we know them exactly and never
       // have to infer them with scene detection.
       const concat = ctx.concatClips || concatClips; // injectable, like brand/hostVideo (tests use a stub)
-      const joined = await concat(files, rawFile, { cwd: ctx.cwd });
+      // A single clip needs no join - skip the extra re-encode and use it as-is.
+      const joined = files.length === 1
+        ? { outPath: (rawFile = files[0]), cuts: [], duration: await probeDuration(files[0]) }
+        : await concat(files, rawFile, { cwd: ctx.cwd });
       cuts = joined.cuts;
       montageDuration = joined.duration || duration;
       // Safety net: if probing failed and we could not derive real boundaries, do NOT fall back to even

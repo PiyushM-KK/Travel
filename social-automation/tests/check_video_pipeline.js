@@ -124,9 +124,20 @@ const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "vpipe-"));
     ok(out.status === "pending_approval" && out.videoUrl === "https://blob/reel.mp4", "not live -> Reel HELD for approval (never auto-posts)");
     ok(sent.some((t) => /ready for your OK/i.test(t) && t.includes("https://blob/reel.mp4")), "owner is sent a WhatsApp preview link");
     const row = await store.get(out.id);
-    ok(row.status === "pending_approval" && row.sceneMeta && row.sceneMeta.slugs.length === 3, "the row records status + the 3 scene slugs (rotation history)");
-    ok(row.sceneMeta.cuts.length === 2, "cuts come from the join (2 boundaries for 3 clips), not from guessed even splits");
-    ok(genCalls === 3, `one generation PER destination, never one clip labelled as three places (got ${genCalls})`);
+    ok(row.status === "pending_approval" && row.sceneMeta && row.sceneMeta.slugs.length === 1, "the row records status + the ONE featured destination (rotation history)");
+    ok(row.sceneMeta.cuts.length === 0, "one destination per Reel -> no interior cuts to label");
+    ok(genCalls === 1, `ONE destination per Reel = one generation (got ${genCalls})`);
+  }
+
+  // (a2) the multi-destination path still works when asked for explicitly: one clip PER place, joined,
+  // with the cut boundaries taken from the join rather than guessed.
+  {
+    const store = new InMemoryStore();
+    genCalls = 0;
+    const out = await runVideoPost(store, baseCtx({ count: 3 }));
+    const row = await store.get(out.id);
+    ok(genCalls === 3, `count:3 generates one clip PER destination (got ${genCalls})`);
+    ok(row.sceneMeta.slugs.length === 3 && row.sceneMeta.cuts.length === 2, "3 places -> 2 cut boundaries, taken from the join");
   }
 
   // (b) live + creds -> publishes to IG + FB
@@ -144,7 +155,7 @@ const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "vpipe-"));
     // 6, not 2: each attempt generates one clip PER destination (3 scenes x 2 attempts). The point of
     // the assertion is that re-rolling stays BOUNDED - it is now 3x costlier per attempt, so an
     // unbounded retry would burn real credits fast.
-    ok(out.status === "held" && gens === 6, `video QA fail -> re-generated once (2 attempts x 3 clips) then HELD (got ${gens})`);
+    ok(out.status === "held" && gens === 2, `video QA fail -> re-generated once (2 attempts, 1 clip each) then HELD (got ${gens})`);
   }
 
   // (d) dedup: a Reel already exists for the key -> skipped

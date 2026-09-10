@@ -42,14 +42,26 @@ function pickScenes({ now, count = 3, recent = [] } = {}) {
   return picked.slice(0, n);
 }
 
-/** Build the Higgsfield montage prompt from the picked scenes (cinematic, drone-forward, no text/people-closeups). */
+/**
+ * Build the video prompt. ONE DESTINATION PER REEL (owner's call, 2026-09-10): a text-to-video model
+ * returns a single continuous shot, so a "3-place montage" prompt produced footage of one place that we
+ * then captioned with three different names. One place per clip means the on-screen label is always true.
+ *
+ * Motion is deliberately SLOW. The first Reels flew past far too fast for a 8-15s vertical clip - a
+ * viewer needs to register the landscape, not be pushed through it.
+ */
 function buildVideoPrompt(scenes) {
-  const shots = scenes.map((s, i) => `(${i + 1}) ${s.shot}`).join("; ");
+  const list = Array.isArray(scenes) ? scenes : [scenes];
+  const shots = list.length === 1 ? list[0].shot : list.map((s, i) => `(${i + 1}) ${s.shot}`).join("; ");
+  const motion = list.length === 1
+    ? "one single continuous SLOW aerial drone shot - a gentle, unhurried, gliding push at a steady creep, " +
+      "as if on a cinema crane. NO fast fly-throughs, no whip pans, no rapid descents, no cuts."
+    : "smooth stabilised DRONE / aerial camera moves, slow and unhurried, with clean cuts between shots";
   return (
-    "Cinematic 4K travel montage, ultra-photorealistic, filmed like a top-tier travel commercial with " +
-    "smooth stabilised DRONE / aerial camera moves and quick clean cuts between shots: " + shots + ". " +
+    "Cinematic 4K travel footage, ultra-photorealistic, filmed like a top-tier travel commercial: " +
+    motion + " Subject: " + shots + ". " +
     "Rich cinematic colour grade, warm golden light, shallow depth of field, premium luxury travel " +
-    "aesthetic, gentle uplifting orchestral score. No text, no logos, no people in close-up."
+    "aesthetic, calm and serene pacing. No text, no logos, no people in close-up."
   );
 }
 

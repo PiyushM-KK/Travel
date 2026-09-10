@@ -50,6 +50,14 @@
 
 (() => {
   const STATE_FILE = '.image-slots.state.json';
+
+  // SECURITY (2026-09-10): this component ships on the PUBLIC site. Its drop / file-picker
+  // wiring is a mockup affordance and must never be reachable by a site visitor — otherwise
+  // anyone can replace a destination photo in their own session and screenshot the client's
+  // site with arbitrary imagery. Editing is bound ONLY when the omelette editor runtime is
+  // present (the same gate the Replace/Remove controls already used). Checked lazily because
+  // the runtime can be injected after this module loads.
+  function isEditable() { return !!(window.omelette && window.omelette.writeFile); }
   // 2× a ~600px slot in a 1920-wide deck — retina-sharp without making the
   // sidecar enormous. A 1200px WebP at q=0.85 is ~150-300KB.
   const MAX_DIM = 1200;
@@ -267,7 +275,8 @@
       this._subFn = () => this._render();
       // Shadow-DOM listeners live with the shadow DOM — bound once here so
       // disconnect/reconnect (e.g. React remount) doesn't stack handlers.
-      this._empty.addEventListener('click', () => this._input.click());
+      // Editor-only: on the public site the empty state is inert (no file picker).
+      if (isEditable()) this._empty.addEventListener('click', () => this._input.click());
       root.addEventListener('click', (e) => {
         const act = e.target && e.target.getAttribute && e.target.getAttribute('data-act');
         if (act === 'replace') { this._exitReframe(true); this._input.click(); }
@@ -278,7 +287,7 @@
           if (this.id) setSlot(this.id, null); else this._render();
         }
       });
-      this._input.addEventListener('change', () => {
+      if (isEditable()) this._input.addEventListener('change', () => {
         const f = this._input.files && this._input.files[0];
         if (f) this._ingest(f);
         this._input.value = '';
@@ -385,10 +394,13 @@
         ImageSlot._warned = true;
         console.warn('<image-slot> without an id will not persist its dropped image.');
       }
-      this.addEventListener('dragenter', this);
-      this.addEventListener('dragover', this);
-      this.addEventListener('dragleave', this);
-      this.addEventListener('drop', this);
+      // Editor-only: a public visitor must not be able to drop an image onto a slot.
+      if (isEditable()) {
+        this.addEventListener('dragenter', this);
+        this.addEventListener('dragover', this);
+        this.addEventListener('dragleave', this);
+        this.addEventListener('drop', this);
+      }
       subs.add(this._subFn);
       // width%/height% in _applyView encode the frame aspect at call time —
       // a host resize (responsive grid, pane divider) would stretch the
@@ -445,6 +457,7 @@
     // handleEvent — one listener object for all four drag events keeps the
     // add/remove symmetric and the depth counter correct.
     handleEvent(e) {
+      if (!isEditable()) return; // never ingest a dropped file on the public site
       if (e.type === 'dragenter' || e.type === 'dragover') {
         // Without preventDefault the browser never fires 'drop'.
         e.preventDefault();
@@ -593,7 +606,7 @@
       this._ring.style.display = mask ? 'none' : '';
 
       // Controls and reframe entry gate on this so share links stay read-only.
-      const editable = !!(window.omelette && window.omelette.writeFile);
+      const editable = isEditable();
       this.toggleAttribute('data-editable', editable);
       this._sub.style.display = editable ? '' : 'none';
 

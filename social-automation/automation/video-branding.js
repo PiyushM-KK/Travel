@@ -168,7 +168,7 @@ function buildBrandFilter(opts = {}) {
     // fgClean STRIPS commas (they separate filters), which would turn "₹21,500" into "₹21 500". A price
     // needs its thousands separator, so protect it across the clean and escape it for drawtext instead.
     const price = sc.price
-      ? fgClean(String(sc.price).replace(/,/g, "")).replace(//g, "\,")
+      ? fgClean(String(sc.price).replace(/,/g, "")).replace(//g, "\\,")
       : "";
     if (price) {
       const pn = `pr${i}`;
@@ -181,7 +181,7 @@ function buildBrandFilter(opts = {}) {
   p.push(`[c1]drawtext=fontfile=${S}:text=WhatsApp ${phone}:fontcolor=0x25D366:fontsize=27:x=40:y=1868:shadowcolor=black@0.6:shadowx=1:shadowy=2[c2]`);
   p.push(`[c2]drawtext=fontfile=${R}:text=·  ${handle}  ·  ${tagline}:fontcolor=white@0.9:fontsize=23:x=455:y=1870:shadowcolor=black@0.6:shadowx=1:shadowy=2[c3]`);
   // The asterisk on the price is explained here; the website carries the same indicative wording.
-  const credit = anyPrice ? "AI-generated · illustrative · *prices indicative, per person" : "AI-generated · illustrative";
+  const credit = fgClean(anyPrice ? "AI-generated · illustrative · *prices indicative, per person" : "AI-generated · illustrative");
   p.push(`[c3]drawtext=fontfile=${R}:text=${credit}:fontcolor=white@0.62:fontsize=15:x=w-tw-20:y=1783[vout]`);
   return p.join(";\n");
 }

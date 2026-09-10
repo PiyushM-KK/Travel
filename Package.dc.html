@@ -57,10 +57,10 @@
 
   <!-- Image Gallery -->
   <div style="margin-bottom: 48px">
-    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 32px; margin: 0 0 24px"><span data-en="Add Photos of" data-hi="फ़ोटो जोड़ें:" data-gu="ફોટા ઉમેરો:">Add Photos of</span> {{ packageName }}</h2>
+    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 32px; margin: 0 0 24px"><span data-en="Photos of" data-hi="तस्वीरें:" data-gu="ફોટા:">Photos of</span> {{ packageName }}</h2>
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px">
       <sc-for list="{{ photoSlots }}" as="slot" hint-placeholder-count="6">
-        <x-import component-from-global-scope="image-slot" from="./image-slot.js" style="width: 100%; aspect-ratio: 3/2; border-radius: 14px" id="{{ slot.id }}" placeholder="{{ slot.placeholder }}" shape="rounded" radius="14"></x-import>
+        <img src="{{ slot.src }}" alt="{{ slot.alt }}" loading="lazy" decoding="async" width="800" height="533" style="width: 100%; aspect-ratio: 3/2; object-fit: cover; border-radius: 14px; display: block; background: #EAEFF3">
       </sc-for>
     </div>
   </div>
@@ -201,7 +201,6 @@ class Component extends DCLogic {
           'થારમાં રણ સફારી',
           'તળાવો અને મંદિરો'
         ],
-        photos: 6
       },
       himachal: {
         name: 'Himachal Pradesh',
@@ -240,7 +239,6 @@ class Component extends DCLogic {
           'હિલ સ્ટેશનની સુંદરતા',
           'સ્થાનિક સંસ્કૃતિ'
         ],
-        photos: 6
       },
       kashmir: {
         name: 'Kashmir',
@@ -279,7 +277,6 @@ class Component extends DCLogic {
           'સોનમર્ગના દૃશ્યો',
           'સ્થાનિક વાઝવાન વ્યંજન'
         ],
-        photos: 6
       },
       kerala: {
         name: 'Kerala',
@@ -318,7 +315,6 @@ class Component extends DCLogic {
           'આયુર્વેદ ઉપચાર',
           'મસાલા બજારો'
         ],
-        photos: 6
       },
       goa: {
         name: 'Goa',
@@ -357,7 +353,6 @@ class Component extends DCLogic {
           'મંદિરોની સહેલ',
           'સ્થાનિક સીફૂડ વ્યંજન'
         ],
-        photos: 6
       },
       ooty: {
         name: 'Ooty & Nilgiris',
@@ -396,7 +391,6 @@ class Component extends DCLogic {
           'તળાવમાં નૌકાવિહાર',
           'વનસ્પતિ ઉદ્યાન'
         ],
-        photos: 6
       },
       mysuru: {
         name: 'Mysuru & Coorg',
@@ -435,7 +429,6 @@ class Component extends DCLogic {
           'સ્થાનિક મસાલા બજારો',
           'હિલ સ્ટેશનની શાંતિ'
         ],
-        photos: 6
       },
       agra: {
         name: 'Agra & Taj Mahal',
@@ -474,7 +467,6 @@ class Component extends DCLogic {
           'મથુરા મંદિર દર્શન',
           'વૃંદાવનના કૃષ્ણ સ્થળો'
         ],
-        photos: 6
       },
       kausani: {
         name: 'Kausani & Kumaon',
@@ -513,7 +505,6 @@ class Component extends DCLogic {
           'અલ્મોડા અને બાગેશ્વર નગરો',
           'કુમાઉંના ગામના રસ્તા'
         ],
-        photos: 6
       },
       meghalaya: {
         name: 'Meghalaya',
@@ -552,7 +543,6 @@ class Component extends DCLogic {
           'માવસ્માઈ ચૂનાના પથ્થરની ગુફાઓ',
           'નોહકલિકાઈ ધોધ'
         ],
-        photos: 6
       },
       assam: {
         name: 'Assam & Kaziranga',
@@ -591,7 +581,6 @@ class Component extends DCLogic {
           'બ્રહ્મપુત્રા નદી ક્રૂઝ',
           'આસામના ચાના બગીચાની મુલાકાત'
         ],
-        photos: 6
       },
       arunachal: {
         name: 'Arunachal Pradesh',
@@ -630,7 +619,6 @@ class Component extends DCLogic {
           'આદિવાસી સંસ્કૃતિ અને ગામો',
           'બરફથી ઢંકાયેલા હિમાલયન ડ્રાઇવ'
         ],
-        photos: 6
       },
       nagaland: {
         name: 'Nagaland',
@@ -669,7 +657,6 @@ class Component extends DCLogic {
           'હોર્નબિલ ફેસ્ટિવલ (ડિસેમ્બર)',
           'સ્થાનિક નાગા વ્યંજન'
         ],
-        photos: 6
       },
       manipur: {
         name: 'Manipur & Loktak',
@@ -708,7 +695,6 @@ class Component extends DCLogic {
           'મોઇરાંગ અને INA સ્મારક',
           'મણિપુરી નૃત્ય અને સંસ્કૃતિ'
         ],
-        photos: 6
       },
       mizoram: {
         name: 'Mizoram',
@@ -747,7 +733,6 @@ class Component extends DCLogic {
           'મિઝો આદિવાસી સંસ્કૃતિ',
           'વાંસ નૃત્ય (ચેરાવ)'
         ],
-        photos: 6
       },
       thailand: {
         name: 'Thailand',
@@ -786,7 +771,6 @@ class Component extends DCLogic {
           'થાઈ વ્યંજનનો અનુભવ',
           'ટાપુ ભ્રમણ ટૂર'
         ],
-        photos: 6
       },
       bali: {
         name: 'Bali',
@@ -825,7 +809,6 @@ class Component extends DCLogic {
           'સ્પા અને વેલનેસ',
           'વોટર સ્પોર્ટ્સ'
         ],
-        photos: 6
       },
       maldives: {
         name: 'Maldives',
@@ -864,7 +847,6 @@ class Component extends DCLogic {
           'વોટર વિલા',
           'સૂર્યાસ્ત ક્રૂઝ'
         ],
-        photos: 6
       },
       'nainital-corbett': {
         name: 'Nainital · Mussoorie · Jim Corbett',
@@ -903,7 +885,6 @@ class Component extends DCLogic {
           'ગિરિજા દેવી મંદિર, રામનગર',
           'મનોહર કુમાઉં પર્વતીય ડ્રાઇવ'
         ],
-        photos: 6
       },
       'ooty-coorg-mysore': {
         name: 'Ooty · Coorg · Mysore',
@@ -942,7 +923,6 @@ class Component extends DCLogic {
           'ઊટી વનસ્પતિ ઉદ્યાન અને ઊટી તળાવ',
           'કુન્નૂર — ડોડ્ડાબેટ્ટા, સિમ પાર્ક, ડોલ્ફિન નોઝ'
         ],
-        photos: 6
       },
       'sikkim-darjeeling': {
         name: 'Sikkim · Darjeeling',
@@ -981,7 +961,6 @@ class Component extends DCLogic {
           'હિમાલયન માઉન્ટેનિયરિંગ ઇન્સ્ટિટ્યૂટ અને પ્રાણી સંગ્રહાલય',
           'ચાના બગીચા અને પીસ પેગોડા'
         ],
-        photos: 6
       },
       'shimla-manali': {
         name: 'Shimla · Manali',
@@ -1020,7 +999,6 @@ class Component extends DCLogic {
           'મનાલી — હડિમ્બા મંદિર અને વશિષ્ઠ ઝરા',
           'વૈકલ્પિક રોહતાંગ ઘાટ / અટલ ટનલ'
         ],
-        photos: 6
       },
       'spiti-valley': {
         name: 'Untouched Himachal · Spiti Valley',
@@ -1059,20 +1037,39 @@ class Component extends DCLogic {
           'હિક્કિમ (સૌથી ઊંચી પોસ્ટ ઓફિસ) અને ચિછમ પુલ',
           'કલ્પા — કિન્નર કૈલાશના દૃશ્યો'
         ],
-        photos: 6
       }
+    };
+
+    const PKG_PHOTOS = {
+      rajasthan: [{ src: 'images/dest-rajasthan.jpg' }, { src: 'images/places/rajasthan-jaipur.jpg', place: 'Jaipur' }, { src: 'images/places/rajasthan-udaipur.jpg', place: 'Udaipur' }, { src: 'images/places/rajasthan-jodhpur.jpg', place: 'Jodhpur' }, { src: 'images/places/rajasthan-jaisalmer.jpg', place: 'Jaisalmer' }],
+      himachal: [{ src: 'images/dest-himachal.avif' }, { src: 'images/places/himachal-shimla.jpg', place: 'Shimla' }, { src: 'images/places/himachal-manali.jpg', place: 'Manali' }, { src: 'images/places/himachal-dharamshala-and-mcleodganj.jpg', place: 'Dharamshala & McLeodganj' }, { src: 'images/places/himachal-kasol-and-parvati-valley.jpg', place: 'Kasol & Parvati Valley' }],
+      kashmir: [{ src: 'images/dest-kashmir.webp' }, { src: 'images/places/kashmir-srinagar.jpg', place: 'Srinagar' }, { src: 'images/places/kashmir-gulmarg.jpg', place: 'Gulmarg' }, { src: 'images/places/kashmir-pahalgam.jpg', place: 'Pahalgam' }, { src: 'images/places/kashmir-sonamarg.jpg', place: 'Sonamarg' }],
+      kerala: [{ src: 'images/dest-kerala.webp' }, { src: 'images/places/kerala-munnar.jpg', place: 'Munnar' }, { src: 'images/places/kerala-alleppey.jpg', place: 'Alleppey' }, { src: 'images/places/kerala-thekkady.jpg', place: 'Thekkady' }, { src: 'images/places/kerala-kochi.jpg', place: 'Kochi' }],
+      goa: [{ src: 'images/dest-goa.jpg' }, { src: 'images/places/goa-north-goa.jpg', place: 'North Goa' }, { src: 'images/places/goa-south-goa.jpg', place: 'South Goa' }, { src: 'images/places/goa-old-goa.jpg', place: 'Old Goa' }, { src: 'images/places/goa-dudhsagar-falls.jpg', place: 'Dudhsagar Falls' }],
+      ooty: [{ src: 'images/dest-ooty.webp' }, { src: 'images/places/ooty-ooty.jpg', place: 'Ooty' }, { src: 'images/places/ooty-coonoor.jpg', place: 'Coonoor' }, { src: 'images/places/ooty-doddabetta-peak.jpg', place: 'Doddabetta Peak' }, { src: 'images/places/ooty-tea-estates.jpg', place: 'Tea Estates' }],
+      mysuru: [{ src: 'images/dest-mysuru.jpg' }, { src: 'images/places/mysuru-mysore-palace.jpg', place: 'Mysore Palace' }, { src: 'images/places/mysuru-chamundi-hills.jpg', place: 'Chamundi Hills' }, { src: 'images/places/mysuru-coorg.jpg', place: 'Coorg' }, { src: 'images/places/mysuru-dubare-camp.jpg', place: 'Dubare Camp' }],
+      agra: [{ src: 'images/dest-agra.jpg' }, { src: 'images/places/agra-taj-mahal.jpg', place: 'Taj Mahal' }, { src: 'images/places/agra-agra-fort.jpg', place: 'Agra Fort' }, { src: 'images/places/agra-fatehpur-sikri.jpg', place: 'Fatehpur Sikri' }, { src: 'images/places/agra-mathura-and-vrindavan.jpg', place: 'Mathura & Vrindavan' }],
+      meghalaya: [{ src: 'images/dest-meghalaya.jpg' }, { src: 'images/places/meghalaya-shillong.jpg', place: 'Shillong' }, { src: 'images/places/meghalaya-cherrapunji-sohra.jpg', place: 'Cherrapunji (Sohra)' }, { src: 'images/places/meghalaya-dawki.jpg', place: 'Dawki' }, { src: 'images/places/meghalaya-mawlynnong.jpg', place: 'Mawlynnong' }],
+      assam: [{ src: 'images/dest-assam.jpg' }, { src: 'images/places/assam-kaziranga-national-park.jpg', place: 'Kaziranga National Park' }, { src: 'images/places/assam-guwahati.jpg', place: 'Guwahati' }, { src: 'images/places/assam-jorhat-and-tea-gardens.jpg', place: 'Jorhat & Tea Gardens' }, { src: 'images/places/assam-majuli.jpg', place: 'Majuli' }],
+      arunachal: [{ src: 'images/dest-arunachal.jpg' }, { src: 'images/places/arunachal-tawang.jpg', place: 'Tawang' }, { src: 'images/places/arunachal-nuranang-falls.jpg', place: 'Nuranang Falls' }, { src: 'images/places/arunachal-sela-pass.jpg', place: 'Sela Pass' }, { src: 'images/places/arunachal-ziro-valley.jpg', place: 'Ziro Valley' }],
+      nagaland: [{ src: 'images/dest-nagaland.jpg' }, { src: 'images/places/nagaland-kohima.jpg', place: 'Kohima' }, { src: 'images/places/nagaland-dz-kou-valley.jpg', place: 'Dzükou Valley' }, { src: 'images/places/nagaland-khonoma.jpg', place: 'Khonoma' }, { src: 'images/places/nagaland-kisama-heritage-village.jpg', place: 'Kisama Heritage Village' }],
+      manipur: [{ src: 'images/dest-manipur.jpg' }, { src: 'images/places/manipur-loktak-lake.jpg', place: 'Loktak Lake' }, { src: 'images/places/manipur-imphal.jpg', place: 'Imphal' }],
+      mizoram: [{ src: 'images/dest-mizoram.jpg' }, { src: 'images/places/mizoram-vantawng-falls.jpg', place: 'Vantawng Falls' }, { src: 'images/places/mizoram-reiek.jpg', place: 'Reiek' }, { src: 'images/places/mizoram-hmuifang.jpg', place: 'Hmuifang' }],
+      thailand: [{ src: 'images/dest-thailand.jpg' }, { src: 'images/places/thailand-bangkok.jpg', place: 'Bangkok' }, { src: 'images/places/thailand-phuket-and-krabi.jpg', place: 'Phuket & Krabi' }, { src: 'images/places/thailand-pattaya.jpg', place: 'Pattaya' }, { src: 'images/places/thailand-chiang-mai.jpg', place: 'Chiang Mai' }],
+      bali: [{ src: 'images/dest-bali.jpg' }, { src: 'images/places/bali-ubud.jpg', place: 'Ubud' }, { src: 'images/places/bali-seminyak-and-kuta.jpg', place: 'Seminyak & Kuta' }, { src: 'images/places/bali-nusa-penida.jpg', place: 'Nusa Penida' }, { src: 'images/places/bali-uluwatu.jpg', place: 'Uluwatu' }],
+      maldives: [{ src: 'images/dest-maldives.webp' }, { src: 'images/places/maldives-male-atolls.jpg', place: 'Male Atolls' }, { src: 'images/places/maldives-resort-islands.jpg', place: 'Resort Islands' }, { src: 'images/places/maldives-house-reefs.jpg', place: 'House Reefs' }],
+      kausani: [{ src: 'images/dest-kausani.jpg' }, { src: 'images/places/uttarakhand-nainital.jpg', place: 'Nainital' }, { src: 'images/places/uttarakhand-kausani.jpg', place: 'Kausani' }, { src: 'images/places/uttarakhand-mukteshwar.jpg', place: 'Mukteshwar' }, { src: 'images/places/uttarakhand-jim-corbett.jpg', place: 'Jim Corbett' }]
     };
 
     const pkg = packages[this.state.packageSlug] || packages.rajasthan;
 
     const pkgName = this.tr(pkg, 'name');
-    const photoSlots = [];
-    for (let i = 1; i <= pkg.photos; i++) {
-      photoSlots.push({
-        id: `pkg-${this.state.packageSlug}-${i}`,
-        placeholder: `Photo ${i} of ${pkgName}`
-      });
-    }
+    // Real, credited photographs (shared with the Destination page) instead of the
+    // empty editor upload slots that used to render here on the public site.
+    const photoSlots = (PKG_PHOTOS[this.state.packageSlug] || []).map((p) => ({
+      src: p.src,
+      alt: p.place ? `${p.place} — ${pkgName}` : pkgName
+    }));
 
     return {
       root: this.setRoot,

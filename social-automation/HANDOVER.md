@@ -57,12 +57,16 @@ so no raw HTML (and no contributor e-mail) reaches the page. `images/places` is 
 nothing is printed. In `.env` I added an `HF_CREDENTIALS=` field and **filled BLOB_READ_WRITE_TOKEN from the
 skyline-social Vercel project**.
 
-**PENDING - owner (the only blocker):** create a Higgsfield API key at cloud.higgsfield.ai, put
-`HF_CREDENTIALS=KEYID:KEYSECRET` in `social-automation/.env`, then run `bash social-automation/sync-gh-secrets.sh`
-and trigger the video-post Action. NOTE: the Higgsfield **MCP connector** used for the two manual Reels is OAuth via
-claude.ai and exposes **no API key** - hence nothing is stored anywhere; a real key must be created. Each Reel cost
-~60 credits, so check the balance before enabling SOCIAL_VIDEO_LIVE. If the first run errors on text-to-video, set
-repo vars HIGGSFIELD_T2V_ENDPOINT / HIGGSFIELD_T2V_MODEL (SDK is v0.2.1) - no code change.
+**RESOLVED same day - credentials are in.** The owner created a Higgsfield Cloud key at cloud.higgsfield.ai
+(NOT platform.higgsfield.ai - that host 405s and was wrong in my earlier notes). All 15 `.env` values are now GitHub
+**repo secrets**. Key verified live: `GET api.higgsfield.ai/requests/<fake-id>/status` -> **404** with the real key vs
+**401** with a bad one, which authenticates it for free without generating anything. Two silent-skip traps were fixed
+on the way: the keys had been pasted onto still-**commented-out** lines, and `video-post.yml` forwarded only
+`HF_CREDENTIALS` and never the `HF_API_KEY_ID`/`HF_API_KEY_SECRET` pair (de69c9b now forwards all three). Both
+failure modes printed the exact same "not configured" message as having set nothing at all - check for them first if
+this ever regresses. **The first real run has not happened yet**; `SOCIAL_VIDEO_LIVE` is unset so it will HOLD the
+Reel and WhatsApp a preview. If it errors on text-to-video, set repo vars `HIGGSFIELD_T2V_ENDPOINT` /
+`HIGGSFIELD_T2V_MODEL` (SDK v0.2.1) - no code change. Balance: ~1800 credits, `max` plan, ~60/Reel. See BLOCKED.md B-VIDEO.
 
 **PENDING - next agent (optional):** the 2 photo-less places above; the Dharamshala photo is hazy/grey vs the
 others; images/places at 18 MB may want a CDN rather than git; caption generator still drifts to food copy sometimes.

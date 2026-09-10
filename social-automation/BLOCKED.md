@@ -6,17 +6,27 @@ the real values live in the local `.env` (gitignored) and the Vercel project env
 
 ---
 
-## B-VIDEO - AI VIDEO Reels - DIAGNOSED 2026-09-10: not broken, never configured
-**Every scheduled run exits cleanly with** `"status":"skipped","reason":"video generation not configured - set
-Higgsfield creds (HF_CREDENTIALS)"`. `gh secret list` shows ONLY CRON_SECRET; `gh variable list` is empty. The
-GitHub Actions read **repo secrets**, not social-automation/.env.
-**DO THIS:** (1) create an API key at cloud.higgsfield.ai -> put `HF_CREDENTIALS=KEYID:KEYSECRET` in
-social-automation/.env (the field is already there, waiting); (2) run `bash social-automation/sync-gh-secrets.sh`
-- it pipes each value to `gh secret set` on stdin so nothing is printed; (3) trigger the video-post Action.
-BLOB_READ_WRITE_TOKEN is ALREADY filled in .env (pulled from the skyline-social Vercel project).
-The Higgsfield **MCP connector** used for the two manual Reels is OAuth via claude.ai and exposes **no API key**,
-which is why none is stored anywhere. Each Reel cost ~60 credits - check the balance before setting
-SOCIAL_VIDEO_LIVE=true (leave it unset and each Reel is held for WhatsApp approval).
+## B-VIDEO - AI VIDEO Reels - RESOLVED 2026-09-10: credentials in place, awaiting a first run
+**The owner blocker is CLEARED.** A Higgsfield Cloud API key was created at cloud.higgsfield.ai and all 15 values
+in `social-automation/.env` are now synced to GitHub **repo secrets** (`HF_CREDENTIALS`, `HF_API_KEY_ID`,
+`HF_API_KEY_SECRET`, `BLOB_READ_WRITE_TOKEN`, Meta, Airtable, WhatsApp, Anthropic, OpenAI, CRON_SECRET).
+Verified against the live API: `GET api.higgsfield.ai/requests/<fake-id>/status` returns **404 Not found** with the
+real key and **401 Invalid credentials** with a bad one - i.e. the key authenticates. That probe generates nothing
+and costs no credits; it is the cheapest way to re-check the key later.
+
+**Two failure modes cost time here - both now fixed, worth remembering:**
+1. The keys were pasted onto the **commented-out** `# HF_API_KEY_ID=` / `# HF_API_KEY_SECRET=` lines, so nothing
+   read them and the run still reported "not configured" - identical to having set nothing at all.
+2. `video-post.yml` forwarded **only** `HF_CREDENTIALS`, never the split pair, so even a correctly-saved split
+   credential produced the same silent skip. It now forwards all three (de69c9b), and `.env` carries the joined
+   `HF_CREDENTIALS` as well.
+
+**STILL PENDING - the first real run has NOT happened.** `SOCIAL_VIDEO_LIVE` is deliberately unset, so the next run
+generates a Reel and **holds** it, WhatsApping the owner a preview instead of auto-posting. Two unknowns only a real
+run can settle: (a) whether the guessed text-to-video contract is right - if it errors, set repo *variables*
+`HIGGSFIELD_T2V_ENDPOINT` / `HIGGSFIELD_T2V_MODEL`, no code change; (b) whether the output looks good enough to
+enable `SOCIAL_VIDEO_LIVE=true`. Balance at handover: **1800 credits on the `max` plan, ~60 per Reel (~30 Reels)**.
+Next scheduled run: cron `30 5 */3 * *` (05:30 UTC / 11:00 IST, every 3rd day).
 
 ## B-VIDEO (original build notes)
 **Goal (owner):** a short cinematic AI travel Reel on a schedule → AI VIDEO QA → post to IG Reels / FB (or hold for approval).

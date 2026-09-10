@@ -57,7 +57,7 @@ so no raw HTML (and no contributor e-mail) reaches the page. `images/places` is 
 nothing is printed. In `.env` I added an `HF_CREDENTIALS=` field and **filled BLOB_READ_WRITE_TOKEN from the
 skyline-social Vercel project**.
 
-**PENDING - owner (the only blocker):** create a Higgsfield API key at platform.higgsfield.ai, put
+**PENDING - owner (the only blocker):** create a Higgsfield API key at cloud.higgsfield.ai, put
 `HF_CREDENTIALS=KEYID:KEYSECRET` in `social-automation/.env`, then run `bash social-automation/sync-gh-secrets.sh`
 and trigger the video-post Action. NOTE: the Higgsfield **MCP connector** used for the two manual Reels is OAuth via
 claude.ai and exposes **no API key** - hence nothing is stored anywhere; a real key must be created. Each Reel cost

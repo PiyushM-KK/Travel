@@ -10,7 +10,7 @@ the real values live in the local `.env` (gitignored) and the Vercel project env
 **Every scheduled run exits cleanly with** `"status":"skipped","reason":"video generation not configured - set
 Higgsfield creds (HF_CREDENTIALS)"`. `gh secret list` shows ONLY CRON_SECRET; `gh variable list` is empty. The
 GitHub Actions read **repo secrets**, not social-automation/.env.
-**DO THIS:** (1) create an API key at platform.higgsfield.ai -> put `HF_CREDENTIALS=KEYID:KEYSECRET` in
+**DO THIS:** (1) create an API key at cloud.higgsfield.ai -> put `HF_CREDENTIALS=KEYID:KEYSECRET` in
 social-automation/.env (the field is already there, waiting); (2) run `bash social-automation/sync-gh-secrets.sh`
 - it pipes each value to `gh secret set` on stdin so nothing is printed; (3) trigger the video-post Action.
 BLOB_READ_WRITE_TOKEN is ALREADY filled in .env (pulled from the skyline-social Vercel project).
@@ -42,7 +42,7 @@ Kashmir and Rajasthan/Goa/Meghalaya. That end-to-end flow is now CODE:
 preview. It SKIPS cleanly (no error, no credit spend) until Higgsfield creds are set.
 
 **Owner-gated — the ONE remaining step to go live (add GitHub *repo secrets*, Settings → Secrets and variables → Actions):**
-1. **`HF_CREDENTIALS`** = `"<KEY_ID>:<KEY_SECRET>"` (from platform.higgsfield.ai) — required to generate. Never paste in chat.
+1. **`HF_CREDENTIALS`** = `"<KEY_ID>:<KEY_SECRET>"` (from cloud.higgsfield.ai) — required to generate. Never paste in chat.
 2. `META_PAGE_TOKEN`, `META_PAGE_ID`, `META_IG_USER_ID`, `BLOB_READ_WRITE_TOKEN`, `ANTHROPIC_API_KEY`,
    `AIRTABLE_API_KEY`, `AIRTABLE_BASE_ID`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_TOKEN`, `WHATSAPP_TO` (same values as the
    Vercel project). Optional repo *variables*: `SOCIAL_VIDEO_LIVE="true"` to auto-post; else it holds for approval.

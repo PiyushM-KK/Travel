@@ -52,6 +52,10 @@ jobs:
           SOCIAL_CLIENT: skyline
           SOCIAL_VIDEO_LIVE: ${{ vars.SOCIAL_VIDEO_LIVE }}
           HF_CREDENTIALS: ${{ secrets.HF_CREDENTIALS }}
+          # higgsfield.js accepts EITHER the joined form above OR these two halves.
+          # Forward both, so setting only the split pair can't silently skip the run.
+          HF_API_KEY_ID: ${{ secrets.HF_API_KEY_ID }}
+          HF_API_KEY_SECRET: ${{ secrets.HF_API_KEY_SECRET }}
           HIGGSFIELD_T2V_ENDPOINT: ${{ vars.HIGGSFIELD_T2V_ENDPOINT }}
           HIGGSFIELD_T2V_MODEL: ${{ vars.HIGGSFIELD_T2V_MODEL }}
           META_PAGE_TOKEN: ${{ secrets.META_PAGE_TOKEN }}

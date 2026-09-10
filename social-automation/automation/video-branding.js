@@ -100,7 +100,9 @@ async function brandVideo(opts = {}) {
   fs.writeFileSync(filterFile, filter, "utf8");
   try {
     const args = ["-y", "-hide_banner", "-loglevel", "error", "-i", inputPath, "-i", logoPath,
-      "-/filter_complex", filterFile, "-map", "[vout]", "-map", "0:a?",
+      // The graph is written to a FILE (it is far past any safe command-line length), so this must be
+      // -filter_complex_script, NOT -filter_complex. ffmpeg rejects the whole arg list otherwise.
+      "-filter_complex_script", filterFile, "-map", "[vout]", "-map", "0:a?",
       "-c:v", "libx264", "-crf", "20", "-preset", "medium", "-pix_fmt", "yuv420p", "-profile:v", "high",
       "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", outPath];
     const r = await run(ffmpeg, args, { cwd });

@@ -61,7 +61,12 @@ const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "vpipe-"));
     // brandVideo builds a correct ffmpeg invocation (mocked runner) and writes nothing real.
     let gotArgs = null;
     await brandVideo({ inputPath: "in.mp4", logoPath: "logo.jpg", outPath: path.join(tmp, "out.mp4"), scenes, cuts: [3.25, 6.46], run: async (bin, args) => { gotArgs = args; return { stdout: "", stderr: "" }; } });
-    ok(gotArgs.includes("-/filter_complex") && gotArgs.includes("[vout]") && gotArgs.includes("libx264"), "brandVideo shells ffmpeg with the filter file, [vout] map, and H.264");
+    ok(gotArgs.includes("-filter_complex_script") && gotArgs.includes("[vout]") && gotArgs.includes("libx264"), "brandVideo shells ffmpeg with the filter file, [vout] map, and H.264");
+    // This assertion previously expected "-/filter_complex" — it encoded a typo as the contract, so the
+    // suite stayed green while ffmpeg rejected the ENTIRE arg list in production ("Option not found").
+    // A mocked runner can never catch a malformed flag, so check the shape of every option here.
+    const badOpts = gotArgs.filter((a) => typeof a === "string" && a.startsWith("-") && /[\/]/.test(a));
+    ok(badOpts.length === 0, `every ffmpeg option is well-formed, no stray slashes (got ${JSON.stringify(badOpts)})`);
   }
 
   // ---------- queue sweep ----------

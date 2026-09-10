@@ -8,7 +8,7 @@ const os = require("os");
 const fs = require("fs");
 const path = require("path");
 const { pickScenes, buildVideoPrompt, SCENES } = require("../automation/video-scenes");
-const { buildBrandFilter, resolveCuts, hasRealCuts, detectCuts, brandVideo } = require("../automation/video-branding");
+const { buildBrandFilter, resolveCuts, hasRealCuts, detectCuts, brandVideo, filterFileFlag } = require("../automation/video-branding");
 const { sweepStaleQueue } = require("../automation/queue-sweep");
 const { runVideoPost } = require("../automation/video-runner");
 const { InMemoryStore } = require("../automation/store");
@@ -61,12 +61,14 @@ const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "vpipe-"));
     // brandVideo builds a correct ffmpeg invocation (mocked runner) and writes nothing real.
     let gotArgs = null;
     await brandVideo({ inputPath: "in.mp4", logoPath: "logo.jpg", outPath: path.join(tmp, "out.mp4"), scenes, cuts: [3.25, 6.46], run: async (bin, args) => { gotArgs = args; return { stdout: "", stderr: "" }; } });
-    ok(gotArgs.includes("-filter_complex_script") && gotArgs.includes("[vout]") && gotArgs.includes("libx264"), "brandVideo shells ffmpeg with the filter file, [vout] map, and H.264");
-    // This assertion previously expected "-/filter_complex" — it encoded a typo as the contract, so the
-    // suite stayed green while ffmpeg rejected the ENTIRE arg list in production ("Option not found").
-    // A mocked runner can never catch a malformed flag, so check the shape of every option here.
-    const badOpts = gotArgs.filter((a) => typeof a === "string" && a.startsWith("-") && /[\/]/.test(a));
-    ok(badOpts.length === 0, `every ffmpeg option is well-formed, no stray slashes (got ${JSON.stringify(badOpts)})`);
+    ok((gotArgs.includes("-filter_complex_script") || gotArgs.includes("-/filter_complex")) && gotArgs.includes("[vout]") && gotArgs.includes("libx264"), "brandVideo shells ffmpeg with the filter FILE, [vout] map, and H.264");
+
+    // ffmpeg 7 REMOVED `-filter_complex_script FILE` in favour of the generic `-/filter_complex FILE`.
+    // Neither is a typo; ffmpeg rejects the ENTIRE argument list when given the wrong one, so CI (pre-7)
+    // and a modern local box (9.x) each fail on the other's spelling. The flag must follow the version.
+    ok(await filterFileFlag("ffmpeg", async () => ({ stdout: "ffmpeg version 9.0-full_build", stderr: "" })) === "-/filter_complex", "ffmpeg 9 -> -/filter_complex");
+    ok(await filterFileFlag("ffmpeg", async () => ({ stdout: "ffmpeg version 6.1.1-3ubuntu5", stderr: "" })) === "-filter_complex_script", "ffmpeg 6 -> -filter_complex_script");
+    ok(await filterFileFlag("ffmpeg", async () => { throw new Error("no ffmpeg"); }) === "-filter_complex_script", "unprobeable ffmpeg falls back to the older spelling");
 
     // ---- geometry: a 16:9 source must be COVER-CROPPED, never squeezed into 9:16 ----
     const geo = buildBrandFilter({ scenes: [{ label: "SIKKIM", shot: "" }], cuts: [], fontDir: "assets/fonts", phone: "+91 88660 50291" });
@@ -77,7 +79,6 @@ const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "vpipe-"));
     ok(hasRealCuts([3.3, 6.6], 3, 10) === true, "two real cuts + three scenes = a genuine montage");
     ok(hasRealCuts([], 3, 10) === false, "NO detected cuts + three scenes = one shot; caller must not claim three places");
     ok(hasRealCuts([5.0], 3, 10) === false, "too few cuts for the scene count is also not a montage");
-    ok(badOpts.length === 0, `every ffmpeg option is well-formed, no stray slashes (got ${JSON.stringify(badOpts)})`);
   }
 
   // ---------- queue sweep ----------

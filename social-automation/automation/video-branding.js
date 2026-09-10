@@ -79,6 +79,23 @@ async function probeDuration(file, opts = {}) {
 }
 
 /**
+ * Which spelling of "read the filtergraph from a FILE" does this ffmpeg understand?
+ *
+ * NOT a cosmetic difference, and not a typo (I mis-diagnosed it as one): ffmpeg 7 REMOVED
+ * `-filter_complex_script FILE` in favour of the generic `-/filter_complex FILE` form. ffmpeg rejects the
+ * entire argument list when it meets the wrong one, so the GitHub runner (pre-7, needs the _script form)
+ * and a modern local box (9.x, needs the -/ form) each fail on the other's flag. Detect and pick.
+ */
+async function filterFileFlag(ffmpeg, run) {
+  try {
+    const r = await run(ffmpeg, ["-hide_banner", "-version"]);
+    const text = String((r && r.stdout) || "") + String((r && r.stderr) || "");
+    const m = /ffmpeg version n?(\d+)/i.exec(text);
+    return m && Number(m[1]) >= 7 ? "-/filter_complex" : "-filter_complex_script";
+  } catch { return "-filter_complex_script"; }
+}
+
+/**
  * Concatenate per-destination clips into ONE 1080x1920 montage, and return the EXACT cut boundaries.
  *
  * This is what makes a montage honest. A text-to-video model returns one continuous shot no matter how
@@ -183,12 +200,13 @@ async function brandVideo(opts = {}) {
   const filterFile = opts.filterFile || path.join(os.tmpdir(), `vbrand-${scenes.map((s) => s.label).join("-")}-${cuts.join("_")}.txt`);
   fs.writeFileSync(filterFile, filter, "utf8");
   try {
+    const flag = opts.filterFlag || (await filterFileFlag(ffmpeg, run));
     // -stream_loop -1 so a short track covers a longer Reel; -shortest then trims it to the video.
     const args = ["-y", "-hide_banner", "-loglevel", "error", "-i", inputPath, "-i", logoPath,
       ...(musicPath ? ["-stream_loop", "-1", "-i", musicPath] : []),
       // The graph is written to a FILE (it is far past any safe command-line length), so this must be
       // -filter_complex_script, NOT -filter_complex. ffmpeg rejects the whole arg list otherwise.
-      "-filter_complex_script", filterFile, "-map", "[vout]",
+      flag, filterFile, "-map", "[vout]",
       ...(musicPath ? ["-map", "[aout]", "-shortest"] : ["-map", "0:a?"]),
       "-c:v", "libx264", "-crf", "20", "-preset", "medium", "-pix_fmt", "yuv420p", "-profile:v", "high",
       "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", outPath];
@@ -201,4 +219,4 @@ async function brandVideo(opts = {}) {
   }
 }
 
-module.exports = { detectCuts, resolveCuts, hasRealCuts, concatClips, probeDuration, buildBrandFilter, brandVideo, defaultRun, fgClean };
+module.exports = { detectCuts, resolveCuts, hasRealCuts, concatClips, probeDuration, filterFileFlag, buildBrandFilter, brandVideo, defaultRun, fgClean };

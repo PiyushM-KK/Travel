@@ -46,6 +46,12 @@ connector (OAuth) - a headless Action cannot authenticate there. A **Claude Code
 session, so it can. The seam already exists: `video-post.yml` takes `clip_url` + `place`, so the routine
 generates and the Action still does branding / QA / hosting / approval / publishing.
 
+**FIRST RUN (2026-09-10): stopped at step 1 with** `403: GitHub access to this repository is not enabled
+for this session`. Nothing generated, nothing published, no credits spent - the guardrails behaved
+correctly. The scheduled environment had **no repo attached**, and `add_repo` needs live approval so an
+unattended run cannot self-serve it. It failed BEFORE reaching Higgsfield, so **whether a routine session
+can use the connector is still UNVERIFIED** - the prompt now preflights both and reports both.
+
 **OWNER ACTION:** create a routine at **https://claude.ai/code/routines** named **Skyline Reel Producer**
 using the prompt in **`social-automation/ROUTINE-REEL-PRODUCER.md`** (same pattern as the Kaelmoor Producer
 routine in FullFirm). Verify the routine session can actually reach the Higgsfield connector - that is the

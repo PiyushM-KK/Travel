@@ -29,6 +29,17 @@ and the failure modes that have already been diagnosed — do not re-derive them
 
 **Do this:**
 
+0. **PREFLIGHT - check BOTH prerequisites and report BOTH**, even if the first fails. A run that dies on
+   the first missing thing tells us only half of what we need to know.
+   a) **Repo access:** `gh repo view PiyushM-KK/Travel --json name -q .name`.
+      A 403 ("GitHub access to this repository is not enabled for this session") means the repo is not
+      attached to THIS scheduled environment. `add_repo` needs live approval and is unavailable in an
+      unattended run, so do NOT attempt it - report that the owner must attach `PiyushM-KK/Travel` to the
+      routine's environment.
+   b) **Higgsfield connector:** call `balance` (free, spends nothing). Report the credits figure, or say
+      plainly that the connector is not available in this session.
+   State both results, one line each. Continue only if BOTH pass; otherwise stop here and report.
+
 1. **Check nothing is already queued.** Look at the last few `video-post` runs:
    `gh run list --repo PiyushM-KK/Travel --workflow=video-post.yml --limit 5`.
    If a Reel already exists for today, stop and say so — the Action de-dups on `video-<date>` anyway.

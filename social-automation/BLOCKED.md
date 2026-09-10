@@ -60,6 +60,10 @@ outside Canva is the expressly prohibited case, and a Content ID claim would lan
 (Building the Reel AS a Canva design and exporting the MP4 with audio inside IS permitted - but that moves
 branding out of ffmpeg, and the Canva connector is OAuth via claude.ai so it cannot run in a headless
 Action, exactly like the Higgsfield connector.)
+**AND the connector cannot add audio at all** - `edit-design`'s operation list has no audio operation, and
+`insert_fill`/`update_fill` accept `asset_type` of only **image or video**. So even the permitted route
+cannot be automated; adding a track would be a manual step in the Canva editor for every single Reel.
+Owning a Canva Pro licence does not change this: the restriction IS the Pro Music licence.
 
 **OWNER ACTION - supply ONE licensed instrumental track** at `social-automation/assets/music/reel-bed.mp3`
 (15s+; it loops). It plays on a CLIENT's commercial Instagram/Facebook, so the licence must permit

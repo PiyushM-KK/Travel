@@ -31,7 +31,9 @@ concurrency:
 jobs:
   post:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    # Must exceed the curl budget below (330s) + runner startup. The endpoint's own ceiling
+    # is maxDuration in social-automation/vercel.json -- keep these three in step.
+    timeout-minutes: 8
     steps:
       - name: Trigger package-post (slot from the schedule that fired, or the manual input)
         env:
@@ -55,7 +57,14 @@ jobs:
             esac
           fi
           echo "Triggering package-post slot=$SLOT"
-          CODE=$(curl -sS -m 120 -o resp.json -w '%{http_code}' \
+          # -m MUST be >= the endpoint's maxDuration (300s for cron-package-post in
+          # social-automation/vercel.json) plus slack for connect/TLS/cold start. It was 120s
+          # while the function was allowed 300s, so any run where the image-QA re-rolled a weak
+          # AI scene (each render ~40-60s) legitimately outlived the client: curl aborted, this
+          # job reported failure, and the post usually completed on Vercel anyway -- a false
+          # alarm that masked real failures. If you raise maxDuration, raise this and the job
+          # timeout above with it.
+          CODE=$(curl -sS -m 330 -o resp.json -w '%{http_code}' \
             -H "Authorization: Bearer ${CRON_SECRET}" \
             "${BASE_URL}/api/cron-package-post?slot=${SLOT}") || { echo "::error::curl failed"; exit 1; }
           echo "HTTP ${CODE}"

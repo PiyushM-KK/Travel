@@ -63,6 +63,20 @@ async function defaultHostVideo(buffer, keyHint, opts = {}) {
   return { url: r.url };
 }
 
+/**
+ * Owner notification. Delivery stays BEST-EFFORT - a WhatsApp outage must never fail the run or lose a
+ * finished Reel - but the outcome is now LOGGED. It was previously swallowed by a bare `catch {}`, which
+ * hid the one failure that matters most: the approval message is the ONLY way the owner learns a Reel is
+ * waiting, and on a Meta TEST number it can only arrive inside the 24h session window. A silent failure
+ * looked exactly like a delivered one.
+ */
+async function notifyOwner(ctx, kind, text) {
+  const log = (o) => { try { console.log(JSON.stringify({ evt: "video_notify", kind, ...o })); } catch { /* ignore */ } };
+  if (ctx.notify === false || !ctx.sendText || !ctx.to) { log({ sent: false, reason: "notifications off or no recipient configured" }); return false; }
+  try { await ctx.sendText(ctx.to, text); log({ sent: true }); return true; }
+  catch (e) { log({ sent: false, error: String((e && e.message) || e).slice(0, 200) }); return false; }
+}
+
 async function runVideoPost(store, ctx = {}) {
   const now = ctx.now || new Date();
   const smid = ctx.smid || `video-${dateKey(now)}`;
@@ -122,7 +136,7 @@ async function runVideoPost(store, ctx = {}) {
     if (!rawFile || (qa && !qa.pass)) {
       const reason = !rawFile ? "no clip produced by the generator" : "video QA failed: " + (rejected.slice(-1)[0] || "");
       await store.update(row.id, { status: "held", lastError: reason });
-      if (ctx.notify !== false && ctx.sendText && ctx.to) { try { await ctx.sendText(ctx.to, `⚠️ Skyline Reel held — ${reason}`); } catch { /* best-effort */ } }
+      await notifyOwner(ctx, "held", `⚠️ Skyline Reel held — ${reason}`);
       return { status: "held", id: row.id, reason, rejected };
     }
     const brandedFile = path.join(tmp, `vbrand-${smid}.mp4`);
@@ -134,7 +148,7 @@ async function runVideoPost(store, ctx = {}) {
   } catch (e) {
     const msg = redact(String((e && e.message) || e));
     await store.update(row.id, { status: "held", lastError: "video generation/branding error: " + msg });
-    if (ctx.notify !== false && ctx.sendText && ctx.to) { try { await ctx.sendText(ctx.to, `⚠️ Skyline Reel failed to build — ${msg}`); } catch { /* best-effort */ } }
+    await notifyOwner(ctx, "build_failed", `⚠️ Skyline Reel failed to build — ${msg}`);
     return { status: "held", id: row.id, reason: "generation/branding error", error: msg };
   }
 
@@ -147,17 +161,13 @@ async function runVideoPost(store, ctx = {}) {
     const res = await publish({ videoUrl, caption, creds, sleep: ctx.sleep, fetchImpl: ctx.fetchImpl });
     const ok = !!(res.instagram || res.facebook);
     await store.update(row.id, { status: ok ? "published" : "failed", imageUrl: videoUrl, caption, sceneMeta, results: res, lastError: ok ? "" : `IG:${res.instagramError || ""} FB:${res.facebookError || ""}` });
-    if (ctx.notify !== false && ctx.sendText && ctx.to) {
-      try { await ctx.sendText(ctx.to, `🎬 Skyline Reel ${ok ? "auto-posted" : "publish issue"} — ${scenes.map((s) => s.label).join(" · ")}\n${videoUrl}\nIG: ${res.instagram || res.instagramError}  FB: ${res.facebook || res.facebookError}`); } catch { /* best-effort */ }
-    }
+    await notifyOwner(ctx, "publish_result", `🎬 Skyline Reel ${ok ? "auto-posted" : "publish issue"} — ${scenes.map((s) => s.label).join(" · ")}\n${videoUrl}\nIG: ${res.instagram || res.instagramError}  FB: ${res.facebook || res.facebookError}`);
     return { status: ok ? "published" : "failed", id: row.id, videoUrl, results: res, scenes: sceneMeta.labels };
   }
 
   // HOLD for owner approval — send the preview link on WhatsApp.
   await store.update(row.id, { status: "pending_approval", imageUrl: videoUrl, caption, sceneMeta, lastError: !live ? "SOCIAL_VIDEO_LIVE not set — held for owner" : "no publish creds" });
-  if (ctx.notify !== false && ctx.sendText && ctx.to) {
-    try { await ctx.sendText(ctx.to, `🎬 New Skyline Reel ready for your OK — ${scenes.map((s) => s.label).join(" · ")}\nPreview (4K-source, 1080p Reel): ${videoUrl}\n\nApprove to post, or download & post it yourself.`); } catch { /* best-effort */ }
-  }
+  await notifyOwner(ctx, "awaiting_approval", `🎬 New Skyline Reel ready for your OK — ${scenes.map((s) => s.label).join(" · ")}\nPreview (4K-source, 1080p Reel): ${videoUrl}\n\nApprove to post, or download & post it yourself.`);
   return { status: "pending_approval", id: row.id, videoUrl, scenes: sceneMeta.labels };
 }
 

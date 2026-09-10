@@ -269,15 +269,21 @@
       this._ghost = root.querySelector('.ghost');
       this._err = null;
       this._input = root.querySelector('input');
+      this._ctlBtns = root.querySelectorAll('.ctl button');
       this._depth = 0;
       this._gen = 0;
       this._view = { s: 1, x: 0, y: 0 };
       this._subFn = () => this._render();
       // Shadow-DOM listeners live with the shadow DOM — bound once here so
       // disconnect/reconnect (e.g. React remount) doesn't stack handlers.
-      // Editor-only: on the public site the empty state is inert (no file picker).
-      if (isEditable()) this._empty.addEventListener('click', () => this._input.click());
+      // Bound unconditionally but gated INSIDE (same pattern as handleEvent) so a late-
+      // arriving editor bridge still works, while a public visitor can never trigger them.
+      this._empty.addEventListener('click', () => { if (isEditable()) this._input.click(); });
       root.addEventListener('click', (e) => {
+        // SECURITY: the Replace/Remove buttons are only VISUALLY hidden (opacity/pointer-
+        // events), so they stay keyboard-reachable via Tab+Enter. Without this guard a
+        // visitor could fire data-act="clear" and blank a slot in their own session.
+        if (!isEditable()) return;
         const act = e.target && e.target.getAttribute && e.target.getAttribute('data-act');
         if (act === 'replace') { this._exitReframe(true); this._input.click(); }
         if (act === 'clear') {
@@ -287,7 +293,8 @@
           if (this.id) setSlot(this.id, null); else this._render();
         }
       });
-      if (isEditable()) this._input.addEventListener('change', () => {
+      this._input.addEventListener('change', () => {
+        if (!isEditable()) return;
         const f = this._input.files && this._input.files[0];
         if (f) this._ingest(f);
         this._input.value = '';
@@ -609,6 +616,9 @@
       const editable = isEditable();
       this.toggleAttribute('data-editable', editable);
       this._sub.style.display = editable ? '' : 'none';
+      // Not just CSS-hidden: actually disable them so they leave the tab order and the
+      // accessibility tree on the public site (a hidden-but-tabbable button is a real path).
+      for (const b of this._ctlBtns) b.disabled = !editable;
 
       // Content. The sidecar is also writable by the agent's write_file
       // tool, so its value isn't guaranteed canvas-originated — only accept

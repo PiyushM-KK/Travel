@@ -113,7 +113,16 @@ async function dueRows(store, { now, maxAttempts, staleMs }) {
   );
   return [...approved, ...failed, ...stale].filter(
     (r) => isDue(r, now) && (r.attempts || 0) < maxAttempts
-  );
+  ).filter((r) => {
+    // NEVER let a VIDEO Reel through the image publisher. buildPost() feeds `imageUrl` to publishPost(),
+    // and a video-post row keeps its .mp4 in that field - so this backstop would post a Reel as a still.
+    // A Reel that got stranded (e.g. the approval webhook timed out mid-poll) must be re-approved or
+    // published through publishVideo(), never picked up here. Logged so a stranded row stays visible
+    // rather than silently sitting forever.
+    if (r.source !== "video-post") return true;
+    try { console.log(JSON.stringify({ evt: "publish_skip_video_row", id: r.id, status: r.status })); } catch { /* ignore */ }
+    return false;
+  });
 }
 
 /**

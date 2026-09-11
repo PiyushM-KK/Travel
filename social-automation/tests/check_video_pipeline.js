@@ -81,6 +81,22 @@ const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "vpipe-"));
     ok(hasRealCuts([5.0], 3, 10) === false, "too few cuts for the scene count is also not a montage");
   }
 
+  // ---------- the image publisher must never touch a Reel ----------
+  {
+    const { dueRows } = require("../automation/publish-runner");
+    const store = new InMemoryStore();
+    const vid = await store.create({ status: "approved", source: "video-post", client: "skyline", imageUrl: "https://blob/x.mp4" });
+    const im = await store.create({ status: "approved", source: "package-post", client: "skyline", imageUrl: "https://blob/y.jpg" });
+    const due = await dueRows(store, { now: new Date(), maxAttempts: 5, staleMs: 15 * 60 * 1000 });
+    const srcs = due.map((r) => r.source);
+    // buildPost() hands `imageUrl` to the IMAGE publisher, and a Reel row keeps its .mp4 there. If the
+    // daily backstop ever picked one up it would post the Reel as a still - the exact bug the WhatsApp
+    // approval fix was written to remove, reachable through the cron instead.
+    ok(!srcs.includes("video-post"), "the daily publish backstop SKIPS video-post rows (never posts a Reel as an image)");
+    ok(srcs.includes("package-post"), "...while ordinary image posts still go through");
+    void vid; void im;
+  }
+
   // ---------- queue sweep ----------
   {
     const store = new InMemoryStore();

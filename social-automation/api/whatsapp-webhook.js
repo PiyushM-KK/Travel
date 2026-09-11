@@ -99,7 +99,9 @@ module.exports = async (req, res) => {
         // overlapping pool (so a reused code can't collide across the two), scoped to THIS client.
         let pool = [];
         try { pool = (await store.listByStatus(isReason ? "rejected" : "pending_approval")) || []; } catch { pool = []; }
-        if (isReason) pool = pool.filter((r) => r.client === client.id); // strict: a clientless row is NOT globally addressable
+        // Scope to THIS client for BOTH pools. The reason-pool was already strict; the approval pool
+        // was not - and it now guards an irreversible publish, so it gets the same treatment.
+        pool = pool.filter((r) => r.client === client.id || (!isReason && !r.client));
         const noun = isReason ? "rejected" : "waiting";
         const listPool = () => pool.map((r) => `• ${codeOf(r)} — ${String(r.caption || r.subject || r.hint || "post").slice(0, 40)}`).join("\n");
         let realId = null;
@@ -129,13 +131,23 @@ module.exports = async (req, res) => {
             // which posts `imageUrl` as an IMAGE - and a Reel row keeps its .mp4 in that same field, so
             // the image path would either fail or post the video as a still. Reels need the Meta Reels
             // flow (container -> poll status_code -> media_publish), which is publishVideo().
-            const claimed = await store.get(realId);
-            if (claimed && claimed.source === "video-post") {
+            const row = await store.get(realId);
+            if (row && row.source === "video-post") {
               const { publishVideo } = require("../automation/video-publish");
+              // CLAIM FIRST. Meta redelivers webhooks, and publishing a Reel is irreversible; without an
+              // atomic approved -> publishing move, two deliveries of the same "approve" can race into
+              // two live posts. The image path has always claimed (publish-runner.js); this one did not.
+              const claimed = await store.claim(realId, { fromStatus: "approved", toStatus: "publishing", runner: "whatsapp-approve-video" });
+              if (!claimed) { result.published = "⏳ Already being posted — ignoring the duplicate approval."; return result; }
+              // This runs inside a 60s serverless function (vercel.json), so the poll budget MUST fit.
+              // publishVideo's default is 40 x 6s = 240s, which would be killed mid-poll and strand the
+              // row. 8 x 5s = 40s leaves headroom; a slower encode is picked up as a stale claim.
               const res = await publishVideo({
-                videoUrl: claimed.imageUrl,
-                caption: claimed.caption || "",
-                creds: { igUserId: process.env.META_IG_USER_ID, pageId: process.env.META_PAGE_ID, pageToken: process.env.META_PAGE_TOKEN },
+                videoUrl: row.imageUrl,
+                caption: row.caption || "",
+                creds: client.creds, // resolved per-client (SKYLINE_* then META_*), not bare process.env
+                maxPolls: 8,
+                pollMs: 5000,
               });
               const ok = !!(res.instagram || res.facebook);
               await store.update(realId, {

@@ -124,6 +124,12 @@ const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "vpipe-"));
     const out = await runVideoPost(store, baseCtx({ sendText: async (to, t) => sent.push(t) }));
     ok(out.status === "pending_approval" && out.videoUrl === "https://blob/reel.mp4", "not live -> Reel HELD for approval (never auto-posts)");
     ok(sent.some((t) => /ready for your OK/i.test(t) && t.includes("https://blob/reel.mp4")), "owner is sent a WhatsApp preview link");
+    // The message must carry a CODE to reply with. Without it the preview is a dead end: the owner can
+    // see the Reel but has no way to approve it, which is exactly how it shipped originally.
+    const { shortCode } = require("../automation/whatsapp");
+    const expectCode = shortCode(out.id);
+    ok(sent.some((t) => t.includes(`approve ${expectCode}`)), `the preview tells the owner to reply "approve ${expectCode}"`);
+    ok(sent.some((t) => t.includes(`reject ${expectCode}`)), "and how to reject it");
     const row = await store.get(out.id);
     ok(row.status === "pending_approval" && row.sceneMeta && row.sceneMeta.slugs.length === 1, "the row records status + the ONE featured destination (rotation history)");
     ok(row.sceneMeta.cuts.length === 0, "one destination per Reel -> no interior cuts to label");

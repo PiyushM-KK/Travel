@@ -125,6 +125,29 @@ module.exports = async (req, res) => {
         // Publishing is idempotent + claim-guarded, so this is safe; the crons stay as a backstop.
         if (result && result.ok && String(result.status).startsWith("approved")) {
           try {
+            // A VIDEO Reel cannot go through the image publisher. publish-runner calls publishPost(),
+            // which posts `imageUrl` as an IMAGE - and a Reel row keeps its .mp4 in that same field, so
+            // the image path would either fail or post the video as a still. Reels need the Meta Reels
+            // flow (container -> poll status_code -> media_publish), which is publishVideo().
+            const claimed = await store.get(realId);
+            if (claimed && claimed.source === "video-post") {
+              const { publishVideo } = require("../automation/video-publish");
+              const res = await publishVideo({
+                videoUrl: claimed.imageUrl,
+                caption: claimed.caption || "",
+                creds: { igUserId: process.env.META_IG_USER_ID, pageId: process.env.META_PAGE_ID, pageToken: process.env.META_PAGE_TOKEN },
+              });
+              const ok = !!(res.instagram || res.facebook);
+              await store.update(realId, {
+                status: ok ? "published" : "failed",
+                results: res,
+                lastError: ok ? "" : `IG:${res.instagramError || ""} FB:${res.facebookError || ""}`,
+              });
+              result.published = ok
+                ? "🎬 Reel posted to Instagram + Facebook ✅"
+                : `⚠️ Approved, but the Reel didn't post (IG:${res.instagramError || "-"} FB:${res.facebookError || "-"}).`;
+              return result;
+            }
             const pub = await runJob({ job: "publish", clientId: client.id, runner: "whatsapp-approve" });
             const fresh = await store.get(realId);
             if (fresh && fresh.status === "published") {

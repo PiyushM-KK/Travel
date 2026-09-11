@@ -253,7 +253,13 @@ async function runVideoPost(store, ctx = {}) {
 
   // HOLD for owner approval — send the preview link on WhatsApp.
   await store.update(row.id, { status: "pending_approval", imageUrl: videoUrl, caption, sceneMeta, lastError: !live ? "SOCIAL_VIDEO_LIVE not set — held for owner" : "no publish creds" });
-  await notifyOwner(ctx, "awaiting_approval", `🎬 New Skyline Reel ready for your OK — ${scenes.map((s) => s.label).join(" · ")}\nPreview (4K-source, 1080p Reel): ${videoUrl}\n\nApprove to post, or download & post it yourself.`);
+  // The code is what makes a Reel APPROVABLE from WhatsApp. Without it the owner has nothing to reply
+  // with and the preview is a dead end - which it was until now.
+  const code = (() => { try { return require("./whatsapp").shortCode(row.id); } catch { return ""; } })();
+  await notifyOwner(ctx, "awaiting_approval", `🎬 New Skyline Reel ready for your OK — ${scenes.map((s) => s.label).join(" · ")}
+Preview (4K-source, 1080p Reel): ${videoUrl}
+
+Reply "approve ${code}" to post it to Instagram + Facebook, or "reject ${code}" to bin it.`);
   return { status: "pending_approval", id: row.id, videoUrl, scenes: sceneMeta.labels };
 }
 

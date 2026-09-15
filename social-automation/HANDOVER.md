@@ -7,6 +7,63 @@ client CHATBOT (`../pricing-portal/`) — see the checkpoint below; those live O
 
 ---
 
+## CHECKPOINT 2026-09-10/15 - VIDEO REELS ARE LIVE (de69c9b..85638f0)
+
+**First automated Reel PUBLISHED to Instagram + Facebook** (IG `18073536977440028`, FB `853137387790443`).
+The pipeline works end to end. Everything below is done and pushed.
+
+**Getting there took five separate bugs, each printing a message that looked like the previous problem:**
+1. `"not configured"` - keys pasted onto still-COMMENTED-OUT `.env` lines, and `video-post.yml` forwarded
+   only `HF_CREDENTIALS`, never the `HF_API_KEY_ID`/`SECRET` pair.
+2. `404 model_not_found` - `DEFAULT_T2V_ENDPOINT` was `/v1/text2video`, invented when no key existed to
+   check it. Real API is model-per-path with a FLAT body. Spec: `docs.higgsfield.ai/docs/openapi.json`.
+3. `"Not enough credits"` - API credits are a SEPARATE wallet from the app subscription.
+4. `status=unknown` - we called v2 but parsed the v1 SDK result shape, discarding an already-paid-for clip.
+5. `Unrecognized option '/filter_complex'` - ffmpeg 7 REMOVED `-filter_complex_script` in favour of
+   `-/filter_complex`. NEITHER is a typo; the flag must follow the installed version (CI is pre-7, a
+   modern box is 9.x). `filterFileFlag()` probes `ffmpeg -version` and picks.
+
+**Product decisions the owner made after seeing output:**
+- **ONE destination per Reel.** A text-to-video model returns ONE continuous shot, so a "3-place montage"
+  produced footage of one place captioned with three names. One place per clip makes the label true by
+  construction. The multi-clip path still exists and is tested (`count:3`).
+- **Drone motion SLOW** - `buildVideoPrompt` demands "a gentle, unhurried, gliding push at a steady creep".
+- **NO PRICE on the video.** Price code still exists but the runner does not pass one.
+- **Branding = the SAME satori template as the feed cards** (`engine/card.js` -> `makeVideoOverlay`),
+  rendered as a transparent 1080x1920 PNG and composited. Logo chip, place name, route line, four service
+  badges, green WhatsApp pill, handle, phone, AI disclosure. This replaced ffmpeg `drawtext`, which cannot
+  draw a rounded pill, needs fontconfig (segfaults on Windows) and makes every comma an escaping hazard.
+  The route line comes from the REAL catalogue and is BLANK where no package exists (Ladakh has none).
+
+**WhatsApp approval loop is CLOSED (4ec7d2e, hardened in 85638f0).** The held-Reel message now carries a
+short code, and replying `approve <code>` routes to `publishVideo()` (Meta Reels flow), not the image
+publisher. App Security then found four issues in that fix, all corrected: no claim guard (Meta redelivers
+webhooks -> double-post), a 240s poll budget inside a 60s function (stranded rows, which the daily cron
+would then have posted AS AN IMAGE - the very bug the loop was built to fix), bare `process.env.META_*`
+instead of `client.creds`, and an unscoped approval pool. `publish-runner` now explicitly skips
+`source === "video-post"`.
+
+**Model / cost reality (three separate wallets - do not conflate):**
+- **App credits** (~2,300, plan `max`) - what the claude.ai connector spends.
+- **Boost quota** - premium models (Veo) need this AS WELL; exhausting it returns `429
+  not_enough_boost_credits` while the balance still looks healthy. Hit this on 2026-09-10.
+- **API credits** (~200) - only the GitHub Action's own generation path.
+Free probes worth reusing: auth -> `GET api.higgsfield.ai/requests/<fake-uuid>/status` = 404 valid /
+401 invalid. Path exists -> POST an invalid body = 400/422 yes, 404 no. Cost -> `POST /estimate/<path>`.
+Measured: kling v2.5-turbo pro 11.2 credits ($0.70) per 10s; **veo3_1_lite 12 credits and it is the only
+one with NATIVE AUDIO + NATIVE 9:16** (the API catalogue has neither; the APP catalogue does).
+
+**NEXT AGENT - what is actually pending:**
+1. **Owner is holding 3-4 Reels for manual approval** before enabling auto-post. Do NOT set
+   `SOCIAL_VIDEO_LIVE`. Per-run publishing exists instead: `-f live=true` on a dispatch (0a7f289).
+2. **The routine** (`ROUTINE-REEL-PRODUCER.md`) - the connector IS reachable from a routine (verified: it
+   generated a Meghalaya clip). Its first run failed on repo access; its second dispatched the workflow
+   from its OWN branch, which forked before the card branding, so the Reel rendered the old furniture.
+   The prompt now pins `--ref main` AND verifies headSha, and forbids the routine from committing code.
+3. `images/places` is 18 MB in git; 2 Manipur places still photo-less; Dharamshala photo hazy.
+
+---
+
 ## CHECKPOINT 2026-09-10 - website photo overhaul + a live SECURITY fix + CI fix (94ef4c1..b548b71)
 
 **All pushed to `main` and verified live. Reviewed by Bug Hunter + App Security (both clean).**

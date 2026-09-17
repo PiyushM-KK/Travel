@@ -116,13 +116,34 @@ class AirtableStore {
     this.runsTable = opts.runsTable || process.env.AIRTABLE_RUNS_TABLE || "Runs";
     this.fetch = opts.fetchImpl || ((...a) => fetch(...a));
     this.clock = opts.clock || (() => new Date());
+    // Airtable allows 5 requests per second per BASE and answers a burst with 429 + a 30 s lockout
+    // (every later call in the same run fails). Cap this process at 4 per rolling second: short
+    // sequences never wait, a burst is spread. (Per process only - two concurrent runners share the
+    // base's limit; the schedule keeps them apart.) Airtable ALSO meters calls per MONTH - see _req.
+    this.maxPerSec = opts.maxPerSec != null ? opts.maxPerSec : 4;
+    this.windowMs = opts.windowMs || 1000;
+    this._reserved = []; // send times reserved so far (ascending), pruned to the last maxPerSec
+    this._sleep = opts.sleepImpl || ((ms) => new Promise((r) => setTimeout(r, ms)));
     this.timeoutMs = opts.timeoutMs || Number(process.env.AIRTABLE_TIMEOUT_MS) || 20000;
     if (!this.apiKey || !this.baseId) {
       throw new Error("AirtableStore needs AIRTABLE_API_KEY and AIRTABLE_BASE_ID");
     }
   }
 
+  /** Reserve a send slot such that no rolling window holds more than maxPerSec sends (the slot
+   *  arithmetic is synchronous, so parallel callers reserve in call order without a race). */
+  async _throttle() {
+    if (!this.maxPerSec) return;
+    const now = Date.now();
+    const r = this._reserved;
+    const slot = r.length >= this.maxPerSec ? Math.max(now, r[r.length - this.maxPerSec] + this.windowMs) : now;
+    r.push(slot);
+    if (r.length > this.maxPerSec) r.splice(0, r.length - this.maxPerSec);
+    if (slot > now) await this._sleep(slot - now);
+  }
+
   async _req(method, tableAndPath, { query, body } = {}) {
+    await this._throttle();
     const url = new URL(`${API}/${this.baseId}/${tableAndPath}`);
     if (query) for (const [k, v] of Object.entries(query)) url.searchParams.set(k, v);
     // Bound the request so a hung Airtable socket can't stall a run past the
@@ -145,12 +166,21 @@ class AirtableStore {
     }
     const json = await res.json().catch(() => ({}));
     if (!res.ok) {
-      // Airtable errors come in two shapes: {error:"NOT_FOUND"} (string) and
-      // {error:{type,message}} (object). The string form was being dropped.
-      const e = json && json.error;
-      const msg = (typeof e === "string" ? e : e && (e.message || e.type)) || `HTTP ${res.status}`;
+      // Airtable errors come in THREE shapes: {error:"NOT_FOUND"} (string), {error:{type,message}}
+      // (object) and {errors:[{error,message}]} (array - the monthly-quota 429 uses this one).
+      const e = (json && json.error) || (json && Array.isArray(json.errors) && json.errors[0]) || null;
+      const type = typeof e === "string" ? e : e && (e.type || e.error);
+      let msg = (typeof e === "string" ? e : e && (e.message || e.type || e.error)) || `HTTP ${res.status}`;
+      if (res.status === 429 && /BILLING|MONTH/i.test(String(type) + " " + msg)) {
+        // The workspace's MONTHLY API call allowance is used up: EVERY call fails until the month
+        // resets or the plan is upgraded. Seen live 2026-09-17 (PUBLIC_API_BILLING_LIMIT_EXCEEDED).
+        msg = `monthly API quota exhausted (Airtable plan limit - every call fails until the quota resets or the plan is upgraded) - ${type || msg}`;
+      } else if (res.status === 429) {
+        msg = `rate limited (Airtable allows 5 requests/s per base; the base is locked for 30 s) - ${msg}`;
+      }
       const err = new Error(`airtable ${method} ${tableAndPath}: ${msg}`);
       err.status = res.status;
+      err.quotaExhausted = res.status === 429 && /monthly API quota exhausted/.test(msg);
       throw err;
     }
     return json;
@@ -220,6 +250,21 @@ class AirtableStore {
     let offset;
     do {
       const query = { filterByFormula: `{${FIELDS.status}}='${esc(status)}'`, pageSize: "100" };
+      if (offset) query.offset = offset;
+      const out = await this._req("GET", encodeURIComponent(this.table), { query });
+      for (const r of out.records || []) records.push(decodeRecord(r));
+      offset = out.offset;
+    } while (offset);
+    return records;
+  }
+
+  /** Every queue row in ONE paged scan (the /ops briefing groups by status itself) - one or two
+   *  requests instead of one filtered query per status. */
+  async listAll() {
+    const records = [];
+    let offset;
+    do {
+      const query = { pageSize: "100" };
       if (offset) query.offset = offset;
       const out = await this._req("GET", encodeURIComponent(this.table), { query });
       for (const r of out.records || []) records.push(decodeRecord(r));
@@ -300,6 +345,30 @@ class AirtableStore {
     });
     const rec = (out.records || [])[0];
     return rec ? { job, ...rec.fields } : null;
+  }
+
+  /** Latest heartbeat for EACH job in one request: the newest 100 run rows cover well over a week
+   *  of every job. A job absent from that page is looked up individually; if THAT lookup fails the
+   *  job is left out of the map (undefined = unavailable) and the reason is kept on a non-enumerable
+   *  `errors` property - one job's failure never hides the others. The batched read itself throwing
+   *  means nothing could be read, and that propagates. */
+  async lastHeartbeats(jobs) {
+    const out = await this._req("GET", encodeURIComponent(this.runsTable), {
+      query: { pageSize: "100", "sort[0][field]": "At", "sort[0][direction]": "desc" },
+    });
+    const result = {};
+    const errors = {};
+    for (const rec of out.records || []) {
+      const f = rec.fields || {};
+      if (jobs.includes(f.Job) && !result[f.Job]) result[f.Job] = { job: f.Job, ...f };
+    }
+    for (const job of jobs) {
+      if (result[job]) continue;
+      try { result[job] = await this.lastHeartbeat(job); }
+      catch (e) { errors[job] = String((e && e.message) || e); }
+    }
+    Object.defineProperty(result, "errors", { value: errors, enumerable: false });
+    return result;
   }
 }
 

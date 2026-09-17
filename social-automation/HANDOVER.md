@@ -7,6 +7,41 @@ client CHATBOT (`../pricing-portal/`) — see the checkpoint below; those live O
 
 ---
 
+## CHECKPOINT 2026-09-17 - AIRTABLE MONTHLY API QUOTA EXHAUSTED: every automation is paused (owner: B-AIRTABLE-QUOTA)
+
+**What was seen:** the firm dashboard showed "No run recorded yet" for all five workflows while the jobs
+ran and heartbeated (package-post answered `store: airtable, ok: true` at 08:44 UTC).
+**What it was:** a lone read of the Runs table returned **HTTP 429
+`PUBLIC_API_BILLING_LIMIT_EXCEEDED` - "API billing plan limit exceeded. You've reached the maximum
+number of requests allowed for this month."** Airtable meters API calls per workspace per month (the
+free plan allows very few); once spent, EVERY call fails until the month resets or the plan is upgraded.
+So: drafting, approvals, publishing, package-post and video-post all stop until then (the next
+package-post Action will fail with HTTP 500 from the endpoint). The old dashboard code swallowed the
+failed reads and displayed them as "never ran" - a fake fact on a monitoring page.
+**What spent the quota:** the dashboard itself - `buildOpsStatus` made ~16 Airtable reads per refresh
+(nine filtered queue reads, the published set now spans two pages, a drafting re-read, six heartbeat
+reads) and the firm's `/ops` page refreshed every 60 s whenever a tab was open: ~1,000 calls/hour, more
+than the jobs use in a month. A burst like that also risks Airtable's 5 requests/s per-base limit.
+
+**Fixed in code (this checkpoint):**
+- `automation/airtable-store.js`: every request paced to at most 4 per rolling second (`maxPerSec`/`sleepImpl` injectable; short runs never wait);
+  all three Airtable error body shapes parsed (`{error:".."}`, `{error:{type,message}}`,
+  `{errors:[{error,message}]}` - the quota one); a 429 is named as **monthly API quota exhausted**
+  (`err.quotaExhausted`) or as the per-second limit; batched readers `listAll()` (one paged scan) and
+  `lastHeartbeats(jobs)` (newest 100 Runs rows, per-job fallback). `automation/store.js` mirrors both.
+- `automation/ops-status.js`: the queue is read once and the run history once - **3 requests per
+  briefing, was 16+**; a FAILED read is REPORTED (workflow status `unknown` / "Run history unavailable",
+  `dataErrors[]`, error text through `redact()` first) and the quota case raises ONE red alert
+  "Airtable monthly API quota exhausted - every automation is paused" with the owner's two options.
+  "No run recorded yet" now means the read succeeded and found nothing.
+- Firm repo `site/ops.html`: polls every **5 minutes, only while the tab is visible** (was 60 s always).
+- Tests: `check_ops_status.js` scenario D (+ redaction), new `check_airtable_throttle.js`; `npm test` green.
+
+**Owner decision (B-AIRTABLE-QUOTA):** upgrade the Airtable workspace plan or wait for the monthly
+reset; until then keep the `/ops` tab closed. After it clears, run `npm run verify-live` and check the
+next package-post Action succeeds. Rule for every Airtable-backed reader: budget requests per call and
+per month, and surface a failed read as "unavailable", never as zero / never-ran.
+
 ## CHECKPOINT 2026-09-10/15 - VIDEO REELS ARE LIVE (de69c9b..85638f0)
 
 **First automated Reel PUBLISHED to Instagram + Facebook** (IG `18073536977440028`, FB `853137387790443`).

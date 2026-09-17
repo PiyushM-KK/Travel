@@ -13,8 +13,49 @@ const DAILY_JOBS = ["generate", "publish", "package-post"];
 const STALE_DRAFTING_MS = 15 * 60 * 1000;
 const STALE_CRON_MIN = 30 * 60;
 
-async function safeList(store, status) {
-  try { return (await store.listByStatus(status)) || []; } catch { return []; }
+const { redact } = require("../engine/publish");
+// Every error string that reaches the response goes through redact() FIRST (the endpoint's outer
+// catch only covers thrown errors; these are reported inside a 200), then is truncated.
+const errText = (e) => redact(String((e && e.message) || e || "unknown error")).slice(0, 300);
+const QUOTA_RE = /monthly API quota exhausted|BILLING_LIMIT/i;
+
+/** Queue rows grouped by status. ONE paged scan when the store offers listAll() (the Airtable
+ *  store does - ~2 requests instead of 9), else one filtered read per status. A failed read is
+ *  returned as an error, never as an empty queue. */
+async function readQueue(store) {
+  const byStatus = {}; for (const s of QUEUE_STATUSES) byStatus[s] = [];
+  const errors = [];
+  if (typeof store.listAll === "function") {
+    try { for (const r of (await store.listAll()) || []) if (byStatus[r.status]) byStatus[r.status].push(r); }
+    catch (e) { errors.push(`queue: ${errText(e)}`); }
+  } else {
+    for (const s of QUEUE_STATUSES) {
+      try { byStatus[s] = (await store.listByStatus(s)) || []; }
+      catch (e) { errors.push(`queue (${s}): ${errText(e)}`); }
+    }
+  }
+  return { byStatus, errors };
+}
+
+/** Latest heartbeat per job, batched when the store offers lastHeartbeats(). A failed read is
+ *  returned as an error - the dashboard must say "unavailable", never "never ran". */
+async function readHeartbeats(store, jobs) {
+  const errors = [];
+  let raw = {};
+  if (typeof store.lastHeartbeats === "function") {
+    try {
+      raw = (await store.lastHeartbeats(jobs)) || {};
+      const perJob = (raw && raw.errors) || {};
+      for (const job of jobs) if (raw[job] === undefined) errors.push(`run history (${job}): ${errText(perJob[job] || "lookup failed")}`);
+    }
+    catch (e) { errors.push(`run history: ${errText(e)}`); raw = null; }
+  } else {
+    for (const job of jobs) {
+      try { raw[job] = await store.lastHeartbeat(job); }
+      catch (e) { errors.push(`run history (${job}): ${errText(e)}`); raw[job] = undefined; }
+    }
+  }
+  return { raw, errors };
 }
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -78,12 +119,23 @@ async function buildOpsStatus(store, ctx = {}) {
   let newestUpdate = null;
   let publishedRows = [];
   let allRows = [];
+  const dataErrors = [];
+  const q = await readQueue(store);
+  dataErrors.push(...q.errors);
   for (const s of QUEUE_STATUSES) {
-    const rows = await safeList(store, s);
+    const rows = q.byStatus[s] || [];
     queue[s] = rows.length;
     if (s === "published") publishedRows = rows;
     for (const r of rows) { r._status = s; allRows.push(r); if (r.updatedAt && (!newestUpdate || r.updatedAt > newestUpdate)) newestUpdate = r.updatedAt; }
   }
+  if (q.errors.some((m) => QUOTA_RE.test(m))) add("red",
+    "Airtable monthly API quota exhausted - every automation is paused",
+    "Drafting, approvals, publishing and the twice-daily package posts all read and write this store; nothing will post until the quota resets (start of next month) or the plan is upgraded. The dashboard itself spends this quota on every refresh - close it until then.",
+    "Upgrade the Airtable workspace plan (Team: 100,000 calls/month) or wait for the monthly reset; usage is on the workspace settings page. " + q.errors[0]);
+  else if (q.errors.length) add("amber",
+    "The content queue could not be read",
+    "The counts and pipeline below may be incomplete - the store answered with an error, not with zero posts.",
+    q.errors[0]);
   const trend = buildTrend(publishedRows, now);
 
   // ---- Live pipeline: the stage a post moves through, with how many are at each stage RIGHT NOW ----
@@ -125,7 +177,7 @@ async function buildOpsStatus(store, ctx = {}) {
   };
 
   // ---- Issues, each with impact + recommended action ----
-  const drafting = await safeList(store, "drafting");
+  const drafting = q.byStatus.drafting || []; // already read above (one scan, no second request)
   const stuck = drafting.filter((r) => !r.claimedAt || (nowMs - new Date(r.claimedAt).getTime()) > STALE_DRAFTING_MS);
   if (stuck.length) add("red",
     `${stuck.length} post${stuck.length > 1 ? "s are" : " is"} stuck mid-draft`,
@@ -139,14 +191,20 @@ async function buildOpsStatus(store, ctx = {}) {
 
   // ---- Heartbeats → which automations are actually running ----
   const heartbeats = {};
+  const hbRead = await readHeartbeats(store, HEARTBEAT_JOBS);
+  dataErrors.push(...hbRead.errors);
   for (const job of HEARTBEAT_JOBS) {
-    let hb = null;
-    try { hb = await store.lastHeartbeat(job); } catch { hb = null; }
+    const hb = hbRead.raw ? hbRead.raw[job] : undefined; // undefined = the read FAILED; null = no run on record
+    if (hb === undefined) { heartbeats[job] = { at: null, ageMin: null, unavailable: true }; continue; }
     const at = hb ? (hb.At || hb.at || null) : null;
     heartbeats[job] = hb
       ? { at, ageMin: ageMin(at), considered: hb.Considered ?? hb.considered ?? null, published: hb.Published ?? hb.published ?? null, held: hb.Held ?? hb.held ?? null, failed: hb.Failed ?? hb.failed ?? null }
       : { at: null, ageMin: null };
   }
+  if (hbRead.errors.length && !alerts.some((a) => /quota exhausted/.test(a.title))) add(hbRead.errors.some((m) => QUOTA_RE.test(m)) ? "red" : "amber",
+    hbRead.errors.some((m) => QUOTA_RE.test(m)) ? "Airtable monthly API quota exhausted - every automation is paused" : "Run history could not be read",
+    "The workflows below show ‘unavailable’, not ‘never ran’ - the automations may well be running; the dashboard could not confirm it this refresh.",
+    hbRead.errors[0]);
 
   // ---- Config gates (the switches that silently stop output) ----
   const config = {
@@ -193,7 +251,8 @@ async function buildOpsStatus(store, ctx = {}) {
     const hb = heartbeats[w.job] || {};
     const age = hb.ageMin;
     let status, statusText;
-    if (age == null) { status = "idle"; statusText = "No run recorded yet"; }
+    if (hb.unavailable) { status = "unknown"; statusText = "Run history unavailable"; }
+    else if (age == null) { status = "idle"; statusText = "No run recorded yet"; }
     else if (age <= (w.cadenceH + OVERDUE_MARGIN_H) * 60) { status = "ok"; statusText = "Running on schedule"; }
     else { status = "overdue"; statusText = "Behind schedule"; }
     const next = nextRunAt(w.times, now);
@@ -203,6 +262,7 @@ async function buildOpsStatus(store, ctx = {}) {
     const hb = heartbeats[job];
     const wf = workflows.find((w) => w.job === job);
     const label = wf ? wf.name.split(" — ")[0] : job;
+    if (hb.unavailable) continue; // already reported once above, with the reason
     if (hb.ageMin == null) add("amber", `‘${label}’ hasn’t run yet`, "This automation hasn’t completed a run, so its output isn’t flowing yet.", "Confirm the scheduler is enabled and the last run wasn’t cut short.");
     else if (hb.ageMin > STALE_CRON_MIN) add("red", `‘${label}’ is behind schedule`, `It last completed ~${Math.round(hb.ageMin / 60)}h ago (expected at least daily) — automatic content has paused.`, "Check the scheduler; a run is likely timing out before it finishes.");
     if (hb.failed) add("amber", `‘${label}’ reported ${hb.failed} failure(s) last run`, "Some items in the last run didn’t complete.", "Review the run details / logs for the cause.");
@@ -243,6 +303,7 @@ async function buildOpsStatus(store, ctx = {}) {
     heartbeats,
     tokens,
     config,
+    dataErrors,
   };
 }
 

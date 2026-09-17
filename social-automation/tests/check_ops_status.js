@@ -74,6 +74,39 @@ const hasAlert = (s, re) => s.alerts.some((a) => re.test([a.title, a.impact, a.a
   ok(hasAlert(c, /OPENAI_API_KEY/), "no image-gen → amber alert (with action)");
   ok(hasAlert(c, /SOCIAL_LIVE/), "live gate off → amber alert (with action)");
 
+  // ---- Scenario D: the store's run-history read FAILS (live 2026-09-17: Airtable 429 after a burst) ----
+  // The dashboard must say "unavailable" with the reason - never "No run recorded yet" / "hasn't run yet".
+  const store4 = new InMemoryStore({ clock: () => NOW });
+  await store4.create({ status: "published", subject: "p" });
+  store4.lastHeartbeats = async () => { throw new Error("airtable GET Runs: rate limited (Airtable allows 5 requests/s per base; the base is locked for 30 s)"); };
+  const d4 = await buildOpsStatus(store4, { now: NOW, label: "Skyline", live: true, blob: true, imageGen: true });
+  ok(d4.workflows.length > 0 && d4.workflows.every((w) => w.status === "unknown" && w.statusText === "Run history unavailable"), "D: every workflow reads 'Run history unavailable' (status unknown), not 'No run recorded yet'");
+  ok(!hasAlert(d4, /hasn.t run yet/), "D: no 'hasn't run yet' alert is raised for a read failure");
+  ok(hasAlert(d4, /Run history could not be read/) && hasAlert(d4, /rate limited/), "D: ONE alert says the run history could not be read, and carries the store's reason");
+  ok(Array.isArray(d4.dataErrors) && d4.dataErrors.length === 1 && /rate limited/.test(d4.dataErrors[0]), "D: dataErrors lists the failed read");
+  ok(d4.queue.published === 1 && d4.health === "amber", "D: the queue (which did read) is still reported; verdict is amber, not red");
+  ok(Object.values(d4.heartbeats).every((h) => h.unavailable === true && h.ageMin == null), "D: heartbeats are flagged unavailable rather than aged");
+  // A store WITHOUT batch readers (older interface) still works, per-job, and a single failing job is isolated.
+  const store5 = new InMemoryStore({ clock: () => NOW });
+  await store5.heartbeat("generate", { considered: 1 });
+  store5.listAll = undefined; store5.lastHeartbeats = undefined; // own props shadow the prototype -> old interface
+  const origLast = InMemoryStore.prototype.lastHeartbeat;
+  store5.lastHeartbeat = async function (job) { if (job === "publish") throw new Error("boom"); return origLast.call(this, job); };
+  const d5 = await buildOpsStatus(store5, { now: NOW, label: "Skyline", live: true, blob: true, imageGen: true });
+  const w5 = (j) => d5.workflows.find((w) => w.job === j);
+  ok(w5("generate").status === "ok" && w5("publish").status === "unknown" && w5("package-post").status === "idle", "D: per-job fallback isolates one failing read (ok / unavailable / never ran)");
+  ok(hasAlert(d5, /Run history could not be read/) && hasAlert(d5, /package-post|Twice-daily/i) === true, "D: per-job fallback still alerts the genuinely never-run job");
+  // The queue read failing is reported too (never shown as an empty pipeline).
+  const store6 = new InMemoryStore({ clock: () => NOW });
+  store6.listAll = async () => { throw new Error("airtable GET Queue: rate limited"); };
+  const d6 = await buildOpsStatus(store6, { now: NOW, label: "Skyline", live: true, blob: true, imageGen: true });
+  ok(hasAlert(d6, /content queue could not be read/) && d6.dataErrors.some((e) => /^queue:/.test(e)), "D: a failed queue read is an alert + dataErrors entry");
+  // Error text is redacted before it is reported (App Security: this path bypasses the endpoint's outer catch).
+  const store7 = new InMemoryStore({ clock: () => NOW });
+  store7.listAll = async () => { throw new Error("fetch failed https://api.airtable.com/v0/appABCDEFGHIJKLMN/Queue token=patAbCdEfGhIjKlMn.notARealSecretPart"); };
+  const d7 = await buildOpsStatus(store7, { now: NOW, label: "Skyline", live: true, blob: true, imageGen: true });
+  ok(!/patAbCdEfGhIjKlMn/.test(JSON.stringify(d7)) && /REDACTED_KEY/.test(d7.dataErrors[0]), "D: a token inside a raw fetch error never reaches the response (redacted)");
+
   if (fails.length) { console.error("\nOPS-STATUS FAIL:\n - " + fails.join("\n - ")); process.exit(1); }
   console.log("\nOPS-STATUS PASS: health/alerts/queue/heartbeats/config all reflect the automation's real state.");
 })();

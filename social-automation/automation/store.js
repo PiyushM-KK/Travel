@@ -107,6 +107,10 @@ class InMemoryStore {
     return [...this.rows.values()].filter((r) => r.status === status).map((r) => ({ ...r }));
   }
 
+  async listAll() {
+    return [...this.rows.values()].map((r) => ({ ...r }));
+  }
+
   async update(id, fields) {
     const r = this.rows.get(id);
     if (!r) throw new Error(`store.update: no row ${id}`);
@@ -158,6 +162,12 @@ class InMemoryStore {
   async lastHeartbeat(job) {
     const hits = this.runs.filter((r) => r.job === job);
     return hits.length ? hits[hits.length - 1] : null;
+  }
+
+  async lastHeartbeats(jobs) {
+    const result = {};
+    for (const job of jobs) result[job] = await this.lastHeartbeat(job);
+    return result;
   }
 }
 

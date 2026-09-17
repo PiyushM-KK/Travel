@@ -6,6 +6,20 @@ the real values live in the local `.env` (gitignored) and the Vercel project env
 
 ---
 
+## B-AIRTABLE-QUOTA - 2026-09-17 - the workspace's MONTHLY API allowance is used up; every automation is paused
+Airtable answers every call with `429 PUBLIC_API_BILLING_LIMIT_EXCEEDED` ("maximum number of requests
+allowed for this month"). Nothing reads or writes the queue until it clears: no drafts, no approvals,
+no publishing, no package posts, no Reels. The next scheduled `package-post` Action will fail (HTTP 500).
+**Do ONE of:**
+1. Airtable -> workspace settings -> Billing: upgrade the plan (the Team plan meters 100,000 calls/month;
+   the pipeline needs a few hundred a month plus the dashboard's ~900/day at 5-minute polling), or
+2. wait for the monthly reset shown on the workspace settings page (usage is listed there).
+**Meanwhile:** keep `buildwise-digital.com/ops` CLOSED - each refresh spends the allowance (it was the
+main consumer: 16 calls per refresh, every minute, whenever a tab was open; now 3 calls per 5 minutes
+while visible). **After it clears:** open `/ops` once - the Skyline card should show every workflow
+"Running on schedule" with real last-run times - and check the next package-post Action is green.
+Code side is done (HANDOVER checkpoint 2026-09-17): paced store, 3-request briefing, honest "unavailable".
+
 ## B-VIDEO - AI VIDEO Reels - ✅ WORKING END-TO-END (2026-09-10). Owner decision left: go live?
 **First fully automated Reel produced and held for approval.** Run 34503381435:
 `status: pending_approval`, scenes Sikkim/Himachal/Ladakh, hosted on Vercel Blob.

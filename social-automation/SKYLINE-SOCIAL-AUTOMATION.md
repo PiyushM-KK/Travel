@@ -240,6 +240,14 @@ countdowns**, a **published-over-time chart** (daily/weekly/monthly), and plain-
   `https://skyline-social-nine.vercel.app/api/ops-status` (`?tokens=1` also live-checks the Meta token).
 - **Auth key:** a dedicated read-only **`OPS_KEY`** is set on `skyline-social` (also stored in the local
   `.env`); the dashboard prompts for it (kept in the browser's sessionStorage only).
+- **Request budget (2026-09-17):** Airtable meters API calls per workspace per MONTH (a 429
+  `PUBLIC_API_BILLING_LIMIT_EXCEEDED` stops every automation until the reset) and allows 5 requests/s per
+  base. The briefing reads the queue in ONE paged scan (`listAll`) and the run history in ONE sorted read
+  (`lastHeartbeats`) - 3 requests per refresh, capped at 4 per second by the store; the firm page polls every 5
+  minutes only while visible. A failed read shows as `unknown` / "Run history unavailable" with the
+  reason (`dataErrors[]`, redacted) and the quota case as a RED "every automation is paused" alert -
+  never as "No run recorded yet". Before this, 16 reads per refresh every 60 s spent the monthly
+  allowance and the swallowed 429s displayed as "never ran" for every workflow.
 - **Files:** `automation/ops-status.js` (the health builder — queue/heartbeats/config/workflows/
   pipeline/recent/trend/next-run), `api/ops-status.js` (the endpoint), firm-repo `site/ops.html` (the
   page), `tests/check_ops_status.js`. **Scales:** add a `{name, statusUrl}` row to the `CLIENTS` list at

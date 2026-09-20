@@ -8,7 +8,9 @@
  *
  * It checks whatever is CONFIGURED (by env) and skips the rest, so it's the same
  * command at every rung — each rung just lights up another section.
- *   Rung 1: Airtable   (AIRTABLE_API_KEY + AIRTABLE_BASE_ID)
+ *   Rung 1: the QUEUE STORE - whichever run.js would choose (Redis when the Upstash
+ *           credentials are set, else Airtable). The verifier follows the code, so it cannot
+ *           certify a store the pipeline is not actually using.
  *   Rung 2: SMTP email (SMTP_* + APPROVAL_EMAIL)      [added at that rung]
  *   Rung 3: Gmail/IMAP (GMAIL_USER + GMAIL_APP_PASSWORD) [added at that rung]
  *   Rung 4: Meta creds (META_PAGE_TOKEN + ids)          [added at that rung]
@@ -23,10 +25,21 @@ function line(ok, name, detail) {
 
 /** Full lifecycle round-trip against the real Airtable base. */
 async function verifyAirtable(opts = {}) {
-  console.log("\nRung 1 — Airtable (persistent queue)");
-  if (!opts.store && (!process.env.AIRTABLE_API_KEY || !process.env.AIRTABLE_BASE_ID)) {
-    line(null, "not configured", "set AIRTABLE_API_KEY + AIRTABLE_BASE_ID to test this rung");
+  // Ask run.js which store is live rather than assuming one: after the 2026-09-17 Airtable outage
+  // the queue moved to Redis, and a verifier that tested the store we NO LONGER USE would be the
+  // most misleading kind of green tick.
+  let chosen = "none";
+  if (!opts.store) {
+    try { chosen = require("./run").makeStore().kind; } catch (e) { chosen = "misconfigured"; }
+  }
+  console.log("\nRung 1 — the queue store (" + (opts.store ? "injected" : chosen) + ")");
+  if (!opts.store && (chosen === "memory" || chosen === "none")) {
+    line(null, "not configured", "set UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN (or the AIRTABLE_* pair) to test this rung");
     return { configured: false, ok: true };
+  }
+  if (!opts.store && chosen === "misconfigured") {
+    line(false, "construct store", "SOCIAL_STORE names a store whose credentials are missing");
+    return { configured: true, ok: false };
   }
 
   let store, id, failed = false;
@@ -37,13 +50,13 @@ async function verifyAirtable(opts = {}) {
 
   try {
     if (opts.store) store = opts.store; // injected for tests
-    else { const { AirtableStore } = require("./airtable-store"); store = new AirtableStore(); }
+    else store = require("./run").makeStore().store;
   } catch (e) {
     line(false, "construct store", cleanErr(e));
     return { configured: true, ok: false };
   }
 
-  await step("create a test row (Queue table + all columns)", async () => {
+  await step("create a test row (every column round-trips)", async () => {
     const row = await store.create({
       client: TEST_CLIENT, status: "planned", caption: "go-live verifier test row",
       hashtags: ["#test"], suggestedItems: ["Royal Rajasthan"], mentionedItems: [], claimedPrices: [],

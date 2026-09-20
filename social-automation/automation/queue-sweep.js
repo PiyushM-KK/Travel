@@ -29,6 +29,23 @@ async function sweepStaleQueue(store, opts = {}) {
   const maxAge = Math.max(1, hours) * 3600 * 1000;
   const statuses = opts.statuses || ["pending_approval", "held"];
   const swept = [];
+
+  // This sweep reads the queue BY STATUS, and a status index can be missing an entry that no read
+  // can put back (the row exists, the index entry never landed). A store that knows how to rebuild
+  // its indexes from the rows does so here, once a day, before anything reads them. Stores with no
+  // index - in-memory, Airtable - have nothing to reconcile and simply do not offer the method.
+  let index = null;
+  if (typeof store.reconcile === "function") {
+    try {
+      index = await store.reconcile();
+      if (index && (index.missingFromIndex || index.staleInIndex || (index.orphans || []).length)) {
+        console.warn(JSON.stringify({ evt: "queue_index_repaired", ...index }));
+      }
+    } catch (e) {
+      index = { error: String(e.message || e).slice(0, 120) };
+      console.warn(JSON.stringify({ evt: "queue_index_repair_failed", error: index.error }));
+    }
+  }
   for (const st of statuses) {
     let rows = [];
     try { rows = await store.listByStatus(st); } catch { rows = []; }
@@ -43,7 +60,7 @@ async function sweepStaleQueue(store, opts = {}) {
     }
   }
   try { console.warn(JSON.stringify({ evt: "queue_sweep", cleared: swept.length, windowH: hours })); } catch { /* ignore */ }
-  return { swept: swept.length, rows: swept };
+  return { swept: swept.length, rows: swept, index };
 }
 
 module.exports = { sweepStaleQueue };

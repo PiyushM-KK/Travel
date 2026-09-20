@@ -5,12 +5,13 @@
 // mid-claim (status set, claimedAt pending) and wrongly reaped. This test fails LOUDLY if anyone ever
 // breaks the co-write, so the reaper's assumption can't silently rot.
 //
-// Covers BOTH store implementations (in-memory + Airtable via an injected fetch).
+// Covers ALL THREE store implementations (in-memory, Airtable and Redis, each via an injected fetch).
 //   node tests/check_claim_atomicity.js
 
 const path = require("path");
 const { InMemoryStore } = require(path.join(__dirname, "..", "automation", "store.js"));
 const { AirtableStore } = require(path.join(__dirname, "..", "automation", "airtable-store.js"));
+const { RedisStore } = require(path.join(__dirname, "..", "automation", "redis-store.js"));
 
 const fails = [];
 function ok(cond, label) {
@@ -49,6 +50,40 @@ function ok(cond, label) {
     ok(patchCount === 1, "airtable: claim issues exactly ONE PATCH (status+claimedAt can't be seen mid-write)");
     ok(lastPatch && lastPatch.Status === "drafting", "airtable: that PATCH sets Status=drafting");
     ok(lastPatch && !!lastPatch.ClaimedAt, "airtable: the SAME PATCH sets ClaimedAt");
+  }
+
+  // ---- RedisStore (offline: capture the commands via injected fetch) ----
+  // The reaper ages a claimed row by claimedAt and treats a `drafting` row WITHOUT one as an orphan
+  // to reap. If a claim ever set the status in one write and claimedAt in another, a live pass could
+  // be observed mid-claim and reaped out from under itself.
+  {
+    const sent = [];
+    const hash = { status: "planned", createdAt: "2026-09-20T12:00:00.000Z", updatedAt: "2026-09-20T12:00:00.000Z" };
+    const fakeFetch = async (url, opts) => {
+      const body = JSON.parse(opts.body);
+      const cmds = Array.isArray(body[0]) ? body : [body];
+      for (const c of cmds) sent.push({ path: String(url).replace(/^https?:\/\/[^/]+/, ""), cmd: c });
+      const reply = (c) => {
+        const verb = String(c[0]).toUpperCase();
+        if (verb === "SET") return "OK";                       // the lock is won
+        if (verb === "HGETALL") return Object.entries(hash).flat();
+        return 1;
+      };
+      const result = Array.isArray(body[0]) ? cmds.map((c) => ({ result: reply(c) })) : { result: reply(body) };
+      return { ok: true, status: 200, json: async () => result };
+    };
+    const store = new RedisStore({ url: "https://fake.upstash.io", token: "t", fetchImpl: fakeFetch, prefix: "atomic:" });
+    const claimed = await store.claim("row_1", { fromStatus: "planned", toStatus: "drafting", runner: "t" });
+    ok(!!claimed && claimed.status === "drafting", "redis: claim flips status to drafting");
+    ok(!!claimed.claimedAt, "redis: the SAME claim sets claimedAt");
+
+    const hsets = sent.filter((s) => String(s.cmd[0]).toUpperCase() === "HSET");
+    ok(hsets.length === 1, "redis: the claim writes the row ONCE (" + hsets.length + " HSET)");
+    const fields = hsets.length ? hsets[0].cmd.slice(2).filter((_, i) => i % 2 === 0) : [];
+    ok(["status", "claimToken", "claimedAt", "updatedAt"].every((f) => fields.includes(f)),
+      "redis: status, claimToken, claimedAt and updatedAt are co-written in that one write");
+    ok(hsets.length ? hsets[0].path.endsWith("/multi-exec") : false,
+      "redis: and it lands in a transaction with the index move, so the two cannot disagree");
   }
 
   if (fails.length) {

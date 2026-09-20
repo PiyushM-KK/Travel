@@ -6,19 +6,76 @@ the real values live in the local `.env` (gitignored) and the Vercel project env
 
 ---
 
-## B-AIRTABLE-QUOTA - 2026-09-17 - the workspace's MONTHLY API allowance is used up; every automation is paused
-Airtable answers every call with `429 PUBLIC_API_BILLING_LIMIT_EXCEEDED` ("maximum number of requests
-allowed for this month"). Nothing reads or writes the queue until it clears: no drafts, no approvals,
-no publishing, no package posts, no Reels. The next scheduled `package-post` Action will fail (HTTP 500).
-**Do ONE of:**
-1. Airtable -> workspace settings -> Billing: upgrade the plan (the Team plan meters 100,000 calls/month;
-   the pipeline needs a few hundred a month plus the dashboard's ~900/day at 5-minute polling), or
-2. wait for the monthly reset shown on the workspace settings page (usage is listed there).
-**Meanwhile:** keep `buildwise-digital.com/ops` CLOSED - each refresh spends the allowance (it was the
-main consumer: 16 calls per refresh, every minute, whenever a tab was open; now 3 calls per 5 minutes
-while visible). **After it clears:** open `/ops` once - the Skyline card should show every workflow
-"Running on schedule" with real last-run times - and check the next package-post Action is green.
-Code side is done (HANDOVER checkpoint 2026-09-17): paced store, 3-request briefing, honest "unavailable".
+## B-AIRTABLE-QUOTA - 2026-09-17 - the queue is LEAVING Airtable; one owner step left (export a CSV)
+
+**What happened.** Airtable answered every call with `429 PUBLIC_API_BILLING_LIMIT_EXCEEDED` - the
+workspace's MONTHLY API allowance. Nothing has read or written the queue since: no drafts, no
+approvals, no publishing, no package posts, no Reels. Every scheduled run since 2026-09-18 has failed
+(HTTP 500), and today's 08:39 UTC run failed the same way. The consumer was the dashboard, not the
+jobs - a store priced per call means that LOOKING at the business can stop the business.
+
+**The decision (owner, 2026-09-20): a permanent fix, not a bigger allowance.** The queue moves to
+Redis (Upstash), which is what the firm's own lead responder already uses for the same reason - its
+store says outright "never Airtable here: it meters calls per month". Paying Airtable would buy a
+larger cliff, not remove it, and would leave the claim race below unfixed.
+
+**Built and tested offline (not yet live):** `automation/redis-store.js` (the same twelve methods,
+parity-tested against the in-memory reference in `tests/check_redis_store.js`),
+`automation/migrate-airtable-to-redis.js` + `tests/check_airtable_csv_import.js`,
+`automation/redis-selftest.js`, and `run.js` now prefers Redis. **The Airtable adapter stays,
+configured and tested** - this is a switch, not a demolition.
+
+**It also fixes a correctness bug.** Airtable has no atomic compare-and-set, so its `claim()` is
+read-verify-write with a race its own comment calls "narrowed, not closed"; the real duplicate guard
+was a second check. On Redis a claim is `SET NX PX` - one atomic operation - and the lock's expiry IS
+the stale window, so a runner that dies frees the row by the clock.
+
+### OWNER STEP - export the queue (5 minutes, no API involved)
+The API is exactly what is spent, but **the Airtable web interface does not use the API quota**, so the
+data can come out today rather than waiting for the reset.
+1. Open the Airtable base -> the **Queue** table -> view menu (top-left of the view bar) -> **Download CSV**.
+2. Send the file over, or drop it next to the repo. (The **Runs** table is optional - it is heartbeat
+   history, not state.)
+3. Optional but worth 30 seconds: before exporting, add a formula field `RECORD_ID()` named `Id`. With
+   it the rows keep their original ids, so an approval code already sitting in WhatsApp still matches.
+   Without it the rows get new ids and the queue should be re-sent after the move.
+
+### OWNER STEP 2 - create the database (2 minutes, a browser is required)
+Tried from the CLI on 2026-09-20 and it stops at *"Additional setup required. Opening browser"* -
+Upstash needs a console click that a headless session cannot make. Nothing was created by the attempt
+(checked: no resource, project env untouched).
+- Vercel dashboard -> the **skyline-social** project -> **Storage** -> Upstash for Redis -> create a
+  database (suggested name `skyline-queue`, region close to the Vercel functions) and connect it to
+  this project for **Production**. Vercel then injects `KV_REST_API_URL` / `KV_REST_API_TOKEN`
+  automatically - the store reads either that pair or the `UPSTASH_REDIS_REST_*` pair, so nothing
+  needs renaming.
+- A database of its own, NOT the firm's `buildwise-leads` one: a client's content queue and the firm's
+  own leads do not share a store.
+- **Connecting it does not switch anything by itself.** A Vercel deployment keeps the environment it
+  was built with, so the pipeline only moves to Redis on the next deploy - which is deliberately the
+  last step below, after the data is across.
+
+### THEN (agent, in this order)
+1. `node automation/redis-selftest.js` - the contract against the REAL database, under a throwaway
+   key prefix it cleans up. It must pass before anything is migrated.
+2. `node automation/migrate-airtable-to-redis.js --file Queue.csv` (dry run, prints a plan), then
+   `--write`. Read the plan: it says how many rows carry a recorded post id and a scene history, and
+   refuses any row whose `results` or `imageSource` cell will not parse rather than importing it
+   hollow. Re-running is safe - rows are recognised by record id, by dedup key, or by a fingerprint
+   taken from their own content.
+3. `bash sync-gh-secrets.sh` so the GitHub Actions get the same credentials - `video-post.yml` runs
+   the pipeline itself and would otherwise keep talking to the dead store.
+4. Redeploy `skyline-social` (this is the actual switch), then watch the next `package-post` Action go
+   green and open `/ops` once.
+
+**Rollback, if the new store ever misbehaves:** set `SOCIAL_STORE=airtable` on the `skyline-social`
+project (or remove the Upstash variables). No deploy, no code change. The Airtable path is unchanged.
+
+**What this does NOT change:** the dashboard is still the heaviest reader, and a whole-queue read
+costs roughly one Redis command per row. The difference is the failure mode: any Redis limit resets
+DAILY and over-use is billed in cents, where Airtable's was monthly and stopped the business dead for
+a fortnight. If the published history ever grows past a few thousand rows, give the trend chart its
+own counter rather than scanning rows.
 
 ## B-VIDEO - AI VIDEO Reels - ✅ WORKING END-TO-END (2026-09-10). Owner decision left: go live?
 **First fully automated Reel produced and held for approval.** Run 34503381435:

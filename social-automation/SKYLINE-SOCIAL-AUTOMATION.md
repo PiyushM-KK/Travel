@@ -34,7 +34,7 @@ lives only in `facts.js` / `calendar.js` / `profile.js`.
                  ┌─────────────── INTAKE (4 channels, §3) ───────────────┐
  WhatsApp photo/note   Gmail vendor email   Calendar card   Package-post (2×/day)
                  └───────────────────────┬───────────────────────────────┘
-                                         ▼   creates a `planned` row in the Airtable Queue
+                                         ▼   creates a `planned` row in the queue
                           [reap stranded drafts]  (generate-runner.reapStaleDrafting)
                                          ▼
    GENERATE (generate-runner.js → engine/generate.js)
@@ -82,7 +82,7 @@ picks A / B / both on WhatsApp; the package-post auto path defaults to A when it
 
 | Source | What it provides | How it's accessed |
 |--------|------------------|-------------------|
-| **Airtable base** | The **Queue** table = every post + its status (the pipeline's state); the **Runs** table = job heartbeats | REST, `AIRTABLE_API_KEY` + `AIRTABLE_BASE_ID` (`automation/airtable-store.js`) |
+| **The queue store** | Every post + its status (the pipeline's state) and the job heartbeats. **Redis (Upstash)** since 2026-09-20; the Airtable adapter is kept and still works, one env var away | REST, `UPSTASH_REDIS_REST_URL` + `_TOKEN` (`automation/redis-store.js`), or `AIRTABLE_API_KEY` + `AIRTABLE_BASE_ID` (`automation/airtable-store.js`). `SOCIAL_STORE` forces one |
 | **`facts.js`** (in-repo) | Skyline's **catalogue** — 22 packages / 89 destinations, prices, WhatsApp, the referral-only list, the price disclaimer. **This is the grounding source** — captions can only use what's here | required at runtime; no creds |
 | **WhatsApp Cloud API** (Meta Graph) | Intake (owner photos/notes) **and** the approval channel | `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_APP_SECRET`, `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_TO` |
 | **Gmail** (Workspace inbox) | Vendor offer emails (channel 2) | `GMAIL_USER` + `GMAIL_APP_PASSWORD`, or OAuth service-account; `GMAIL_ALLOWED_SENDERS` gates senders |
@@ -102,7 +102,8 @@ All secrets live in two places: the local `social-automation/.env` (gitignored; 
 
 | Env var | Purpose | Owner-gated? |
 |---------|---------|--------------|
-| `AIRTABLE_API_KEY`, `AIRTABLE_BASE_ID` | The Queue/Runs store | ✅ |
+| `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | The queue store (Redis) | ✅ |
+| `AIRTABLE_API_KEY`, `AIRTABLE_BASE_ID` | The OLD queue store - kept as a fallback, unused while Redis is set | ✅ |
 | `ANTHROPIC_API_KEY` | Claude — captions, vision, SMM + QA agents | ✅ |
 | `OPENAI_API_KEY` | gpt-image-1 (card B AI scene). **NB: the code reads `OPENAI_API_KEY` — not `OPEN_API_KEY`** | ✅ |
 | `BLOB_READ_WRITE_TOKEN` | Vercel Blob image hosting | ✅ (create a Blob store) |
@@ -160,7 +161,9 @@ Meta app) · a Gmail/Workspace inbox · **Vercel** (the `skyline-social` project
 | File | Role |
 |------|------|
 | `automation/run.js` | **The single job dispatcher** (`intake·generate·approve·publish·report·pr·prep·email·calendar-cards·package-post`) + the publish live gate |
-| `automation/airtable-store.js` / `store.js` | The Queue store (Airtable / in-memory). `claim()` co-writes status+claimedAt atomically |
+| `automation/redis-store.js` | **The queue store in use.** A row is a Redis HASH (the truth); the status sets are indexes that repair themselves on read. `claim()` is `SET NX PX` - one atomic operation - and the lock's expiry IS the stale window |
+| `automation/airtable-store.js` / `store.js` | The previous store, and the in-memory reference. `claim()` co-writes status+claimedAt atomically |
+| `automation/migrate-airtable-to-redis.js` | Carries the queue across from a CSV exported in the browser (the API was the thing that ran out) |
 | `automation/generate-runner.js` | Draft + fact-check a `planned` row; the **stale-draft reaper** (`reapStaleDrafting`) |
 | `automation/calendar-cards.js` | `buildAndDraftCard()` (shared A/B card build), `packageForDay` / `packageForSlot` |
 | `automation/package-posts.js` | Twice-daily **auto-publish-unless-flagged** flow + `riskFlags` |
@@ -220,7 +223,9 @@ Use the local `.env` for creds (`node -e` scripts load it), or hit the deployed 
   hosting unconfigured, **500** = a fault.
 - **Trigger a run:** `GET /api/cron-prep` (drafts + approvals) · `GET /api/cron-package-post?slot=0|1` ·
   `GET /api/cron-publish` (posts approved rows) — all with `Authorization: Bearer $CRON_SECRET`.
-- **Inspect the queue:** `automation/queue-peek.js`, or read the Airtable Queue by status.
+- **Inspect the queue:** `automation/queue-peek.js` (it reads whichever store is configured).
+- **Prove the store works:** `node automation/redis-selftest.js` - the contract against the real
+  database, under a throwaway key prefix it cleans up afterwards.
 - **Token health:** `GET https://graph.facebook.com/v21.0/me?access_token=…` (Page token must return the
   Page, not a person) — the silent killer; see OPERATIONS "Token health".
 - **Tests:** `npm test` (all offline, no creds).
@@ -240,14 +245,14 @@ countdowns**, a **published-over-time chart** (daily/weekly/monthly), and plain-
   `https://skyline-social-nine.vercel.app/api/ops-status` (`?tokens=1` also live-checks the Meta token).
 - **Auth key:** a dedicated read-only **`OPS_KEY`** is set on `skyline-social` (also stored in the local
   `.env`); the dashboard prompts for it (kept in the browser's sessionStorage only).
-- **Request budget (2026-09-17):** Airtable meters API calls per workspace per MONTH (a 429
-  `PUBLIC_API_BILLING_LIMIT_EXCEEDED` stops every automation until the reset) and allows 5 requests/s per
-  base. The briefing reads the queue in ONE paged scan (`listAll`) and the run history in ONE sorted read
-  (`lastHeartbeats`) - 3 requests per refresh, capped at 4 per second by the store; the firm page polls every 5
-  minutes only while visible. A failed read shows as `unknown` / "Run history unavailable" with the
-  reason (`dataErrors[]`, redacted) and the quota case as a RED "every automation is paused" alert -
-  never as "No run recorded yet". Before this, 16 reads per refresh every 60 s spent the monthly
-  allowance and the swallowed 429s displayed as "never ran" for every workflow.
+- **Request budget - SETTLED 2026-09-20 by leaving Airtable.** Airtable metered API calls per
+  workspace per MONTH; the allowance ran out on 2026-09-17 and the pipeline stopped for days,
+  spent mostly by the dashboard rather than by the jobs. The queue now lives on Redis, where the
+  limits reset daily and over-use is billed in cents instead of stopping the business. The rule
+  that produced the outage still applies to any metered store: budget requests per call AND per
+  month, and remember that a polling dashboard is a bigger consumer than the work itself. A
+  whole-queue read costs about one Redis command per row; if the published history ever passes a
+  few thousand rows, give the trend chart its own counter instead of scanning rows.
 - **Files:** `automation/ops-status.js` (the health builder — queue/heartbeats/config/workflows/
   pipeline/recent/trend/next-run), `api/ops-status.js` (the endpoint), firm-repo `site/ops.html` (the
   page), `tests/check_ops_status.js`. **Scales:** add a `{name, statusUrl}` row to the `CLIENTS` list at

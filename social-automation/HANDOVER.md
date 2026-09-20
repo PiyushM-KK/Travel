@@ -11,6 +11,86 @@ and every pending website task: `../HANDOVER-PROMPT.md` (CURRENT STATE / PENDING
 
 ---
 
+## CHECKPOINT 2026-09-20 - THE QUEUE IS LEAVING AIRTABLE FOR REDIS (built + reviewed; two owner clicks left)
+
+**Why.** The 2026-09-17 outage below never cleared: every scheduled run since 2026-09-18 has failed
+with `PUBLIC_API_BILLING_LIMIT_EXCEEDED`, today's included. Airtable meters API calls per workspace
+per MONTH, and the biggest consumer was the dashboard, not the jobs - a store priced per call means
+that LOOKING at the business can stop the business. The owner asked for a permanent answer rather
+than a bigger allowance, so the queue moves to Redis (Upstash), which is what the firm's own lead
+responder already uses for exactly this reason.
+
+**It is also a correctness upgrade, not only a billing one.** Airtable has no atomic compare-and-set,
+so its `claim()` is read-verify-write with a race its own comment calls "narrowed, not closed", and
+the real duplicate guard was a second check. On Redis a claim is `SET NX PX`: one atomic operation,
+and **the lock's expiry IS the stale window**, so a runner that dies mid-publish frees the row by the
+clock rather than by anyone remembering to clean up.
+
+**New / changed:** `automation/redis-store.js` (the store), `automation/migrate-airtable-to-redis.js`
+(CSV -> Redis), `automation/redis-selftest.js` (the contract against the REAL database),
+`tests/check_redis_store.js` + `tests/check_airtable_csv_import.js`, a Redis case added to
+`tests/check_claim_atomicity.js`, `run.js` (store selection + `SOCIAL_STORE`), `queue-sweep.js`
+(daily index reconciliation), `verify-live.js` (rung 1 now verifies whichever store is live),
+`engine/publish.js` (redaction), `sync-gh-secrets.sh` and `.github/workflows/video-post.yml`.
+**555 offline checks, all green.** The Airtable adapter is untouched and still works.
+
+**The design, in one paragraph.** A row is a Redis HASH and is the only truth; the `status:<name>`
+sets are indexes. The writes that must agree - a row and its index entry - go through `/multi-exec`,
+a real transaction, because Upstash documents pipelined commands as non-atomic and an aborted request
+can land the first command and not the second. `listByStatus` drops index entries the row contradicts,
+but that repair only works one way, so `reconcile()` rebuilds the indexes from the rows and runs in
+the daily sweep.
+
+### What the two reviewers caught, all fixed (this is why the pass exists)
+
+- **CRITICAL, Bug Hunter: a second migration run duplicated rows.** Dedup relied on a record id or a
+  WhatsApp dedup key; Airtable's ordinary CSV export has neither for a calendar or Gmail row. Running
+  the documented command twice created every such row again - and an `approved` row existing twice is
+  a post published twice to the client's real accounts. My own "importing, twice" test missed it
+  because its fixtures all had explicit ids. Rows now carry a FINGERPRINT derived from their own
+  content (never the status, which moves between exports). Reproduced, fixed, and tested.
+- **HIGH, Bug Hunter: a JSON cell that would not parse was dropped in silence.** Excel turns straight
+  quotes into curly ones when it re-saves a CSV. That silently emptied `results` (the record of what
+  was already posted) and `imageSource.sceneMeta` (the don't-repeat-a-destination history) while the
+  row still imported as a success. Those two columns now REFUSE the row and name it; the rest import
+  with a reported warning.
+- **HIGH, Bug Hunter: the status index could lose a row permanently.** See the design paragraph:
+  `/multi-exec` plus `reconcile()`.
+- **LOW, Bug Hunter: the lock was released with a blind `DEL`.** If the TTL lapsed mid-call it could
+  delete someone else's lock. Now a compare-and-delete script that only removes our own token.
+- **HIGH, App Security: the store's bearer token was in no redaction list.** `redact()` masks by known
+  shape or by exact value from `SENSITIVE_ENV`; an Upstash token matches no shape and was on no list,
+  so the credential with full read/write over the queue had zero coverage in a PUBLIC repo whose
+  Actions logs are public. Added, with `KV_REST_API_TOKEN`.
+- **App Security, smaller:** `http://` endpoints refused (the token would travel in clear text),
+  `sourceMessageId` length-bounded before it becomes part of a key, and the two new scripts redact
+  before printing like every other entry point here.
+
+### Left to do - TWO OWNER CLICKS, then three commands (full runbook: BLOCKED.md -> B-AIRTABLE-QUOTA)
+
+1. **Owner: export the Queue as CSV** from the Airtable web interface (the API is what ran out; the
+   browser does not touch the quota). Adding a `RECORD_ID()` column named `Id` first keeps the
+   original row ids, so approval codes already sitting in WhatsApp still match.
+2. **Owner: create the Redis database** in the Vercel dashboard (skyline-social -> Storage -> Upstash
+   for Redis). The CLI cannot: it stops at "Additional setup required. Opening browser". The attempt
+   created nothing.
+3. Agent: `node automation/redis-selftest.js`, then the migration (dry run, then `--write`), then
+   `bash sync-gh-secrets.sh`, then redeploy - the redeploy IS the switch.
+
+**Rollback at any point:** `SOCIAL_STORE=airtable` on the project, or remove the Upstash variables.
+No code change, no deploy.
+
+**Known gap, deliberately not changed here (pre-existing, identical in all three stores):** `update()`
+does not check the claim token, so a reaped-but-still-alive generate pass could overwrite a row that
+has moved on. The Bug Hunter could not build a reproduction against today's configuration and it is
+not something this migration made better or worse. Worth a conscious decision later.
+
+**Sizing, so nobody repeats the mistake in a new currency:** a whole-queue read costs roughly one
+Redis command per row, and the dashboard remains the heaviest reader. The difference that matters is
+the failure mode - Redis limits reset DAILY and over-use is billed in cents, where Airtable's were
+monthly and stopped the business for a fortnight. If the published history ever passes a few thousand
+rows, give the `/ops` trend chart its own counter instead of scanning rows.
+
 ## CHECKPOINT 2026-09-17 - AIRTABLE MONTHLY API QUOTA EXHAUSTED: every automation is paused (owner: B-AIRTABLE-QUOTA)
 
 **What was seen:** the firm dashboard showed "No run recorded yet" for all five workflows while the jobs

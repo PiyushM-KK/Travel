@@ -17,8 +17,9 @@
  * but they still can't do harm: generate/approve/intake only move a row toward
  * approval, and nothing reaches a real account without the gate above.
  *
- * STORE: Airtable when AIRTABLE_API_KEY + AIRTABLE_BASE_ID are set, else an
- * ephemeral InMemoryStore (dry local runs). All jobs share the store.
+ * STORE: Redis (Upstash) when its REST credentials are set, else Airtable when AIRTABLE_API_KEY +
+ * AIRTABLE_BASE_ID are set, else an ephemeral InMemoryStore (dry local runs). SOCIAL_STORE forces
+ * one. All jobs share the store.
  */
 
 const { InMemoryStore } = require("./store");
@@ -34,9 +35,42 @@ const { loadClient } = require("./clients");
 
 const JOBS = ["intake", "generate", "approve", "publish", "report", "pr", "prep", "email", "calendar-cards", "package-post", "video-post"];
 
+/**
+ * Which store the queue lives in. REDIS FIRST, because Airtable meters API calls per month and on
+ * 2026-09-17 that allowance ran out and stopped the whole pipeline for days. The Airtable adapter is
+ * kept, configured and tested, so this is a switch rather than a demolition: unset the Redis
+ * credentials, or set SOCIAL_STORE=airtable, and the old path is back with no deploy.
+ *
+ * SOCIAL_STORE forces one explicitly ("redis" | "airtable" | "memory"); a forced store that is not
+ * configured is an ERROR rather than a silent downgrade to memory, because a dry-run store looks
+ * exactly like a working one until you notice nothing was ever published.
+ */
 function makeStore(injected) {
   if (injected) return { store: injected, kind: "injected" };
-  if (process.env.AIRTABLE_API_KEY && process.env.AIRTABLE_BASE_ID) {
+
+  const forced = String(process.env.SOCIAL_STORE || "").trim().toLowerCase();
+  const { redisConfigured } = require("./redis-store");
+  const hasRedis = redisConfigured();
+  const hasAirtable = Boolean(process.env.AIRTABLE_API_KEY && process.env.AIRTABLE_BASE_ID);
+
+  if (forced === "memory") return { store: new InMemoryStore(), kind: "memory" };
+  if (forced === "redis") {
+    if (!hasRedis) throw new Error("SOCIAL_STORE=redis but no UPSTASH_REDIS_REST_* / KV_REST_API_* credentials");
+    const { RedisStore } = require("./redis-store");
+    return { store: new RedisStore(), kind: "redis" };
+  }
+  if (forced === "airtable") {
+    if (!hasAirtable) throw new Error("SOCIAL_STORE=airtable but no AIRTABLE_API_KEY / AIRTABLE_BASE_ID");
+    const { AirtableStore } = require("./airtable-store");
+    return { store: new AirtableStore(), kind: "airtable" };
+  }
+  if (forced) throw new Error(`SOCIAL_STORE=${forced} is not a store (redis | airtable | memory)`);
+
+  if (hasRedis) {
+    const { RedisStore } = require("./redis-store");
+    return { store: new RedisStore(), kind: "redis" };
+  }
+  if (hasAirtable) {
     const { AirtableStore } = require("./airtable-store");
     return { store: new AirtableStore(), kind: "airtable" };
   }

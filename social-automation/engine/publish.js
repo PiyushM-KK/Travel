@@ -49,6 +49,9 @@ const SENSITIVE_ENV = [
   "WHATSAPP_TOKEN", "WHATSAPP_APP_SECRET", "WHATSAPP_VERIFY_TOKEN",
   "META_APP_SECRET", "META_PAGE_TOKEN", "META_PUBLISH_TEST_KEY", "META_OAUTH_STATE",
   "AIRTABLE_API_KEY", "ANTHROPIC_API_KEY", "CRON_SECRET",
+  // the queue store's bearer - full read/write over every row, and it rides in GitHub Actions
+  // env in a PUBLIC repo. Arbitrary shape, so value-mask only: no regex would catch it.
+  "UPSTASH_REDIS_REST_TOKEN", "KV_REST_API_TOKEN",
   "SMTP_PASS", "SMTP_URL", "GMAIL_APP_PASSWORD", "SECRETS_PASSPHRASE",
   "BLOB_READ_WRITE_TOKEN", // Vercel Blob RW token — arbitrary shape, value-mask only
   "GMAIL_OAUTH_PRIVATE_KEY", "GMAIL_OAUTH_KEY_JSON", "GMAIL_OAUTH_KEY_B64", // service-account key

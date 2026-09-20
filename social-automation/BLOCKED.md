@@ -30,36 +30,38 @@ read-verify-write with a race its own comment calls "narrowed, not closed"; the 
 was a second check. On Redis a claim is `SET NX PX` - one atomic operation - and the lock's expiry IS
 the stale window, so a runner that dies frees the row by the clock.
 
-### OWNER STEP - export the queue (5 minutes, no API involved)
-The API is exactly what is spent, but **the Airtable web interface does not use the API quota**, so the
-data can come out today rather than waiting for the reset.
-1. Open the Airtable base -> the **Queue** table -> view menu (top-left of the view bar) -> **Download CSV**.
-2. Send the file over, or drop it next to the repo. (The **Runs** table is optional - it is heartbeat
-   history, not state.)
-3. Optional but worth 30 seconds: before exporting, add a formula field `RECORD_ID()` named `Id`. With
-   it the rows keep their original ids, so an approval code already sitting in WhatsApp still matches.
-   Without it the rows get new ids and the queue should be re-sent after the move.
-
-### OWNER STEP 2 - create the database (2 minutes, a browser is required)
-Tried from the CLI on 2026-09-20 and it stops at *"Additional setup required. Opening browser"* -
-Upstash needs a console click that a headless session cannot make. Nothing was created by the attempt
-(checked: no resource, project env untouched).
+### OWNER STEP 1 - create the Redis database (2 minutes, a browser is unavoidable)
+**This is the only step that truly blocks the move.** Tried from the CLI twice on 2026-09-20, including
+against the team's existing Upstash installation, and both stop at *"Additional setup required. Opening
+browser"* - Upstash requires a console confirmation no headless session can give. Neither attempt created
+anything (verified: no resource, project env untouched).
 - Vercel dashboard -> the **skyline-social** project -> **Storage** -> Upstash for Redis -> create a
-  database (suggested name `skyline-queue`, region close to the Vercel functions) and connect it to
-  this project for **Production**. Vercel then injects `KV_REST_API_URL` / `KV_REST_API_TOKEN`
-  automatically - the store reads either that pair or the `UPSTASH_REDIS_REST_*` pair, so nothing
-  needs renaming.
-- A database of its own, NOT the firm's `buildwise-leads` one: a client's content queue and the firm's
-  own leads do not share a store.
-- **Connecting it does not switch anything by itself.** A Vercel deployment keeps the environment it
-  was built with, so the pipeline only moves to Redis on the next deploy - which is deliberately the
-  last step below, after the data is across.
+  database (suggested name `skyline-queue`, a region near the functions) and connect it to this project
+  for **Production**. Vercel injects `KV_REST_API_URL` / `KV_REST_API_TOKEN`; the store reads that pair
+  or the `UPSTASH_REDIS_REST_*` pair, so nothing needs renaming.
+- Its OWN database, not the firm's `buildwise-leads` one: a client's content queue and the firm's leads
+  do not share a store.
+- **Connecting it switches nothing by itself.** A Vercel deployment keeps the environment it was built
+  with, so the pipeline moves only on the next deploy - deliberately the last step below.
 
-### THEN (agent, in this order)
+### OWNER STEP 2 - the existing queue data (OPTIONAL, and it can wait)
+The history matters for two things: `results` (which platform already has the post - the do-not-post-twice
+record) and `imageSource.sceneMeta` (the do-not-repeat-a-destination history). Neither is needed to START
+posting again. Two ways to bring it over:
+- **Wait for the quota to reset, then one command, no export at all:**
+  `node automation/migrate-airtable-to-redis.js --from-airtable --write`. Rows keep their REAL record
+  ids, so an approval code already sitting in WhatsApp still matches. Confirmed still spent on
+  2026-09-20 (`PUBLIC_API_BILLING_LIMIT_EXCEEDED` on a single probe).
+- **Or export now:** Airtable -> Queue table -> view menu -> Download CSV (the web interface does not
+  spend quota), then `--file Queue.csv`. Add a `RECORD_ID()` column named `Id` first to keep the ids.
+  An agent cannot do this one: it needs the owner's Airtable login in a browser.
+
+### THEN (agent, in this order)### THEN (agent, in this order)
 1. `node automation/redis-selftest.js` - the contract against the REAL database, under a throwaway
    key prefix it cleans up. It must pass before anything is migrated.
-2. `node automation/migrate-airtable-to-redis.js --file Queue.csv` (dry run, prints a plan), then
-   `--write`. Read the plan: it says how many rows carry a recorded post id and a scene history, and
+2. The migration, when the data is available: `--from-airtable` (once the quota resets) or
+   `--file Queue.csv`. Dry run first - it prints a plan - then `--write`. The plan says how many rows
+   carry a recorded post id and a scene history, and
    refuses any row whose `results` or `imageSource` cell will not parse rather than importing it
    hollow. Re-running is safe - rows are recognised by record id, by dedup key, or by a fingerprint
    taken from their own content.

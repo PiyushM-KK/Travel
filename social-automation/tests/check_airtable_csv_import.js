@@ -6,7 +6,7 @@
 //   node tests/check_airtable_csv_import.js
 
 const path = require("path");
-const { parseCsv, rowFromCsv, importRows, fingerprint } = require(path.join(__dirname, "..", "automation", "migrate-airtable-to-redis.js"));
+const { parseCsv, rowFromCsv, importRows, rowsFromAirtable, fingerprint } = require(path.join(__dirname, "..", "automation", "migrate-airtable-to-redis.js"));
 const { InMemoryStore } = require(path.join(__dirname, "..", "automation", "store.js"));
 
 const fails = [];
@@ -159,6 +159,24 @@ function ok(cond, label) {
     ok(out.notes.filter((n) => /not one the pipeline knows/.test(n)).length === 2, "...and each one is named in the report");
     ok(out.created === 3, "...but they are still imported - losing a row silently would be worse");
     ok(/Published/.test(out.notes.join(" ")), "the offending value is shown, so it can be corrected at the source");
+  }
+
+  console.log("\n-- reading straight from Airtable, for when the API is answering again --");
+  {
+    const fake = {
+      listAll: async () => [
+        { id: "recA", client: "skyline", subject: "Goa", status: "published", results: { instagram: { id: "17x" } }, claimToken: "t", claimedAt: "2026-09-01T00:00:00.000Z" },
+      ],
+    };
+    const rows = await rowsFromAirtable(fake);
+    ok(rows.length === 1 && rows[0].id === "recA", "rows arrive with their REAL record ids - no fingerprint needed");
+    ok(rows[0].results.instagram.id === "17x", "the recorded post id comes across");
+    ok(!("claimToken" in rows[0]) && !("claimedAt" in rows[0]), "a stale claim from the old store is not carried over");
+
+    const spent = { listAll: async () => { throw new Error("airtable GET Queue: monthly API quota exhausted - PUBLIC_API_BILLING_LIMIT_EXCEEDED"); } };
+    let msg = "";
+    try { await rowsFromAirtable(spent); } catch (e) { msg = e.message; }
+    ok(/still refusing/.test(msg) && /--file/.test(msg), "a spent quota explains itself and names the CSV route, instead of a raw 429");
   }
 
   if (fails.length) {

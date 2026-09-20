@@ -13,11 +13,17 @@
  *     platform with a recorded id is never posted again.
  *   - anything mid-flight (pending_approval / approved) is work the owner has already looked at.
  *
- * In Airtable: open the Queue table -> the view menu -> "Download CSV". Same for Runs if you want
- * the heartbeat history (optional - it is observability, not state).
+ * TWO WAYS IN, and the second needs nobody to export anything:
+ *   --from-airtable  read the base through its API. Only possible once the monthly quota resets,
+ *                    but then it is one command, and every row keeps its REAL record id - so an
+ *                    approval code already sitting in WhatsApp still matches.
+ *   --file <csv>     a CSV exported from the Airtable web interface, which does NOT spend quota.
+ *                    This is the route while the API is shut. In Airtable: open the Queue table,
+ *                    view menu, "Download CSV".
  *
  *   node automation/migrate-airtable-to-redis.js --file Queue.csv              # dry run, prints a plan
  *   node automation/migrate-airtable-to-redis.js --file Queue.csv --write      # actually writes
+ *   node automation/migrate-airtable-to-redis.js --from-airtable --write       # no export needed
  *   node automation/migrate-airtable-to-redis.js --file Queue.csv --write --only published
  *
  * RE-RUNNING IS SAFE, and that took care. A standard Airtable export carries no record id, and only
@@ -124,6 +130,28 @@ function rowFromCsv(rec) {
 }
 
 /**
+ * Read the queue straight from Airtable. Used when the API is answering again; it hands back rows in
+ * the SAME shape rowFromCsv produces, so everything downstream is identical.
+ * Throws with a plain explanation when the month's allowance is still spent.
+ */
+async function rowsFromAirtable(store) {
+  let rows;
+  try {
+    rows = await store.listAll();
+  } catch (e) {
+    if (/quota|BILLING_LIMIT|429/i.test(String(e.message))) {
+      throw new Error("Airtable is still refusing every call (the monthly allowance). Use --file with a CSV exported from the web interface, which does not spend quota.");
+    }
+    throw e;
+  }
+  // listAll() already returns decoded rows with their record ids; drop the fields create() sets itself
+  return rows.map((r) => {
+    const { claimToken, claimedAt, ...rest } = r;
+    return rest;
+  });
+}
+
+/**
  * Write the rows into the store, skipping anything already there.
  * Returns { created, skipped, failed, reasons } - never throws on one bad row, because stopping a
  * migration half way is worse than reporting the rows that need a look.
@@ -171,16 +199,29 @@ async function main() {
     return i >= 0 ? (args[i + 1] && !args[i + 1].startsWith("--") ? args[i + 1] : true) : fallback;
   };
   const file = flag("file");
+  const fromAirtable = Boolean(flag("from-airtable", false));
   const write = Boolean(flag("write", false));
   const only = flag("only");
-  if (!file || file === true) {
-    console.log("usage: node automation/migrate-airtable-to-redis.js --file Queue.csv [--write] [--only <status>]");
+  if (!fromAirtable && (!file || file === true)) {
+    console.log("usage: node automation/migrate-airtable-to-redis.js (--from-airtable | --file Queue.csv) [--write] [--only <status>]");
     process.exit(2);
   }
 
-  const text = fs.readFileSync(path.resolve(String(file)), "utf8");
-  const records = parseCsv(text);
-  let rows = records.map(rowFromCsv).filter((r) => r.status || r.subject || r.caption);
+  let rows, records;
+  if (fromAirtable) {
+    if (!process.env.AIRTABLE_API_KEY || !process.env.AIRTABLE_BASE_ID) {
+      console.log("--from-airtable needs AIRTABLE_API_KEY + AIRTABLE_BASE_ID in the environment.");
+      process.exit(2);
+    }
+    const { AirtableStore } = require("./airtable-store");
+    rows = await rowsFromAirtable(new AirtableStore());
+    records = rows;
+    console.log(`Read ${rows.length} rows from the Airtable base (no export needed; record ids kept).`);
+  } else {
+    const text = fs.readFileSync(path.resolve(String(file)), "utf8");
+    records = parseCsv(text);
+    rows = records.map(rowFromCsv).filter((r) => r.status || r.subject || r.caption);
+  }
   if (only && only !== true) rows = rows.filter((r) => r.status === only);
 
   // oldest first, so the queue's order in Redis matches the order things actually happened
@@ -216,4 +257,4 @@ async function main() {
 
 if (require.main === module) main().catch((e) => { console.error(redact(e.message)); process.exit(1); });
 
-module.exports = { parseCsv, rowFromCsv, importRows, fingerprint, COLUMNS };
+module.exports = { parseCsv, rowFromCsv, importRows, rowsFromAirtable, fingerprint, COLUMNS };

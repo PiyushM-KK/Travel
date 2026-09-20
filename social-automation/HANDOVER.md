@@ -68,14 +68,15 @@ the daily sweep.
 
 ### Left to do - TWO OWNER CLICKS, then three commands (full runbook: BLOCKED.md -> B-AIRTABLE-QUOTA)
 
-1. **Owner: export the Queue as CSV** from the Airtable web interface (the API is what ran out; the
-   browser does not touch the quota). Adding a `RECORD_ID()` column named `Id` first keeps the
-   original row ids, so approval codes already sitting in WhatsApp still match.
-2. **Owner: create the Redis database** in the Vercel dashboard (skyline-social -> Storage -> Upstash
-   for Redis). The CLI cannot: it stops at "Additional setup required. Opening browser". The attempt
-   created nothing.
-3. Agent: `node automation/redis-selftest.js`, then the migration (dry run, then `--write`), then
-   `bash sync-gh-secrets.sh`, then redeploy - the redeploy IS the switch.
+1. **Owner: create the Redis database** in the Vercel dashboard (skyline-social -> Storage -> Upstash
+   for Redis). This is the ONLY hard blocker. Tried twice from the CLI on 2026-09-20, including against
+   the team's existing installation: both stop at "Additional setup required. Opening browser", and
+   neither created anything.
+2. Agent: `node automation/redis-selftest.js`, then `bash sync-gh-secrets.sh`, then redeploy - the
+   redeploy IS the switch. Posting resumes at that point, with or without the old rows.
+3. The history can follow later and needs no export: `--from-airtable --write` once the monthly quota
+   resets (rows keep their real record ids). A CSV export is only the impatient route, and it is the
+   one step an agent cannot do - it needs the owner's Airtable login in a browser.
 
 **Rollback at any point:** `SOCIAL_STORE=airtable` on the project, or remove the Upstash variables.
 No code change, no deploy.

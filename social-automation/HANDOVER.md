@@ -66,7 +66,7 @@ the daily sweep.
   `sourceMessageId` length-bounded before it becomes part of a key, and the two new scripts redact
   before printing like every other entry point here.
 
-### Left to do - TWO OWNER CLICKS, then three commands (full runbook: BLOCKED.md -> B-AIRTABLE-QUOTA)
+### Left to do - ONE OWNER CLICK, then three commands (full runbook: BLOCKED.md -> B-AIRTABLE-QUOTA)
 
 1. **Owner: create the Redis database** in the Vercel dashboard (skyline-social -> Storage -> Upstash
    for Redis). This is the ONLY hard blocker. Tried twice from the CLI on 2026-09-20, including against
@@ -91,6 +91,22 @@ Redis command per row, and the dashboard remains the heaviest reader. The differ
 the failure mode - Redis limits reset DAILY and over-use is billed in cents, where Airtable's were
 monthly and stopped the business for a fortnight. If the published history ever passes a few thousand
 rows, give the `/ops` trend chart its own counter instead of scanning rows.
+
+### Session end 2026-09-22 - state of this repo
+
+- **2 commits ahead of `origin/main`, deliberately unpushed** (`555b274`, `9dcefb8`). Pushing `main`
+  auto-deploys, and the store switch should follow the data, not precede it.
+- **559 offline checks green** (`npm test`), including the new `check_redis_store.js` parity suite and
+  `check_airtable_csv_import.js`, and a Redis case added to `check_claim_atomicity.js`.
+- **The pipeline is still down** - Airtable answered `PUBLIC_API_BILLING_LIMIT_EXCEEDED` again on
+  2026-09-20 and nothing has posted since 2026-09-18. That is the reason for all of the above.
+- **The only blocker is one browser click**: create the Upstash database on the `skyline-social` project.
+  Tried twice from the CLI (including against the team's existing installation); both stop at "Additional
+  setup required. Opening browser" and create nothing.
+- The migration no longer needs a CSV export at all once the quota resets: `--from-airtable --write`
+  reads the base directly and keeps every row's real record id.
+- Known gap, pre-existing and identical in all three stores: `update()` does not check the claim token.
+  Not introduced here, no reproduction against today's config - a conscious decision for later.
 
 ## CHECKPOINT 2026-09-17 - AIRTABLE MONTHLY API QUOTA EXHAUSTED: every automation is paused (owner: B-AIRTABLE-QUOTA)
 

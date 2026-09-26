@@ -1,6 +1,15 @@
 # Skyline Travel Planner — Technical Handover
 
-_Last updated: 2026-08-05. This supersedes the original `README-HANDOFF.md` for current state, deployment, and how-to-update instructions._
+_Last updated: 2026-09-26. This supersedes the original `README-HANDOFF.md` for current state, deployment, and how-to-update instructions._
+
+---
+
+**2026-09-26 - Diwali in Bali:** `diwali-bali.html` + `diwali-promo.js` (card on `index.html` and
+`International.dc.html`, expires 2026-11-09 IST). Media self-hosted in `images/diwali-bali/` (videos re-encoded to
+H.264; Higgsfield URLs gone), owner's Uluwatu + villa images added, chat worker knows the offer (version
+`anthropic-5`; **paste it into Cloudflare to deploy**). Detail: `MEMORY.md`, 2026-09-26 entry.
+Known, not fixed: the shared site header (`.cbtn`, on 5 `.dc.html` pages) overflows a 390px phone, so
+`International.dc.html` is 509px wide there and the promo card sits below the visible area until the visitor zooms out.
 
 ---
 

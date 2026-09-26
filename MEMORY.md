@@ -93,3 +93,30 @@ automation, grounded in Skyline's real packages and fact-checked. Read
   automation framework (queue/approval/scheduler/reporting) to be vendored here later.
 - This folder was committed on branch **`add-social-automation`** (not yet merged/pushed).
 - Kept separate from the FullFirm repo on purpose — the two projects are not merged.
+
+## 2026-09-26 — Diwali in Bali offer page (`diwali-bali.html`) + site promo card
+
+- **The offer:** "Diwali in Bali", 7N/8D, departs Tue 3 Nov 2026, Singapore Airlines ex-Ahmedabad, from ₹1,15,000
+  per person. 4N Kuta (Fairfield by Marriott / Nagraa / Legian or similar), 1N Ubud (Mara River Safari Lodge or
+  similar - NOT a Marriott property), 2N Jimbaran (Royal Tulip or similar, 1-BR private pool villa). Diwali 2026 is
+  Sun 8 Nov = day 6. Inclusions are exactly the six on the page - never invent more.
+- **The page** is standalone HTML (not a `.dc.html` component, no `support.js`): dark editorial, marigold `#FFA630`
+  (no green/lime anywhere), toran, rangoli, diya cursor (off on touch), `LiveScene` canvas backgrounds, a pinned
+  6-chapter story, Stays grid, "Bali in motion" videos, Diwali-nights gallery, FAQ. The enquiry form posts to
+  Formspree **`xrewyvoz`** (the same endpoint as `Customize.dc.html`), with a WhatsApp +91 88660 50291 fallback.
+- **`diwali-promo.js`** is the floating card on `index.html` and `International.dc.html`. It shows no price and
+  hides itself from **2026-11-09 00:00 IST**. Remove the two `<script src="diwali-promo.js">` tags after Diwali if you
+  want the code clean.
+- **Media lives in `images/diwali-bali/`**, self-hosted since 2026-09-26 (no Higgsfield/CloudFront URL is left on
+  the page). The AI images (Higgsfield) are 2560px JPEGs; the three AI videos were HEVC 10-bit as delivered, which
+  most browsers cannot play, and are re-encoded to H.264 8-bit (`-pix_fmt yuv420p`, 1.7-2.6 MB each). Every AI
+  image and video is labelled "Illustrative", and the fine print says so. The old Mac `fetch-images.sh` was
+  deleted: the files are in git now, and re-running it would have brought back the unplayable HEVC videos.
+- **Owner's photos (2026-09-26):** `uluwatu-cliff.jpg` (story chapter 4) and `uluwatu-gate.jpg` (the Uluwatu tile)
+  are Canva AI enhancements of two photographs by Bali Star Island; the fine print credits them. `villa.jpg` (the Jimbaran
+  tile) is Canva AI; its baked-in made-up name "Serene Sunset Villa" was cropped off because the stay is "Royal
+  Tulip or similar".
+- **Chat assistant** (`server/anthropic-chat-worker.js`, version `anthropic-5`): knows the offer until departure,
+  then says it has left, then from 2026-11-09 says nothing about it - the dates retire it, nothing to remove. Git
+  does NOT deploy it: paste the file into Cloudflare -> Workers -> `hello-world` -> Edit code -> Deploy, then GET
+  the worker URL and expect `"version":"anthropic-5"`.

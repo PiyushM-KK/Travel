@@ -64,8 +64,8 @@ p{margin:0}
 .wrap{padding-inline:var(--gut)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 
-/* grain */
-body.grain::after{content:"";position:fixed;inset:-50%;pointer-events:none;z-index:90;background-image:var(--noise);opacity:.07;animation:grain 1.2s steps(6) infinite}
+/* grain (halved 2026-09-26: at .07 the speckle fought the photos) */
+body.grain::after{content:"";position:fixed;inset:-50%;pointer-events:none;z-index:90;background-image:var(--noise);opacity:.035;animation:grain 1.2s steps(6) infinite}
 @keyframes grain{0%{transform:translate(0,0)}20%{transform:translate(-3%,2%)}40%{transform:translate(2%,-4%)}60%{transform:translate(-4%,-1%)}80%{transform:translate(3%,3%)}100%{transform:translate(0,0)}}
 
 /* progress */
@@ -678,12 +678,13 @@ function LiveScene(cv, scenes, opts){
 }
 LiveScene.prototype.resize=function(){
   var r=this.cv.getBoundingClientRect(); if(!r.width) return;
-  var d=Math.min(window.devicePixelRatio||1,1.5), w=r.width*d, h=r.height*d, cap=this.opts.cap||(coarse?9e5:1.8e6);
+  var d=Math.min(window.devicePixelRatio||1,2), w=r.width*d, h=r.height*d, cap=(this.opts.cap||(coarse?2.2e6:4.2e6))*(this.q||1);
   if (w*h>cap){ var k=Math.sqrt(cap/(w*h)); w*=k; h*=k; }
   w=Math.round(w); h=Math.round(h);
   if (w===this.W && h===this.H) return;
   this.W=this.cv.width=this.fg.width=this.tmp.width=w; this.H=this.cv.height=this.fg.height=this.tmp.height=h;
   this.px=w/r.width; // device px per css px
+  this.fits=null; // pre-shrunk copies are per canvas size
   this.seed();
   if (!this.running) this.frame(0);
 };
@@ -696,9 +697,16 @@ LiveScene.prototype.should=function(){ return this.visible && !document.hidden &
 LiveScene.prototype.kick=function(){
   var self=this;
   if (this.should() && !this.running){ this.running=true; var last=performance.now();
-    var loop=function(now){ if(!self.should()){ self.running=false; return; } var dt=Math.min(.05,(now-last)/1000); last=now; self.frame(dt); requestAnimationFrame(loop); };
+    var loop=function(now){ if(!self.should()){ self.running=false; return; }
+      if (self.opts.every && (self.tick=(self.tick||0)+1)%self.opts.every){ requestAnimationFrame(loop); return; } // draw every Nth frame
+      var dt=Math.min(.05,(now-last)/1000); last=now; self.frame(dt); self.pace(dt); requestAnimationFrame(loop); };
     requestAnimationFrame(loop);
   } else if (!this.running && this.imgs[0]) { this.fade=1; this.frame(0); }
+};
+/* sharp by default; a computer that cannot keep ~28 fps (for ~2 s) gets a lower resolution, down to 40% */
+LiveScene.prototype.pace=function(dt){
+  this.ema=this.ema==null?dt:this.ema*.95+dt*.05; this.nf=(this.nf||0)+1;
+  if (this.nf>120 && this.ema>.036 && (this.q||1)>.4){ this.q=(this.q||1)*.7; this.nf=0; this.ema=null; this.W=0; this.resize(); }
 };
 LiveScene.prototype.camera=function(s){
   var T=this.t, z, px, py;
@@ -715,6 +723,19 @@ LiveScene.prototype.cover=function(c,img,cam,depth,s){
   dx=Math.min(0,Math.max(W-dw,dx)); dy=Math.min(0,Math.max(H-dh,dy));
   c.drawImage(img,dx,dy,dw,dh);
 };
+/* The photo, shrunk ONCE with high-quality resampling to about the size it is drawn at, so each frame is a
+   near 1:1 draw: sharp, without paying for high-quality resampling 60 times a second (that halved the frame
+   rate on a laptop GPU). Only when the photo is much bigger than the canvas; otherwise the original is used. */
+LiveScene.prototype.fit=function(img){
+  var iw=img.naturalWidth, ih=img.naturalHeight; if(!iw) return img;
+  var k=Math.max(this.W/iw,this.H/ih)*1.25; // 1.25 covers the drone zoom (up to ~1.2x) so it never upscales the copy
+  if (k>=.8) return img;
+  this.fits=this.fits||{}; var key=img.src, c=this.fits[key]; if (c) return c;
+  c=document.createElement('canvas'); c.width=Math.round(iw*k); c.height=Math.round(ih*k);
+  var x=c.getContext('2d'); x.imageSmoothingEnabled=true; x.imageSmoothingQuality='high'; x.drawImage(img,0,0,c.width,c.height);
+  c.naturalWidth=c.width; c.naturalHeight=c.height; // cover() reads these
+  return this.fits[key]=c;
+};
 LiveScene.prototype.base=function(idx,alpha){
   var s=this.scenes[idx], img=this.imgs[idx]; if(!img) return false;
   var ctx=this.ctx;
@@ -728,7 +749,7 @@ LiveScene.prototype.base=function(idx,alpha){
     for (var i=0;i<70;i++){ var fl=.55+.45*Math.sin(this.t*2.3+i*1.7); ctx.fillStyle='rgba(255,180,90,'+(.55*fl*alpha)+')'; ctx.fillRect((i*37.7%100)/100*W, hz-(2+(i%4))*d, 1.6*d, 1.6*d); }
     ctx.globalCompositeOperation='source-over'; ctx.globalAlpha=1; return true;
   }
-  var cam=this.camera(s);
+  var cam=this.camera(s); img=this.fit(img);
   ctx.globalAlpha=alpha; this.cover(ctx,img,cam,.7,s);
   if (s.horizon!=null && prefs.motion){
     var f=this.fgc, H=this.H, hy=H*s.horizon;
@@ -836,14 +857,8 @@ LiveScene.prototype.frame=function(dt){
   }
   /* colour grade */
   if (s.grade){ ctx.globalCompositeOperation='soft-light'; var g4=ctx.createLinearGradient(0,0,0,H); g4.addColorStop(0,s.grade[0]); g4.addColorStop(1,s.grade[1]); ctx.fillStyle=g4; ctx.fillRect(0,0,W,H); ctx.globalCompositeOperation='source-over'; }
-  /* lens: chromatic fringe + drops */
+  /* lens: drops (the red/cyan fringe that used to double every edge is gone - owner wanted clear images) */
   if (prefs.lens && !this.opts.noLens){
-    var t=this.tmpc, ab=.0035;
-    t.globalCompositeOperation='copy'; t.drawImage(this.cv,-W*ab/2,-H*ab/2,W*(1+ab),H*(1+ab));
-    t.globalCompositeOperation='multiply'; t.fillStyle='#f00'; t.fillRect(0,0,W,H);
-    ctx.globalCompositeOperation='multiply'; ctx.fillStyle='#0ff'; ctx.fillRect(0,0,W,H);
-    ctx.globalCompositeOperation='lighter'; ctx.drawImage(this.tmp,0,0);
-    ctx.globalCompositeOperation='source-over';
     if (live && s.drops!==false){ this.dropTimer-=dt; if(this.dropTimer<0 && this.drops.length<4){ this.dropTimer=rand(3,7); this.drops.push({x:rand(.08,.92)*W,y:rand(.05,.6)*H,r:rand(7,20)*d,l:0,L:rand(8,14),v:0}); } }
     for (var m=this.drops.length-1;m>=0;m--){ var D=this.drops[m];
       if (live){ D.l+=dt; if(Math.random()<.01) D.v=rand(6,26)*d; D.v*=.97; D.y+=D.v*dt; }
@@ -941,7 +956,7 @@ document.querySelectorAll('#workSrc .tile .ph, #nights .tile .ph').forEach(funct
   var img=ph.querySelector('img'), fx=TILE_FX[img.dataset.key]; if(!fx) return;
   var c=document.createElement('canvas'); c.className='live'; c.setAttribute('aria-hidden','true'); ph.appendChild(c);
   var cfg={}; for (var k in fx) cfg[k]=fx[k]; delete cfg.horizon; cfg.drops=false; if(cfg.petals) cfg.petals=10;
-  tileScenes.push(new LiveScene(c,[cfg],{noLens:true,cap:6e5}));
+  tileScenes.push(new LiveScene(c,[cfg],{noLens:true,cap:1.2e6,every:2})); // tiles: sharper than before, at 30 fps (6-9 run at once)
 });
 
 /* ---------- scroll: progress, pinned story ---------- */

@@ -52,47 +52,66 @@ const DIWALI_INCLUDED_NOTE = '\n\n(To be clear: this package includes return fli
 
 // Replies come in English, Hindi or Gujarati, so every check below knows all three. (\b is ASCII-only in JS, so the
 // Devanagari/Gujarati words sit outside the \b groups.)
-const SENTENCES = /(?<=[.!?।])\s+|\n+/;
+// A sentence ends at . ! ? or the danda followed by space, or a newline - but "Rs. 92,000" is not a sentence end.
+const SENTENCE_BREAK = /(?<=[.!?।])(?<!\b[Rr][Ss]\.)\s+|\n+/g;
+const RUPEE = /(?:₹|\bRs\.?|\bINR)\s*([\d,]+(?:\.\d+)?)\s*(lakhs?|lacs?|k\b)?/gi;
+const OFFER_ITEMS = /\b(lunch(es)?|dinners?|meals?|visas?|insurance)\b|लंच|डिनर|खाना|भोजन|वीज़ा|वीजा|बीमा|લંચ|ડિનર|ભોજન|જમવાનું|વિઝા|વીમો/i;
+const INCLUDED = /\b(includ(e|es|ed|ing)|covered|free)\b|शामिल|सम्मिलित|इनक्लूड|સામેલ|શામેલ|સમાવેશ|ઇન્ક્લુડ/i;
 const OFFER_WORDS = /bali|diwali|deepavali|बाली|दिवाली|दीपावली|બાલી|દિવાળી|દીવાળી/gi;
 const OTHER_PLACES = /rajasthan|himachal|kashmir|kerala|goa|sikkim|mysuru|mysore|coorg|ooty|mathura|vrindavan|agra|gujarat|uttar pradesh|uttarakhand|thailand|maldives|nainital|mussoorie|corbett|darjeeling|gangtok|shimla|manali|kullu|spiti|शिमला|मनाली|गोवा|केरल|कश्मीर|थाईलैंड|मालदीव|શિમલા|મનાલી|ગોવા|કેરળ|કાશ્મીર|થાઈલેન્ડ|માલદીવ/gi;
 const NEGATION = /\b(not|no|never|excluded|extra|separate(ly)?|additional|own|except|cannot)\b|n't|नहीं|अलग|अतिरिक्त|નથી|નહીં|અલગ|વધારાન/i;
 const lastIndex = (re, s) => { let i = -1; for (const m of s.matchAll(re)) i = m.index; return i; };
-// A figure is the price OF the last place named before it: "Diwali in Bali, 20% off, Rs 92,000" is about Bali;
-// "Thinking about Diwali in Bali, our Shimla-Manali package from ₹10,999" is about Manali.
-const aboutTheOffer = (subject) => { const o = lastIndex(OFFER_WORDS, subject); return o >= 0 && o > lastIndex(OTHER_PLACES, subject); };
+const firstIndex = (re, s) => { for (const m of s.matchAll(re)) return m.index; return -1; };
+
+function sentences(text) {
+  const out = []; let start = 0;
+  for (const m of text.matchAll(SENTENCE_BREAK)) { out.push({ start, end: m.index }); start = m.index + m[0].length; }
+  out.push({ start, end: text.length });
+  return out;
+}
+
+// Is this spot in the reply about the offer? It is about the last place named before it anywhere in the reply
+// ("Diwali in Bali is here! Only Rs 92,000" - Bali; "...Bali. Our Kerala houseboat includes lunch" - Kerala); when
+// nothing is named before it, the first place named later in its own sentence ("Only Rs 92,000 for Diwali in Bali").
+function aboutTheOffer(text, at, sentenceEnd) {
+  const before = text.slice(0, at);
+  const o = lastIndex(OFFER_WORDS, before), p = lastIndex(OTHER_PLACES, before);
+  if (o >= 0 || p >= 0) return o > p;
+  const after = text.slice(at, sentenceEnd);
+  const o2 = firstIndex(OFFER_WORDS, after), p2 = firstIndex(OTHER_PLACES, after);
+  return o2 >= 0 && (p2 < 0 || o2 < p2);
+}
 const INDIC_BOOKING_CLAIM = /(बुकिंग|सीट|टिकट|બુકિંગ|સીટ|ટિકિટ)[^.।!?\n]{0,40}(कन्फर्म|पक्की|पक्का|रिज़र्व|रिजर्व|होल्ड|કન્ફર્મ|પાકી|પાકું|રિઝર્વ|હોલ્ડ)|(कन्फर्म|रिज़र्व|रिजर्व|होल्ड)\s*(कर\s*(दी|दिया|दिए)|हो\s*(गई|गया))|(કન્ફર્મ|રિઝર્વ|હોલ્ડ)\s*(કરી|થઈ)/;
 
-// Each rupee figure with the words just before it (back to the sentence start or the previous figure) - that is
-// what the figure is the price OF, so a Manali price next to the Diwali offer is not mistaken for a Bali price.
-function pricedFigures(text) {
-  const out = [];
-  for (const sentence of text.split(SENTENCES)) {
-    let from = 0;
-    for (const m of sentence.matchAll(/(?:₹|\bRs\.?|\bINR)\s*([\d,]+(?:\.\d+)?)\s*(lakhs?|lacs?|k\b)?/gi)) {
-      let n = Number(m[1].replace(/,/g, ''));
-      const unit = (m[2] || '').toLowerCase();
-      if (unit.startsWith('la')) n = Math.round(n * 100000); else if (unit === 'k') n = Math.round(n * 1000); // 1.15 * 1e5 is 114999.99...
-      if (n > 0) out.push({ n, subject: sentence.slice(from, m.index) });
-      from = m.index + m[0].length;
-    }
-  }
-  return out;
+function rupees(m) {
+  let n = Number(m[1].replace(/,/g, ''));
+  const unit = (m[2] || '').toLowerCase();
+  if (unit.startsWith('la')) n = Math.round(n * 100000); else if (unit === 'k') n = Math.round(n * 1000); // 1.15 * 1e5 is 114999.99...
+  return n;
 }
 
 function diwaliBackstops(reply, now) {
   if (offerState(now) === 'none') return reply;
-  if (pricedFigures(reply).some((f) => f.n < DIWALI_FROM_INR && aboutTheOffer(f.subject))) reply += DIWALI_PRICE_NOTE;
-  if (lastIndex(OFFER_WORDS, reply) < 0) return reply;
-  const claimsExtra = reply.split(SENTENCES).some((s) =>
-    /\b(lunch(es)?|dinners?|meals?|visas?|insurance)\b|लंच|डिनर|खाना|भोजन|वीज़ा|वीजा|बीमा|લંચ|ડિનર|ભોજન|જમવાનું|વિઝા|વીમો/i.test(s) &&
-    /\b(includ(e|es|ed|ing)|covered|free)\b|शामिल|सम्मिलित|इनक्लूड|સામેલ|શામેલ|સમાવેશ|ઇન્ક્લુડ/i.test(s) &&
-    !NEGATION.test(s));
-  if (claimsExtra) reply += DIWALI_INCLUDED_NOTE;
+  let lowPrice = false, extra = false;
+  for (const { start, end } of sentences(reply)) {
+    const s = reply.slice(start, end);
+    for (const m of s.matchAll(RUPEE)) {
+      const n = rupees(m);
+      if (n > 0 && n < DIWALI_FROM_INR && aboutTheOffer(reply, start + m.index, end)) lowPrice = true;
+    }
+    const item = s.search(OFFER_ITEMS);
+    if (item >= 0 && INCLUDED.test(s) && !NEGATION.test(s) && aboutTheOffer(reply, start + item, end)) extra = true;
+  }
+  if (lowPrice) reply += DIWALI_PRICE_NOTE;
+  if (extra) reply += DIWALI_INCLUDED_NOTE;
   return reply;
 }
 
 // Hindi/Gujarati "booking confirmed / seat reserved" claims (the English ones are caught in the handler).
-const claimsIndicBooking = (reply) => reply.split(SENTENCES).some((s) => INDIC_BOOKING_CLAIM.test(s) && !NEGATION.test(s));
+const claimsIndicBooking = (reply) => sentences(reply).some(({ start, end }) => {
+  const s = reply.slice(start, end);
+  return INDIC_BOOKING_CLAIM.test(s) && !NEGATION.test(s);
+});
 
 // Only allow the website's own origins to use this endpoint (limits casual abuse
 // of your Anthropic credits). Add your custom domain here once it's live.

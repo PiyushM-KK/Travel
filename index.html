@@ -60,7 +60,23 @@
     /* International cards: 3-across on desktop, full-width and prominent on phones */
     .sky-intl-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; max-width: 680px }
     @media (max-width: 768px) { .sky-intl-grid { grid-template-columns: 1fr; max-width: 100% } }
-  </style>
+      /* Phone header (2026-09-26): at phone width nothing in the header may be wider than the screen - an
+       overflowing header widened the whole page, so it scrolled sideways and fixed buttons sat off-screen.
+       Classes, not inline @media (the DC runtime ignores those). */
+    @media (max-width: 600px) {
+      .skh-row { padding: 10px 14px !important; gap: 10px !important }
+      .skh-logo { height: 36px !important }
+      image-slot#brand-logo { width: 150px !important; height: 36px !important }
+      .skh-brand { padding: 4px 10px !important }
+      .skh-home { display: none !important }
+      .skh-wrap { flex-wrap: wrap !important; row-gap: 8px !important }
+      .skh-strip { order: 3; flex: 1 0 100% !important; flex-wrap: nowrap !important; overflow-x: auto; margin-left: 0 !important; padding-bottom: 2px; white-space: nowrap; scrollbar-width: none }
+      .skh-strip::-webkit-scrollbar { display: none }
+    }
+    @media (max-width: 480px) {
+      .skh-wa-label { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap }  /* icon only on screen (the label made it collide); still read aloud */
+    }
+</style>
   <meta name="ext-resource-dependency" content="images/dest-rajasthan.jpg">
   <meta name="ext-resource-dependency" content="images/dest-himachal.avif">
   <meta name="ext-resource-dependency" content="images/dest-kashmir.webp">
@@ -92,10 +108,10 @@
 
 <!-- ===== HEADER ===== -->
 <header style="position: sticky; top: 0; z-index: 1000; background-image: linear-gradient(rgba(255,255,255,.80), rgba(255,255,255,.88)), url('images/header-banner.jpg'); background-size: cover; background-position: center; backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,.6); box-shadow: 0 2px 12px rgba(10,95,215,.12)">
-  <div style="max-width: 1280px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 32px">
+  <div class="skh-row" style="max-width: 1280px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 32px">
     <!-- Logo -->
-    <a href="index.html" style="display: flex; align-items: center; flex-shrink: 0; background: rgba(255,255,255,.72); border-radius: 16px; padding: 4px 12px; box-shadow: 0 2px 10px rgba(10,95,215,.08)">
-      <img src="images/logo.jpeg" alt="Skyline Travel Planner" style="height: 48px; width: auto; display: block; mix-blend-mode: multiply" />
+    <a class="skh-brand" href="index.html" style="display: flex; align-items: center; flex-shrink: 0; background: rgba(255,255,255,.72); border-radius: 16px; padding: 4px 12px; box-shadow: 0 2px 10px rgba(10,95,215,.08)">
+      <img class="skh-logo" src="images/logo.jpeg" alt="Skyline Travel Planner" style="height: 48px; width: auto; display: block; mix-blend-mode: multiply" />
     </a>
     
     <!-- Main Menu (desktop) -->

@@ -47,6 +47,39 @@
   .fin:focus{border-color:#0A84D6 !important}
   .sug:hover{background:#EAF5FD !important}
   .sug:last-child{border-bottom:0 !important}
+    /* Phone header (2026-09-26): at phone width nothing in the header may be wider than the screen - an
+       overflowing header widened the whole page, so it scrolled sideways and fixed buttons sat off-screen.
+       Classes, not inline @media (the DC runtime ignores those). */
+    @media (max-width: 600px) {
+      .skh-row { padding: 10px 14px !important; gap: 10px !important }
+      .skh-logo { height: 36px !important }
+      image-slot#brand-logo { width: 150px !important; height: 36px !important }
+      .skh-brand { padding: 4px 10px !important }
+      .skh-home { display: none !important }
+      .skh-wrap { flex-wrap: wrap !important; row-gap: 8px !important }
+      .skh-strip { order: 3; flex: 1 0 100% !important; flex-wrap: nowrap !important; overflow-x: auto; margin-left: 0 !important; padding-bottom: 2px; white-space: nowrap; scrollbar-width: none }
+      .skh-strip::-webkit-scrollbar { display: none }
+    }
+    @media (max-width: 480px) {
+      .skh-wa-label { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap }  /* icon only on screen (the label made it collide); still read aloud */
+    }
+    @media (max-width: 900px) {
+      .skc-2col { grid-template-columns: minmax(0,1fr) !important }  /* two form columns do not fit a phone or a tablet */
+      .skc-2col > * { grid-column: auto !important; min-width: 0 }
+    }
+    /* Phone form (2026-09-26): the 260px step list beside the form cannot fit a phone - stack them, and make the
+       step list a swipeable row above the form. */
+    @media (max-width: 760px) {
+      .skc-hero { padding: 28px 18px 32px !important }
+      .skc-grid { grid-template-columns: 1fr !important; padding: 20px 14px 56px !important; gap: 16px !important }
+      .skc-grid > * { min-width: 0 }
+      .skc-rail { position: static !important }
+      .skc-steps { flex-direction: row !important; overflow-x: auto; gap: 6px !important; padding-bottom: 2px; scrollbar-width: none }
+      .skc-steps::-webkit-scrollbar { display: none }
+      .skc-steps button { flex-shrink: 0; white-space: nowrap }
+      .skc-panel { padding: 22px 18px !important; min-height: 0 !important }
+      .fin { min-width: 0; width: 100% }
+    }
 </style>
 </helmet>
 
@@ -57,7 +90,7 @@
   </div>
 
   <header style="background:#fff;border-bottom:1px solid #E4ECF3">
-    <div style="max-width:1080px;margin:0 auto;padding:14px 28px;display:flex;align-items:center;gap:20px">
+    <div class="skh-row skh-wrap" style="max-width:1080px;margin:0 auto;padding:14px 28px;display:flex;align-items:center;gap:20px">
       <a href="index.html" style="display:flex;align-items:center;gap:11px;flex-shrink:0">
         <image-slot id="brand-logo" src="images/logo.png" style="width:200px;height:48px;display:block" shape="rounded" radius="8" fit="contain" position="0% 50%" placeholder="Drop your logo"></image-slot>
       </a>
@@ -86,7 +119,7 @@
   <sc-if value="{{ formView }}" hint-placeholder-val="{{ true }}">
 
   <!-- vibrant hero -->
-  <section style="background:linear-gradient(135deg,#0A84D6 0%,#2AA7E6 50%,#34C3F0 100%);color:#fff;padding:40px 28px 46px;position:relative;overflow:hidden">
+  <section class="skc-hero" style="background:linear-gradient(135deg,#0A84D6 0%,#2AA7E6 50%,#34C3F0 100%);color:#fff;padding:40px 28px 46px;position:relative;overflow:hidden">
     <div style="max-width:1080px;margin:0 auto;position:relative;z-index:1">
       <span style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.32);padding:6px 14px;border-radius:999px;font-size:12px;font-weight:800;letter-spacing:.03em" data-en="✨ Free custom itinerary & quote" data-hi="✨ मुफ़्त कस्टम यात्रा-योजना और कोटेशन" data-gu="✨ મફત કસ્ટમ પ્રવાસ યોજના અને ભાવપત્રક">✨ Free custom itinerary &amp; quote</span>
       <h1 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:42px;line-height:1.05;letter-spacing:-.02em;margin:16px 0 8px;text-shadow:0 2px 20px rgba(0,0,0,.15)" data-en="Build Your Trip" data-hi="अपनी यात्रा बनाएं" data-gu="તમારી સફર બનાવો">Build Your Trip</h1>
@@ -96,12 +129,12 @@
     <div style="position:absolute;right:120px;bottom:-70px;width:160px;height:160px;background:rgba(255,255,255,.09);border-radius:50%"></div>
   </section>
 
-  <section style="max-width:1080px;margin:0 auto;padding:34px 28px 70px;display:grid;grid-template-columns:260px 1fr;gap:34px;align-items:start">
+  <section class="skc-grid" style="max-width:1080px;margin:0 auto;padding:34px 28px 70px;display:grid;grid-template-columns:260px 1fr;gap:34px;align-items:start">
 
     <!-- step rail -->
-    <aside style="position:sticky;top:24px">
+    <aside class="skc-rail" style="position:sticky;top:24px">
       <div style="font-size:12px;font-weight:800;color:#0A84D6;letter-spacing:.06em;text-transform:uppercase;margin-bottom:16px" data-en="Your progress" data-hi="आपकी प्रगति" data-gu="તમારી પ્રગતિ">Your progress</div>
-      <div style="display:flex;flex-direction:column;gap:2px">
+      <div class="skc-steps" style="display:flex;flex-direction:column;gap:2px">
         <sc-for list="{{ nav }}" as="s" hint-placeholder-count="10">
           <button onClick="{{ s.go }}" style="display:flex;align-items:center;gap:11px;text-align:left;cursor:pointer;border:0;background:{{ s.bg }};font-family:inherit;padding:9px 12px;border-radius:11px">
             <span style="flex-shrink:0;width:24px;height:24px;border-radius:50%;background:{{ s.dotBg }};color:{{ s.dotC }};font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center">{{ s.mark }}</span>
@@ -112,7 +145,7 @@
     </aside>
 
     <!-- step panel -->
-    <div style="background:#fff;border:1px solid #E4ECF3;border-radius:22px;padding:30px 32px;box-shadow:0 26px 56px -40px rgba(7,59,102,.5);min-height:440px;display:flex;flex-direction:column">
+    <div class="skc-panel" style="background:#fff;border:1px solid #E4ECF3;border-radius:22px;padding:30px 32px;box-shadow:0 26px 56px -40px rgba(7,59,102,.5);min-height:440px;display:flex;flex-direction:column">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
         <span style="font-size:12px;font-weight:800;color:#0A84D6;letter-spacing:.05em;text-transform:uppercase">{{ cur.kicker }}</span>
         <span style="font-size:12px;font-weight:700;color:#9AB3C7">{{ cur.counter }}</span>
@@ -138,7 +171,7 @@
 
         <!-- departure -->
         <sc-if value="{{ cur.isDeparture }}" hint-placeholder-val="{{ false }}">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:520px">
+          <div class="skc-2col" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;max-width:520px">
             <label style="display:flex;flex-direction:column;gap:7px;font-size:13px;font-weight:700;color:#3A4D5E;grid-column:span 2;position:relative"><span data-en="Departure city" data-hi="प्रस्थान शहर" data-gu="પ્રસ્થાન શહેર">Departure city</span>
               <input ref="{{ depCityEl }}" class="fin" data-field="depCity" onInput="{{ onInput }}" autocomplete="off" placeholder="Type a city — e.g. P for Pune, Patna…" data-en-ph="Type a city — e.g. P for Pune, Patna…" data-hi-ph="शहर टाइप करें — जैसे P से पुणे, पटना…" data-gu-ph="શહેર ટાઇપ કરો — દા.ત. P થી પુણે, પટના…" style="border:1.5px solid #E4ECF3;border-radius:11px;padding:12px 14px;font-family:inherit;font-size:14px;outline:none;font-weight:500" />
               <sc-if value="{{ showDepSug }}" hint-placeholder-val="{{ false }}">
@@ -191,7 +224,7 @@
 
         <!-- travellers -->
         <sc-if value="{{ cur.isTravellers }}" hint-placeholder-val="{{ false }}">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:520px">
+          <div class="skc-2col" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;max-width:520px">
             <sc-for list="{{ counters }}" as="c" hint-placeholder-count="4">
               <div style="display:flex;align-items:center;justify-content:space-between;border:1.5px solid #E4ECF3;border-radius:13px;padding:12px 14px">
                 <div><div style="font-weight:700;font-size:14px">{{ c.label }}</div><div style="font-size:11.5px;color:#9AB3C7">{{ c.hint }}</div></div>
@@ -207,7 +240,7 @@
 
         <!-- contact -->
         <sc-if value="{{ cur.isContact }}" hint-placeholder-val="{{ false }}">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:560px">
+          <div class="skc-2col" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;max-width:560px">
             <label style="display:flex;flex-direction:column;gap:7px;font-size:13px;font-weight:700;color:#3A4D5E;grid-column:span 2"><span data-en="Name" data-hi="नाम" data-gu="નામ">Name</span>
               <input class="fin" data-field="name" onInput="{{ onInput }}" placeholder="Your full name" data-en-ph="Your full name" data-hi-ph="आपका पूरा नाम" data-gu-ph="તમારું પૂરું નામ" style="border:1.5px solid #E4ECF3;border-radius:11px;padding:12px 14px;font-family:inherit;font-size:14px;outline:none;font-weight:500" /></label>
             <label style="display:flex;flex-direction:column;gap:7px;font-size:13px;font-weight:700;color:#3A4D5E"><span data-en="Mobile / WhatsApp" data-hi="मोबाइल / WhatsApp" data-gu="મોબાઇલ / WhatsApp">Mobile / WhatsApp</span>

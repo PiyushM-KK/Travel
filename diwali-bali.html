@@ -665,7 +665,6 @@ function LiveScene(cv, scenes, opts){
   this.cur=0; this.prev=-1; this.fade=1; this.t=rand(0,50); this.scroll=0; this.running=false; this.visible=false;
   this.parts=[]; this.drops=[]; this.dropTimer=2; this.mx=0; this.my=0; this.tx=0; this.ty=0;
   this.fg=document.createElement('canvas'); this.fgc=this.fg.getContext('2d');
-  this.tmp=document.createElement('canvas'); this.tmpc=this.tmp.getContext('2d');
   this.imgs=[]; this.glints=[]; this.blobs=[];
   var self=this;
   loadImg(scenes[0].src,scenes[0].fb).then(function(im){ self.imgs[0]=im||'missing'; self.resize(); cv.classList.add('ready'); self.kick();
@@ -678,11 +677,12 @@ function LiveScene(cv, scenes, opts){
 }
 LiveScene.prototype.resize=function(){
   var r=this.cv.getBoundingClientRect(); if(!r.width) return;
-  var d=Math.min(window.devicePixelRatio||1,2), w=r.width*d, h=r.height*d, cap=(this.opts.cap||(coarse?2.2e6:4.2e6))*(this.q||1);
+  var d=Math.min(window.devicePixelRatio||1,2), w=r.width*d, h=r.height*d, cap=this.opts.cap||(coarse?2.2e6:4.2e6);
   if (w*h>cap){ var k=Math.sqrt(cap/(w*h)); w*=k; h*=k; }
+  var qk=Math.sqrt(this.q||1); w*=qk; h*=qk; // the safety valve (pace) takes pixels off whatever size was settled on
   w=Math.round(w); h=Math.round(h);
   if (w===this.W && h===this.H) return;
-  this.W=this.cv.width=this.fg.width=this.tmp.width=w; this.H=this.cv.height=this.fg.height=this.tmp.height=h;
+  this.W=this.cv.width=this.fg.width=w; this.H=this.cv.height=this.fg.height=h;
   this.px=w/r.width; // device px per css px
   this.fits=null; // pre-shrunk copies are per canvas size
   this.seed();

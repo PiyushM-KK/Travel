@@ -139,7 +139,7 @@ body.grain::after{content:"";position:fixed;inset:-50%;pointer-events:none;z-ind
 .sec-head p{max-width:40ch;color:var(--ink-2)}
 
 /* pinned story */
-.story{position:relative;height:400vh}
+.story{position:relative;height:600vh}
 .story-pin{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden}
 .story-pin::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(10,10,11,.82) 0%,rgba(10,10,11,.35) 45%,rgba(10,10,11,0) 70%),linear-gradient(0deg,rgba(10,10,11,.6),rgba(10,10,11,0) 40%);pointer-events:none}
 .chapters{position:absolute;inset:0;z-index:2;display:flex;align-items:center;padding:90px var(--gut) 40px}
@@ -351,33 +351,45 @@ body.has-cur,body.has-cur a,body.has-cur button,body.has-cur summary,body.has-cu
     <div class="chapters">
       <article class="chapter on" data-ch="0">
         <span class="num">01</span>
-        <span class="mono lime">Day 1 · Tue 3 Nov · Kuta</span>
-        <h3>Touch down, garland on</h3>
-        <ul class="days"><li><b>Day 1</b><span>Arrive in Bali. Garland welcome and a private transfer to your hotel in Kuta.</span></li></ul>
+        <span class="mono lime">Day 1 · Tue 3 Nov · Ahmedabad → Bali</span>
+        <h3>Fly Singapore Airlines</h3>
+        <ul class="days"><li><b>Day 1</b><span>Return flights on Singapore Airlines from Ahmedabad are included, connecting through Singapore.</span></li></ul>
       </article>
       <article class="chapter" data-ch="1">
         <span class="num">02</span>
-        <span class="mono lime">Day 2 · Wed 4 Nov · Uluwatu</span>
-        <h3>Surf, spray and a clifftop temple</h3>
-        <ul class="days"><li><b>Day 2</b><span>Full-day water sports: jet ski, banana boat and parasailing. Then Uluwatu Temple on the cliffs (private).</span></li></ul>
+        <span class="mono lime">Day 1 · Kuta</span>
+        <h3>Touch down, garland on</h3>
+        <ul class="days"><li><b>Day 1</b><span>Arrive in Bali. Garland welcome and a private transfer to your hotel in Kuta.</span></li></ul>
       </article>
       <article class="chapter" data-ch="2">
         <span class="num">03</span>
+        <span class="mono lime">Day 2 · Wed 4 Nov · Water sports</span>
+        <h3>Surf and spray</h3>
+        <ul class="days"><li><b>Day 2</b><span>A full day of water sports: jet ski, banana boat and parasailing.</span></li></ul>
+      </article>
+      <article class="chapter" data-ch="3">
+        <span class="num">04</span>
+        <span class="mono lime">Day 2 · Uluwatu at sunset</span>
+        <h3>A clifftop temple</h3>
+        <ul class="days"><li><b>Day 2</b><span>Then Uluwatu Temple, high on the cliffs above the Indian Ocean (private).</span></li></ul>
+      </article>
+      <article class="chapter" data-ch="4">
+        <span class="num">05</span>
         <span class="mono lime">Days 3–4 · Temples on the water</span>
         <h3>Tanah Lot and Ulun Danu</h3>
         <ul class="days"><li><b>Day 3</b><span>Full-day Ubud tour with Tanah Lot and Ulun Danu temples (private).</span></li><li><b>Day 4</b><span>A free day for the beach, spa or shopping.</span></li></ul>
       </article>
-      <article class="chapter" data-ch="3">
-        <span class="num">04</span>
+      <article class="chapter" data-ch="5">
+        <span class="num">06</span>
         <span class="mono lime">Days 5–8 · Diwali, Sun 8 Nov</span>
         <h3>Diwali by your pool villa</h3>
         <ul class="days"><li><b>Day 5</b><span>Check out from Kuta and transfer to Mara River Safari Lodge, with a Jungle Hopper pass.</span></li><li><b>Day 6</b><span>Diwali day. Bali Swing, then Tegenungan Waterfall (private), and on to your Jimbaran pool villa.</span></li><li><b>Day 7</b><span>A free day at the villa.</span></li><li><b>Day 8</b><span>Private transfer for your flight home.</span></li></ul>
       </article>
     </div>
     <div class="story-rail" id="rail" aria-label="Jump to chapter">
-      <button data-go="0" class="on">01</button><button data-go="1">02</button><button data-go="2">03</button><button data-go="3">04</button>
+      <button data-go="0" class="on">01</button><button data-go="1">02</button><button data-go="2">03</button><button data-go="3">04</button><button data-go="4">05</button><button data-go="5">06</button>
     </div>
-    <div class="photo-tag" id="photoTag">Kuta Beach</div>
+    <div class="photo-tag" id="photoTag">Illustrative image</div>
   </div>
 </section>
 
@@ -395,14 +407,14 @@ body.has-cur,body.has-cur a,body.has-cur button,body.has-cur summary,body.has-cu
   <div class="work" id="work"></div>
   <div id="workSrc" hidden>
     <a class="tile" data-k="stay" href="#enquire" data-cursor="View">
-      <div class="ph"><img src="images/places/bali-seminyak-and-kuta.jpg" alt="Sunset over Kuta Beach" loading="lazy"></div>
+      <div class="ph"><img src="images/places/bali-seminyak-and-kuta.jpg" alt="Sunset over Kuta Beach" loading="lazy" data-key="kuta"></div>
       <span class="chip kind">4 nights · Kuta</span><span class="chip live-tag">Kuta Beach</span>
       <div class="lbl glass"><h3>Fairfield by Marriott</h3><p>Or Nagraa / Legian, or similar. Deluxe room, a short walk from Kuta Beach.</p></div>
     </a>
     <a class="tile" data-k="exp" href="#itinerary" data-cursor="Explore">
-      <div class="ph"><img src="images/places/bali-uluwatu.jpg" alt="Uluwatu Temple on its cliff" loading="lazy"></div>
-      <span class="chip kind">Day 2</span><span class="chip live-tag">Uluwatu</span>
-      <div class="lbl glass"><h3>Water sports + Uluwatu</h3><p>Jet ski, banana boat, parasailing, then the clifftop temple.</p></div>
+      <div class="ph"><img src="images/diwali-bali/surf.jpg" alt="Jet ski throwing spray on turquoise water" loading="lazy" data-key="surf" data-fb="https://d8j0ntlcm91z4.cloudfront.net/user_3Hx4oN7VdnZSrZH3F61qpY9Thg3/hf_20260926_022629_d6c17433-259c-4264-9579-78dad230a6e2.png" onerror="this.onerror=null;this.src=this.dataset.fb"></div>
+      <span class="chip kind">Day 2</span><span class="chip live-tag">Illustrative</span>
+      <div class="lbl glass"><h3>Surf and spray</h3><p>Jet ski, banana boat and parasailing.</p></div>
     </a>
     <div class="tile type dark" data-k="stay">
       <span class="mono">1 night · Ubud</span>
@@ -410,24 +422,34 @@ body.has-cur,body.has-cur a,body.has-cur button,body.has-cur summary,body.has-cu
       <p>Or similar. Savala Deluxe room, with a Jungle Hopper pass.</p>
     </div>
     <a class="tile wide" data-k="exp" href="#itinerary" data-cursor="Explore">
-      <div class="ph"><img src="images/dest-bali.jpg" alt="Ulun Danu Beratan temple at sunset" loading="lazy"></div>
-      <span class="chip kind">Day 3</span><span class="chip live-tag">Ulun Danu</span>
-      <div class="lbl glass"><h3>Tanah Lot + Ulun Danu</h3><p>Full-day Ubud tour to the two temples on the water.</p></div>
+      <div class="ph"><img src="images/diwali-bali/uluwatu.jpg" alt="Clifftop temple above the ocean at sunset" loading="lazy" data-key="uluwatu" data-fb="https://d8j0ntlcm91z4.cloudfront.net/user_3Hx4oN7VdnZSrZH3F61qpY9Thg3/hf_20260926_022629_f82a7bda-751b-4cb4-9b56-7204589a6dfe.png" onerror="this.onerror=null;this.src=this.dataset.fb"></div>
+      <span class="chip kind">Day 2</span><span class="chip live-tag">Illustrative</span>
+      <div class="lbl glass"><h3>Uluwatu clifftop temple</h3><p>The temple on the cliffs, at sunset.</p></div>
+    </a>
+    <a class="tile" data-k="exp" href="#itinerary" data-cursor="Explore">
+      <div class="ph"><img src="images/diwali-bali/garland.jpg" alt="Garland welcome on arrival in Bali" loading="lazy" data-key="garland" data-fb="https://d8j0ntlcm91z4.cloudfront.net/user_3Hx4oN7VdnZSrZH3F61qpY9Thg3/hf_20260926_022629_e7125e71-6fc8-4323-9ce9-22d77dd1d227.png" onerror="this.onerror=null;this.src=this.dataset.fb"></div>
+      <span class="chip kind">Day 1</span><span class="chip live-tag">Illustrative</span>
+      <div class="lbl glass"><h3>Garland welcome</h3><p>A fresh garland and a private transfer on arrival.</p></div>
     </a>
     <div class="tile type" data-k="stay">
       <span class="mono">2 nights · Jimbaran</span>
       <h3>Royal Tulip Jimbaran</h3>
       <p>Or similar. A one-bedroom villa with its own pool, for Diwali night.</p>
     </div>
+    <a class="tile wide" data-k="exp" href="#itinerary" data-cursor="Explore">
+      <div class="ph"><img src="images/dest-bali.jpg" alt="Ulun Danu Beratan temple at sunset" loading="lazy" data-key="ulun"></div>
+      <span class="chip kind">Day 3</span><span class="chip live-tag">Ulun Danu</span>
+      <div class="lbl glass"><h3>Tanah Lot + Ulun Danu</h3><p>Full-day Ubud tour to the two temples on the water.</p></div>
+    </a>
+    <a class="tile" data-k="exp" href="#itinerary" data-cursor="Explore">
+      <div class="ph"><img src="images/diwali-bali/flight.jpg" alt="Wide-body jet climbing above the clouds at golden hour" loading="lazy" data-key="flight" data-fb="https://d8j0ntlcm91z4.cloudfront.net/user_3Hx4oN7VdnZSrZH3F61qpY9Thg3/hf_20260926_022657_65b4be5f-382e-40ce-91bd-bd3680f2283d.png" onerror="this.onerror=null;this.src=this.dataset.fb"></div>
+      <span class="chip kind">Flights</span><span class="chip live-tag">Illustrative</span>
+      <div class="lbl glass"><h3>Singapore Airlines</h3><p>Return flights from Ahmedabad, included in the package.</p></div>
+    </a>
     <div class="tile type dark" data-k="exp">
       <span class="mono">Day 6 · Diwali</span>
       <h3>Bali Swing + Tegenungan</h3>
       <p>Swing over the jungle, then the Tegenungan Waterfall, on a private basis.</p>
-    </div>
-    <div class="tile type dark" data-k="exp">
-      <span class="mono">Flights</span>
-      <h3>Singapore Airlines</h3>
-      <p>Return flights from Ahmedabad, included in the package.</p>
     </div>
   </div>
 </section>
@@ -443,7 +465,7 @@ body.has-cur,body.has-cur a,body.has-cur button,body.has-cur summary,body.has-cu
     <div class="rv"><b>05</b><span>Entrance fees as per the itinerary</span></div>
     <div class="rv"><b>06</b><span>Garland welcome on arrival and daily mineral water</span></div>
   </div>
-  <p class="fine">*Prices are indicative starting-from estimates per person and can change with season, hotel availability and current rates. Hotels are "or similar" and are confirmed at booking. Photos show the destinations on this trip, not the specific hotels.</p>
+  <p class="fine">*Prices are indicative starting-from estimates per person and can change with season, hotel availability and current rates. Hotels are "or similar" and are confirmed at booking. Photos show the destinations on this trip, not the specific hotels. Images marked "Illustrative" are AI-generated to show the experience, and the aircraft image is not an actual Singapore Airlines plane.</p>
 </section>
 
 <!-- FAQ -->
@@ -563,7 +585,8 @@ function savePrefs(){ try{ localStorage.setItem('sky_tweaks', JSON.stringify(pre
 
 /* ---------- image loader ---------- */
 var cache={};
-function loadImg(src){ if(!cache[src]) cache[src]=new Promise(function(res){ var i=new Image(); i.decoding='async'; i.onload=function(){res(i)}; i.onerror=function(){res(null)}; i.src=src; }); return cache[src]; }
+function loadImg(src,fb){ if(!cache[src]) cache[src]=new Promise(function(res){ var i=new Image(); i.decoding='async'; i.onload=function(){res(i)};
+  i.onerror=function(){ if(fb && i.src.indexOf(fb)<0){ i.src=fb; } else res(null); }; i.src=src; }); return cache[src]; }
 
 /* ---------- live scene engine ---------- */
 function rand(a,b){return a+Math.random()*(b-a)}
@@ -575,8 +598,8 @@ function LiveScene(cv, scenes, opts){
   this.tmp=document.createElement('canvas'); this.tmpc=this.tmp.getContext('2d');
   this.imgs=[]; this.glints=[]; this.blobs=[];
   var self=this;
-  loadImg(scenes[0].src).then(function(im){ self.imgs[0]=im; self.resize(); cv.classList.add('ready'); self.kick();
-    scenes.slice(1).forEach(function(s,i){ if(!s.src){ self.imgs[i+1]='gen'; return; } loadImg(s.src).then(function(m){ self.imgs[i+1]=m; }); });
+  loadImg(scenes[0].src,scenes[0].fb).then(function(im){ self.imgs[0]=im||'missing'; self.resize(); cv.classList.add('ready'); self.kick();
+    scenes.slice(1).forEach(function(s,i){ if(!s.src){ self.imgs[i+1]='gen'; return; } loadImg(s.src,s.fb).then(function(m){ self.imgs[i+1]=m||'missing'; }); });
   });
   if (window.ResizeObserver) new ResizeObserver(function(){ self.resize(); }).observe(cv); else addEventListener('resize',function(){self.resize()});
   new IntersectionObserver(function(e){ self.visible=e[0].isIntersecting; self.kick(); },{rootMargin:'120px'}).observe(cv);
@@ -625,6 +648,7 @@ LiveScene.prototype.cover=function(c,img,cam,depth,s){
 LiveScene.prototype.base=function(idx,alpha){
   var s=this.scenes[idx], img=this.imgs[idx]; if(!img) return false;
   var ctx=this.ctx;
+  if (img==='missing'){ ctx.globalAlpha=alpha; ctx.fillStyle='#141012'; ctx.fillRect(0,0,this.W,this.H); ctx.globalAlpha=1; return true; }
   if (s.gen){ /* drawn night scene: dusk sky, far shore lights, dark water */
     var W=this.W, H=this.H, hz=H*s.water, d=this.px||1;
     ctx.globalAlpha=alpha;
@@ -689,9 +713,11 @@ LiveScene.prototype.frame=function(dt){
       ctx.fillStyle=g2; ctx.fillRect(bx-br,by-br,br*2,br*2); }
   }
   /* particles: embers + floating diyas */
-  var want={ember:s.embers||0, diya:s.diyas||0}, have={ember:0,diya:0};
+  var want={ember:s.embers||0, diya:s.diyas||0, petal:s.petals||0, spray:s.spray?90:0}, have={ember:0,diya:0,petal:0,spray:0};
   for (var q=0;q<this.parts.length;q++) have[this.parts[q].k]++;
   if (live){
+    if (have.petal<want.petal && Math.random()<.3) this.parts.push({k:'petal',x:rand(-.05,1.05)*W,y:-20*d,vx:rand(-10,14)*d,vy:rand(26,52)*d,r:rand(3,6.5)*d,l:0,L:rand(9,16),p:rand(0,6),c:Math.random()<.6?'255,150,30':'255,205,60'});
+    if (s.spray && have.spray<want.spray) for (var sb=0;sb<4;sb++){ var ang2=rand(-2.6,-.5), v2=rand(60,220)*d; this.parts.push({k:'spray',x:(s.spray[0]+rand(-.08,.08))*W,y:s.spray[1]*H,vx:Math.cos(ang2)*v2,vy:Math.sin(ang2)*v2,r:rand(.6,1.8)*d,l:0,L:rand(.8,1.8),p:0}); }
     if (have.ember<want.ember && Math.random()<.5) this.parts.push({k:'ember',x:rand(0,W),y:H*rand(.75,1.05),vx:rand(-6,6)*d,vy:-rand(18,46)*d,r:rand(.8,2.2)*d,l:0,L:rand(4,9),p:rand(0,6)});
   }
   while (have.diya<want.diya && s.water!=null){ var fy=rand(0,1); have.diya++;
@@ -705,6 +731,18 @@ LiveScene.prototype.frame=function(dt){
       var dxx=(((P.fx%1)+1)%1)*W, dfa=Math.min(1,P.l*1.5+.3)*Math.min(1,(1-lf)*4)*a;
       drawDiya(ctx,dxx,dyy,(coarse?6:8.5)*d*dz,.85+.15*Math.sin(T*11+P.p)+.05*Math.sin(T*23+P.p*2),dfa,Math.sin(T*3+P.p)*.3);
       ctx.globalCompositeOperation='lighter'; continue;
+    }
+    if (P.k==='petal'){
+      if (live){ P.l+=dt*(want.petal?1:6); P.x+=(P.vx+Math.sin(T*1.3+P.p)*18*d)*dt; P.y+=P.vy*dt; }
+      var pl=P.l/P.L; if(pl>=1||P.y>H+20*d){ this.parts.splice(n,1); continue; }
+      ctx.globalCompositeOperation='source-over'; ctx.save(); ctx.translate(P.x,P.y); ctx.rotate(T*1.6+P.p); ctx.scale(1,.45+.4*Math.abs(Math.sin(T*2+P.p)));
+      ctx.fillStyle='rgba('+P.c+','+(.9*Math.min(1,pl*6)*a)+')'; ctx.beginPath(); ctx.ellipse(0,0,P.r,P.r*.62,0,0,6.283); ctx.fill(); ctx.restore();
+      ctx.globalCompositeOperation='lighter'; continue;
+    }
+    if (P.k==='spray'){
+      if (live){ P.l+=dt; P.vy+=240*d*dt; P.x+=P.vx*dt; P.y+=P.vy*dt; }
+      var sl=P.l/P.L; if(sl>=1||!want.spray){ this.parts.splice(n,1); continue; }
+      ctx.fillStyle='rgba(255,255,255,'+(.75*(1-sl)*a)+')'; ctx.beginPath(); ctx.arc(P.x,P.y,P.r,0,6.283); ctx.fill(); continue;
     }
     if (live){ P.l+=dt; P.x+=(P.vx+Math.sin(T*.8+P.p)*6*d)*dt; P.y+=P.vy*dt; }
     var life=P.l/P.L; if(life>=1||P.y<-40*d){ this.parts.splice(n,1); continue; }
@@ -804,25 +842,28 @@ document.querySelectorAll('[data-rangoli]').forEach(buildRangoli);
 var ULUN={src:'images/dest-bali.jpg',focus:[.36,.5],horizon:.64,water:.71,glint:'255,190,120',mist:{y:.5,h:.12,a:.07,c:'255,220,190',dx:.6},embers:26,diyas:9,fireworks:.35,grade:['rgba(255,150,70,.35)','rgba(20,40,80,.3)']};
 var hero=new LiveScene(document.getElementById('heroCanvas'),[ULUN],{pointer:true});
 
+var AI='images/diwali-bali/';
 var STORY=[
-  {src:'images/places/bali-seminyak-and-kuta.jpg',tag:'Kuta Beach',focus:[.5,.5],horizon:.62,swell:[.55,.63],water:.63,glint:'255,170,110',embers:8,grade:['rgba(80,120,255,.25)','rgba(255,140,60,.25)'],pan:.04},
-  {src:'images/places/bali-uluwatu.jpg',tag:'Uluwatu Temple',focus:[.55,.45],horizon:.55,mist:{y:.18,h:.2,a:.1,dx:1.4},grade:['rgba(120,170,255,.2)','rgba(255,190,120,.2)'],pan:.05,drops:false},
-  {src:'images/dest-bali.jpg',tag:'Ulun Danu Beratan',focus:[.4,.55],horizon:.64,water:.71,glint:'255,190,120',mist:{y:.52,h:.1,a:.08,c:'255,225,200',dx:.5},embers:10,grade:['rgba(255,150,70,.3)','rgba(20,40,80,.3)'],pan:.04},
+  {src:AI+'flight.jpg',fb:'https://d8j0ntlcm91z4.cloudfront.net/user_3Hx4oN7VdnZSrZH3F61qpY9Thg3/hf_20260926_022657_65b4be5f-382e-40ce-91bd-bd3680f2283d.png',tag:'Illustrative image',focus:[.62,.5],mist:{y:.72,h:.5,a:.1,c:'255,235,215',dx:1.6},grade:['rgba(255,170,90,.22)','rgba(40,60,120,.25)'],pan:.06,drops:false},
+  {src:AI+'garland.jpg',fb:'https://d8j0ntlcm91z4.cloudfront.net/user_3Hx4oN7VdnZSrZH3F61qpY9Thg3/hf_20260926_022629_e7125e71-6fc8-4323-9ce9-22d77dd1d227.png',tag:'Illustrative image',focus:[.62,.45],petals:26,embers:10,grade:['rgba(255,160,70,.25)','rgba(60,20,10,.25)'],pan:.03,drops:false},
+  {src:AI+'surf.jpg',fb:'https://d8j0ntlcm91z4.cloudfront.net/user_3Hx4oN7VdnZSrZH3F61qpY9Thg3/hf_20260926_022629_d6c17433-259c-4264-9579-78dad230a6e2.png',tag:'Illustrative image',focus:[.62,.5],water:.55,glint:'255,255,245',spray:[.66,.6],grade:['rgba(120,200,255,.15)','rgba(0,80,110,.2)'],pan:.05},
+  {src:AI+'uluwatu.jpg',fb:'https://d8j0ntlcm91z4.cloudfront.net/user_3Hx4oN7VdnZSrZH3F61qpY9Thg3/hf_20260926_022629_f82a7bda-751b-4cb4-9b56-7204589a6dfe.png',tag:'Illustrative image',focus:[.62,.5],horizon:.55,swell:[.78,.98],spray:[.7,.86],mist:{y:.22,h:.2,a:.07,c:'255,220,200',dx:1.2},grade:['rgba(255,150,80,.25)','rgba(60,30,90,.25)'],pan:.05},
+  {src:'images/dest-bali.jpg',tag:'Ulun Danu Beratan',focus:[.4,.55],horizon:.64,water:.71,glint:'255,190,120',mist:{y:.52,h:.1,a:.08,c:'255,225,200',dx:.5},embers:10,diyas:6,grade:['rgba(255,150,70,.3)','rgba(20,40,80,.3)'],pan:.04},
   {src:null,gen:'night',tag:'Diwali night · diyas on the water',water:.6,glint:'255,170,90',embers:36,diyas:26,drops:false,fireworks:1}
 ];
 var story=new LiveScene(document.getElementById('storyCanvas'),STORY,{scroll:true});
 
 /* live photo tiles in the grid (same engine, lighter settings) */
 var TILE_FX={
-  'images/places/bali-seminyak-and-kuta.jpg':STORY[0],
-  'images/places/bali-uluwatu.jpg':STORY[1],
-  'images/dest-bali.jpg':{src:'images/dest-bali.jpg',focus:[.4,.55],water:.71,glint:'255,190,120',mist:{y:.52,h:.1,a:.08,c:'255,225,200',dx:.5},embers:8,diyas:5,grade:ULUN.grade}
+  kuta:{src:'images/places/bali-seminyak-and-kuta.jpg',focus:[.5,.5],swell:[.55,.63],water:.63,glint:'255,170,110',embers:6,grade:['rgba(80,120,255,.25)','rgba(255,140,60,.25)']},
+  surf:STORY[2], uluwatu:STORY[3], garland:STORY[1], flight:STORY[0],
+  ulun:{src:'images/dest-bali.jpg',focus:[.4,.55],water:.71,glint:'255,190,120',mist:{y:.52,h:.1,a:.08,c:'255,225,200',dx:.5},embers:8,diyas:5,grade:ULUN.grade}
 };
 var tileScenes=[];
 document.querySelectorAll('#workSrc .tile .ph').forEach(function(ph){
-  var img=ph.querySelector('img'), fx=TILE_FX[img.getAttribute('src')]; if(!fx) return;
+  var img=ph.querySelector('img'), fx=TILE_FX[img.dataset.key]; if(!fx) return;
   var c=document.createElement('canvas'); c.className='live'; c.setAttribute('aria-hidden','true'); ph.appendChild(c);
-  var cfg={}; for (var k in fx) cfg[k]=fx[k]; delete cfg.horizon; cfg.drops=false;
+  var cfg={}; for (var k in fx) cfg[k]=fx[k]; delete cfg.horizon; cfg.drops=false; if(cfg.petals) cfg.petals=10;
   tileScenes.push(new LiveScene(c,[cfg],{noLens:true,cap:6e5}));
 });
 

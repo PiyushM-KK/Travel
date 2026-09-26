@@ -1,0 +1,57 @@
+<!doctype html>
+<!-- A STARTING SKELETON, NOT A LAYOUT.
+     Delete what you do not use. If your finished page still has this shape,
+     you have themed a template instead of designing a page. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>…</title>
+<link rel="stylesheet" href="engine/scrollcraft.css">
+<style>
+  /* ---- the six roles and two families. This is the whole theme layer. ---- */
+  :root {
+    --sc-ground: #0e1116;
+    --sc-ground-2: #171c24;
+    --sc-ink: #f2f5f9;
+    --sc-ink-2: #a9b7c9;
+    --sc-line: #2a323d;
+    --sc-accent: #5fc2f0;
+    --sc-display: 'Your Display', Georgia, serif;
+    --sc-text: 'Your Text', system-ui, sans-serif;
+  }
+  /* ---- everything below is THIS PAGE, and belongs to no other page. ---- */
+</style>
+</head>
+<body>
+
+<!-- One stage for a continuous world; one per act for a chaptered page. -->
+<div class="sc-stage sc-grain" style="--sc-legs: 8"
+     data-sc-stage
+     data-sc-ground="0 #0b1220 | .5 #17222e | 1 #f3ede3"
+     data-sc-ink="0 #f2f5f9 | .62 #f2f5f9 | .74 #12161c">
+
+  <div class="sc-stage__fixed">
+
+    <!-- a layer takes a WINDOW on the stage's progress and a camera move -->
+    <div class="sc-layer" data-depth="far"
+         data-sc-in="0" data-sc-out=".22" data-sc-hold="start"
+         data-sc-scale="1 1.12">
+      <img src="../../images/…" alt="describe the composition, not the file">
+    </div>
+
+    <!-- copy that must ARRIVE: give it room, and never defeat the clamp -->
+    <div class="sc-layer sc-center" data-sc-in=".04" data-sc-out=".2">
+      <div class="sc-wrap sc-flow">
+        <p class="sc-label">…</p>
+        <h1 class="sc-display sc-d1 sc-lines"><span>…</span><span>…</span></h1>
+        <p class="sc-body sc-body--tight">…</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="engine/scrollcraft.js"></script>
+</body>
+</html>

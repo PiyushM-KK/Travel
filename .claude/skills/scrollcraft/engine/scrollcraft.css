@@ -1,0 +1,250 @@
+/* ============================================================================
+   scrollcraft engine — stylesheet
+   THE MECHANISM. Never edit this file per project.
+   Theme a build with the six colour roles + two families below, write your own
+   semantic HTML, and drive anything bespoke off the --sc-p custom property.
+   ========================================================================== */
+
+:root {
+  /* --- the six colour roles. A build overrides these and nothing else. --- */
+  --sc-ground:      #0e1116;  /* the page ground the reader travels over */
+  --sc-ground-2:    #171c24;  /* the second ground, for raised surfaces   */
+  --sc-ink:         #f2f5f9;  /* primary text on the ground               */
+  --sc-ink-2:       #a9b7c9;  /* secondary text — TINTED, never flat grey */
+  --sc-line:        #2a323d;  /* hairlines, edges, dividers               */
+  --sc-accent:      #5fc2f0;  /* exactly one accent                       */
+
+  /* --- two families. Never a third. --- */
+  --sc-display: Georgia, 'Times New Roman', serif;
+  --sc-text:    system-ui, -apple-system, sans-serif;
+
+  /* --- 4px spacing scale --- */
+  --sc-1: 4px;   --sc-2: 8px;   --sc-3: 12px;  --sc-4: 16px;
+  --sc-5: 24px;  --sc-6: 32px;  --sc-7: 48px;  --sc-8: 64px;
+  --sc-9: 96px;  --sc-10: 128px; --sc-11: 192px; --sc-12: 256px;
+
+  /* fluid section padding — a phone must not inherit desktop air */
+  --sc-pad-y: clamp(48px, 9vh, 128px);
+  --sc-pad-x: clamp(20px, 5vw, 88px);
+
+  /* --- motion --- */
+  --sc-ease: cubic-bezier(.22, .61, .36, 1);
+  --sc-ease-out: cubic-bezier(.16, 1, .3, 1);
+
+  /* --- published by the engine, read by your page --- */
+  --sc-p: 0;      /* 0..1 progress through the nearest pinned stage */
+  --sc-px: 0;     /* -1..1 pointer x, damped */
+  --sc-py: 0;     /* -1..1 pointer y, damped */
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: auto; }
+
+body {
+  margin: 0;
+  background: var(--sc-ground);
+  color: var(--sc-ink);
+  font-family: var(--sc-text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+}
+
+/* ---------------------------------------------------------------------------
+   1. THE STAGE — one fixed surface the whole page happens on.
+   Continuous-world builds use a single stage for the entire document, so there
+   are no section boundaries anywhere. Other grammars use one per act.
+   ------------------------------------------------------------------------- */
+
+.sc-stage {
+  position: relative;
+  /* height is set per build: --sc-legs * 100vh */
+  height: calc(var(--sc-legs, 4) * 100svh);
+}
+
+.sc-stage__fixed {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: clip;
+  isolation: isolate;
+}
+
+/* A pinned act inside a chaptered page. Same mechanism, act-scoped. */
+.sc-pin { position: relative; height: calc(var(--sc-legs, 2) * 100svh); }
+.sc-pin__fixed { position: sticky; top: 0; height: 100svh; overflow: clip; }
+
+/* ---------------------------------------------------------------------------
+   2. LAYERS — depth as five tools: offset shadow, edge light, scale-and-blur
+   as distance, overlap, grain. Never a drop shadow alone.
+   ------------------------------------------------------------------------- */
+
+.sc-layer {
+  position: absolute;
+  inset: 0;
+  will-change: transform, opacity;
+}
+
+.sc-layer img,
+.sc-layer video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* distance: far things are larger-scaled and blurred, near things are sharp */
+.sc-layer[data-depth="far"]  { filter: blur(var(--sc-far-blur, 3px)); transform: scale(1.12); }
+.sc-layer[data-depth="mid"]  { filter: blur(var(--sc-mid-blur, .6px)); }
+.sc-layer[data-depth="near"] { filter: none; }
+
+/* grain — the cheapest way to stop a gradient looking like a gradient */
+.sc-grain::after {
+  content: '';
+  position: absolute;
+  /* inset 0, never negative: this class is often applied to a stage many
+     viewports tall, and a negative inset there adds that overflow to the
+     DOCUMENT, which silently stretches every progress calculation on the page. */
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--sc-grain-opacity, .045);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+  z-index: 40;
+}
+
+/* edge light — a hairline of the accent along one edge of a raised surface */
+.sc-edge-light {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.10),
+    0 var(--sc-2) 0 -4px rgba(0,0,0,.25),
+    0 24px 60px -30px rgba(0,0,0,.9);
+}
+
+/* ---------------------------------------------------------------------------
+   3. THE CUE CONTRACT
+   Any copy the engine fades in MUST reach opacity 1 and hold. A cue that only
+   ever reaches .7 is copy the reader can never actually read; verify.mjs fails
+   the build for it. The engine therefore clamps, it does not multiply.
+   ------------------------------------------------------------------------- */
+
+.sc-cue {
+  opacity: 0;
+  transform: translateY(var(--sc-cue-rise, 14px));
+  transition:
+    opacity .7s var(--sc-ease-out),
+    transform .9s var(--sc-ease-out);
+  will-change: opacity, transform;
+}
+.sc-cue.is-in { opacity: 1; transform: none; }
+.sc-cue[data-delay="1"] { transition-delay: .08s, .08s }
+.sc-cue[data-delay="2"] { transition-delay: .16s, .16s }
+.sc-cue[data-delay="3"] { transition-delay: .24s, .24s }
+.sc-cue[data-delay="4"] { transition-delay: .32s, .32s }
+
+/* line-by-line headline assembly */
+.sc-lines { display: block; }
+.sc-lines .sc-line { display: block; overflow: hidden; }
+.sc-lines .sc-line > span {
+  display: block;
+  transform: translateY(105%);
+  transition: transform 1s var(--sc-ease-out);
+  will-change: transform;
+}
+.sc-lines.is-in .sc-line > span { transform: none; }
+.sc-lines.is-in .sc-line:nth-child(2) > span { transition-delay: .09s }
+.sc-lines.is-in .sc-line:nth-child(3) > span { transition-delay: .18s }
+.sc-lines.is-in .sc-line:nth-child(4) > span { transition-delay: .27s }
+.sc-lines.is-in .sc-line:nth-child(5) > span { transition-delay: .36s }
+
+/* ---------------------------------------------------------------------------
+   4. LATERAL RAIL — sideways travel driven by vertical scroll.
+   The engine sets --sc-rail-x in px; the build decides what rides on it.
+   ------------------------------------------------------------------------- */
+
+.sc-rail { display: flex; will-change: transform; transform: translate3d(var(--sc-rail-x, 0px), 0, 0); }
+
+/* ---------------------------------------------------------------------------
+   5. TYPOGRAPHY FLOOR
+   Tracking tightens as size grows. Measure 45–75ch. Line-height inverse to
+   measure. Light-on-dark compensated on three axes: weight down, tracking up,
+   size held.
+   ------------------------------------------------------------------------- */
+
+.sc-display {
+  font-family: var(--sc-display);
+  font-weight: 700;
+  line-height: .94;
+  letter-spacing: -.03em;
+  margin: 0;
+  text-wrap: balance;
+}
+.sc-d1 { font-size: clamp(44px, 9.2vw, 148px); letter-spacing: -.042em; }
+.sc-d2 { font-size: clamp(32px, 5.6vw, 82px);  letter-spacing: -.032em; line-height: 1.0; }
+.sc-d3 { font-size: clamp(24px, 3.2vw, 44px);  letter-spacing: -.022em; line-height: 1.08; }
+
+.sc-body {
+  font-family: var(--sc-text);
+  font-size: clamp(16px, 1.15vw, 19px);
+  line-height: 1.62;
+  max-width: 68ch;
+  color: var(--sc-ink-2);
+  margin: 0;
+}
+.sc-body--tight { max-width: 46ch; line-height: 1.5; }
+
+/* label / eyebrow: the one place tracking opens up */
+.sc-label {
+  font-family: var(--sc-text);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--sc-accent);
+  margin: 0;
+}
+
+/* on a light ground the same type needs LESS weight, not more */
+.sc-on-light { --sc-ink: #12161c; --sc-ink-2: #4d5b6b; }
+.sc-on-light .sc-display { font-weight: 700; letter-spacing: -.036em; }
+
+/* more space above a heading than below it */
+.sc-flow > * + * { margin-top: var(--sc-4); }
+.sc-flow > * + .sc-display { margin-top: var(--sc-7); }
+.sc-flow > .sc-label + .sc-display { margin-top: var(--sc-3); }
+
+/* ---------------------------------------------------------------------------
+   6. UTILITY
+   ------------------------------------------------------------------------- */
+
+.sc-wrap { padding: var(--sc-pad-y) var(--sc-pad-x); }
+.sc-center { display: grid; place-items: center; height: 100%; }
+.sc-vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* a legibility scrim — measured, not decorative. Verify grades contrast on the
+   composited result, so this exists to be tuned rather than eyeballed. */
+.sc-scrim {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(
+    var(--sc-scrim-angle, 180deg),
+    rgba(0,0,0,var(--sc-scrim-a, 0)) 0%,
+    rgba(0,0,0,var(--sc-scrim-b, .55)) 62%,
+    rgba(0,0,0,var(--sc-scrim-c, .82)) 100%);
+}
+
+/* ---------------------------------------------------------------------------
+   7. REDUCED MOTION
+   Not "animations off". The page must still make its argument: every stage
+   un-pins into an ordinary readable document, every cue starts visible.
+   ------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-stage, .sc-pin { height: auto !important; }
+  .sc-stage__fixed, .sc-pin__fixed { position: relative; height: auto; min-height: 100svh; }
+  .sc-cue, .sc-lines .sc-line > span { opacity: 1 !important; transform: none !important; transition: none !important; }
+  .sc-rail { transform: none !important; flex-wrap: wrap; }
+  .sc-layer { transition: none !important; }
+}

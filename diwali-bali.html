@@ -773,7 +773,7 @@ LiveScene.prototype.frame=function(dt){
   /* water: strip displacement + glints */
   if (s.water!=null){
     var y0=Math.floor(H*s.water), step=Math.max(3,Math.round(4*d));
-    for (var y=y0;y<H;y+=step){ var k=(y-y0)/(H-y0);
+    if (s.ripple!==false) for (var y=y0;y<H;y+=step){ var k=(y-y0)/(H-y0); // ripple:false keeps the glints, skips the strip shift
       var off=Math.sin(T*1.2-Math.sqrt(k)*42)*(0.5+k*3.2)*d + Math.sin(T*.7+y*.02)*.6*d;
       ctx.drawImage(this.cv,0,y,W,step,off-4*d,y,W+8*d,step); }
     ctx.globalCompositeOperation='lighter';
@@ -931,7 +931,7 @@ var AI='images/diwali-bali/';
 var STORY=[
   {src:AI+'flight.jpg',srcm:AI+'flight-m.jpg',tag:'Illustrative image',focus:[.62,.5],mist:{y:.72,h:.5,a:.1,c:'255,235,215',dx:1.6},grade:['rgba(255,170,90,.22)','rgba(40,60,120,.25)'],pan:.06,drops:false},
   {src:AI+'garland.jpg',srcm:AI+'garland-m.jpg',tag:'Illustrative image',focus:[.62,.45],petals:26,embers:10,grade:['rgba(255,160,70,.25)','rgba(60,20,10,.25)'],pan:.03,drops:false},
-  {src:AI+'surf.jpg',tag:'Illustrative image',focus:[.62,.5],water:.55,glint:'255,255,245',spray:[.66,.6],grade:['rgba(120,200,255,.15)','rgba(0,80,110,.2)'],pan:.05},
+  {src:AI+'surf.jpg',tag:'Illustrative image',focus:[.62,.5],water:.55,ripple:false,glint:'255,255,245',spray:[.66,.6],grade:['rgba(120,200,255,.15)','rgba(0,80,110,.2)'],pan:.05},
   {src:AI+'uluwatu-cliff.jpg',tag:'Illustrative image',focus:[.52,.5],focusm:[.58,.5],mist:{y:.22,h:.2,a:.07,c:'255,220,200',dx:1.2},grade:['rgba(255,150,80,.25)','rgba(60,30,90,.25)'],pan:.05},
   {src:'images/dest-bali.jpg',tag:'Ulun Danu Beratan',focus:[.4,.55],horizon:.64,water:.71,glint:'255,190,120',mist:{y:.52,h:.1,a:.08,c:'255,225,200',dx:.5},embers:10,diyas:6,grade:['rgba(255,150,70,.3)','rgba(20,40,80,.3)'],pan:.04},
   {src:null,gen:'night',tag:'Diwali night · diyas on the water',water:.6,glint:'255,170,90',embers:36,diyas:26,drops:false,fireworks:1}

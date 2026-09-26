@@ -120,3 +120,13 @@ automation, grounded in Skyline's real packages and fact-checked. Read
   then says it has left, then from 2026-11-09 says nothing about it - the dates retire it, nothing to remove. Git
   does NOT deploy it: paste the file into Cloudflare -> Workers -> `hello-world` -> Edit code -> Deploy, then GET
   the worker URL and expect `"version":"anthropic-5"`.
+- **Phones (same day, `9386008`):** 11 pages were wider than a 390px phone (the header never folded), so pages
+  scrolled sideways and fixed buttons sat off-screen. The page runtime ignores inline `@media`, so the fix is
+  classes (`skh-*`, `skc-*`) plus an `@media` block in each page's first `<style>`. Trap: `class` on an
+  `<image-slot>` becomes a literal `classname` attribute - style it by its id.
+- **Sharp Diwali photos:** the canvas was capped at 1.8 MP / 1.5x density and stretched by the browser, a
+  red/cyan 'lens fringe' doubled every edge, and the water ripple sliced the jet-ski scene. Now 4.2 MP at up to
+  2x, each photo shrunk ONCE at high quality (per-frame high-quality resampling cost 60 -> 22 fps on the owner's
+  Intel UHD 630), no fringe, no ripple on the surf scene, grain halved, tiles at 30 fps, and a safety valve that
+  lowers resolution on a slow computer. The dotted spray in `surf.jpg` is in the AI image itself - only a new
+  image would remove it.

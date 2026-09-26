@@ -8,8 +8,8 @@ _Last updated: 2026-09-26. This supersedes the original `README-HANDOFF.md` for 
 `International.dc.html`, expires 2026-11-09 IST). Media self-hosted in `images/diwali-bali/` (videos re-encoded to
 H.264; Higgsfield URLs gone), owner's Uluwatu + villa images added, chat worker knows the offer (version
 `anthropic-5`; **paste it into Cloudflare to deploy**). Detail: `MEMORY.md`, 2026-09-26 entry.
-Known, not fixed: the shared site header (`.cbtn`, on 5 `.dc.html` pages) overflows a 390px phone, so
-`International.dc.html` is 509px wide there and the promo card sits below the visible area until the visitor zooms out.
+Phones (fixed 2026-09-26, `9386008`): 11 pages used to lay out 396-650px wide on a 390px phone; headers, the
+Customize form and three card grids now fit. Desktop Diwali photos made sharp without losing frame rate (see MEMORY.md).
 
 ---
 

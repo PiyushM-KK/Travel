@@ -24,3 +24,14 @@ do
   rm "$name.png"
   echo "saved $name.jpg"
 done
+
+# Short AI videos (1080p MP4, kept as delivered)
+for pair in \
+  garland-welcome:023756_0ca85cc9-79f3-47af-ada6-04f1a5b54ac7 \
+  uluwatu-sunset:023806_5432ae28-3731-47fb-acbc-3a7c068e43a2 \
+  uluwatu-diwali:023806_aae6734c-90c1-4e2a-b200-6edf8aeae00e
+do
+  name=${pair%%:*}; id=${pair#*:}
+  curl -fsSL -o "$name.mp4" "$CDN$id.mp4"
+  echo "saved $name.mp4"
+done

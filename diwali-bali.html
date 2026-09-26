@@ -14,7 +14,7 @@
 <link rel="preload" as="image" href="images/dest-bali.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=JetBrains+Mono:wght@400;600&family=Manrope:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=JetBrains+Mono:wght@400;600&family=Manrope:wght@400;500;700&family=Tiro+Devanagari+Hindi&display=swap">
 <style>
 :root{
   --bg:#0A0A0B; --bg-2:#131315; --ink:#F2EFE8; --ink-2:#A9A59C; --line:rgba(242,239,232,.12);
@@ -24,8 +24,29 @@
   --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
   --body:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif;
   --gut:clamp(16px,4vw,56px);
+  --marigold:#FFA928; --saffron:#FF6A13; --kumkum:#C2185B; --leaf:#2E7D32;
   color-scheme:dark;
 }
+/* Diwali theme: marigold replaces lime everywhere the accent is used */
+body.diwali{--lime:#FFB029;--lime-ink:#1A0B00;background:radial-gradient(120% 60% at 50% 110%,rgba(255,106,19,.10),transparent 60%) fixed,var(--bg)}
+body.diwali .chapter .num{-webkit-text-stroke-color:var(--marigold)}
+.hindi{font-family:"Tiro Devanagari Hindi","Noto Serif Devanagari",serif;font-size:clamp(18px,2vw,26px);color:var(--marigold);letter-spacing:0}
+body:not(.diwali) .dw{display:none!important}
+/* toran: marigold garland across the top of the hero */
+.toran{position:absolute;left:0;right:0;top:0;height:150px;z-index:3;pointer-events:none}
+.toran svg{width:100%;height:100%;overflow:visible;display:block}
+.toran .drop{transform-box:fill-box;transform-origin:50% 0;animation:sway 5.5s ease-in-out infinite}
+@keyframes sway{0%,100%{transform:rotate(-2.2deg)}50%{transform:rotate(2.2deg)}}
+/* rangoli ornaments */
+.rangoli{position:absolute;pointer-events:none;opacity:.2;animation:spin 140s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.sec,.book{position:relative}
+.sec{overflow:hidden}
+.sec-head,.book>*{position:relative;z-index:1}
+.dw-divider{display:flex;align-items:center;justify-content:center;gap:18px;padding-block:8px;color:var(--marigold);font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase}
+.dw-divider::before,.dw-divider::after{content:"";height:1px;flex:1;max-width:260px;background:linear-gradient(90deg,transparent,var(--marigold))}
+.dw-divider::after{background:linear-gradient(270deg,transparent,var(--marigold))}
+@media (prefers-reduced-motion:reduce){.toran .drop,.rangoli{animation:none}}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
@@ -285,10 +306,12 @@ body.has-cur,body.has-cur a,body.has-cur button,body.has-cur summary,body.has-cu
 <!-- HERO -->
 <header class="hero" id="top">
   <canvas class="live" id="heroCanvas" aria-hidden="true"></canvas>
+  <div class="toran dw" id="toran" aria-hidden="true"></div>
   <div class="scroll-cue">Scroll · Ulun Danu Beratan, Bali</div>
   <div class="hero-in">
     <div class="chips">
       <span class="chip lime">Diwali special</span>
+      <span class="hindi dw" lang="hi">शुभ दीपावली</span>
       <span class="chip">Signature FIT package</span>
       <span class="chip">Departs 03.11.2026</span>
     </div>
@@ -316,8 +339,8 @@ body.has-cur,body.has-cur a,body.has-cur button,body.has-cur summary,body.has-cu
 <!-- MARQUEE -->
 <div class="marquee" aria-label="On this trip">
   <div class="marquee-track">
-    <span>Singapore Airlines<i>✦</i></span><span>Fairfield by Marriott<i>✦</i></span><span>Mara River Safari Lodge<i>✦</i></span><span>Royal Tulip Jimbaran<i>✦</i></span><span>Uluwatu<i>✦</i></span><span>Tanah Lot<i>✦</i></span><span>Ulun Danu<i>✦</i></span><span>Tegenungan<i>✦</i></span>
-    <span aria-hidden="true">Singapore Airlines<i>✦</i></span><span aria-hidden="true">Fairfield by Marriott<i>✦</i></span><span aria-hidden="true">Mara River Safari Lodge<i>✦</i></span><span aria-hidden="true">Royal Tulip Jimbaran<i>✦</i></span><span aria-hidden="true">Uluwatu<i>✦</i></span><span aria-hidden="true">Tanah Lot<i>✦</i></span><span aria-hidden="true">Ulun Danu<i>✦</i></span><span aria-hidden="true">Tegenungan<i>✦</i></span>
+    <span>Singapore Airlines<i>✺</i></span><span>Fairfield by Marriott<i>✺</i></span><span>Mara River Safari Lodge<i>✺</i></span><span>Royal Tulip Jimbaran<i>✺</i></span><span>Uluwatu<i>✺</i></span><span>Tanah Lot<i>✺</i></span><span>Ulun Danu<i>✺</i></span><span>Tegenungan<i>✺</i></span>
+    <span aria-hidden="true">Singapore Airlines<i>✺</i></span><span aria-hidden="true">Fairfield by Marriott<i>✺</i></span><span aria-hidden="true">Mara River Safari Lodge<i>✺</i></span><span aria-hidden="true">Royal Tulip Jimbaran<i>✺</i></span><span aria-hidden="true">Uluwatu<i>✺</i></span><span aria-hidden="true">Tanah Lot<i>✺</i></span><span aria-hidden="true">Ulun Danu<i>✺</i></span><span aria-hidden="true">Tegenungan<i>✺</i></span>
   </div>
 </div>
 
@@ -360,6 +383,7 @@ body.has-cur,body.has-cur a,body.has-cur button,body.has-cur summary,body.has-cu
 
 <!-- STAYS & EXPERIENCES -->
 <section class="sec wrap" id="stays">
+  <svg class="rangoli dw" data-rangoli style="right:-120px;top:40px;width:520px;height:520px" aria-hidden="true"></svg>
   <div class="sec-head">
     <h2 class="rv">Stays &amp;<br>days out</h2>
     <div class="filters" role="group" aria-label="Filter">
@@ -435,7 +459,9 @@ body.has-cur,body.has-cur a,body.has-cur button,body.has-cur summary,body.has-cu
 </section>
 
 <!-- BOOKING -->
-<section class="sec wrap" id="enquire" style="padding-top:0">
+<div class="dw-divider dw wrap" aria-hidden="true">Deepavali 2026 · Sun 8 Nov</div>
+<section class="sec wrap" id="enquire" style="padding-top:clamp(40px,6vw,80px)">
+  <svg class="rangoli dw" data-rangoli style="left:-260px;bottom:-260px;width:620px;height:620px" aria-hidden="true"></svg>
   <div class="book">
     <div>
       <span class="mono lime">Enquire</span>
@@ -497,7 +523,7 @@ body.has-cur,body.has-cur a,body.has-cur button,body.has-cur summary,body.has-cu
 </main>
 
 <footer>
-  <span>© <span id="yr">2026</span> Skyline Travel Planner · Explore · Plan · Discover</span>
+  <span>© <span id="yr">2026</span> Skyline Travel Planner · Explore · Plan · Discover<span class="dw"> · Wishing you a bright Diwali</span></span>
   <span><a href="index.html">Home</a> · <a href="Privacy.dc.html">Privacy</a> · <a href="photo-credits.html">Photo credits</a></span>
 </footer>
 
@@ -507,6 +533,7 @@ body.has-cur,body.has-cur a,body.has-cur button,body.has-cur summary,body.has-cu
 <button class="tw-btn glass" id="twBtn" aria-expanded="false" aria-controls="tw">Tweaks</button>
 <div class="tw glass" id="tw" hidden>
   <span class="mono muted" style="margin-bottom:4px">Display settings</span>
+  <label>Diwali theme <input type="checkbox" id="tDiwali"></label>
   <label>Live backgrounds <input type="checkbox" id="tMotion"></label>
   <label>Lens effects <input type="checkbox" id="tLens"></label>
   <label>Film grain <input type="checkbox" id="tGrain"></label>
@@ -523,7 +550,7 @@ var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 var coarse = matchMedia('(pointer: coarse)').matches;
 
 /* ---------- prefs (tweaks) ---------- */
-var prefs = {motion:!reduce, lens:!coarse, grain:true, cursor:!coarse};
+var prefs = {diwali:true, motion:!reduce, lens:!coarse, grain:true, cursor:!coarse};
 try { var sv = JSON.parse(localStorage.getItem('sky_tweaks')||'null'); if (sv) for (var k in sv) if (k in prefs) prefs[k]=!!sv[k]; } catch(e){}
 function savePrefs(){ try{ localStorage.setItem('sky_tweaks', JSON.stringify(prefs)); }catch(e){} }
 
@@ -686,6 +713,19 @@ LiveScene.prototype.frame=function(dt){
       ctx.fillStyle='rgba(255,226,150,'+(.9*fa*fl)+')'; ctx.beginPath(); ctx.arc(P.x,P.y,P.r,0,6.283); ctx.fill(); }
   }
   ctx.globalCompositeOperation='source-over';
+  /* fireworks (Diwali theme only) */
+  if (s.fireworks && prefs.diwali){
+    this.fw=this.fw||[]; this.fwT=(this.fwT==null?1:this.fwT);
+    if (live){ this.fwT-=dt*s.fireworks; if(this.fwT<0){ this.fwT=rand(1.2,2.8);
+      var cx=rand(.15,.85)*W, cy=rand(.08,.34)*H, hue=['255,196,80','255,140,40','255,110,160','255,236,170'][Math.random()*4|0], sp=[], n2=70;
+      for (var fi=0;fi<n2;fi++){ var ang=fi/n2*6.283+rand(-.05,.05), v=rand(.6,1)*Math.min(W,H)*.22; sp.push({x:cx,y:cy,vx:Math.cos(ang)*v,vy:Math.sin(ang)*v}); }
+      this.fw.push({sp:sp,l:0,c:hue}); } }
+    ctx.globalCompositeOperation='lighter';
+    for (var fb=this.fw.length-1;fb>=0;fb--){ var B=this.fw[fb]; if(live) B.l+=dt; var bl2=B.l/2.2; if(bl2>=1){ this.fw.splice(fb,1); continue; }
+      var bal=Math.pow(1-bl2,1.6)*a; ctx.fillStyle='rgba('+B.c+','+bal+')';
+      for (var sj=0;sj<B.sp.length;sj++){ var S=B.sp[sj]; if(live){ S.vx*=.965; S.vy=S.vy*.965+60*d*dt; S.x+=S.vx*dt; S.y+=S.vy*dt; } ctx.fillRect(S.x,S.y,1.8*d,1.8*d); } }
+    ctx.globalCompositeOperation='source-over';
+  }
   /* colour grade */
   if (s.grade){ ctx.globalCompositeOperation='soft-light'; var g4=ctx.createLinearGradient(0,0,0,H); g4.addColorStop(0,s.grade[0]); g4.addColorStop(1,s.grade[1]); ctx.fillStyle=g4; ctx.fillRect(0,0,W,H); ctx.globalCompositeOperation='source-over'; }
   /* lens: chromatic fringe + drops */
@@ -728,15 +768,47 @@ function drawDiya(ctx,x,y,r,fl,a,lean){
   ctx.globalAlpha=1;
 }
 
+/* ---------- Diwali ornaments ---------- */
+var SVGNS='http://www.w3.org/2000/svg';
+function el(n,a,p){ var e=document.createElementNS(SVGNS,n); for(var k in a) e.setAttribute(k,a[k]); if(p) p.appendChild(e); return e; }
+function flower(g,x,y,r,alt){ var c=alt?['#FFD24A','#FFB21E']:['#FF9A1F','#E8650C'];
+  el('circle',{cx:x,cy:y,r:r,fill:c[1]},g); el('circle',{cx:x-r*.15,cy:y-r*.15,r:r*.72,fill:c[0]},g); el('circle',{cx:x,cy:y,r:r*.22,fill:'#9C3B06',opacity:.55},g); }
+function leaf(g,x,y,s,rot){ el('path',{d:'M0 0 C '+(s*.5)+' '+(s*.35)+' '+(s*.35)+' '+(s*1.4)+' 0 '+(s*1.9)+' C '+(-s*.35)+' '+(s*1.4)+' '+(-s*.5)+' '+(s*.35)+' 0 0Z',fill:'#2E7D32',transform:'translate('+x+' '+y+') rotate('+rot+')'},g); }
+function buildToran(){
+  var host=document.getElementById('toran'); if(!host) return; host.innerHTML='';
+  var W=host.clientWidth||innerWidth, r=W<600?5:7, svg=el('svg',{viewBox:'0 0 '+W+' 150','aria-hidden':'true'},host);
+  var swags=W<600?3:5, sw=W/swags;
+  for (var i=0;i<swags;i++){ var x0=i*sw, x1=x0+sw, sag=W<600?38:52, g=el('g',{},svg), steps=Math.floor(sw/(r*1.9));
+    for (var k=0;k<=steps;k++){ var t=k/steps, x=x0+t*sw, y=6+4*sag*t*(1-t); flower(g,x,y,r,k%2); }
+    for (var lf=0;lf<3;lf++) leaf(g,x0+lf*r*2.4-r*2.4,4,r*1.6,(lf-1)*25);
+    var drop=el('g',{class:'drop',style:'animation-delay:'+(-i*1.1)+'s'},svg), len=W<600?9:7;
+    for (var m=0;m<len;m++) flower(drop,x0,10+m*r*1.9,r*.95,m%2);
+    el('path',{d:'M'+(x0-r*.9)+' '+(10+len*r*1.9)+' l'+(r*.9)+' '+(r*2.4)+' l'+(r*.9)+' '+(-r*2.4)+'Z',fill:'#C2185B'},drop);
+  }
+  var endDrop=el('g',{class:'drop'},svg); for (var q=0;q<(W<600?5:7);q++) flower(endDrop,W,10+q*r*1.9,r*.95,q%2);
+}
+function buildRangoli(svg){
+  svg.setAttribute('viewBox','-100 -100 200 200'); svg.innerHTML='';
+  var c=['#FFB029','#FF6A13','#C2185B','#FFD27A'];
+  for (var ring=0;ring<4;ring++){ var n=8+ring*4, rr=18+ring*20;
+    for (var i=0;i<n;i++){ var a=i*360/n;
+      el('ellipse',{cx:0,cy:-rr,rx:4+ring*1.2,ry:9+ring*2.4,fill:'none',stroke:c[ring],'stroke-width':.8,transform:'rotate('+a+')'},svg);
+      el('circle',{cx:0,cy:-(rr+12+ring*2),r:1.2,fill:c[(ring+1)%4],transform:'rotate('+(a+180/n)+')'},svg); } }
+  el('circle',{cx:0,cy:0,r:10,fill:'none',stroke:c[0],'stroke-width':1},svg);
+  el('circle',{cx:0,cy:0,r:3,fill:c[1]},svg);
+}
+buildToran(); var trT; addEventListener('resize',function(){ clearTimeout(trT); trT=setTimeout(buildToran,200); });
+document.querySelectorAll('[data-rangoli]').forEach(buildRangoli);
+
 /* ---------- scenes ---------- */
-var ULUN={src:'images/dest-bali.jpg',focus:[.36,.5],horizon:.64,water:.71,glint:'255,190,120',mist:{y:.5,h:.12,a:.07,c:'255,220,190',dx:.6},embers:26,diyas:9,grade:['rgba(255,150,70,.35)','rgba(20,40,80,.3)']};
+var ULUN={src:'images/dest-bali.jpg',focus:[.36,.5],horizon:.64,water:.71,glint:'255,190,120',mist:{y:.5,h:.12,a:.07,c:'255,220,190',dx:.6},embers:26,diyas:9,fireworks:.35,grade:['rgba(255,150,70,.35)','rgba(20,40,80,.3)']};
 var hero=new LiveScene(document.getElementById('heroCanvas'),[ULUN],{pointer:true});
 
 var STORY=[
   {src:'images/places/bali-seminyak-and-kuta.jpg',tag:'Kuta Beach',focus:[.5,.5],horizon:.62,swell:[.55,.63],water:.63,glint:'255,170,110',embers:8,grade:['rgba(80,120,255,.25)','rgba(255,140,60,.25)'],pan:.04},
   {src:'images/places/bali-uluwatu.jpg',tag:'Uluwatu Temple',focus:[.55,.45],horizon:.55,mist:{y:.18,h:.2,a:.1,dx:1.4},grade:['rgba(120,170,255,.2)','rgba(255,190,120,.2)'],pan:.05,drops:false},
   {src:'images/dest-bali.jpg',tag:'Ulun Danu Beratan',focus:[.4,.55],horizon:.64,water:.71,glint:'255,190,120',mist:{y:.52,h:.1,a:.08,c:'255,225,200',dx:.5},embers:10,grade:['rgba(255,150,70,.3)','rgba(20,40,80,.3)'],pan:.04},
-  {src:null,gen:'night',tag:'Diwali night · diyas on the water',water:.6,glint:'255,170,90',embers:36,diyas:26,drops:false}
+  {src:null,gen:'night',tag:'Diwali night · diyas on the water',water:.6,glint:'255,170,90',embers:36,diyas:26,drops:false,fireworks:1}
 ];
 var story=new LiveScene(document.getElementById('storyCanvas'),STORY,{scroll:true});
 
@@ -812,9 +884,9 @@ function applyCursor(){ var on=prefs.cursor && !coarse; document.body.classList.
 /* ---------- tweaks ---------- */
 var tw=document.getElementById('tw'), twBtn=document.getElementById('twBtn');
 twBtn.addEventListener('click',function(){ tw.hidden=!tw.hidden; twBtn.setAttribute('aria-expanded',!tw.hidden); });
-[['tMotion','motion'],['tLens','lens'],['tGrain','grain'],['tCursor','cursor']].forEach(function(p){ var el=document.getElementById(p[0]); el.checked=prefs[p[1]]; if(p[1]==='cursor'&&coarse) el.disabled=true;
+[['tDiwali','diwali'],['tMotion','motion'],['tLens','lens'],['tGrain','grain'],['tCursor','cursor']].forEach(function(p){ var el=document.getElementById(p[0]); el.checked=prefs[p[1]]; if(p[1]==='cursor'&&coarse) el.disabled=true;
   el.addEventListener('change',function(){ prefs[p[1]]=el.checked; savePrefs(); applyAll(); }); });
-function applyAll(){ document.body.classList.toggle('grain',prefs.grain); applyCursor(); [hero,story].concat(tileScenes).forEach(function(sc){ sc.kick(); if(!sc.running) sc.frame(0); }); }
+function applyAll(){ document.body.classList.toggle('grain',prefs.grain); document.body.classList.toggle('diwali',prefs.diwali); applyCursor(); [hero,story].concat(tileScenes).forEach(function(sc){ sc.kick(); if(!sc.running) sc.frame(0); }); }
 applyAll();
 
 /* ---------- booking form ---------- */

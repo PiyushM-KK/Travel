@@ -1,8 +1,10 @@
 <!doctype html>
 <html lang="en">
 <meta charset="utf-8">
+<script>/* open in the visitor's language (the site's skyline_lang, or ?lang=) without an English flash */
+(function(){try{var q=(location.search.match(/[?&]lang=(en|hi|gu)(?:&|$)/)||[])[1],v=q||localStorage.getItem('skyline_lang');if(v==='hi'||v==='gu'){var d=document.documentElement;d.lang=v;d.classList.add('lang-pending');setTimeout(function(){d.classList.remove('lang-pending')},2500);}}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Diwali in Bali — 7N/8D Signature Package | Skyline Travel Planner</title>
+<title data-en="Diwali in Bali — 7N/8D Signature Package | Skyline Travel Planner" data-hi="बाली में दिवाली — 7 रातें / 8 दिन का सिग्नेचर पैकेज | Skyline Travel Planner" data-gu="બાલીમાં દિવાળી — 7 રાત / 8 દિવસ સિગ્નેચર પેકેજ | Skyline Travel Planner">Diwali in Bali — 7N/8D Signature Package | Skyline Travel Planner</title>
 <meta name="description" content="Celebrate Diwali 2026 in Bali. 7 nights / 8 days from 3 November, Singapore Airlines ex-Ahmedabad, Kuta, Ubud and a Jimbaran private pool villa. From ₹1,15,000 per person.">
 <meta property="og:title" content="Diwali in Bali — Skyline Travel Planner">
 <meta property="og:description" content="7N/8D Diwali special from 3 Nov 2026. Kuta · Ubud · Jimbaran pool villa. From ₹1,15,000 per person.">
@@ -15,7 +17,7 @@
 <link rel="preload" as="image" href="images/diwali-bali/hero-diwali-m.jpg" media="(max-aspect-ratio: 4/5)">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=JetBrains+Mono:wght@400;600&family=Manrope:wght@400;500;700&family=Tiro+Devanagari+Hindi&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=JetBrains+Mono:wght@400;600&family=Manrope:wght@400;500;700&family=Tiro+Devanagari+Hindi&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&family=Noto+Sans+Gujarati:wght@400;500;600;700;800&display=swap">
 <style>
 :root{
   --bg:#0A0A0B; --bg-2:#131315; --ink:#F2EFE8; --ink-2:#A9A59C; --line:rgba(242,239,232,.12);
@@ -185,12 +187,13 @@ body.grain::after{content:"";position:fixed;inset:-50%;pointer-events:none;z-ind
 .film.widef video{aspect-ratio:16/9}
 .film .kind{position:absolute;top:12px;left:12px}
 .film .live-tag{position:absolute;top:12px;right:12px;display:flex;align-items:center;gap:6px}
+.film.tall .live-tag{top:44px;left:12px;right:auto;max-width:calc(100% - 24px)}
 .film .live-tag::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--accent)}
 .film .lbl{position:absolute;left:12px;right:12px;bottom:12px;padding:12px 14px;margin:0}
 .film .lbl h3{font-size:clamp(15px,1.5vw,22px);text-transform:uppercase;line-height:1.05}
 .film .snd{position:absolute;right:12px;bottom:70px;font:600 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink);background:rgba(10,10,11,.55);border:1px solid var(--glass-line);border-radius:999px;padding:7px 11px;cursor:pointer}
 .film .snd[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-@media (max-width:860px){.films{grid-template-columns:1fr 1fr}.film.widef{grid-column:1/-1}.film .lbl h3{font-size:14px}.film .live-tag{display:none}}
+@media (max-width:860px){.films{grid-template-columns:1fr 1fr}.film.widef{grid-column:1/-1}.film .lbl h3{font-size:14px}.film .live-tag{top:44px;left:12px;right:auto;max-width:calc(100% - 24px);font-size:9px;padding:5px 8px;letter-spacing:.06em}}
 .nights{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(16px,2vw,28px)}
 .nights .tile .ph{aspect-ratio:3/4}
 @media (max-width:860px){.nights{grid-template-columns:1fr}.nights .tile .ph{aspect-ratio:16/10}}
@@ -204,6 +207,7 @@ body.grain::after{content:"";position:fixed;inset:-50%;pointer-events:none;z-ind
 .tile.type.dark{background:var(--bg-2);color:var(--ink);border:1px solid var(--line)}
 .tile.type.dark .mono{color:var(--accent)}
 .tile.type.dark p{color:var(--ink-2)}
+@media (max-width:520px){.tile .live-tag{top:48px;left:14px;right:auto}}
 @media (max-width:640px){.work{grid-template-columns:1fr}.work-col:nth-child(2){padding-top:0}}
 
 /* inclusions */
@@ -271,7 +275,7 @@ body.grain::after{content:"";position:fixed;inset:-50%;pointer-events:none;z-ind
 .next:hover .big{color:var(--accent)}
 .next .arrow{display:inline-block;transition:transform .5s cubic-bezier(.2,.7,.1,1)}
 .next:hover .arrow{transform:translateX(.25em)}
-footer{padding:28px var(--gut) calc(28px + env(safe-area-inset-bottom,0px));display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;border-top:1px solid var(--line);font-size:13px;color:var(--ink-2)}
+footer{padding:28px var(--gut) calc(76px + env(safe-area-inset-bottom,0px));display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;border-top:1px solid var(--line);font-size:13px;color:var(--ink-2)}
 footer a{color:var(--ink-2)}
 
 /* reveals */
@@ -303,23 +307,46 @@ body.has-cur,body.has-cur a,body.has-cur button,body.has-cur summary,body.has-cu
   body.grain::after{animation:none}
   .js-rv .rv{opacity:1;transform:none;transition:none}
 }
+/* ---------- language: EN / हिं / ગુ ---------- */
+html.lang-pending body{visibility:hidden}
+.lang{display:flex;align-items:center;gap:2px;padding:3px;border:1px solid var(--glass-line);border-radius:999px;flex:none}
+.lang button{border:0;background:transparent;color:var(--ink-2);font:600 12px/1 var(--mono);letter-spacing:.04em;padding:7px 9px;min-width:34px;border-radius:999px;cursor:pointer}
+.lang button[lang=hi]{font:600 13px/1 "Noto Sans Devanagari",system-ui,sans-serif}
+.lang button[lang=gu]{font:600 13px/1 "Noto Sans Gujarati",system-ui,sans-serif}
+.lang button:hover{color:var(--ink)}
+.lang button[aria-pressed=true]{background:var(--marigold);color:#1a1206}
+.lang button:focus-visible{outline:2px solid var(--marigold);outline-offset:2px}
+html[lang=hi]{--display:"Noto Sans Devanagari","Unbounded",sans-serif;--mono:"Noto Sans Devanagari","JetBrains Mono",monospace;--body:"Noto Sans Devanagari","Manrope",system-ui,sans-serif}
+html[lang=gu]{--display:"Noto Sans Gujarati","Unbounded",sans-serif;--mono:"Noto Sans Gujarati","JetBrains Mono",monospace;--body:"Noto Sans Gujarati","Manrope",system-ui,sans-serif}
+html[lang=hi] body *,html[lang=gu] body *{text-transform:none!important;letter-spacing:normal!important}
+html[lang=hi] h1,html[lang=hi] h2,html[lang=hi] h3,html[lang=gu] h1,html[lang=gu] h2,html[lang=gu] h3{line-height:1.22!important;font-weight:700}
+html[lang=hi] .hero h1,html[lang=gu] .hero h1{font-size:clamp(40px,8vw,150px);line-height:1.12!important}
+html[lang=hi] .brand b,html[lang=gu] .brand b{font-family:"Unbounded","Arial Black",sans-serif}
+html[lang=hi] .brand span,html[lang=gu] .brand span{font-family:"JetBrains Mono",monospace;text-transform:uppercase!important;letter-spacing:.14em!important}
+.menu-btn{flex:none}
+.brand span{white-space:nowrap}
+.marquee-track span span{padding-inline:0}
+.book>*{min-width:0}.cal{grid-template-columns:repeat(7,minmax(0,1fr))}.cal button{min-width:0;overflow:hidden}
+html[lang=gu] .hindi{font-family:"Noto Sans Gujarati",sans-serif;font-weight:600}
+@media (max-width:520px){.nav{gap:10px;padding-left:14px}.brand{flex-direction:column;align-items:flex-start;gap:3px}.brand span{font-size:8.5px}.lang button{min-width:30px;padding:7px 7px}}
 </style>
 
 <div class="progress" id="progress" aria-hidden="true"></div>
 
-<nav class="nav" aria-label="Main">
-  <a class="brand" href="index.html" data-cursor="Home"><b>SKYLINE</b><span>Travel Planner</span></a>
+<nav class="nav" aria-label="Main" data-en-aria="Main" data-hi-aria="मुख्य मेनू" data-gu-aria="મુખ્ય">
+  <a class="brand" href="index.html" data-cursor="Home" data-en-cur="Home" data-hi-cur="होम" data-gu-cur="હોમ"><b>SKYLINE</b><span>Travel Planner</span></a>
   <ul>
-    <li><a href="#trip">Trip</a></li>
-    <li><a href="#itinerary">Itinerary</a></li>
-    <li><a href="#stays">Stays</a></li>
-    <li><a href="#faq">FAQ</a></li>
+    <li><a href="#trip" data-en="Trip" data-hi="यात्रा" data-gu="યાત્રા">Trip</a></li>
+    <li><a href="#itinerary" data-en="Itinerary" data-hi="यात्रा कार्यक्रम" data-gu="કાર્યક્રમ">Itinerary</a></li>
+    <li><a href="#stays" data-en="Stays" data-hi="ठहरने की जगहें" data-gu="રોકાણ">Stays</a></li>
+    <li><a href="#faq" data-en="FAQ" data-hi="सवाल-जवाब" data-gu="સવાલ-જવાબ">FAQ</a></li>
   </ul>
-  <a class="btn btn-accent nav-cta" href="#enquire" data-cursor="Book">Enquire</a>
+  <div class="lang" role="group" aria-label="Language / भाषा / ભાષા"><button type="button" data-lang="en" lang="en" title="English" aria-pressed="true">EN</button><button type="button" data-lang="hi" lang="hi" title="हिंदी" aria-pressed="false">हिं</button><button type="button" data-lang="gu" lang="gu" title="ગુજરાતી" aria-pressed="false">ગુ</button></div>
+  <a class="btn btn-accent nav-cta" href="#enquire" data-cursor="Book" data-en-cur="Book" data-hi-cur="बुक करें" data-gu-cur="બુક કરો" data-en="Enquire" data-hi="पूछताछ करें" data-gu="પૂછપરછ">Enquire</a>
   <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="sheet"><i></i><i></i></button>
 </nav>
 <div class="sheet" id="sheet" aria-hidden="true">
-  <a href="#trip">Trip</a><a href="#itinerary">Itinerary</a><a href="#stays">Stays</a><a href="#faq">FAQ</a><a href="#enquire" class="accent">Enquire</a>
+  <a href="#trip" data-en="Trip" data-hi="यात्रा" data-gu="યાત્રા">Trip</a><a href="#itinerary" data-en="Itinerary" data-hi="यात्रा कार्यक्रम" data-gu="કાર્યક્રમ">Itinerary</a><a href="#stays" data-en="Stays" data-hi="ठहरने की जगहें" data-gu="રોકાણ">Stays</a><a href="#faq" data-en="FAQ" data-hi="सवाल-जवाब" data-gu="સવાલ-જવાબ">FAQ</a><a href="#enquire" class="accent" data-en="Enquire" data-hi="पूछताछ करें" data-gu="પૂછપરછ">Enquire</a>
 </div>
 
 <main>
@@ -327,87 +354,87 @@ body.has-cur,body.has-cur a,body.has-cur button,body.has-cur summary,body.has-cu
 <header class="hero" id="top">
   <canvas class="live" id="heroCanvas" aria-hidden="true"></canvas>
   <div class="toran dw" id="toran" aria-hidden="true"></div>
-  <div class="scroll-cue">Scroll</div>
-  <div class="photo-tag hero-tag">Illustrative image</div>
+  <div class="scroll-cue" data-en="Scroll" data-hi="स्क्रॉल करें" data-gu="સ્ક્રોલ કરો">Scroll</div>
+  <div class="photo-tag hero-tag" data-en="Illustrative image" data-hi="AI से बना चित्र" data-gu="AI ચિત્ર">Illustrative image</div>
   <div class="hero-in">
     <div class="chips">
-      <span class="chip accent">Diwali special</span>
-      <span class="hindi dw" lang="hi">शुभ दीपावली</span>
-      <span class="chip">Signature FIT package</span>
-      <span class="chip">Departs 03.11.2026</span>
+      <span class="chip accent" data-en="Diwali special" data-hi="दिवाली स्पेशल" data-gu="દિવાળી સ્પેશિયલ">Diwali special</span>
+      <span class="hindi dw" lang="hi" data-en="शुभ दीपावली" data-hi="शुभ दीपावली" data-gu="શુભ દીપાવલી">शुभ दीपावली</span>
+      <span class="chip" data-en="Signature FIT package" data-hi="सिग्नेचर FIT पैकेज" data-gu="સિગ્નેચર FIT પેકેજ">Signature FIT package</span>
+      <span class="chip" data-en="Departs 03.11.2026" data-hi="रवानगी 03.11.2026" data-gu="પ્રસ્થાન 03.11.2026">Departs 03.11.2026</span>
     </div>
-    <h1>Diwali<span class="l2">in Bali</span></h1>
+    <h1><span data-en="Diwali" data-hi="दिवाली" data-gu="દિવાળી">Diwali</span><span class="l2" data-en="in Bali" data-hi="बाली में" data-gu="બાલીમાં">in Bali</span></h1>
     <div class="hero-row">
-      <p class="hero-copy">Eight days on the Island of the Gods over Diwali week. Temples on the water, jungle nights in Ubud and a private pool villa in Jimbaran. Flying Singapore Airlines from Ahmedabad.</p>
+      <p class="hero-copy" data-en="Eight days on the Island of the Gods over Diwali week. Temples on the water, jungle nights in Ubud and a private pool villa in Jimbaran. Flying Singapore Airlines from Ahmedabad." data-hi="दिवाली के हफ़्ते में देवताओं के द्वीप पर आठ दिन। पानी पर बने मंदिर, उबुद में जंगल की रातें और जिम्बारन में प्राइवेट पूल विला। अहमदाबाद से Singapore Airlines की उड़ान।" data-gu="દિવાળીના અઠવાડિયામાં દેવોના ટાપુ પર આઠ દિવસ. પાણી પરનાં મંદિરો, ઉબુદમાં જંગલની રાતો અને જિમ્બારનમાં પ્રાઇવેટ પૂલ વિલા. અમદાવાદથી Singapore Airlinesની ફ્લાઇટ.">Eight days on the Island of the Gods over Diwali week. Temples on the water, jungle nights in Ubud and a private pool villa in Jimbaran. Flying Singapore Airlines from Ahmedabad.</p>
       <div class="price-card glass">
-        <span class="mono muted">From, per person*</span>
+        <span class="mono muted" data-en="From, per person*" data-hi="शुरुआती कीमत, प्रति व्यक्ति*" data-gu="વ્યક્તિ દીઠ શરૂઆતી કિંમત*">From, per person*</span>
         <span class="amt">₹1,15,000</span>
-        <div class="cd" id="countdown" aria-label="Time until departure"></div>
-        <a class="btn btn-accent" href="#enquire" data-cursor="Book" style="margin-top:8px;justify-content:center">Plan my trip →</a>
+        <div class="cd" id="countdown" aria-label="Time until departure" data-en-aria="Time until departure" data-hi-aria="रवानगी में बाकी समय" data-gu-aria="પ્રસ્થાનને બાકી સમય"></div>
+        <a class="btn btn-accent" href="#enquire" data-cursor="Book" style="margin-top:8px;justify-content:center" data-en-cur="Book" data-hi-cur="बुक करें" data-gu-cur="બુક કરો" data-en="Plan my trip →" data-hi="मेरी यात्रा प्लान करें →" data-gu="મારી યાત્રા પ્લાન કરો →">Plan my trip →</a>
       </div>
     </div>
   </div>
 </header>
 
 <!-- COUNTERS -->
-<section class="stats" id="trip" aria-label="Trip at a glance">
-  <div class="stat rv"><b data-count="7">0</b><span class="mono muted">Nights</span></div>
-  <div class="stat rv"><b data-count="8">0</b><span class="mono muted">Days</span></div>
-  <div class="stat rv"><b data-count="3">0</b><span class="mono muted">Hand-picked stays</span></div>
-  <div class="stat rv"><b data-count="0" id="daysLeft">0</b><span class="mono muted">Days to departure</span></div>
+<section class="stats" id="trip" aria-label="Trip at a glance" data-en-aria="Trip at a glance" data-hi-aria="यात्रा एक नज़र में" data-gu-aria="યાત્રા એક નજરે">
+  <div class="stat rv"><b data-count="7">0</b><span class="mono muted" data-en="Nights" data-hi="रातें" data-gu="રાત">Nights</span></div>
+  <div class="stat rv"><b data-count="8">0</b><span class="mono muted" data-en="Days" data-hi="दिन" data-gu="દિવસ">Days</span></div>
+  <div class="stat rv"><b data-count="3">0</b><span class="mono muted" data-en="Hand-picked stays" data-hi="चुनिंदा ठहरने की जगहें" data-gu="પસંદગીની હોટેલ">Hand-picked stays</span></div>
+  <div class="stat rv"><b data-count="0" id="daysLeft">0</b><span class="mono muted" data-en="Days to departure" data-hi="रवानगी में बाकी दिन" data-gu="પ્રસ્થાનને બાકી દિવસ">Days to departure</span></div>
 </section>
 
 <!-- MARQUEE -->
-<div class="marquee" aria-label="On this trip">
+<div class="marquee" aria-label="On this trip" data-en-aria="On this trip" data-hi-aria="इस यात्रा में" data-gu-aria="આ યાત્રામાં">
   <div class="marquee-track">
-    <span>Singapore Airlines<i>✺</i></span><span>Fairfield by Marriott<i>✺</i></span><span>Mara River Safari Lodge<i>✺</i></span><span>Royal Tulip Jimbaran<i>✺</i></span><span>Uluwatu<i>✺</i></span><span>Tanah Lot<i>✺</i></span><span>Ulun Danu<i>✺</i></span><span>Tegenungan<i>✺</i></span>
-    <span aria-hidden="true">Singapore Airlines<i>✺</i></span><span aria-hidden="true">Fairfield by Marriott<i>✺</i></span><span aria-hidden="true">Mara River Safari Lodge<i>✺</i></span><span aria-hidden="true">Royal Tulip Jimbaran<i>✺</i></span><span aria-hidden="true">Uluwatu<i>✺</i></span><span aria-hidden="true">Tanah Lot<i>✺</i></span><span aria-hidden="true">Ulun Danu<i>✺</i></span><span aria-hidden="true">Tegenungan<i>✺</i></span>
+    <span><span data-en="Singapore Airlines" data-hi="Singapore Airlines" data-gu="Singapore Airlines">Singapore Airlines</span><i>✺</i></span><span><span data-en="Fairfield by Marriott" data-hi="Fairfield by Marriott" data-gu="Fairfield by Marriott">Fairfield by Marriott</span><i>✺</i></span><span><span data-en="Mara River Safari Lodge" data-hi="Mara River Safari Lodge" data-gu="Mara River Safari Lodge">Mara River Safari Lodge</span><i>✺</i></span><span><span data-en="Royal Tulip Jimbaran" data-hi="Royal Tulip Jimbaran" data-gu="Royal Tulip Jimbaran">Royal Tulip Jimbaran</span><i>✺</i></span><span><span data-en="Uluwatu" data-hi="उलुवातु" data-gu="ઉલુવાટુ">Uluwatu</span><i>✺</i></span><span><span data-en="Tanah Lot" data-hi="तनाह लोट" data-gu="તનાહ લૉટ">Tanah Lot</span><i>✺</i></span><span><span data-en="Ulun Danu" data-hi="उलुन दानु" data-gu="ઉલુન દાનુ">Ulun Danu</span><i>✺</i></span><span><span data-en="Tegenungan" data-hi="तेगेनुंगन" data-gu="તેગેનુંગન">Tegenungan</span><i>✺</i></span>
+    <span aria-hidden="true"><span data-en="Singapore Airlines" data-hi="Singapore Airlines" data-gu="Singapore Airlines">Singapore Airlines</span><i>✺</i></span><span aria-hidden="true"><span data-en="Fairfield by Marriott" data-hi="Fairfield by Marriott" data-gu="Fairfield by Marriott">Fairfield by Marriott</span><i>✺</i></span><span aria-hidden="true"><span data-en="Mara River Safari Lodge" data-hi="Mara River Safari Lodge" data-gu="Mara River Safari Lodge">Mara River Safari Lodge</span><i>✺</i></span><span aria-hidden="true"><span data-en="Royal Tulip Jimbaran" data-hi="Royal Tulip Jimbaran" data-gu="Royal Tulip Jimbaran">Royal Tulip Jimbaran</span><i>✺</i></span><span aria-hidden="true"><span data-en="Uluwatu" data-hi="उलुवातु" data-gu="ઉલુવાટુ">Uluwatu</span><i>✺</i></span><span aria-hidden="true"><span data-en="Tanah Lot" data-hi="तनाह लोट" data-gu="તનાહ લૉટ">Tanah Lot</span><i>✺</i></span><span aria-hidden="true"><span data-en="Ulun Danu" data-hi="उलुन दानु" data-gu="ઉલુન દાનુ">Ulun Danu</span><i>✺</i></span><span aria-hidden="true"><span data-en="Tegenungan" data-hi="तेगेनुंगन" data-gu="તેગેનુંગન">Tegenungan</span><i>✺</i></span>
   </div>
 </div>
 
 <!-- PINNED STORY -->
-<section class="story" id="itinerary" aria-label="Day-by-day itinerary">
+<section class="story" id="itinerary" aria-label="Day-by-day itinerary" data-en-aria="Day-by-day itinerary" data-hi-aria="हर दिन का यात्रा कार्यक्रम" data-gu-aria="દિવસવાર કાર્યક્રમ">
   <div class="story-pin">
     <canvas class="live" id="storyCanvas" aria-hidden="true"></canvas>
     <div class="chapters">
       <article class="chapter on" data-ch="0">
         <span class="num">01</span>
-        <span class="mono accent">Day 1 · Tue 3 Nov · Ahmedabad → Bali</span>
-        <h3>Fly Singapore Airlines</h3>
-        <ul class="days"><li><b>Day 1</b><span>Return flights on Singapore Airlines from Ahmedabad are included, connecting through Singapore.</span></li></ul>
+        <span class="mono accent" data-en="Day 1 · Tue 3 Nov · Ahmedabad → Bali" data-hi="दिन 1 · मंगलवार, 3 नवंबर · अहमदाबाद → बाली" data-gu="દિવસ 1 · મંગળવાર, 3 નવેમ્બર · અમદાવાદ → બાલી">Day 1 · Tue 3 Nov · Ahmedabad → Bali</span>
+        <h3 data-en="Fly Singapore Airlines" data-hi="Singapore Airlines से उड़ान" data-gu="Singapore Airlinesમાં ઉડાન">Fly Singapore Airlines</h3>
+        <ul class="days"><li><b data-en="Day 1" data-hi="दिन 1" data-gu="દિવસ 1">Day 1</b><span data-en="Return flights on Singapore Airlines from Ahmedabad are included, connecting through Singapore." data-hi="अहमदाबाद से सिंगापुर होते हुए Singapore Airlines की आने-जाने की उड़ानें शामिल हैं।" data-gu="અમદાવાદથી સિંગાપોર થઈને Singapore Airlinesની જવા-આવવાની ફ્લાઇટ્સ સામેલ છે.">Return flights on Singapore Airlines from Ahmedabad are included, connecting through Singapore.</span></li></ul>
       </article>
       <article class="chapter" data-ch="1">
         <span class="num">02</span>
-        <span class="mono accent">Day 1 · Kuta</span>
-        <h3>Touch down, garland on</h3>
-        <ul class="days"><li><b>Day 1</b><span>Arrive in Bali. Garland welcome and a private transfer to your hotel in Kuta.</span></li></ul>
+        <span class="mono accent" data-en="Day 1 · Kuta" data-hi="दिन 1 · कुटा" data-gu="દિવસ 1 · કુટા">Day 1 · Kuta</span>
+        <h3 data-en="Touch down, garland on" data-hi="उतरते ही गले में माला" data-gu="ઊતરતાં જ ગળામાં ફૂલહાર">Touch down, garland on</h3>
+        <ul class="days"><li><b data-en="Day 1" data-hi="दिन 1" data-gu="દિવસ 1">Day 1</b><span data-en="Arrive in Bali. Garland welcome and a private transfer to your hotel in Kuta." data-hi="बाली पहुँचें। माला पहनाकर स्वागत और कुटा में आपके होटल तक प्राइवेट ट्रांसफ़र।" data-gu="બાલીમાં આગમન. ફૂલહારથી સ્વાગત અને કુટામાં તમારી હોટેલ સુધી પ્રાઇવેટ ટ્રાન્સફર.">Arrive in Bali. Garland welcome and a private transfer to your hotel in Kuta.</span></li></ul>
       </article>
       <article class="chapter" data-ch="2">
         <span class="num">03</span>
-        <span class="mono accent">Day 2 · Wed 4 Nov · Water sports</span>
-        <h3>Surf and spray</h3>
-        <ul class="days"><li><b>Day 2</b><span>A full day of water sports: jet ski, banana boat and parasailing.</span></li></ul>
+        <span class="mono accent" data-en="Day 2 · Wed 4 Nov · Water sports" data-hi="दिन 2 · बुधवार, 4 नवंबर · वॉटर स्पोर्ट्स" data-gu="દિવસ 2 · બુધવાર, 4 નવેમ્બર · વોટર સ્પોર્ટ્સ">Day 2 · Wed 4 Nov · Water sports</span>
+        <h3 data-en="Surf and spray" data-hi="लहरें और फुहारें" data-gu="દરિયાનાં મોજાં અને છાલક">Surf and spray</h3>
+        <ul class="days"><li><b data-en="Day 2" data-hi="दिन 2" data-gu="દિવસ 2">Day 2</b><span data-en="A full day of water sports: jet ski, banana boat and parasailing." data-hi="पूरा दिन वॉटर स्पोर्ट्स: जेट स्की, बनाना बोट और पैरासेलिंग।" data-gu="આખો દિવસ વોટર સ્પોર્ટ્સ: જેટ સ્કી, બનાના બોટ અને પેરાસેલિંગ.">A full day of water sports: jet ski, banana boat and parasailing.</span></li></ul>
       </article>
       <article class="chapter" data-ch="3">
         <span class="num">04</span>
-        <span class="mono accent">Day 2 · Uluwatu at sunset</span>
-        <h3>A clifftop temple</h3>
-        <ul class="days"><li><b>Day 2</b><span>Then Uluwatu Temple, high on the cliffs above the Indian Ocean (private).</span></li></ul>
+        <span class="mono accent" data-en="Day 2 · Uluwatu at sunset" data-hi="दिन 2 · सूर्यास्त के समय उलुवातु" data-gu="દિવસ 2 · સૂર્યાસ્ત સમયે ઉલુવાટુ">Day 2 · Uluwatu at sunset</span>
+        <h3 data-en="A clifftop temple" data-hi="ऊँची चट्टान पर बना मंदिर" data-gu="ભેખડ પરનું મંદિર">A clifftop temple</h3>
+        <ul class="days"><li><b data-en="Day 2" data-hi="दिन 2" data-gu="દિવસ 2">Day 2</b><span data-en="Then Uluwatu Temple, high on the cliffs above the Indian Ocean (private)." data-hi="फिर उलुवातु मंदिर, जो हिंद महासागर के ऊपर ऊँची चट्टानों पर है (प्राइवेट)।" data-gu="પછી હિંદ મહાસાગરની ઉપર ઊંચી ભેખડો પર આવેલું ઉલુવાટુ મંદિર (પ્રાઇવેટ).">Then Uluwatu Temple, high on the cliffs above the Indian Ocean (private).</span></li></ul>
       </article>
       <article class="chapter" data-ch="4">
         <span class="num">05</span>
-        <span class="mono accent">Days 3–4 · Temples on the water</span>
-        <h3>Tanah Lot and Ulun Danu</h3>
-        <ul class="days"><li><b>Day 3</b><span>Full-day Ubud tour with Tanah Lot and Ulun Danu temples (private).</span></li><li><b>Day 4</b><span>A free day for the beach, spa or shopping.</span></li></ul>
+        <span class="mono accent" data-en="Days 3–4 · Temples on the water" data-hi="दिन 3–4 · पानी पर बने मंदिर" data-gu="દિવસ 3–4 · પાણી પરનાં મંદિરો">Days 3–4 · Temples on the water</span>
+        <h3 data-en="Tanah Lot and Ulun Danu" data-hi="तनाह लोट और उलुन दानु" data-gu="તનાહ લૉટ અને ઉલુન દાનુ">Tanah Lot and Ulun Danu</h3>
+        <ul class="days"><li><b data-en="Day 3" data-hi="दिन 3" data-gu="દિવસ 3">Day 3</b><span data-en="Full-day Ubud tour with Tanah Lot and Ulun Danu temples (private)." data-hi="तनाह लोट और उलुन दानु मंदिरों के साथ पूरे दिन का उबुद टूर (प्राइवेट)।" data-gu="તનાહ લૉટ અને ઉલુન દાનુ મંદિરો સાથે આખા દિવસની ઉબુદ ટૂર (પ્રાઇવેટ).">Full-day Ubud tour with Tanah Lot and Ulun Danu temples (private).</span></li><li><b data-en="Day 4" data-hi="दिन 4" data-gu="દિવસ 4">Day 4</b><span data-en="A free day for the beach, spa or shopping." data-hi="बीच, स्पा या शॉपिंग के लिए अपनी मर्ज़ी का दिन।" data-gu="બીચ, સ્પા કે શોપિંગ માટે ફુરસદનો દિવસ.">A free day for the beach, spa or shopping.</span></li></ul>
       </article>
       <article class="chapter" data-ch="5">
         <span class="num">06</span>
-        <span class="mono accent">Days 5–8 · Diwali, Sun 8 Nov</span>
-        <h3>Diwali by your pool villa</h3>
-        <ul class="days"><li><b>Day 5</b><span>Check out from Kuta and transfer to Mara River Safari Lodge, with a Jungle Hopper pass.</span></li><li><b>Day 6</b><span>Diwali day. Bali Swing, then Tegenungan Waterfall (private), and on to your Jimbaran pool villa.</span></li><li><b>Day 7</b><span>A free day at the villa.</span></li><li><b>Day 8</b><span>Private transfer for your flight home.</span></li></ul>
+        <span class="mono accent" data-en="Days 5–8 · Diwali, Sun 8 Nov" data-hi="दिन 5–8 · दिवाली, रविवार 8 नवंबर" data-gu="દિવસ 5–8 · દિવાળી: રવિવાર, 8 નવેમ્બર">Days 5–8 · Diwali, Sun 8 Nov</span>
+        <h3 data-en="Diwali by your pool villa" data-hi="अपने पूल विला में दिवाली" data-gu="તમારા પૂલ વિલામાં દિવાળી">Diwali by your pool villa</h3>
+        <ul class="days"><li><b data-en="Day 5" data-hi="दिन 5" data-gu="દિવસ 5">Day 5</b><span data-en="Check out from Kuta and transfer to Mara River Safari Lodge, with a Jungle Hopper pass." data-hi="कुटा से चेक-आउट और Mara River Safari Lodge तक ट्रांसफ़र, साथ में Jungle Hopper पास।" data-gu="કુટાથી ચેક-આઉટ કરીને Mara River Safari Lodge સુધી ટ્રાન્સફર, સાથે Jungle Hopper પાસ.">Check out from Kuta and transfer to Mara River Safari Lodge, with a Jungle Hopper pass.</span></li><li><b data-en="Day 6" data-hi="दिन 6" data-gu="દિવસ 6">Day 6</b><span data-en="Diwali day. Bali Swing, then Tegenungan Waterfall (private), and on to your Jimbaran pool villa." data-hi="दिवाली का दिन। बाली स्विंग, फिर तेगेनुंगन झरना (प्राइवेट), और वहाँ से जिम्बारन में आपके पूल विला तक।" data-gu="દિવાળીનો દિવસ. બાલી સ્વિંગ, પછી તેગેનુંગન ધોધ (પ્રાઇવેટ), અને ત્યાંથી જિમ્બારનમાં તમારા પૂલ વિલા પર.">Diwali day. Bali Swing, then Tegenungan Waterfall (private), and on to your Jimbaran pool villa.</span></li><li><b data-en="Day 7" data-hi="दिन 7" data-gu="દિવસ 7">Day 7</b><span data-en="A free day at the villa." data-hi="विला में अपनी मर्ज़ी का दिन।" data-gu="વિલામાં ફુરસદનો દિવસ.">A free day at the villa.</span></li><li><b data-en="Day 8" data-hi="दिन 8" data-gu="દિવસ 8">Day 8</b><span data-en="Private transfer for your flight home." data-hi="घर वापसी की उड़ान के लिए प्राइवेट ट्रांसफ़र।" data-gu="ઘરે પાછા ફરવાની ફ્લાઇટ માટે પ્રાઇવેટ ટ્રાન્સફર.">Private transfer for your flight home.</span></li></ul>
       </article>
     </div>
-    <div class="story-rail" id="rail" aria-label="Jump to chapter">
+    <div class="story-rail" id="rail" aria-label="Jump to chapter" data-en-aria="Jump to chapter" data-hi-aria="सीधे किसी हिस्से पर जाएं" data-gu-aria="પ્રકરણ પર જાઓ">
       <button data-go="0" class="on">01</button><button data-go="1">02</button><button data-go="2">03</button><button data-go="3">04</button><button data-go="4">05</button><button data-go="5">06</button>
     </div>
     <div class="photo-tag" id="photoTag">Illustrative image</div>
@@ -418,231 +445,232 @@ body.has-cur,body.has-cur a,body.has-cur button,body.has-cur summary,body.has-cu
 <section class="sec wrap" id="stays">
   <svg class="rangoli dw" data-rangoli style="right:-120px;top:40px;width:520px;height:520px" aria-hidden="true"></svg>
   <div class="sec-head">
-    <h2 class="rv">Stays &amp;<br>days out</h2>
-    <div class="filters" role="group" aria-label="Filter">
-      <button class="pill" aria-pressed="true" data-f="all">All</button>
-      <button class="pill" aria-pressed="false" data-f="stay">Stays</button>
-      <button class="pill" aria-pressed="false" data-f="exp">Experiences</button>
+    <h2 class="rv"><span data-en="Stays &amp;" data-hi="ठहरने की जगहें और" data-gu="રોકાણ અને">Stays &amp;</span><br><span data-en="days out" data-hi="घूमने के दिन" data-gu="ફરવાના દિવસો">days out</span></h2>
+    <div class="filters" role="group" aria-label="Filter" data-en-aria="Filter" data-hi-aria="फ़िल्टर" data-gu-aria="ફિલ્ટર">
+      <button class="pill" aria-pressed="true" data-f="all" data-en="All" data-hi="सभी" data-gu="બધું">All</button>
+      <button class="pill" aria-pressed="false" data-f="stay" data-en="Stays" data-hi="ठहरने की जगहें" data-gu="રોકાણ">Stays</button>
+      <button class="pill" aria-pressed="false" data-f="exp" data-en="Experiences" data-hi="अनुभव" data-gu="અનુભવો">Experiences</button>
     </div>
   </div>
   <div class="work" id="work"></div>
   <div id="workSrc" hidden>
-    <a class="tile" data-k="stay" href="#enquire" data-cursor="View">
-      <div class="ph"><img src="images/places/bali-seminyak-and-kuta.jpg" alt="Sunset over Kuta Beach" loading="lazy" data-key="kuta"></div>
-      <span class="chip kind">4 nights · Kuta</span><span class="chip live-tag">Kuta Beach</span>
-      <div class="lbl glass"><h3>Fairfield by Marriott</h3><p>Or Nagraa / Legian, or similar. Deluxe room, a short walk from Kuta Beach.</p></div>
+    <a class="tile" data-k="stay" href="#enquire" data-cursor="View" data-en-cur="View" data-hi-cur="देखें" data-gu-cur="જુઓ">
+      <div class="ph"><img src="images/places/bali-seminyak-and-kuta.jpg" alt="Sunset over Kuta Beach" loading="lazy" data-key="kuta" data-en-alt="Sunset over Kuta Beach" data-hi-alt="कुटा बीच पर सूर्यास्त" data-gu-alt="કુટા બીચ પર સૂર્યાસ્ત"></div>
+      <span class="chip kind" data-en="4 nights · Kuta" data-hi="4 रातें · कुटा" data-gu="4 રાત · કુટા">4 nights · Kuta</span><span class="chip live-tag" data-en="Kuta Beach" data-hi="कुटा बीच" data-gu="કુટા બીચ">Kuta Beach</span>
+      <div class="lbl glass"><h3 data-en="Fairfield by Marriott" data-hi="Fairfield by Marriott" data-gu="Fairfield by Marriott">Fairfield by Marriott</h3><p data-en="Or Nagraa / Legian, or similar. Deluxe room, a short walk from Kuta Beach." data-hi="या फिर Nagraa / Legian, या इसके समान। डीलक्स रूम, कुटा बीच से थोड़ी ही पैदल दूरी पर।" data-gu="કે પછી Nagraa / Legian, અથવા સમકક્ષ. ડીલક્સ રૂમ, કુટા બીચથી ચાલતાં થોડે જ અંતરે.">Or Nagraa / Legian, or similar. Deluxe room, a short walk from Kuta Beach.</p></div>
     </a>
-    <a class="tile" data-k="exp" href="#itinerary" data-cursor="Explore">
-      <div class="ph"><img src="images/diwali-bali/parasail-m.jpg" alt="Two people parasailing above the sea at Tanjung Benoa, Bali" loading="lazy" data-key="surf"></div>
-      <span class="chip kind">Day 2</span><span class="chip live-tag">Photo · Tanjung Benoa</span>
-      <div class="lbl glass"><h3>Surf and spray</h3><p>Jet ski, banana boat and parasailing.</p></div>
+    <a class="tile" data-k="exp" href="#itinerary" data-cursor="Explore" data-en-cur="Explore" data-hi-cur="जानें" data-gu-cur="નિહાળો">
+      <div class="ph"><img src="images/diwali-bali/parasail-m.jpg" alt="Two people parasailing above the sea at Tanjung Benoa, Bali" loading="lazy" data-key="surf" data-en-alt="Two people parasailing above the sea at Tanjung Benoa, Bali" data-hi-alt="बाली के तंजुंग बेनोआ में समुद्र के ऊपर पैरासेलिंग करते दो लोग" data-gu-alt="બાલીના તંજુંગ બેનોઆમાં દરિયા ઉપર પેરાસેલિંગ કરતા બે લોકો"></div>
+      <span class="chip kind" data-en="Day 2" data-hi="दिन 2" data-gu="દિવસ 2">Day 2</span><span class="chip live-tag" data-en="Photo · Tanjung Benoa" data-hi="फ़ोटो · तंजुंग बेनोआ" data-gu="ફોટો · તંજુંગ બેનોઆ">Photo · Tanjung Benoa</span>
+      <div class="lbl glass"><h3 data-en="Surf and spray" data-hi="लहरें और फुहारें" data-gu="દરિયાનાં મોજાં અને છાલક">Surf and spray</h3><p data-en="Jet ski, banana boat and parasailing." data-hi="जेट स्की, बनाना बोट और पैरासेलिंग।" data-gu="જેટ સ્કી, બનાના બોટ અને પેરાસેલિંગ.">Jet ski, banana boat and parasailing.</p></div>
     </a>
     <div class="tile type dark" data-k="stay">
-      <span class="mono">1 night · Ubud</span>
-      <h3>Mara River Safari Lodge</h3>
-      <p>Or similar. Savala Deluxe room, with a Jungle Hopper pass.</p>
+      <span class="mono" data-en="1 night · Ubud" data-hi="1 रात · उबुद" data-gu="1 રાત · ઉબુદ">1 night · Ubud</span>
+      <h3 data-en="Mara River Safari Lodge" data-hi="Mara River Safari Lodge" data-gu="Mara River Safari Lodge">Mara River Safari Lodge</h3>
+      <p data-en="Or similar. Savala Deluxe room, with a Jungle Hopper pass." data-hi="या इसके समान। Savala Deluxe रूम, Jungle Hopper पास के साथ।" data-gu="અથવા સમકક્ષ. Savala Deluxe રૂમ, Jungle Hopper પાસ સાથે.">Or similar. Savala Deluxe room, with a Jungle Hopper pass.</p>
     </div>
-    <a class="tile wide" data-k="exp" href="#itinerary" data-cursor="Explore">
-      <div class="ph"><img src="images/diwali-bali/uluwatu-gate.jpg" alt="Uluwatu Temple gateway above the ocean at sunset" loading="lazy" data-key="uluwatu"></div>
-      <span class="chip kind">Day 2</span><span class="chip live-tag">Illustrative</span>
-      <div class="lbl glass"><h3>Uluwatu clifftop temple</h3><p>The temple on the cliffs, at sunset.</p></div>
+    <a class="tile wide" data-k="exp" href="#itinerary" data-cursor="Explore" data-en-cur="Explore" data-hi-cur="जानें" data-gu-cur="નિહાળો">
+      <div class="ph"><img src="images/diwali-bali/uluwatu-gate.jpg" alt="Uluwatu Temple gateway above the ocean at sunset" loading="lazy" data-key="uluwatu" data-en-alt="Uluwatu Temple gateway above the ocean at sunset" data-hi-alt="सूर्यास्त के समय समुद्र के ऊपर उलुवातु मंदिर का प्रवेश द्वार" data-gu-alt="સૂર્યાસ્ત સમયે દરિયાની ઉપર ઉલુવાટુ મંદિરનું પ્રવેશદ્વાર"></div>
+      <span class="chip kind" data-en="Day 2" data-hi="दिन 2" data-gu="દિવસ 2">Day 2</span><span class="chip live-tag" data-en="Illustrative" data-hi="AI से बना चित्र" data-gu="AI ચિત્ર">Illustrative</span>
+      <div class="lbl glass"><h3 data-en="Uluwatu clifftop temple" data-hi="ऊँची चट्टान पर बना उलुवातु मंदिर" data-gu="ઉલુવાટુનું ભેખડ પરનું મંદિર">Uluwatu clifftop temple</h3><p data-en="The temple on the cliffs, at sunset." data-hi="चट्टानों पर बना मंदिर, सूर्यास्त के समय।" data-gu="ભેખડો પર આવેલું મંદિર, સૂર્યાસ્ત સમયે.">The temple on the cliffs, at sunset.</p></div>
     </a>
-    <a class="tile" data-k="exp" href="#itinerary" data-cursor="Explore">
-      <div class="ph"><img src="images/diwali-bali/garland.jpg" alt="Garland welcome on arrival in Bali" loading="lazy" data-key="garland"></div>
-      <span class="chip kind">Day 1</span><span class="chip live-tag">Illustrative</span>
-      <div class="lbl glass"><h3>Garland welcome</h3><p>A fresh garland and a private transfer on arrival.</p></div>
+    <a class="tile" data-k="exp" href="#itinerary" data-cursor="Explore" data-en-cur="Explore" data-hi-cur="जानें" data-gu-cur="નિહાળો">
+      <div class="ph"><img src="images/diwali-bali/garland.jpg" alt="Garland welcome on arrival in Bali" loading="lazy" data-key="garland" data-en-alt="Garland welcome on arrival in Bali" data-hi-alt="बाली पहुँचने पर माला पहनाकर स्वागत" data-gu-alt="બાલી પહોંચતાં જ ફૂલહારથી સ્વાગત"></div>
+      <span class="chip kind" data-en="Day 1" data-hi="दिन 1" data-gu="દિવસ 1">Day 1</span><span class="chip live-tag" data-en="Illustrative" data-hi="AI से बना चित्र" data-gu="AI ચિત્ર">Illustrative</span>
+      <div class="lbl glass"><h3 data-en="Garland welcome" data-hi="माला पहनाकर स्वागत" data-gu="ફૂલહારથી સ્વાગત">Garland welcome</h3><p data-en="A fresh garland and a private transfer on arrival." data-hi="पहुँचने पर ताज़े फूलों की माला और प्राइवेट ट्रांसफ़र।" data-gu="પહોંચતાં જ તાજો ફૂલહાર અને પ્રાઇવેટ ટ્રાન્સફર.">A fresh garland and a private transfer on arrival.</p></div>
     </a>
-    <a class="tile" data-k="exp" href="#itinerary" data-cursor="Explore">
-      <div class="ph"><img src="images/diwali-bali/beach-day.jpg" alt="A quiet beach at sunset (illustrative)" loading="lazy" data-key="beach"></div>
-      <span class="chip kind">Day 4</span><span class="chip live-tag">Illustrative</span>
-      <div class="lbl glass"><h3>A free day</h3><p>A free day for the beach, spa or shopping.</p></div>
+    <a class="tile" data-k="exp" href="#itinerary" data-cursor="Explore" data-en-cur="Explore" data-hi-cur="जानें" data-gu-cur="નિહાળો">
+      <div class="ph"><img src="images/diwali-bali/beach-day.jpg" alt="A quiet beach at sunset (illustrative)" loading="lazy" data-key="beach" data-en-alt="A quiet beach at sunset (illustrative)" data-hi-alt="सूर्यास्त के समय एक शांत बीच (AI से बना चित्र)" data-gu-alt="સૂર્યાસ્ત સમયે શાંત બીચ (AI ચિત્ર)"></div>
+      <span class="chip kind" data-en="Day 4" data-hi="दिन 4" data-gu="દિવસ 4">Day 4</span><span class="chip live-tag" data-en="Illustrative" data-hi="AI से बना चित्र" data-gu="AI ચિત્ર">Illustrative</span>
+      <div class="lbl glass"><h3 data-en="A free day" data-hi="अपनी मर्ज़ी का दिन" data-gu="ફુરસદનો દિવસ">A free day</h3><p data-en="A free day for the beach, spa or shopping." data-hi="बीच, स्पा या शॉपिंग के लिए अपनी मर्ज़ी का दिन।" data-gu="બીચ, સ્પા કે શોપિંગ માટે ફુરસદનો દિવસ.">A free day for the beach, spa or shopping.</p></div>
     </a>
-    <a class="tile" data-k="stay" href="#enquire" data-cursor="View">
-      <div class="ph"><img src="images/diwali-bali/jimbaran-villa.jpg" alt="A private plunge-pool villa in a tropical garden (illustrative, not the actual hotel)" loading="lazy" data-key="villa"></div>
-      <span class="chip kind">2 nights · Jimbaran</span><span class="chip live-tag">Illustrative</span>
-      <div class="lbl glass"><h3>Royal Tulip Jimbaran</h3><p>Or similar. A one-bedroom villa with its own pool, for Diwali night.</p></div>
+    <a class="tile" data-k="stay" href="#enquire" data-cursor="View" data-en-cur="View" data-hi-cur="देखें" data-gu-cur="જુઓ">
+      <div class="ph"><img src="images/diwali-bali/jimbaran-villa.jpg" alt="A private plunge-pool villa in a tropical garden (illustrative, not the actual hotel)" loading="lazy" data-key="villa" data-en-alt="A private plunge-pool villa in a tropical garden (illustrative, not the actual hotel)" data-hi-alt="ट्रॉपिकल बगीचे में प्राइवेट प्लंज-पूल वाला विला (AI से बना चित्र, असली होटल नहीं)" data-gu-alt="ટ્રોપિકલ બગીચામાં પ્રાઇવેટ પ્લન્જ-પૂલ વિલા (AI ચિત્ર, અસલ હોટેલ નથી)"></div>
+      <span class="chip kind" data-en="2 nights · Jimbaran" data-hi="2 रातें · जिम्बारन" data-gu="2 રાત · જિમ્બારન">2 nights · Jimbaran</span><span class="chip live-tag" data-en="Illustrative" data-hi="AI से बना चित्र" data-gu="AI ચિત્ર">Illustrative</span>
+      <div class="lbl glass"><h3 data-en="Royal Tulip Jimbaran" data-hi="Royal Tulip Jimbaran" data-gu="Royal Tulip Jimbaran">Royal Tulip Jimbaran</h3><p data-en="Or similar. A one-bedroom villa with its own pool, for Diwali night." data-hi="या इसके समान। एक बेडरूम वाला विला, जिसका अपना पूल है, दिवाली की रात के लिए।" data-gu="અથવા સમકક્ષ. પોતાના પૂલ સાથેનો એક બેડરૂમનો વિલા, દિવાળીની રાત માટે.">Or similar. A one-bedroom villa with its own pool, for Diwali night.</p></div>
     </a>
-    <a class="tile wide" data-k="exp" href="#itinerary" data-cursor="Explore">
-      <div class="ph"><img src="images/dest-bali.jpg" alt="Ulun Danu Beratan temple at sunset" loading="lazy" data-key="ulun"></div>
-      <span class="chip kind">Day 3</span><span class="chip live-tag">Ulun Danu</span>
-      <div class="lbl glass"><h3>Tanah Lot + Ulun Danu</h3><p>Full-day Ubud tour to the two temples on the water.</p></div>
+    <a class="tile wide" data-k="exp" href="#itinerary" data-cursor="Explore" data-en-cur="Explore" data-hi-cur="जानें" data-gu-cur="નિહાળો">
+      <div class="ph"><img src="images/dest-bali.jpg" alt="Ulun Danu Beratan temple at sunset" loading="lazy" data-key="ulun" data-en-alt="Ulun Danu Beratan temple at sunset" data-hi-alt="सूर्यास्त के समय उलुन दानु बेरातन मंदिर" data-gu-alt="સૂર્યાસ્ત સમયે ઉલુન દાનુ બેરાતાન મંદિર"></div>
+      <span class="chip kind" data-en="Day 3" data-hi="दिन 3" data-gu="દિવસ 3">Day 3</span><span class="chip live-tag" data-en="Ulun Danu" data-hi="उलुन दानु" data-gu="ઉલુન દાનુ">Ulun Danu</span>
+      <div class="lbl glass"><h3 data-en="Tanah Lot + Ulun Danu" data-hi="तनाह लोट + उलुन दानु" data-gu="તનાહ લૉટ + ઉલુન દાનુ">Tanah Lot + Ulun Danu</h3><p data-en="Full-day Ubud tour to the two temples on the water." data-hi="पूरे दिन का उबुद टूर, पानी पर बने दोनों मंदिरों तक।" data-gu="આખા દિવસની ઉબુદ ટૂર, પાણી પરનાં બે મંદિરો સુધી.">Full-day Ubud tour to the two temples on the water.</p></div>
     </a>
-    <a class="tile" data-k="exp" href="#itinerary" data-cursor="Explore">
-      <div class="ph"><img src="images/diwali-bali/flight.jpg" alt="A Singapore Airlines jet climbing above the clouds at golden hour (illustration)" loading="lazy" data-key="flight"></div>
-      <span class="chip kind">Flights</span><span class="chip live-tag">Illustrative</span>
-      <div class="lbl glass"><h3>Singapore Airlines</h3><p>Return flights from Ahmedabad, included in the package.</p></div>
+    <a class="tile" data-k="exp" href="#itinerary" data-cursor="Explore" data-en-cur="Explore" data-hi-cur="जानें" data-gu-cur="નિહાળો">
+      <div class="ph"><img src="images/diwali-bali/flight.jpg" alt="A Singapore Airlines jet climbing above the clouds at golden hour (illustration)" loading="lazy" data-key="flight" data-en-alt="A Singapore Airlines jet climbing above the clouds at golden hour (illustration)" data-hi-alt="सुनहरी रोशनी में बादलों के ऊपर चढ़ता Singapore Airlines का जेट विमान (AI से बना चित्र)" data-gu-alt="સોનેરી પ્રકાશમાં વાદળોની ઉપર ચઢતું Singapore Airlinesનું જેટ વિમાન (AI ચિત્ર)"></div>
+      <span class="chip kind" data-en="Flights" data-hi="उड़ानें" data-gu="ફ્લાઇટ્સ">Flights</span><span class="chip live-tag" data-en="Illustrative" data-hi="AI से बना चित्र" data-gu="AI ચિત્ર">Illustrative</span>
+      <div class="lbl glass"><h3 data-en="Singapore Airlines" data-hi="Singapore Airlines" data-gu="Singapore Airlines">Singapore Airlines</h3><p data-en="Return flights from Ahmedabad, included in the package." data-hi="अहमदाबाद से आने-जाने की उड़ानें, पैकेज में शामिल।" data-gu="અમદાવાદથી જવા-આવવાની ફ્લાઇટ્સ, પેકેજમાં સામેલ.">Return flights from Ahmedabad, included in the package.</p></div>
     </a>
-    <a class="tile" data-k="exp" href="#itinerary" data-cursor="Explore">
-      <div class="ph"><img src="images/diwali-bali/villa-day.jpg" alt="An infinity pool beside a villa terrace above the jungle (illustrative, not the actual hotel)" loading="lazy" data-key="villaday"></div>
-      <span class="chip kind">Day 7</span><span class="chip live-tag">Illustrative</span>
-      <div class="lbl glass"><h3>Villa day</h3><p>A free day at the villa.</p></div>
+    <a class="tile" data-k="exp" href="#itinerary" data-cursor="Explore" data-en-cur="Explore" data-hi-cur="जानें" data-gu-cur="નિહાળો">
+      <div class="ph"><img src="images/diwali-bali/villa-day.jpg" alt="An infinity pool beside a villa terrace above the jungle (illustrative, not the actual hotel)" loading="lazy" data-key="villaday" data-en-alt="An infinity pool beside a villa terrace above the jungle (illustrative, not the actual hotel)" data-hi-alt="जंगल के ऊपर बने विला टैरेस के पास एक इनफ़िनिटी पूल (AI से बना चित्र, असली होटल नहीं)" data-gu-alt="જંગલની ઉપર, વિલાની ટેરેસની બાજુમાં ઇન્ફિનિટી પૂલ (AI ચિત્ર, અસલ હોટેલ નથી)"></div>
+      <span class="chip kind" data-en="Day 7" data-hi="दिन 7" data-gu="દિવસ 7">Day 7</span><span class="chip live-tag" data-en="Illustrative" data-hi="AI से बना चित्र" data-gu="AI ચિત્ર">Illustrative</span>
+      <div class="lbl glass"><h3 data-en="Villa day" data-hi="विला में एक दिन" data-gu="વિલામાં એક દિવસ">Villa day</h3><p data-en="A free day at the villa." data-hi="विला में अपनी मर्ज़ी का दिन।" data-gu="વિલામાં ફુરસદનો દિવસ.">A free day at the villa.</p></div>
     </a>
     <div class="tile type dark" data-k="exp">
-      <span class="mono">Day 6 · Diwali</span>
-      <h3>Bali Swing + Tegenungan</h3>
-      <p>Swing over the jungle, then the Tegenungan Waterfall, on a private basis.</p>
+      <span class="mono" data-en="Day 6 · Diwali" data-hi="दिन 6 · दिवाली" data-gu="દિવસ 6 · દિવાળી">Day 6 · Diwali</span>
+      <h3 data-en="Bali Swing + Tegenungan" data-hi="बाली स्विंग + तेगेनुंगन" data-gu="બાલી સ્વિંગ + તેગેનુંગન">Bali Swing + Tegenungan</h3>
+      <p data-en="Swing over the jungle, then the Tegenungan Waterfall, on a private basis." data-hi="जंगल के ऊपर झूला, फिर तेगेनुंगन झरना, प्राइवेट आधार पर।" data-gu="જંગલ ઉપર હીંચકા ખાઓ, પછી તેગેનુંગન ધોધ, પ્રાઇવેટ ધોરણે.">Swing over the jungle, then the Tegenungan Waterfall, on a private basis.</p>
     </div>
   </div>
 </section>
 
 <!-- BALI IN MOTION -->
 <section class="sec wrap" id="films" style="padding-top:0">
-  <div class="sec-head"><h2 class="rv">Bali in<br>motion</h2><p>Short clips of the moments on this trip. Tap "Sound off" to hear the waves.</p></div>
+  <div class="sec-head"><h2 class="rv"><span data-en="Bali in" data-hi="बाली की" data-gu="બાલીની">Bali in</span><br><span data-en="motion" data-hi="वीडियो झलकियाँ" data-gu="વીડિયો ઝલક">motion</span></h2><p data-en="Short clips of the moments on this trip. Tap &quot;Sound off&quot; to hear the waves." data-hi="इस यात्रा के पलों की छोटी-छोटी क्लिप। लहरों की आवाज़ सुनने के लिए &quot;आवाज़ बंद&quot; पर टैप करें।" data-gu="આ યાત્રાની પળોની નાની-નાની ક્લિપ્સ. મોજાંનો અવાજ સાંભળવા &quot;અવાજ બંધ&quot; પર ટૅપ કરો.">Short clips of the moments on this trip. Tap "Sound off" to hear the waves.</p></div>
   <div class="films">
     <figure class="film tall">
-      <video muted loop playsinline preload="none" poster="images/diwali-bali/garland-m.jpg" aria-label="Garland welcome on arrival in Bali, animated">
+      <video muted loop playsinline preload="none" poster="images/diwali-bali/garland-m.jpg" aria-label="Garland welcome on arrival in Bali, animated" data-en-aria="Garland welcome on arrival in Bali, animated" data-hi-aria="बाली पहुँचने पर माला पहनाकर स्वागत, एनिमेशन में" data-gu-aria="બાલી પહોંચતાં જ ફૂલહારથી સ્વાગતનું એનિમેટેડ દૃશ્ય">
         <source src="images/diwali-bali/garland-welcome.mp4" type="video/mp4">
       </video>
-      <span class="chip kind">Day 1</span><span class="chip live-tag">Illustrative · AI video</span>
+      <span class="chip kind" data-en="Day 1" data-hi="दिन 1" data-gu="દિવસ 1">Day 1</span><span class="chip live-tag" data-en="Illustrative · AI video" data-hi="AI से बना वीडियो" data-gu="AI વીડિયો">Illustrative · AI video</span>
       <button class="snd" type="button" aria-pressed="false" aria-label="Turn sound on">Sound off</button>
-      <figcaption class="lbl glass"><h3>Garland welcome</h3></figcaption>
+      <figcaption class="lbl glass"><h3 data-en="Garland welcome" data-hi="माला पहनाकर स्वागत" data-gu="ફૂલહારથી સ્વાગત">Garland welcome</h3></figcaption>
     </figure>
     <figure class="film tall">
-      <video muted loop playsinline preload="none" poster="images/diwali-bali/uluwatu-m.jpg" aria-label="Waves breaking below the clifftop temple at sunset">
+      <video muted loop playsinline preload="none" poster="images/diwali-bali/uluwatu-m.jpg" aria-label="Waves breaking below the clifftop temple at sunset" data-en-aria="Waves breaking below the clifftop temple at sunset" data-hi-aria="सूर्यास्त के समय ऊँची चट्टान पर बने मंदिर के नीचे टकराती लहरें" data-gu-aria="સૂર્યાસ્ત સમયે ભેખડ પરના મંદિર નીચે અફળાતાં મોજાં">
         <source src="images/diwali-bali/uluwatu-sunset.mp4" type="video/mp4">
       </video>
-      <span class="chip kind">Day 2</span><span class="chip live-tag">Illustrative · AI video</span>
+      <span class="chip kind" data-en="Day 2" data-hi="दिन 2" data-gu="દિવસ 2">Day 2</span><span class="chip live-tag" data-en="Illustrative · AI video" data-hi="AI से बना वीडियो" data-gu="AI વીડિયો">Illustrative · AI video</span>
       <button class="snd" type="button" aria-pressed="false" aria-label="Turn sound on">Sound off</button>
-      <figcaption class="lbl glass"><h3>Uluwatu at sunset</h3></figcaption>
+      <figcaption class="lbl glass"><h3 data-en="Uluwatu at sunset" data-hi="सूर्यास्त के समय उलुवातु" data-gu="સૂર્યાસ્ત સમયે ઉલુવાટુ">Uluwatu at sunset</h3></figcaption>
     </figure>
     <figure class="film widef">
-      <video muted loop playsinline preload="none" poster="images/diwali-bali/uluwatu-night.jpg" aria-label="Diyas along the clifftop temple as fireworks burst over the ocean">
+      <video muted loop playsinline preload="none" poster="images/diwali-bali/uluwatu-night.jpg" aria-label="Diyas along the clifftop temple as fireworks burst over the ocean" data-en-aria="Diyas along the clifftop temple as fireworks burst over the ocean" data-hi-aria="ऊँची चट्टान पर बने मंदिर के किनारे-किनारे दीये, और समुद्र के ऊपर फूटती आतिशबाज़ी" data-gu-aria="દરિયા પર આતશબાજી ફૂટતી હોય ત્યારે ભેખડ પરના મંદિરે હારબંધ દીવા">
         <source src="images/diwali-bali/uluwatu-diwali.mp4" type="video/mp4">
       </video>
-      <span class="chip kind">Diwali week</span><span class="chip live-tag">Illustrative · AI video</span>
+      <span class="chip kind" data-en="Diwali week" data-hi="दिवाली का हफ़्ता" data-gu="દિવાળીનું અઠવાડિયું">Diwali week</span><span class="chip live-tag" data-en="Illustrative · AI video" data-hi="AI से बना वीडियो" data-gu="AI વીડિયો">Illustrative · AI video</span>
       <button class="snd" type="button" aria-pressed="false" aria-label="Turn sound on">Sound off</button>
-      <figcaption class="lbl glass"><h3>Diwali over the ocean</h3></figcaption>
+      <figcaption class="lbl glass"><h3 data-en="Diwali over the ocean" data-hi="समुद्र के ऊपर दिवाली" data-gu="દરિયા પર દિવાળી">Diwali over the ocean</h3></figcaption>
     </figure>
   </div>
 </section>
 
 <!-- DIWALI NIGHTS -->
 <section class="sec wrap dw" id="nights" style="padding-top:0">
-  <div class="sec-head"><h2 class="rv">Diwali<br>nights</h2><p>Lamps on the steps, marigolds on the gates and fireworks over the ocean. This is how Bali can feel in Diwali week.</p></div>
+  <div class="sec-head"><h2 class="rv"><span data-en="Diwali" data-hi="दिवाली" data-gu="દિવાળીની">Diwali</span><br><span data-en="nights" data-hi="की रातें" data-gu="રાતો">nights</span></h2><p data-en="Lamps on the steps, marigolds on the gates and fireworks over the ocean. This is how Bali can feel in Diwali week." data-hi="सीढ़ियों पर दीये, दरवाज़ों पर गेंदे के फूल और समुद्र के ऊपर आतिशबाज़ी। दिवाली के हफ़्ते में बाली का माहौल कुछ ऐसा हो सकता है।" data-gu="પગથિયાં પર દીવા, દરવાજા પર ગલગોટા અને દરિયા પર આતશબાજી. દિવાળીના અઠવાડિયામાં બાલીમાં કંઈક આવો માહોલ હોઈ શકે છે.">Lamps on the steps, marigolds on the gates and fireworks over the ocean. This is how Bali can feel in Diwali week.</p></div>
   <div class="nights">
-    <a class="tile wide" href="#enquire" data-cursor="Book">
-      <div class="ph"><img src="images/diwali-bali/garland-night.jpg" alt="Garland welcome on Diwali evening with diyas and a flower rangoli" loading="lazy" data-key="garland-night"></div>
-      <span class="chip kind">Welcome</span><span class="chip live-tag">Illustrative</span>
-      <div class="lbl glass"><h3>Marigolds and diyas</h3><p>Your garland welcome, Diwali-style.</p></div>
+    <a class="tile wide" href="#enquire" data-cursor="Book" data-en-cur="Book" data-hi-cur="बुक करें" data-gu-cur="બુક કરો">
+      <div class="ph"><img src="images/diwali-bali/garland-night.jpg" alt="Garland welcome on Diwali evening with diyas and a flower rangoli" loading="lazy" data-key="garland-night" data-en-alt="Garland welcome on Diwali evening with diyas and a flower rangoli" data-hi-alt="दिवाली की शाम माला पहनाकर स्वागत, साथ में दीये और फूलों की रंगोली" data-gu-alt="દિવાળીની સાંજે દીવા અને ફૂલોની રંગોળી સાથે ફૂલહારથી સ્વાગત"></div>
+      <span class="chip kind" data-en="Welcome" data-hi="स्वागत" data-gu="સ્વાગત">Welcome</span><span class="chip live-tag" data-en="Illustrative" data-hi="AI से बना चित्र" data-gu="AI ચિત્ર">Illustrative</span>
+      <div class="lbl glass"><h3 data-en="Marigolds and diyas" data-hi="गेंदे के फूल और दीये" data-gu="ગલગોટા અને દીવા">Marigolds and diyas</h3><p data-en="Your garland welcome, Diwali-style." data-hi="माला पहनाकर आपका स्वागत, दिवाली के अंदाज़ में।" data-gu="ફૂલહારથી તમારું સ્વાગત, દિવાળીના રંગમાં.">Your garland welcome, Diwali-style.</p></div>
     </a>
-    <a class="tile wide" href="#enquire" data-cursor="Book">
-      <div class="ph"><img src="images/diwali-bali/uluwatu-night.jpg" alt="Clifftop temple lit with diyas as fireworks burst over the ocean" loading="lazy" data-key="uluwatu-night"></div>
-      <span class="chip kind">Uluwatu</span><span class="chip live-tag">Illustrative</span>
-      <div class="lbl glass"><h3>Lamps on the cliff</h3><p>Fireworks over the Indian Ocean.</p></div>
+    <a class="tile wide" href="#enquire" data-cursor="Book" data-en-cur="Book" data-hi-cur="बुक करें" data-gu-cur="બુક કરો">
+      <div class="ph"><img src="images/diwali-bali/uluwatu-night.jpg" alt="Clifftop temple lit with diyas as fireworks burst over the ocean" loading="lazy" data-key="uluwatu-night" data-en-alt="Clifftop temple lit with diyas as fireworks burst over the ocean" data-hi-alt="ऊँची चट्टान पर बना, दीयों से रोशन मंदिर, और समुद्र के ऊपर फूटती आतिशबाज़ी" data-gu-alt="દરિયા પર આતશબાજી ફૂટતી હોય ત્યારે દીવાથી ઝળહળતું ભેખડ પરનું મંદિર"></div>
+      <span class="chip kind" data-en="Uluwatu" data-hi="उलुवातु" data-gu="ઉલુવાટુ">Uluwatu</span><span class="chip live-tag" data-en="Illustrative" data-hi="AI से बना चित्र" data-gu="AI ચિત્ર">Illustrative</span>
+      <div class="lbl glass"><h3 data-en="Lamps on the cliff" data-hi="चट्टान पर दीये" data-gu="ભેખડ પર દીવા">Lamps on the cliff</h3><p data-en="Fireworks over the Indian Ocean." data-hi="हिंद महासागर के ऊपर आतिशबाज़ी।" data-gu="હિંદ મહાસાગર પર આતશબાજી.">Fireworks over the Indian Ocean.</p></div>
     </a>
-    <a class="tile wide" href="#enquire" data-cursor="Book">
-      <div class="ph"><img src="images/diwali-bali/flight-night.jpg" alt="Jet flying at dusk above a coast glittering with Diwali lights" loading="lazy" data-key="flight-night"></div>
-      <span class="chip kind">Flights</span><span class="chip live-tag">Illustrative</span>
-      <div class="lbl glass"><h3>Fly home in the glow</h3><p>City lights and fireworks below the wing.</p></div>
+    <a class="tile wide" href="#enquire" data-cursor="Book" data-en-cur="Book" data-hi-cur="बुक करें" data-gu-cur="બુક કરો">
+      <div class="ph"><img src="images/diwali-bali/flight-night.jpg" alt="Jet flying at dusk above a coast glittering with Diwali lights" loading="lazy" data-key="flight-night" data-en-alt="Jet flying at dusk above a coast glittering with Diwali lights" data-hi-alt="दिवाली की रोशनी से जगमगाते समुद्र-तट के ऊपर, शाम के धुंधलके में उड़ता जेट विमान" data-gu-alt="સંધ્યાટાણે દિવાળીની રોશનીથી ઝગમગતા દરિયાકિનારા ઉપર ઊડતું જેટ વિમાન"></div>
+      <span class="chip kind" data-en="Flights" data-hi="उड़ानें" data-gu="ફ્લાઇટ્સ">Flights</span><span class="chip live-tag" data-en="Illustrative" data-hi="AI से बना चित्र" data-gu="AI ચિત્ર">Illustrative</span>
+      <div class="lbl glass"><h3 data-en="Fly home in the glow" data-hi="जगमगाहट के बीच घर वापसी की उड़ान" data-gu="રોશની વચ્ચે ઘર તરફ ઉડાન">Fly home in the glow</h3><p data-en="City lights and fireworks below the wing." data-hi="विमान के पंख के नीचे शहर की रोशनियाँ और आतिशबाज़ी।" data-gu="વિમાનની પાંખ નીચે શહેરની રોશની અને આતશબાજી.">City lights and fireworks below the wing.</p></div>
     </a>
   </div>
 </section>
 
 <!-- INCLUSIONS -->
 <section class="sec wrap" style="padding-top:0" aria-labelledby="inclH">
-  <div class="sec-head"><h2 class="rv" id="inclH">What's<br>included</h2><p>Everything listed on the package. Transfers and sightseeing are private, never shared coaches.</p></div>
+  <div class="sec-head"><h2 class="rv" id="inclH"><span data-en="What&#x27;s" data-hi="क्या-क्या" data-gu="શું શું">What's</span><br><span data-en="included" data-hi="शामिल है" data-gu="સામેલ છે">included</span></h2><p data-en="Everything listed on the package. Transfers and sightseeing are private, never shared coaches." data-hi="पैकेज में जो कुछ लिखा है, सब यहाँ है। ट्रांसफ़र और साइटसीइंग प्राइवेट होते हैं, शेयरिंग वाली बस में कभी नहीं।" data-gu="પેકેજમાં જણાવેલું બધું જ. ટ્રાન્સફર અને સાઇટસીઇંગ પ્રાઇવેટ છે, શેરિંગવાળી કોચ બસમાં ક્યારેય નહીં.">Everything listed on the package. Transfers and sightseeing are private, never shared coaches.</p></div>
   <div class="incl">
-    <div class="rv"><b>01</b><span>Return flights on Singapore Airlines from Ahmedabad</span></div>
-    <div class="rv"><b>02</b><span>7 nights' stay as per the itinerary</span></div>
-    <div class="rv"><b>03</b><span>Daily breakfast at the hotel</span></div>
-    <div class="rv"><b>04</b><span>All transfers and sightseeing on a private basis</span></div>
-    <div class="rv"><b>05</b><span>Entrance fees as per the itinerary</span></div>
-    <div class="rv"><b>06</b><span>Garland welcome on arrival and daily mineral water</span></div>
+    <div class="rv"><b>01</b><span data-en="Return flights on Singapore Airlines from Ahmedabad" data-hi="अहमदाबाद से Singapore Airlines की आने-जाने की उड़ानें" data-gu="અમદાવાદથી Singapore Airlinesની જવા-આવવાની ફ્લાઇટ્સ">Return flights on Singapore Airlines from Ahmedabad</span></div>
+    <div class="rv"><b>02</b><span data-en="7 nights&#x27; stay as per the itinerary" data-hi="यात्रा कार्यक्रम के अनुसार 7 रातों का ठहराव" data-gu="કાર્યક્રમ મુજબ 7 રાતનું રોકાણ">7 nights' stay as per the itinerary</span></div>
+    <div class="rv"><b>03</b><span data-en="Daily breakfast at the hotel" data-hi="होटल में रोज़ नाश्ता" data-gu="હોટેલમાં રોજ નાસ્તો">Daily breakfast at the hotel</span></div>
+    <div class="rv"><b>04</b><span data-en="All transfers and sightseeing on a private basis" data-hi="सभी ट्रांसफ़र और साइटसीइंग प्राइवेट आधार पर" data-gu="બધા ટ્રાન્સફર અને સાઇટસીઇંગ પ્રાઇવેટ ધોરણે">All transfers and sightseeing on a private basis</span></div>
+    <div class="rv"><b>05</b><span data-en="Entrance fees as per the itinerary" data-hi="यात्रा कार्यक्रम के अनुसार एंट्री फ़ीस" data-gu="કાર્યક્રમ મુજબ પ્રવેશ ફી">Entrance fees as per the itinerary</span></div>
+    <div class="rv"><b>06</b><span data-en="Garland welcome on arrival and daily mineral water" data-hi="पहुँचने पर माला पहनाकर स्वागत और रोज़ मिनरल वॉटर" data-gu="પહોંચતાં જ ફૂલહારથી સ્વાગત અને રોજ મિનરલ વોટર">Garland welcome on arrival and daily mineral water</span></div>
   </div>
-  <p class="fine">*Prices are indicative starting-from estimates per person and can change with season, hotel availability and current rates. Hotels are "or similar" and are confirmed at booking. Photos show the destinations on this trip, not the specific hotels. Images and videos marked "Illustrative" are AI-generated to show the experience. The aircraft is an AI illustration in Singapore Airlines colours, not a photograph, and the aircraft type on your flights may differ. The Uluwatu clifftop and temple-gate photos are AI-enhanced from photographs by Bali Star Island. Parasailing photo: <a href="https://commons.wikimedia.org/wiki/File:Parasailing_in_Tanjung_Benoa.jpg" rel="noopener">"Parasailing in Tanjung Benoa"</a> by Christophe95, <a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="noopener">CC BY-SA 4.0</a>, colour-adjusted (and resized for phones).</p>
+  <p class="fine"><span data-en="*Prices are indicative starting-from estimates per person and can change with season, hotel availability and current rates. Hotels are &quot;or similar&quot; and are confirmed at booking. Photos show the destinations on this trip, not the specific hotels. Images and videos marked &quot;Illustrative&quot; are AI-generated to show the experience. The aircraft pictures are AI illustrations, not photographs (the main one is shown in Singapore Airlines colours), and the aircraft type on your flights may differ. The Uluwatu clifftop and temple-gate photos are AI-enhanced from photographs by Bali Star Island. Parasailing photo:" data-hi="*कीमतें प्रति व्यक्ति शुरुआती अनुमान हैं, सिर्फ़ अंदाज़े के लिए, और सीज़न, होटल की उपलब्धता और मौजूदा रेट के हिसाब से बदल सकती हैं। होटल &quot;या इसके समान&quot; हैं और बुकिंग के समय कन्फ़र्म होते हैं। फ़ोटो में इस यात्रा की जगहें दिखाई गई हैं, पैकेज में बताए गए होटल नहीं। जिन चित्रों पर &quot;AI से बना चित्र&quot; और जिन वीडियो पर &quot;AI से बना वीडियो&quot; लिखा है, वे अनुभव की झलक देने के लिए AI से बनाए गए हैं। विमान वाली तस्वीरें AI से बने चित्र हैं, असली फ़ोटो नहीं (मुख्य तस्वीर में विमान Singapore Airlines के रंगों में दिखाया गया है), और आपकी उड़ानों में विमान का मॉडल अलग हो सकता है। उलुवातु की ऊँची चट्टान और मंदिर के द्वार वाली फ़ोटो, Bali Star Island की खींची तस्वीरों को AI से निखारकर बनाई गई हैं। पैरासेलिंग की फ़ोटो:" data-gu="*દર્શાવેલી કિંમતો વ્યક્તિ દીઠ અંદાજિત શરૂઆતી ભાવ છે અને સીઝન, હોટેલની ઉપલબ્ધતા અને વર્તમાન દરો પ્રમાણે બદલાઈ શકે છે. હોટેલો &quot;અથવા સમકક્ષ&quot; ધોરણે છે અને બુકિંગ વખતે કન્ફર્મ થાય છે. ફોટા આ યાત્રાનાં સ્થળો બતાવે છે, ચોક્કસ હોટેલો નહીં. જે ચિત્રો પર &quot;AI ચિત્ર&quot; અને જે વીડિયો પર &quot;AI વીડિયો&quot; લખેલું છે, તે અનુભવનો ખ્યાલ આપવા AI વડે બનાવેલાં છે. વિમાનનાં ચિત્રો AI વડે બનાવેલાં છે, ફોટા નથી (મુખ્ય ચિત્રમાં વિમાન Singapore Airlinesના રંગોમાં બતાવ્યું છે), અને તમારી ફ્લાઇટ્સમાં વિમાનનો પ્રકાર અલગ હોઈ શકે છે. ઉલુવાટુની ભેખડ અને મંદિરના પ્રવેશદ્વારના ફોટા Bali Star Islandના ફોટોગ્રાફ્સ પરથી AI વડે નિખારેલા છે. પેરાસેલિંગનો ફોટો:">*Prices are indicative starting-from estimates per person and can change with season, hotel availability and current rates. Hotels are "or similar" and are confirmed at booking. Photos show the destinations on this trip, not the specific hotels. Images and videos marked "Illustrative" are AI-generated to show the experience. The aircraft pictures are AI illustrations, not photographs (the main one is shown in Singapore Airlines colours), and the aircraft type on your flights may differ. The Uluwatu clifftop and temple-gate photos are AI-enhanced from photographs by Bali Star Island. Parasailing photo:</span> <a href="https://commons.wikimedia.org/wiki/File:Parasailing_in_Tanjung_Benoa.jpg" rel="noopener" data-en="&quot;Parasailing in Tanjung Benoa&quot;" data-hi="&quot;Parasailing in Tanjung Benoa&quot;" data-gu="&quot;Parasailing in Tanjung Benoa&quot;">"Parasailing in Tanjung Benoa"</a> <span data-en="by Christophe95," data-hi="Christophe95 द्वारा," data-gu="Christophe95 દ્વારા,">by Christophe95,</span> <a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="noopener">CC BY-SA 4.0</a><span data-en=", colour-adjusted (and resized for phones)." data-hi=", रंगों में बदलाव किया गया है (और फ़ोन के लिए साइज़ बदला गया है)।" data-gu=", રંગમાં ફેરફાર કરેલો છે (અને ફોન માટે સાઇઝ બદલેલી છે).">, colour-adjusted (and resized for phones).</span></p>
 </section>
 
 <!-- FAQ -->
 <section class="sec wrap" id="faq" style="padding-top:0">
-  <div class="sec-head"><h2 class="rv">Good<br>questions</h2></div>
+  <div class="sec-head"><h2 class="rv"><span data-en="Good" data-hi="काम के" data-gu="કામના">Good</span><br><span data-en="questions" data-hi="सवाल" data-gu="સવાલો">questions</span></h2></div>
   <div class="faq">
-    <details><summary>Is ₹1,15,000 the price per person?<i></i></summary><p class="ans">Yes. It is the starting price per person for this package. The final price depends on your room sharing, dates and availability when you book. We confirm it in writing before you pay anything.</p></details>
-    <details><summary>Will we actually be in Bali for Diwali?<i></i></summary><p class="ans">Yes. Diwali falls on Sunday 8 November 2026, which is day 6 of this trip. You spend that evening at your private pool villa in Jimbaran.</p></details>
-    <details><summary>Can I change the dates, hotels or departure city?<i></i></summary><p class="ans">This is a FIT package, so it is planned just for your group. We can change hotels, add nights or look at other departure cities. Tell us in the form below and we will send a revised quote.</p></details>
-    <details><summary>What isn't included?<i></i></summary><p class="ans">Anything not on the "What's included" list above, such as visa fees, travel insurance, lunches and dinners, and personal expenses. Ask us and we will add what you need to your quote.</p></details>
-    <details><summary>How do I book?<i></i></summary><p class="ans">Send the enquiry form or message us on WhatsApp at +91 88660 50291. We don't take payments on this website; our team confirms everything with you directly.</p></details>
+    <details><summary><span data-en="Is ₹1,15,000 the price per person?" data-hi="क्या ₹1,15,000 की कीमत प्रति व्यक्ति है?" data-gu="શું ₹1,15,000 વ્યક્તિ દીઠ કિંમત છે?">Is ₹1,15,000 the price per person?</span><i></i></summary><p class="ans" data-en="Yes. It is the starting price per person for this package. The final price depends on your room sharing, dates and availability when you book. We confirm it in writing before you pay anything." data-hi="जी हाँ। यह इस पैकेज की प्रति व्यक्ति शुरुआती कीमत है। फ़ाइनल कीमत बुकिंग के समय आपकी रूम शेयरिंग, तारीख़ों और उपलब्धता पर निर्भर करती है। आपसे कोई भी भुगतान लेने से पहले हम यह कीमत आपको लिखित में कन्फ़र्म करते हैं।" data-gu="હા. આ પેકેજની વ્યક્તિ દીઠ શરૂઆતી કિંમત છે. અંતિમ કિંમત તમારા રૂમ શેરિંગ, તારીખો અને તમે બુક કરો ત્યારની ઉપલબ્ધતા પર આધાર રાખે છે. તમે કંઈ પણ ચૂકવો તે પહેલાં અમે કિંમત લેખિતમાં કન્ફર્મ કરીએ છીએ.">Yes. It is the starting price per person for this package. The final price depends on your room sharing, dates and availability when you book. We confirm it in writing before you pay anything.</p></details>
+    <details><summary><span data-en="Will we actually be in Bali for Diwali?" data-hi="क्या हम सच में दिवाली पर बाली में होंगे?" data-gu="શું દિવાળી પર અમે ખરેખર બાલીમાં હોઈશું?">Will we actually be in Bali for Diwali?</span><i></i></summary><p class="ans" data-en="Yes. Diwali falls on Sunday 8 November 2026, which is day 6 of this trip. You spend that evening at your private pool villa in Jimbaran." data-hi="जी हाँ। दिवाली रविवार, 8 नवंबर 2026 को है, जो इस यात्रा का छठा दिन है। वह शाम आप जिम्बारन में अपने प्राइवेट पूल विला में बिताएंगे।" data-gu="હા. દિવાળી રવિવાર, 8 નવેમ્બર 2026ના રોજ છે, જે આ યાત્રાનો છઠ્ઠો દિવસ છે. એ સાંજ તમે જિમ્બારનમાં તમારા પ્રાઇવેટ પૂલ વિલામાં વિતાવશો.">Yes. Diwali falls on Sunday 8 November 2026, which is day 6 of this trip. You spend that evening at your private pool villa in Jimbaran.</p></details>
+    <details><summary><span data-en="Can I change the dates, hotels or departure city?" data-hi="क्या तारीख़ें, होटल या रवानगी का शहर बदला जा सकता है?" data-gu="શું હું તારીખો, હોટેલ કે પ્રસ્થાનનું શહેર બદલી શકું?">Can I change the dates, hotels or departure city?</span><i></i></summary><p class="ans" data-en="This is a FIT package, so it is planned just for your group. We can change hotels, add nights or look at other departure cities. Tell us in the form below and we will send a revised quote." data-hi="यह एक FIT पैकेज है, इसलिए इसे सिर्फ़ आपके ग्रुप के लिए प्लान किया जाता है। हम होटल बदल सकते हैं, रातें जोड़ सकते हैं या रवानगी के लिए दूसरे शहर देख सकते हैं। नीचे दिए फ़ॉर्म में हमें बताएं और हम आपको बदला हुआ कोटेशन भेज देंगे।" data-gu="આ FIT પેકેજ છે, એટલે તે ફક્ત તમારા ગ્રુપ માટે જ પ્લાન થાય છે. અમે હોટેલ બદલી શકીએ, રાત ઉમેરી શકીએ અથવા બીજા શહેરોથી પ્રસ્થાનના વિકલ્પ જોઈ શકીએ છીએ. નીચેના ફોર્મમાં અમને જણાવો અને અમે સુધારેલું ક્વોટ મોકલીશું.">This is a FIT package, so it is planned just for your group. We can change hotels, add nights or look at other departure cities. Tell us in the form below and we will send a revised quote.</p></details>
+    <details><summary><span data-en="What isn&#x27;t included?" data-hi="क्या शामिल नहीं है?" data-gu="શું સામેલ નથી?">What isn't included?</span><i></i></summary><p class="ans" data-en="Anything not on the &quot;What&#x27;s included&quot; list above, such as visa fees, travel insurance, lunches and dinners, and personal expenses. Ask us and we will add what you need to your quote." data-hi="वह सब कुछ जो ऊपर दी गई &quot;क्या-क्या शामिल है&quot; सूची में नहीं है, जैसे वीज़ा फ़ीस, ट्रैवल इंश्योरेंस, दोपहर और रात का खाना, और निजी ख़र्च। हमसे पूछें, आपको जो चाहिए वह हम आपके कोटेशन में जोड़ देंगे।" data-gu="ઉપરની &quot;શું શું સામેલ છે&quot; યાદીમાં ન હોય તે બધું, જેમ કે વિઝા ફી, ટ્રાવેલ ઇન્શ્યોરન્સ, બપોરનું અને રાતનું જમવાનું, અને અંગત ખર્ચ. અમને પૂછો અને તમને જે જોઈએ તે અમે તમારા ક્વોટમાં ઉમેરી દઈશું.">Anything not on the "What's included" list above, such as visa fees, travel insurance, lunches and dinners, and personal expenses. Ask us and we will add what you need to your quote.</p></details>
+    <details><summary><span data-en="How do I book?" data-hi="बुकिंग कैसे करें?" data-gu="બુકિંગ કેવી રીતે કરું?">How do I book?</span><i></i></summary><p class="ans" data-en="Send the enquiry form or message us on WhatsApp at +91 88660 50291. We don&#x27;t take payments on this website; our team confirms everything with you directly." data-hi="पूछताछ फ़ॉर्म भेजें या हमारे WhatsApp नंबर +91 88660 50291 पर मैसेज करें। हम इस वेबसाइट पर कोई भुगतान नहीं लेते; हमारी टीम सब कुछ सीधे आपसे कन्फ़र्म करती है।" data-gu="પૂછપરછ ફોર્મ મોકલો અથવા +91 88660 50291 પર અમને WhatsApp કરો. અમે આ વેબસાઇટ પર ચુકવણી લેતા નથી; અમારી ટીમ બધું સીધું તમારી સાથે કન્ફર્મ કરે છે.">Send the enquiry form or message us on WhatsApp at +91 88660 50291. We don't take payments on this website; our team confirms everything with you directly.</p></details>
   </div>
 </section>
 
 <!-- BOOKING -->
-<div class="dw-divider dw wrap" aria-hidden="true">Deepavali 2026 · Sun 8 Nov</div>
+<div class="dw-divider dw wrap" aria-hidden="true" data-en="Deepavali 2026 · Sun 8 Nov" data-hi="दीपावली 2026 · रविवार, 8 नवंबर" data-gu="દીપાવલી 2026 · રવિવાર, 8 નવેમ્બર">Deepavali 2026 · Sun 8 Nov</div>
 <section class="sec wrap" id="enquire" style="padding-top:clamp(40px,6vw,80px)">
   <svg class="rangoli dw" data-rangoli style="left:-260px;bottom:-260px;width:620px;height:620px" aria-hidden="true"></svg>
   <div class="book">
     <div>
-      <span class="mono accent">Enquire</span>
-      <h2 class="rv" style="margin-top:14px">Hold my<br>Diwali<br>seats</h2>
-      <p class="muted" style="margin-top:22px;max-width:40ch">Tell us who's travelling and when to call. We'll send a written quote on WhatsApp, usually the same day.</p>
+      <span class="mono accent" data-en="Enquire" data-hi="पूछताछ करें" data-gu="પૂછપરછ">Enquire</span>
+      <h2 class="rv" style="margin-top:14px"><span data-en="Hold my" data-hi="मेरी" data-gu="મારી">Hold my</span><br><span data-en="Diwali" data-hi="दिवाली" data-gu="દિવાળીની">Diwali</span><br><span data-en="seats" data-hi="की सीटें रोक लें" data-gu="સીટો રોકી રાખો">seats</span></h2>
+      <p class="muted" style="margin-top:22px;max-width:40ch" data-en="Tell us who&#x27;s travelling and when to call. We&#x27;ll send a written quote on WhatsApp, usually the same day." data-hi="हमें बताएं कि कौन-कौन यात्रा कर रहा है और हम आपको कब कॉल करें। हम आपको WhatsApp पर लिखित कोटेशन भेजेंगे, आम तौर पर उसी दिन।" data-gu="કોણ કોણ જવાનું છે અને તમને ક્યારે ફોન કરીએ તે અમને જણાવો. અમે WhatsApp પર લેખિત ક્વોટ મોકલીશું, સામાન્ય રીતે એ જ દિવસે.">Tell us who's travelling and when to call. We'll send a written quote on WhatsApp, usually the same day.</p>
       <div class="contact">
-        <a href="https://wa.me/918866050291?text=Hi%20Skyline%2C%20I%27m%20interested%20in%20the%20Diwali%20in%20Bali%20package%20(3%20Nov%202026)." target="_blank" rel="noopener" data-cursor="Chat">WhatsApp +91 88660 50291 ↗</a>
+        <a href="https://wa.me/918866050291?text=Hi%20Skyline%2C%20I%27m%20interested%20in%20the%20Diwali%20in%20Bali%20package%20(3%20Nov%202026)." target="_blank" rel="noopener" data-cursor="Chat" data-en-cur="Chat" data-hi-cur="चैट" data-gu-cur="ચેટ" data-en="WhatsApp +91 88660 50291 ↗" data-hi="WhatsApp +91 88660 50291 ↗" data-gu="WhatsApp +91 88660 50291 ↗">WhatsApp +91 88660 50291 ↗</a>
       </div>
     </div>
     <div id="formWrap">
       <form class="form" id="enqForm" novalidate>
         <div class="row2">
-          <div class="fgroup"><label for="adultsOut">Adults</label><div class="stepper"><button type="button" data-step="adults" data-d="-1" aria-label="Fewer adults">−</button><output id="adultsOut">2</output><button type="button" data-step="adults" data-d="1" aria-label="More adults">+</button></div></div>
-          <div class="fgroup"><label for="kidsOut">Children</label><div class="stepper"><button type="button" data-step="kids" data-d="-1" aria-label="Fewer children">−</button><output id="kidsOut">0</output><button type="button" data-step="kids" data-d="1" aria-label="More children">+</button></div></div>
+          <div class="fgroup"><label for="adultsOut" data-en="Adults" data-hi="वयस्क" data-gu="પુખ્ત">Adults</label><div class="stepper"><button type="button" data-step="adults" data-d="-1" aria-label="Fewer adults" data-en-aria="Fewer adults" data-hi-aria="वयस्कों की संख्या घटाएं" data-gu-aria="પુખ્ત વ્યક્તિઓની સંખ્યા ઘટાડો">−</button><output id="adultsOut">2</output><button type="button" data-step="adults" data-d="1" aria-label="More adults" data-en-aria="More adults" data-hi-aria="वयस्कों की संख्या बढ़ाएं" data-gu-aria="પુખ્ત વ્યક્તિઓની સંખ્યા વધારો">+</button></div></div>
+          <div class="fgroup"><label for="kidsOut" data-en="Children" data-hi="बच्चे" data-gu="બાળકો">Children</label><div class="stepper"><button type="button" data-step="kids" data-d="-1" aria-label="Fewer children" data-en-aria="Fewer children" data-hi-aria="बच्चों की संख्या घटाएं" data-gu-aria="બાળકોની સંખ્યા ઘટાડો">−</button><output id="kidsOut">0</output><button type="button" data-step="kids" data-d="1" aria-label="More children" data-en-aria="More children" data-hi-aria="बच्चों की संख्या बढ़ाएं" data-gu-aria="બાળકોની સંખ્યા વધારો">+</button></div></div>
         </div>
         <fieldset class="fgroup">
-          <legend>Also help me with</legend>
+          <legend data-en="Also help me with" data-hi="इनमें भी मेरी मदद करें" data-gu="આમાં પણ મદદ જોઈએ">Also help me with</legend>
           <div class="opts">
-            <label class="opt"><input type="checkbox" name="extras" value="Visa"><span>Visa</span></label>
-            <label class="opt"><input type="checkbox" name="extras" value="Travel insurance"><span>Travel insurance</span></label>
-            <label class="opt"><input type="checkbox" name="extras" value="Forex"><span>Forex</span></label>
-            <label class="opt"><input type="checkbox" name="extras" value="Extra nights"><span>Extra nights</span></label>
-            <label class="opt"><input type="checkbox" name="extras" value="Other departure city"><span>Other departure city</span></label>
+            <label class="opt"><input type="checkbox" name="extras" value="Visa"><span data-en="Visa" data-hi="वीज़ा" data-gu="વિઝા">Visa</span></label>
+            <label class="opt"><input type="checkbox" name="extras" value="Travel insurance"><span data-en="Travel insurance" data-hi="ट्रैवल इंश्योरेंस" data-gu="ટ્રાવેલ ઇન્શ્યોરન્સ">Travel insurance</span></label>
+            <label class="opt"><input type="checkbox" name="extras" value="Forex"><span data-en="Forex" data-hi="फ़ॉरेक्स" data-gu="ફોરેક્સ">Forex</span></label>
+            <label class="opt"><input type="checkbox" name="extras" value="Extra nights"><span data-en="Extra nights" data-hi="एक्स्ट्रा रातें" data-gu="વધારાની રાત">Extra nights</span></label>
+            <label class="opt"><input type="checkbox" name="extras" value="Other departure city"><span data-en="Other departure city" data-hi="दूसरे शहर से रवानगी" data-gu="બીજા શહેરથી પ્રસ્થાન">Other departure city</span></label>
           </div>
         </fieldset>
         <fieldset class="fgroup">
-          <legend>Room budget</legend>
+          <legend data-en="Room budget" data-hi="रूम का बजट" data-gu="રૂમ બજેટ">Room budget</legend>
           <div class="opts">
-            <label class="opt"><input type="radio" name="budget" value="As per package" checked><span>As per package</span></label>
-            <label class="opt"><input type="radio" name="budget" value="Upgrade hotels"><span>Upgrade hotels</span></label>
-            <label class="opt"><input type="radio" name="budget" value="Keep it lower"><span>Keep it lower</span></label>
+            <label class="opt"><input type="radio" name="budget" value="As per package" checked><span data-en="As per package" data-hi="पैकेज के अनुसार" data-gu="પેકેજ મુજબ">As per package</span></label>
+            <label class="opt"><input type="radio" name="budget" value="Upgrade hotels"><span data-en="Upgrade hotels" data-hi="होटल अपग्रेड करें" data-gu="હોટેલ અપગ્રેડ">Upgrade hotels</span></label>
+            <label class="opt"><input type="radio" name="budget" value="Keep it lower"><span data-en="Keep it lower" data-hi="बजट कम रखें" data-gu="બજેટ ઓછું રાખો">Keep it lower</span></label>
           </div>
         </fieldset>
         <fieldset class="fgroup">
-          <legend>Best day for our call</legend>
+          <legend data-en="Best day for our call" data-hi="कॉल के लिए सबसे अच्छा दिन" data-gu="ફોન માટે અનુકૂળ દિવસ">Best day for our call</legend>
           <div class="cal" id="cal"></div>
           <div class="opts" id="slots" style="margin-top:6px">
-            <label class="opt"><input type="radio" name="slot" value="Morning (10–12)" checked><span>Morning</span></label>
-            <label class="opt"><input type="radio" name="slot" value="Afternoon (2–5)"><span>Afternoon</span></label>
-            <label class="opt"><input type="radio" name="slot" value="Evening (6–8)"><span>Evening</span></label>
+            <label class="opt"><input type="radio" name="slot" value="Morning (10–12)" checked><span data-en="Morning" data-hi="सुबह" data-gu="સવાર">Morning</span></label>
+            <label class="opt"><input type="radio" name="slot" value="Afternoon (2–5)"><span data-en="Afternoon" data-hi="दोपहर" data-gu="બપોર">Afternoon</span></label>
+            <label class="opt"><input type="radio" name="slot" value="Evening (6–8)"><span data-en="Evening" data-hi="शाम" data-gu="સાંજ">Evening</span></label>
           </div>
         </fieldset>
         <div class="row2">
-          <div class="field"><label for="fName">Your name</label><input id="fName" name="name" autocomplete="name" required></div>
-          <div class="field"><label for="fPhone">WhatsApp number</label><input id="fPhone" name="phone" type="tel" inputmode="tel" autocomplete="tel" required></div>
+          <div class="field"><label for="fName" data-en="Your name" data-hi="आपका नाम" data-gu="તમારું નામ">Your name</label><input id="fName" name="name" autocomplete="name" required></div>
+          <div class="field"><label for="fPhone" data-en="WhatsApp number" data-hi="WhatsApp नंबर" data-gu="WhatsApp નંબર">WhatsApp number</label><input id="fPhone" name="phone" type="tel" inputmode="tel" autocomplete="tel" required></div>
         </div>
-        <div class="field"><label for="fNotes">Anything else (optional)</label><textarea id="fNotes" name="notes" rows="2"></textarea></div>
+        <div class="field"><label for="fNotes" data-en="Anything else (optional)" data-hi="कुछ और बताना चाहें? (ज़रूरी नहीं)" data-gu="બીજું કંઈ જણાવવું હોય તો (વૈકલ્પિક)">Anything else (optional)</label><textarea id="fNotes" name="notes" rows="2"></textarea></div>
         <p class="err" id="fErr" role="alert"></p>
-        <button class="btn btn-accent" type="submit" data-cursor="Send" style="align-self:flex-start">Send enquiry →</button>
+        <button class="btn btn-accent" type="submit" data-cursor="Send" style="align-self:flex-start" data-en-cur="Send" data-hi-cur="भेजें" data-gu-cur="મોકલો" data-en="Send enquiry →" data-hi="पूछताछ भेजें →" data-gu="પૂછપરછ મોકલો →">Send enquiry →</button>
       </form>
     </div>
   </div>
 </section>
 
-<a class="next" href="International.dc.html" data-cursor="Next">
-  <span class="mono muted">Next · More international holidays</span>
-  <div class="big">Thailand, Maldives <span class="arrow">→</span></div>
+<a class="next" href="International.dc.html" data-cursor="Next" data-en-cur="Next" data-hi-cur="आगे" data-gu-cur="આગળ">
+  <span class="mono muted" data-en="Next · More international holidays" data-hi="आगे · और विदेश यात्राएं" data-gu="આગળ · વધુ વિદેશ પ્રવાસ">Next · More international holidays</span>
+  <div class="big"><span data-en="Thailand, Maldives" data-hi="थाईलैंड, मालदीव" data-gu="થાઇલેન્ડ, માલદીવ્સ">Thailand, Maldives</span> <span class="arrow">→</span></div>
 </a>
 </main>
 
 <footer>
-  <span>© <span id="yr">2026</span> Skyline Travel Planner · Explore · Plan · Discover<span class="dw"> · Wishing you a bright Diwali</span></span>
-  <span><a href="index.html">Home</a> · <a href="Privacy.dc.html">Privacy</a> · <a href="photo-credits.html">Photo credits</a></span>
+  <span>© <span id="yr">2026</span> <span data-en="Skyline Travel Planner · Explore · Plan · Discover" data-hi="Skyline Travel Planner · घूमें · प्लान करें · खोजें" data-gu="Skyline Travel Planner · ફરો · પ્લાન કરો · નવું શોધો">Skyline Travel Planner · Explore · Plan · Discover</span><span class="dw"> <span data-en="· Wishing you a bright Diwali" data-hi="· आपको जगमगाती दिवाली की शुभकामनाएं" data-gu="· તમને ઝળહળતી દિવાળીની શુભેચ્છાઓ">· Wishing you a bright Diwali</span></span></span>
+  <span><a href="offers.html" data-en="Festive offers" data-hi="त्योहारों के ऑफ़र" data-gu="તહેવારોની ઓફર્સ">Festive offers</a> · <a href="index.html" data-en="Home" data-hi="होम" data-gu="હોમ">Home</a> · <a href="Privacy.dc.html" data-en="Privacy" data-hi="प्राइवेसी" data-gu="ગોપનીયતા">Privacy</a> · <a href="photo-credits.html" data-en="Photo credits" data-hi="फ़ोटो क्रेडिट" data-gu="ફોટો ક્રેડિટ">Photo credits</a></span>
+  <span><span data-en="Built &amp; maintained by" data-hi="निर्माण और रखरखाव:" data-gu="નિર્માણ અને જાળવણી:">Built &amp; maintained by</span> <a href="https://buildwise-digital.com" target="_blank" rel="noopener">BuildWise Digital</a></span>
 </footer>
 
-<div class="cur" id="cur" aria-hidden="true"><svg viewBox="0 0 40 40"><defs><linearGradient id="cfl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFF6D0"/><stop offset=".55" stop-color="#FFC24A"/><stop offset="1" stop-color="#FF6A13"/></linearGradient></defs><path class="fl" d="M20 2 C24 9 25 13 20 18 C15 13 16 9 20 2Z" fill="url(#cfl)" stroke="#5A1E05" stroke-width=".8"/><path d="M4 21 C9 34 31 34 36 21 Z" fill="#9C3E12"/><ellipse cx="20" cy="21" rx="16" ry="3.2" fill="#D96A2B"/><path d="M34 21 L39 18 L36 23 Z" fill="#9C3E12"/></svg><b id="curLbl">View</b></div>
+<div class="cur" id="cur" aria-hidden="true"><svg viewBox="0 0 40 40"><defs><linearGradient id="cfl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFF6D0"/><stop offset=".55" stop-color="#FFC24A"/><stop offset="1" stop-color="#FF6A13"/></linearGradient></defs><path class="fl" d="M20 2 C24 9 25 13 20 18 C15 13 16 9 20 2Z" fill="url(#cfl)" stroke="#5A1E05" stroke-width=".8"/><path d="M4 21 C9 34 31 34 36 21 Z" fill="#9C3E12"/><ellipse cx="20" cy="21" rx="16" ry="3.2" fill="#D96A2B"/><path d="M34 21 L39 18 L36 23 Z" fill="#9C3E12"/></svg><b id="curLbl" data-en="View" data-hi="देखें" data-gu="જુઓ">View</b></div>
 
-<button class="tw-btn glass" id="twBtn" aria-expanded="false" aria-controls="tw">Tweaks</button>
+<button class="tw-btn glass" id="twBtn" aria-expanded="false" aria-controls="tw" data-en="Tweaks" data-hi="सेटिंग्स" data-gu="ગોઠવણ">Tweaks</button>
 <div class="tw glass" id="tw" hidden>
-  <span class="mono muted" style="margin-bottom:4px">Display settings</span>
-  <label>Diwali theme <input type="checkbox" id="tDiwali"></label>
-  <label>Live backgrounds <input type="checkbox" id="tMotion"></label>
-  <label>Lens effects <input type="checkbox" id="tLens"></label>
-  <label>Film grain <input type="checkbox" id="tGrain"></label>
-  <label>Custom cursor <input type="checkbox" id="tCursor"></label>
+  <span class="mono muted" style="margin-bottom:4px" data-en="Display settings" data-hi="डिस्प्ले सेटिंग्स" data-gu="ડિસ્પ્લે સેટિંગ્સ">Display settings</span>
+  <label><span data-en="Diwali theme" data-hi="दिवाली थीम" data-gu="દિવાળી થીમ">Diwali theme</span> <input type="checkbox" id="tDiwali"></label>
+  <label><span data-en="Live backgrounds" data-hi="लाइव बैकग्राउंड" data-gu="લાઇવ બેકગ્રાઉન્ડ">Live backgrounds</span> <input type="checkbox" id="tMotion"></label>
+  <label><span data-en="Lens effects" data-hi="लेंस इफ़ेक्ट" data-gu="લેન્સ ઇફેક્ટ્સ">Lens effects</span> <input type="checkbox" id="tLens"></label>
+  <label><span data-en="Film grain" data-hi="फ़िल्म ग्रेन" data-gu="ફિલ્મ ગ્રેન">Film grain</span> <input type="checkbox" id="tGrain"></label>
+  <label><span data-en="Custom cursor" data-hi="कस्टम कर्सर" data-gu="કસ્ટમ કર્સર">Custom cursor</span> <input type="checkbox" id="tCursor"></label>
 </div>
 
 <script>
@@ -653,6 +681,32 @@ var WA = '918866050291';
 var FORM_ENDPOINT = 'https://formspree.io/f/xrewyvoz';
 var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 var coarse = matchMedia('(pointer: coarse)').matches;
+
+/* ---------- language: EN / हिं / ગુ on the site's skyline_lang key (LANG-FIX-SPEC.md). The copy is swapped from each
+   element's data-en/data-hi/data-gu (attributes: data-<lang>-ph|alt|aria|title|cur); what the script writes comes
+   from I18N below. Values sent to the enquiry inbox stay English. ---------- */
+var LANGS=['en','hi','gu'], LOCALE={en:'en-IN',hi:'hi-IN',gu:'gu-IN'};
+var I18N={"hi":{"Illustrative image":"AI से बना चित्र","Photo · parasailing at Tanjung Benoa":"फ़ोटो · तंजुंग बेनोआ में पैरासेलिंग","Ulun Danu Beratan":"उलुन दानु बेरातन","Departed · ask about the next Diwali":"रवानगी हो चुकी · अगली दिवाली के बारे में पूछें","Open menu":"मेनू खोलें","Close menu":"मेनू बंद करें","View":"देखें","Open":"खोलें","Select":"चुनें","Sound off":"आवाज़ बंद","Sound on":"आवाज़ चालू","Turn sound on":"आवाज़ चालू करें","Turn sound off":"आवाज़ बंद करें","Please add your name.":"कृपया अपना नाम लिखें।","Please add a WhatsApp number with at least 10 digits.":"कृपया कम से कम 10 अंकों वाला WhatsApp नंबर लिखें।","Sending…":"भेजा जा रहा है…","Enquiry received":"पूछताछ मिल गई","Almost there":"लगभग हो गया","Thank you, {name}.":"धन्यवाद, {name} जी।","One more tap":"बस एक टैप और","We'll call you on {day}, {slot}, and send your quote on WhatsApp. Want it faster? Send the same details on WhatsApp now.":"हम आपको {day}, {slot} के समय कॉल करेंगे और आपका कोटेशन WhatsApp पर भेजेंगे। और जल्दी चाहिए? यही जानकारी अभी WhatsApp पर भेज दें।","We couldn't send the form from this page. Tap below to send your details on WhatsApp instead.":"हम इस पेज से फ़ॉर्म नहीं भेज पाए। इसकी जगह नीचे टैप करके अपनी जानकारी WhatsApp पर भेज दें।","Send on WhatsApp ↗":"WhatsApp पर भेजें ↗","any day":"किसी भी दिन","Chat":"चैट","Hi Skyline, I'd like the Diwali in Bali package (3 Nov 2026).":"नमस्ते Skyline, मुझे बाली में दिवाली पैकेज (3 नवंबर 2026) चाहिए।","Name:":"नाम:","Travellers:":"यात्री:","{a} adults, {c} children":"वयस्क {a}, बच्चे {c}","Also help with:":"इनमें भी मदद चाहिए:","Rooms:":"रूम:","Best time to call:":"कॉल के लिए सबसे अच्छा समय:","Notes:":"नोट्स:","None":"कोई नहीं","S M T W T F S":"र सो मं बु गु शु श","d h m s":" दिन  घंटे  मिनट  सेकंड"},"gu":{"Illustrative image":"AI ચિત્ર","Photo · parasailing at Tanjung Benoa":"ફોટો · તંજુંગ બેનોઆમાં પેરાસેલિંગ","Ulun Danu Beratan":"ઉલુન દાનુ બેરાતાન","Departed · ask about the next Diwali":"પ્રસ્થાન થઈ ગયું · આવતી દિવાળી વિશે પૂછો","Open menu":"મેનૂ ખોલો","Close menu":"મેનૂ બંધ કરો","View":"જુઓ","Open":"ખોલો","Select":"પસંદ કરો","Sound off":"અવાજ બંધ","Sound on":"અવાજ ચાલુ","Turn sound on":"અવાજ ચાલુ કરો","Turn sound off":"અવાજ બંધ કરો","Please add your name.":"કૃપા કરીને તમારું નામ લખો.","Please add a WhatsApp number with at least 10 digits.":"કૃપા કરીને ઓછામાં ઓછા 10 અંકનો WhatsApp નંબર લખો.","Sending…":"મોકલી રહ્યા છીએ…","Enquiry received":"પૂછપરછ મળી ગઈ","Almost there":"લગભગ થઈ ગયું","Thank you, {name}.":"આભાર, {name}.","One more tap":"બસ એક ટૅપ બાકી","We'll call you on {day}, {slot}, and send your quote on WhatsApp. Want it faster? Send the same details on WhatsApp now.":"અમે તમને {day}, {slot} દરમિયાન ફોન કરીશું અને તમારું ક્વોટ WhatsApp પર મોકલીશું. વધુ જલદી જોઈએ છે? આ જ વિગતો અત્યારે જ WhatsApp પર મોકલી દો.","We couldn't send the form from this page. Tap below to send your details on WhatsApp instead.":"અમે આ પેજ પરથી ફોર્મ મોકલી શક્યા નહીં. તેના બદલે નીચે ટૅપ કરીને તમારી વિગતો WhatsApp પર મોકલો.","Send on WhatsApp ↗":"WhatsApp પર મોકલો ↗","any day":"કોઈ પણ દિવસે","Chat":"ચેટ","Hi Skyline, I'd like the Diwali in Bali package (3 Nov 2026).":"નમસ્તે Skyline, મારે બાલીમાં દિવાળી પેકેજ (3 નવેમ્બર 2026) જોઈએ છે.","Name:":"નામ:","Travellers:":"મુસાફરો:","{a} adults, {c} children":"પુખ્ત {a}, બાળકો {c}","Also help with:":"આમાં પણ મદદ જોઈએ:","Rooms:":"રૂમ:","Best time to call:":"ફોન માટે અનુકૂળ સમય:","Notes:":"નોંધ:","None":"કંઈ નહીં","S M T W T F S":"ર સો મં બુ ગુ શુ શ","d h m s":" દિવસ  કલાક  મિનિટ  સેકન્ડ"}};
+var lang=(function(){ var q=(location.search.match(/[?&]lang=(en|hi|gu)(?:&|$)/)||[])[1];
+  if(q){ try{ localStorage.setItem('skyline_lang',q); }catch(e){} return q; }
+  try{ var v=localStorage.getItem('skyline_lang'); return LANGS.indexOf(v)>=0?v:'en'; }catch(e){ return 'en'; } })();
+function i18n(en){ return (I18N[lang]&&I18N[lang][en])||en; }
+function fill(str,o){ return str.replace(/\{(\w+)\}/g,function(m,k){ return k in o?o[k]:m; }); }
+var langHooks=[];
+function applyLang(){
+  var d=document.documentElement; d.lang=lang;
+  document.querySelectorAll('[data-en]').forEach(function(n){ n.textContent=n.getAttribute('data-'+lang)||n.getAttribute('data-en'); });
+  [['ph','placeholder'],['alt','alt'],['aria','aria-label'],['title','title'],['cur','data-cursor']].forEach(function(p){
+    document.querySelectorAll('[data-en-'+p[0]+']').forEach(function(n){ n.setAttribute(p[1],n.getAttribute('data-'+lang+'-'+p[0])||n.getAttribute('data-en-'+p[0])); }); });
+  document.querySelectorAll('.lang button').forEach(function(b){ b.setAttribute('aria-pressed',b.getAttribute('data-lang')===lang?'true':'false'); });
+  langHooks.forEach(function(f){ try{ f(); }catch(e){} });
+  d.classList.remove('lang-pending');
+}
+function setLang(l){ if(LANGS.indexOf(l)<0||l===lang) return; lang=l;
+  try{ localStorage.setItem('skyline_lang',l); }catch(e){}
+  try{ var u=new URL(location.href); if(u.searchParams.has('lang')){ u.searchParams.delete('lang'); history.replaceState(null,'',u.pathname+u.search+u.hash); } }catch(e){}
+  applyLang(); }
+document.querySelectorAll('.lang button').forEach(function(b){ b.addEventListener('click',function(){ setLang(b.getAttribute('data-lang')); }); });
 
 /* ---------- prefs (tweaks) ---------- */
 var prefs = {diwali:true, motion:!reduce, lens:!coarse, grain:true, cursor:!coarse};
@@ -1012,11 +1066,13 @@ document.querySelectorAll('#workSrc .tile .ph, #nights .tile .ph').forEach(funct
 /* ---------- scroll: progress, pinned story ---------- */
 var bar=document.getElementById('progress'), storyEl=document.querySelector('.story'), chapters=[].slice.call(document.querySelectorAll('.chapter')), rail=[].slice.call(document.querySelectorAll('#rail button')), tag=document.getElementById('photoTag');
 var curCh=0, ticking=false;
+langHooks.push(function(){ tag.textContent=i18n(STORY[curCh].tag); });
+langHooks.push(function(){ document.querySelectorAll('.hindi').forEach(function(h){ h.lang=lang==='gu'?'gu':'hi'; }); });
 function onScroll(){
   var max=document.documentElement.scrollHeight-innerHeight; bar.style.transform='scaleX('+(max>0?scrollY/max:0)+')';
   var r=storyEl.getBoundingClientRect(), span=r.height-innerHeight, p=Math.min(1,Math.max(0,-r.top/span));
   var n=STORY.length, ch=Math.min(n-1,Math.floor(p*n)); story.scroll=Math.min(1,p*n-ch);
-  if (ch!==curCh){ curCh=ch; chapters.forEach(function(c,i){c.classList.toggle('on',i===ch)}); rail.forEach(function(b,i){b.classList.toggle('on',i===ch)}); tag.textContent=STORY[ch].tag; story.setScene(ch); }
+  if (ch!==curCh){ curCh=ch; chapters.forEach(function(c,i){c.classList.toggle('on',i===ch)}); rail.forEach(function(b,i){b.classList.toggle('on',i===ch)}); tag.textContent=i18n(STORY[ch].tag); story.setScene(ch); }
   if (!story.running) story.frame(0);
   ticking=false;
 }
@@ -1027,9 +1083,11 @@ onScroll();
 /* ---------- countdown + counters ---------- */
 var cdEl=document.getElementById('countdown'), daysLeft=Math.max(0,Math.ceil((DEPART-new Date())/864e5));
 document.getElementById('daysLeft').dataset.count=daysLeft;
-function tick(){ var ms=DEPART-new Date(); if(ms<=0){ cdEl.innerHTML='<span>Departed · ask about the next Diwali</span>'; return; }
+function tick(){ var ms=DEPART-new Date(); if(ms<=0){ cdEl.innerHTML='<span>'+esc(i18n('Departed · ask about the next Diwali'))+'</span>'; return; }
+  var U=i18n('d h m s').split(' ');
   var dd=Math.floor(ms/864e5), hh=Math.floor(ms/36e5)%24, mm=Math.floor(ms/6e4)%60, ss=Math.floor(ms/1e3)%60;
-  cdEl.innerHTML='<span>'+dd+'d</span><span>'+('0'+hh).slice(-2)+'h</span><span>'+('0'+mm).slice(-2)+'m</span><span>'+('0'+ss).slice(-2)+'s</span>'; }
+  cdEl.innerHTML='<span>'+dd+esc(U[0])+'</span><span>'+('0'+hh).slice(-2)+esc(U[1])+'</span><span>'+('0'+mm).slice(-2)+esc(U[2])+'</span><span>'+('0'+ss).slice(-2)+esc(U[3])+'</span>'; }
+langHooks.push(tick);
 tick(); setInterval(tick,1000);
 document.getElementById('yr').textContent=new Date().getFullYear();
 
@@ -1053,7 +1111,8 @@ document.querySelectorAll('.pill').forEach(function(p){ p.addEventListener('clic
 
 /* ---------- mobile menu ---------- */
 var menuBtn=document.getElementById('menuBtn'), sheet=document.getElementById('sheet');
-function setMenu(o){ document.body.classList.toggle('menu-open',o); menuBtn.setAttribute('aria-expanded',o); menuBtn.setAttribute('aria-label',o?'Close menu':'Open menu'); sheet.setAttribute('aria-hidden',!o); }
+function setMenu(o){ document.body.classList.toggle('menu-open',o); menuBtn.setAttribute('aria-expanded',o); menuBtn.setAttribute('aria-label',i18n(o?'Close menu':'Open menu')); sheet.setAttribute('aria-hidden',!o); }
+langHooks.push(function(){ menuBtn.setAttribute('aria-label',i18n(document.body.classList.contains('menu-open')?'Close menu':'Open menu')); });
 menuBtn.addEventListener('click',function(){ setMenu(!document.body.classList.contains('menu-open')); });
 sheet.querySelectorAll('a').forEach(function(a){ a.addEventListener('click',function(){ setMenu(false); }); });
 
@@ -1061,7 +1120,7 @@ sheet.querySelectorAll('a').forEach(function(a){ a.addEventListener('click',func
 var cur=document.getElementById('cur'), lbl=document.getElementById('curLbl'), cx=-100, cy=-100, rx=-100, ry=-100, curOn=false;
 function curLoop(){ rx+=(cx-rx)*.35; ry+=(cy-ry)*.35; cur.style.transform='translate('+rx+'px,'+ry+'px)'; if(curOn) requestAnimationFrame(curLoop); }
 addEventListener('pointermove',function(e){ if(e.pointerType!=='mouse') return; cx=e.clientX; cy=e.clientY; },{passive:true});
-document.addEventListener('pointerover',function(e){ if(!curOn) return; var t=e.target.closest('a,button,summary,[data-cursor],.opt'); if(t){ lbl.textContent=t.dataset.cursor||(t.tagName==='A'?'View':t.tagName==='SUMMARY'?'Open':'Select'); cur.classList.add('big'); } else cur.classList.remove('big'); });
+document.addEventListener('pointerover',function(e){ if(!curOn) return; var t=e.target.closest('a,button,summary,[data-cursor],.opt'); if(t){ lbl.textContent=t.dataset.cursor||i18n(t.tagName==='A'?'View':t.tagName==='SUMMARY'?'Open':'Select'); cur.classList.add('big'); } else cur.classList.remove('big'); });
 function applyCursor(){ var on=prefs.cursor && !coarse; document.body.classList.toggle('has-cur',on); if(on&&!curOn){ curOn=true; requestAnimationFrame(curLoop); } if(!on) curOn=false; }
 
 /* ---------- tweaks ---------- */
@@ -1079,40 +1138,68 @@ var vio=new IntersectionObserver(function(es){ es.forEach(function(e){ var v=e.t
 films.forEach(function(v){ vio.observe(v); });
 document.querySelectorAll('.film .snd').forEach(function(b){ b.addEventListener('click',function(){
   var v=b.parentNode.querySelector('video'), on=b.getAttribute('aria-pressed')!=='true';
-  films.forEach(function(o){ o.muted=true; }); document.querySelectorAll('.film .snd').forEach(function(x){ x.setAttribute('aria-pressed','false'); x.textContent='Sound off'; x.setAttribute('aria-label','Turn sound on'); });
-  if (on){ v.muted=false; var pr=v.play(); if(pr&&pr.catch) pr.catch(function(){}); b.setAttribute('aria-pressed','true'); b.textContent='Sound on'; b.setAttribute('aria-label','Turn sound off'); }
+  films.forEach(function(o){ o.muted=true; }); document.querySelectorAll('.film .snd').forEach(function(x){ x.setAttribute('aria-pressed','false'); });
+  if (on){ v.muted=false; var pr=v.play(); if(pr&&pr.catch) pr.catch(function(){}); b.setAttribute('aria-pressed','true'); }
+  soundLabels();
 }); });
+function soundLabels(){ document.querySelectorAll('.film .snd').forEach(function(x){ var on=x.getAttribute('aria-pressed')==='true';
+  x.textContent=i18n(on?'Sound on':'Sound off'); x.setAttribute('aria-label',i18n(on?'Turn sound off':'Turn sound on')); }); }
+langHooks.push(soundLabels);
 
 /* ---------- booking form ---------- */
 var count={adults:2,kids:0};
 document.querySelectorAll('[data-step]').forEach(function(b){ b.addEventListener('click',function(){ var k=b.dataset.step, v=count[k]+(+b.dataset.d); count[k]=Math.max(k==='adults'?1:0,Math.min(12,v)); document.getElementById(k==='adults'?'adultsOut':'kidsOut').textContent=count[k]; }); });
 var cal=document.getElementById('cal'), pick=null, today=new Date(); today.setHours(0,0,0,0);
-['S','M','T','W','T','F','S'].forEach(function(dname){ var s=document.createElement('span'); s.className='dow'; s.textContent=dname; cal.appendChild(s); });
+var dows=[], calDays=[];
+for (var dw=0;dw<7;dw++){ var s0=document.createElement('span'); s0.className='dow'; dows.push(s0); cal.appendChild(s0); }
 for (var e0=0;e0<today.getDay();e0++) cal.appendChild(document.createElement('span'));
 for (var di=0;di<14;di++){ (function(di){ var dt=new Date(today); dt.setDate(today.getDate()+di); var b=document.createElement('button'); b.type='button';
-  b.innerHTML=dt.getDate()+'<small>'+dt.toLocaleString('en-IN',{month:'short'})+'</small>'; b.setAttribute('aria-pressed','false'); b.setAttribute('aria-label',dt.toDateString());
+  b.setAttribute('aria-pressed','false'); calDays.push({b:b,dt:dt});
   if (di===0 && new Date().getHours()>=19) b.disabled=true;
   b.addEventListener('click',function(){ cal.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed','false')}); b.setAttribute('aria-pressed','true'); pick=dt; });
   cal.appendChild(b); })(di); }
+function calLabels(){ var ini=i18n('S M T W T F S').split(' '); dows.forEach(function(s1,i){ s1.textContent=ini[i]||''; });
+  calDays.forEach(function(c){ var loc=LOCALE[lang];
+    c.b.innerHTML=c.dt.getDate()+'<small>'+esc(c.dt.toLocaleString(loc,{month:'short'}))+'</small>';
+    c.b.setAttribute('aria-label',lang==='en'?c.dt.toDateString():c.dt.toLocaleDateString(loc,{weekday:'long',day:'numeric',month:'long'})); }); }
+calLabels(); langHooks.push(calLabels);
 
 var form=document.getElementById('enqForm'), err=document.getElementById('fErr');
+langHooks.push(function(){ if(err.dataset.k) err.textContent=i18n(err.dataset.k); });
 form.addEventListener('submit',function(ev){
-  ev.preventDefault(); err.textContent='';
+  ev.preventDefault(); err.textContent=''; delete err.dataset.k;
   var name=form.name.value.trim(), phone=form.phone.value.trim();
-  if(!name){ err.textContent='Please add your name.'; form.name.focus(); return; }
-  if(phone.replace(/\D/g,'').length<10){ err.textContent='Please add a WhatsApp number with at least 10 digits.'; form.phone.focus(); return; }
+  if(!name){ err.dataset.k='Please add your name.'; err.textContent=i18n(err.dataset.k); form.name.focus(); return; }
+  if(phone.replace(/\D/g,'').length<10){ err.dataset.k='Please add a WhatsApp number with at least 10 digits.'; err.textContent=i18n(err.dataset.k); form.phone.focus(); return; }
   var extras=[].slice.call(form.querySelectorAll('input[name=extras]:checked')).map(function(i){return i.value});
-  var data={package:'Diwali in Bali · 7N/8D · departs 3 Nov 2026',name:name,phone:phone,adults:count.adults,children:count.kids,extras:extras.join(', ')||'None',room_budget:form.budget.value,call_day:pick?pick.toDateString():'Any day',call_slot:form.slot.value,notes:form.notes.value.trim()};
-  var msg='Hi Skyline, I\'d like the Diwali in Bali package (3 Nov 2026).\nName: '+data.name+'\nTravellers: '+data.adults+' adults, '+data.children+' children\nAlso help with: '+data.extras+'\nRooms: '+data.room_budget+'\nBest time to call: '+data.call_day+', '+data.call_slot+(data.notes?'\nNotes: '+data.notes:'');
-  var btn=form.querySelector('[type=submit]'); btn.disabled=true; btn.textContent='Sending…';
+  var data={package:'Diwali in Bali · 7N/8D · departs 3 Nov 2026',name:name,phone:phone,adults:count.adults,children:count.kids,extras:extras.join(', ')||'None',room_budget:form.budget.value,call_day:pick?pick.toDateString():'Any day',call_slot:form.slot.value,notes:form.notes.value.trim(),language:lang};
+  var msg='Hi Skyline, I\'d like the Diwali in Bali package (3 Nov 2026).\nName: '+data.name+'\nTravellers: '+data.adults+(data.adults==1?' adult, ':' adults, ')+data.children+(data.children==1?' child':' children')+'\nAlso help with: '+data.extras+'\nRooms: '+data.room_budget+'\nBest time to call: '+data.call_day+', '+data.call_slot+(data.notes?'\nNotes: '+data.notes:'');
+  // what the visitor chose, with each label in all three languages, so the thank-you panel and the WhatsApp text can be
+  // redrawn in whatever language is picked later (the data sent to the inbox above stays English)
+  var lab=function(i){ var l=i&&i.parentNode.querySelector('span'); return {en:(l&&l.getAttribute('data-en'))||(i&&i.value)||'', hi:l&&l.getAttribute('data-hi'), gu:l&&l.getAttribute('data-gu')}; };
+  var chosen={slot:lab(form.querySelector('input[name=slot]:checked')), hours:(form.slot.value.match(/\([^)]*\)/)||[''])[0],
+    extras:[].slice.call(form.querySelectorAll('input[name=extras]:checked')).map(lab), budget:lab(form.querySelector('input[name=budget]:checked')), pick:pick, msgEn:msg};
+  var btn=form.querySelector('[type=submit]'); btn.disabled=true; btn.textContent=i18n('Sending…');
   fetch(FORM_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(data)})
     .then(function(r){ return r.ok; }).catch(function(){ return false; })
-    .then(function(ok){ showDone(ok,data,msg); });
+    .then(function(ok){ showDone(ok,data,msg,chosen); });
 });
-function showDone(ok,data,msg){
-  var w=document.getElementById('formWrap'), wa='https://wa.me/'+WA+'?text='+encodeURIComponent(msg);
-  w.innerHTML='<div class="success" role="status"><span class="mono">'+(ok?'Enquiry received':'Almost there')+'</span><h3>'+(ok?'Thank you, '+esc(data.name.split(' ')[0])+'.':'One more tap')+'</h3><p>'+(ok?'We\'ll call you on '+esc(data.call_day)+', '+esc(data.call_slot.toLowerCase())+', and send your quote on WhatsApp. Want it faster? Send the same details on WhatsApp now.':'We couldn\'t send the form from this page. Tap below to send your details on WhatsApp instead.')+'</p><a class="btn" href="'+wa+'" target="_blank" rel="noopener" data-cursor="Chat">Send on WhatsApp ↗</a></div>';
+var lastDone=null;
+function shownNow(data,ch){ var L=function(o){ return (o&&o[lang])||(o&&o.en)||''; };
+  if (!ch || lang==='en') return {day:(data.call_day==='Any day'?'any day':data.call_day), slot:data.call_slot.toLowerCase(), msg:ch?ch.msgEn:''};
+  var day=ch.pick?ch.pick.toLocaleDateString(LOCALE[lang],{weekday:'long',day:'numeric',month:'long'}):i18n('any day');
+  var slot=L(ch.slot)+(ch.hours?' '+ch.hours:'');
+  var m=i18n("Hi Skyline, I'd like the Diwali in Bali package (3 Nov 2026).")+'\n'+i18n('Name:')+' '+data.name+'\n'+i18n('Travellers:')+' '+fill(i18n('{a} adults, {c} children'),{a:data.adults,c:data.children})
+    +'\n'+i18n('Also help with:')+' '+(ch.extras.map(L).join(', ')||i18n('None'))+'\n'+i18n('Rooms:')+' '+L(ch.budget)
+    +'\n'+i18n('Best time to call:')+' '+day+', '+slot+(data.notes?'\n'+i18n('Notes:')+' '+data.notes:'');
+  return {day:day,slot:slot,msg:m}; }
+langHooks.push(function(){ if(lastDone) showDone(lastDone.ok,lastDone.data,null,lastDone.ch); });   // the thank-you panel follows a language switch
+function showDone(ok,data,msg,ch){
+  lastDone={ok:ok,data:data,ch:ch}; var sn=shownNow(data,ch);
+  var w=document.getElementById('formWrap'), wa='https://wa.me/'+WA+'?text='+encodeURIComponent(sn.msg||msg);
+  w.innerHTML='<div class="success" role="status"><span class="mono">'+esc(i18n(ok?'Enquiry received':'Almost there'))+'</span><h3>'+(ok?fill(esc(i18n('Thank you, {name}.')),{name:esc(data.name.split(' ')[0])}):esc(i18n('One more tap')))+'</h3><p>'+(ok?fill(esc(i18n("We'll call you on {day}, {slot}, and send your quote on WhatsApp. Want it faster? Send the same details on WhatsApp now.")),{day:esc(sn.day),slot:esc(sn.slot)}):esc(i18n("We couldn't send the form from this page. Tap below to send your details on WhatsApp instead.")))+'</p><a class="btn" href="'+wa+'" target="_blank" rel="noopener" data-cursor="'+esc(i18n('Chat'))+'">'+esc(i18n('Send on WhatsApp ↗'))+'</a></div>';
 }
 function esc(s){ return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]}); }
+applyLang();
 })();
 </script>

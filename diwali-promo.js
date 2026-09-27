@@ -1,9 +1,10 @@
 /* Diwali in Bali promo: a small floating card linking to diwali-bali.html.
    Sits centred above the AI-assistant and WhatsApp buttons, under the cookie banner.
-   Shows only until the end of Diwali (Sun 8 Nov 2026, IST) and can be dismissed.
-   To remove early, delete the <script src="diwali-promo.js"> tag from the page. */
+   Shows only until the trip departs (Tue 3 Nov 2026, IST) - after that it would advertise a trip that has left - and can be dismissed.
+   To remove early, delete the <script src="diwali-promo.js"> tag from the page.
+   Speaks the visitor's language (the site's skyline_lang key: en / hi / gu) and follows it when they switch. */
 (function () {
-  var END = new Date('2026-11-09T00:00:00+05:30');
+  var END = new Date('2026-11-03T00:00:00+05:30');
   if (new Date() >= END) return;
   try { if (sessionStorage.getItem('sky_diwali_promo') === 'closed') return; } catch (e) {}
   if (/diwali-bali\.html/.test(location.pathname)) return;
@@ -26,15 +27,31 @@
     '@media (prefers-reduced-motion:reduce){.skd{transition:none}.skd .fl{animation:none}}';
   document.head.appendChild(css);
 
+  var TXT = {
+    en: { t: 'Diwali in Bali', s: '7N/8D · departs 3\u00a0Nov\u00a02026', go: 'View trip →', aria: 'Diwali in Bali: 7 nights, 8 days, departing 3 November. View the trip.', x: 'Hide Diwali offer' },
+    hi: { t: 'बाली में दिवाली', s: '7 रातें / 8 दिन · 3\u00a0नवंबर से', go: 'यात्रा देखें →', aria: 'बाली में दिवाली: 7 रातें, 8 दिन, रवानगी 3 नवंबर। यात्रा देखें।', x: 'दिवाली ऑफ़र छिपाएं' },
+    gu: { t: 'બાલીમાં દિવાળી', s: '7 રાત / 8 દિવસ · 3\u00a0નવેમ્બરથી', go: 'યાત્રા જુઓ →', aria: 'બાલીમાં દિવાળી: 7 રાત, 8 દિવસ, પ્રસ્થાન 3 નવેમ્બર. યાત્રા જુઓ.', x: 'દિવાળી ઓફર છુપાવો' }
+  };
+  function lang() { try { var v = localStorage.getItem('skyline_lang'); return TXT[v] ? v : 'en'; } catch (e) { return 'en'; } }
+
   var a = document.createElement('a');
   a.className = 'skd';
   a.href = 'diwali-bali.html';
-  a.setAttribute('aria-label', 'Diwali in Bali: 7 nights, 8 days, departing 3 November. View the trip.');
   a.innerHTML =
     '<svg viewBox="0 0 40 40" aria-hidden="true"><path class="fl" d="M20 2 C24 9 25 13 20 18 C15 13 16 9 20 2Z" fill="#FFC24A"/>' +
     '<path d="M4 21 C9 34 31 34 36 21 Z" fill="#9C3E12"/><ellipse cx="20" cy="21" rx="16" ry="3.2" fill="#D96A2B"/></svg>' +
-    '<span><b>Diwali in Bali</b><small>7N/8D · departs 3 Nov 2026</small></span><span class="go">View trip →</span>' +
-    '<button class="x" type="button" aria-label="Hide Diwali offer">×</button>';
+    '<span><b></b><small></small></span><span class="go"></span>' +
+    '<button class="x" type="button">×</button>';
+  var shown = '';
+  function words() {
+    var l = lang(); if (l === shown) return; shown = l; var t = TXT[l];
+    a.lang = l; a.setAttribute('aria-label', t.aria);
+    a.querySelector('b').textContent = t.t; a.querySelector('small').textContent = t.s; a.querySelector('.go').textContent = t.go;
+    a.querySelector('.x').setAttribute('aria-label', t.x);
+  }
+  words();
+  document.addEventListener('click', function () { setTimeout(words, 60); }, true);   // the site's language buttons are clicks
+  addEventListener('storage', function (e) { if (e.key === 'skyline_lang') words(); });
   a.querySelector('.x').addEventListener('click', function (e) {
     e.preventDefault(); e.stopPropagation();
     a.classList.remove('on');

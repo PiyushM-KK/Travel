@@ -105,7 +105,7 @@ automation, grounded in Skyline's real packages and fact-checked. Read
   6-chapter story, Stays grid, "Bali in motion" videos, Diwali-nights gallery, FAQ. The enquiry form posts to
   Formspree **`xrewyvoz`** (the same endpoint as `Customize.dc.html`), with a WhatsApp +91 88660 50291 fallback.
 - **`diwali-promo.js`** is the floating card on `index.html` and `International.dc.html`. It shows no price and
-  hides itself from **2026-11-09 00:00 IST**. Remove the two `<script src="diwali-promo.js">` tags after Diwali if you
+  hides itself from **2026-11-03 00:00 IST** (departure; it was 9 Nov until 2026-09-27, which advertised a trip that had left). Remove the two `<script src="diwali-promo.js">` tags after Diwali if you
   want the code clean.
 - **Media lives in `images/diwali-bali/`**, self-hosted since 2026-09-26 (no Higgsfield/CloudFront URL is left on
   the page). The AI images (Higgsfield) are 2560px JPEGs; the three AI videos were HEVC 10-bit as delivered, which
@@ -146,3 +146,22 @@ automation, grounded in Skyline's real packages and fact-checked. Read
   resolution. They now read one copy per frame (`LiveScene.grab`); the valve never goes below the size the page drew
   before the sharpness work (1.5x density, 1.8 MP; tiles 0.6 MP), and tiles judge the page's frame rate rather than
   their own every-other-frame one. Owner's Intel UHD 630 at 1920x1080: 31-47 fps at 70% resolution before, 60 fps at full resolution after (a 2x screen: 14-22 fps before, 51-60 fps after).
+- **Third round (2026-09-27): Hindi + Gujarati, Festive offers.** `diwali-bali.html` and the new `offers.html` run on the
+  site's EN / हिं / ગુ switcher and `skyline_lang` key (LANG-FIX-SPEC.md section 7); `?lang=hi|gu` opens a page in that
+  language. English is unchanged except for the switcher and a "Festive offers" footer link. The translations came from
+  two translators + an editor + a back-translation fact check per section, with one glossary ("Illustrative" =
+  "AI से बना चित्र" / "AI ચિત્ર · અસલ ફોટો નથી"; hotel and airline names stay in English). A fluent Hindi and Gujarati
+  reader should still read both pages once. Enquiries carry a `language` field; every value sent to the inbox stays
+  English. `diwali-promo.js` follows `skyline_lang` too. `offers.html`: add a festival by adding an entry (with its
+  `_hi`/`_gu` fields) to `FESTIVALS`; no prices on that page (each offer's own page carries its price). Both pages end
+  with "Built & maintained by BuildWise Digital" (same wording and link as the homepage). HI/GU "Illustrative" labels
+  say "AI-made" only ("AI से बना चित्र" / "AI ચિત્ર"), never "not a real photo": two of those images are AI-enhanced
+  real photographs (Bali Star Island). Film labels now show at every width.
+- **4th video, not made yet ("garland welcome on Diwali evening").** Higgsfield flagged the first attempt `ip_detected`.
+  Reworded prompt for Higgsfield image-to-video, start frame `images/diwali-bali/garland-night.jpg`: "Gentle cinematic
+  motion at dusk. Outside a carved stone temple gateway hung with marigold garlands, a hostess in a white lace blouse
+  places a fresh marigold garland around a smiling traveller's neck while his partner smiles beside him. Small clay oil
+  lamps flicker along the steps and around a flower-petal floor pattern; warm lantern light; palm leaves move slightly
+  in the breeze; slow push-in. Realistic, natural movement, no text." If it is flagged again, run the same prompt as
+  text-to-video without the start image (the faces in the still may be what trips the filter). Then re-encode to H.264
+  8-bit (`-pix_fmt yuv420p -profile:v high`) and add a fourth film to "Bali in motion", labelled Illustrative · AI video.

@@ -5,7 +5,7 @@ _Last updated: 2026-09-26. This supersedes the original `README-HANDOFF.md` for 
 ---
 
 **2026-09-26 - Diwali in Bali:** `diwali-bali.html` + `diwali-promo.js` (card on `index.html` and
-`International.dc.html`, expires 2026-11-09 IST). Media self-hosted in `images/diwali-bali/` (videos re-encoded to
+`International.dc.html`, hides itself when the trip departs, 2026-11-03 IST). Media self-hosted in `images/diwali-bali/` (videos re-encoded to
 H.264; Higgsfield URLs gone), owner's Uluwatu + villa images added, chat worker knows the offer (version
 `anthropic-5`; **paste it into Cloudflare to deploy**). Detail: `MEMORY.md`, 2026-09-26 entry.
 Phones (fixed 2026-09-26, `9386008`): 11 pages used to lay out 396-650px wide on a 390px phone; headers, the
@@ -13,6 +13,13 @@ Customize form and three card grids now fit. Desktop Diwali photos made sharp wi
 Diwali page, second round (same day): Diwali hero image and a smaller headline, a Singapore Airlines plane, a real
 parasailing photo for the water-sports chapter, new villa/beach tiles, and a fix for pictures going soft after ~20 s
 on slower PCs (see MEMORY.md).
+Third round (2026-09-27): the Diwali page speaks Hindi and Gujarati on the site's EN / हिं / ગુ switcher (`skyline_lang`;
+`?lang=hi` / `?lang=gu` links for WhatsApp), a new **Festive offers** page `offers.html` (`/offers`: festival tabs built
+from one `FESTIVALS` list, each offer hides itself after departure), and the homepage promo card follows the visitor's
+language. How the two standalone pages translate: `LANG-FIX-SPEC.md` section 7. The review also fixed things that
+were already live: the three AI videos had NO "AI video" label on phones (hidden at <=860px), the booking section was
+cut off on 320px phones, and the promo card ran until 9 Nov although the trip departs 3 Nov (it now stops at departure).
+Known, not fixed: `index.html` is wider than a 320px phone in Hindi/Gujarati (its language menu + burger overflow).
 
 ---
 
@@ -30,6 +37,9 @@ on slower PCs (see MEMORY.md).
 - **Rotate leaked keys:** the root `.env` GitHub PAT + Magic key; and the `SECRETS_PASSPHRASE` (was shared in chat — rotate it). Values are NOT recorded here; see the private security audit.
 - **WhatsApp bots:** set `APP_SECRET` before deploying (X-Hub-Signature-256 verify is in code, fail-closed).
 - **Cloudflare hardening:** switch DNS to Proxied (orange) + SSL Full, add security headers/CSP.
+- **4th Diwali video ("garland welcome on Diwali evening"):** not made. Higgsfield flagged it (`ip_detected`) and the
+  free AI-video quota available to the agent was used up. Retry in Higgsfield with the reworded prompt in `MEMORY.md`
+  (Diwali entry), or set a free Hugging Face token as `HF_TOKEN` on the PC so an agent can generate it.
 - **Cleanup:** the now-unused `skyline-api` Cloudflare Worker + Sky-Scrapper RapidAPI subscription can be deleted/cancelled (flights & trains are refer-out).
 
 **🔮 Future:**

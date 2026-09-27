@@ -159,3 +159,24 @@ navigating reset the language. Every page now:
 - initialises `lang: (function(){ try { return localStorage.getItem('skyline_lang') || 'en'; } catch(e){ return 'en'; } })()`
 - on the switcher `pick`, writes `try { localStorage.setItem('skyline_lang', code); } catch(e){}` before `setState`.
 Use the key **`skyline_lang`** on any new page so the choice carries site-wide.
+
+---
+
+## 7. STANDALONE PAGES — `diwali-bali.html`, `offers.html` (2026-09-27)
+
+Not DC widgets (no `renderVals()`), same rules in plain JS:
+- **Static copy:** `data-en` / `data-hi` / `data-gu` on the element whose whole text is swapped (`textContent`); text that
+  sits beside markup is wrapped in a `<span>` carrying the three. Attributes: `data-<lang>-ph|alt|aria|title|cur`
+  (placeholder, alt, aria-label, title, data-cursor).
+- **TRAP - edit `data-en` WITH the text.** The page re-applies `data-en` on every load, in English too: change the words
+  but not `data-en` and the old words come back. Change `data-hi` / `data-gu` in the same edit.
+- **Script text:** the `I18N = {hi:{...}, gu:{...}}` object at the top of the page script, keyed by the English, read with
+  `i18n('English')`; `langHooks` re-render the dynamic bits (captions, countdown, calendar, sound buttons, form messages)
+  on a switch. `offers.html` keeps `_hi` / `_gu` siblings in `FESTIVALS` (addendum A).
+- **Language:** `skyline_lang` (addendum B), plus `?lang=en|hi|gu` in the URL (it also sets `skyline_lang`) for links shared
+  on WhatsApp; a small head script hides the page until the stored language is applied, so there is no English flash.
+- **Fonts:** Noto Sans Devanagari / Noto Sans Gujarati replace the display, mono and body fonts under `html[lang=hi|gu]`;
+  uppercase and letter-spacing are switched off for those scripts. The SKYLINE brand keeps its own fonts.
+- **The inbox stays English:** form field names, radio values, dates and the subject sent to Formspree are English
+  whatever the page language; enquiries carry `language` so a reply can match. The WhatsApp message the visitor sends
+  (and reads before sending) is written in THEIR language, with the call window hours, e.g. "शाम (6–8)".

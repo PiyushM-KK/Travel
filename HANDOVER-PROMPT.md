@@ -10,6 +10,43 @@ affiliate-referral and customized-tour enquiry website. NO payments, checkout, o
 issuance happen on the site; it refers users to official providers (Air India, IndiGo,
 IRCTC, redBus, Booking.com) and captures enquiries via a form + WhatsApp.
 
+CURRENT STATE - 2026-09-27 (newest; where it differs from anything below, this wins)
+- Live site: https://skylinetravelplanner.com (custom domain on GitHub Pages).
+- The owner's local `main` is 3 commits AHEAD of origin ON PURPOSE (the social queue's Redis switch, held until
+  the owner's Upstash/Vercel click). NEVER push `main` plainly - it would ship those. Ship website work from a
+  branch cut from origin/main: `git worktree add <dir> -b <branch> origin/main`, commit there,
+  `git push origin <branch>:main` (fast-forward only), then `git -C <checkout> rebase origin/main`.
+  Pushing main auto-deploys GitHub Pages and the Vercel projects.
+- Diwali in Bali offer (trip departs Tue 3 Nov 2026): `diwali-bali.html` in EN / हिं / ગુ, `offers.html` = /offers
+  (festival tabs from its FESTIVALS list, offers hide after departure, no prices), `diwali-promo.js` (card on
+  index.html + International.dc.html, follows the visitor's language, hides at departure). These two pages are
+  standalone, NOT .dc.html: normal CSS and @media work there. Their languages: LANG-FIX-SPEC.md section 7.
+  TRAP: those pages re-apply `data-en` on every load - change data-en / data-hi / data-gu together with the
+  words, or your edit is silently undone.
+- Every AI picture/video carries an "Illustrative" label (HI "AI से बना चित्र", GU "AI ચિત્ર"); the real
+  parasailing photo is credited (Christophe95, CC BY-SA 4.0). Keep the fine print true to what is shown.
+- Tests of any form must NEVER reach Formspree: start test Chrome with
+  --host-resolver-rules="MAP formspree.io 0.0.0.0, MAP *.formspree.io 0.0.0.0" and answer the requests yourself.
+
+PENDING - OWNER (time-limited: the trip departs Tue 3 Nov 2026)
+1. Paste server/anthropic-chat-worker.js into Cloudflare -> Workers -> hello-world -> Edit code -> Deploy; a GET
+   of the worker must show "version":"anthropic-5" (it knows the Diwali offer; git does not deploy it).
+2. A fluent Hindi reader and a fluent Gujarati reader skim diwali-bali.html?lang=hi / ?lang=gu and offers.html
+   once (AI-translated, then checked twice by independent AI native editors).
+3. The 4th video, "garland welcome on Diwali evening": retry in Higgsfield with the reworded prompt in MEMORY.md
+   (Diwali entry), or give the agent a free Hugging Face token (HF_TOKEN) to make it with Wan 2.1 image-to-video.
+4. Decide: add /offers to the site's main menu (the header is copied into 11 pages); keep the Day 7 jungle
+   picture (Jimbaran is on the coast); give the Diwali-nights plane Singapore Airlines colours; swap the soft
+   Uluwatu clifftop for a real 4K Commons photo (cloud.shepherd, CC BY 2.0); what diwali-bali.html shows after
+   departure (it still shows the price and the booking form).
+5. Rotate the leaked keys (HANDOVER.md, Pending), and decide whether MEMORY.md should keep the owner's personal
+   email (this repo is public).
+
+PENDING - AGENT
+- index.html is wider than a 320px phone in Hindi/Gujarati (its language menu + burger) - fix when asked.
+- Add the next festival to offers.html FESTIVALS (with _hi/_gu fields) when the owner gives an offer.
+- After 2026-11-09 the two <script src="diwali-promo.js"> tags can go (the card already hides itself).
+
 FIRST, BEFORE ANY EDIT:
 1. Run `git pull`. This repo is edited from more than one place (Copilot / other agents),
    so always sync before touching anything.
@@ -18,7 +55,7 @@ FIRST, BEFORE ANY EDIT:
    only a summary.
 
 LIVE / REPO
-- Live site: https://piyushm-kk.github.io/Travel/
+- Live site: https://skylinetravelplanner.com (was https://piyushm-kk.github.io/Travel/)
 - Repo: PiyushM-KK/Travel (public), branch `main`, hosted on GitHub Pages (root, .nojekyll)
 - Owner: Piyush Mehta · Business WhatsApp +91 88660 50291 (wa.me/918866050291)
 
@@ -48,7 +85,8 @@ AssistantWidget.dc.html (floating AI chat, imported on pages) · live.html (dev 
 Chatbot.dc.html and WhatsApp.dc.html are orphaned/unused.
 
 DEPLOYING SITE CHANGES
-Edit files → `git add -A && git commit -m "..." && git push`.
+Edit files → `git add -A && git commit -m "..." && git push` - BUT while local main holds unpushed commits,
+use the branch method in CURRENT STATE instead of a plain push.
 Push auth: a GitHub token lives in the gitignored `.env` (GITHUB_TOKEN=). Pushes use a temporary
 tokenized remote, then reset the remote back to the clean URL.
 GitHub Pages rebuilds in ~1 min and caches files 10 min (max-age=600) — hard-refresh
@@ -92,7 +130,7 @@ PENDING / NEXT UP
    <style>.
 2. "Live" cycling photos per destination card — generalize the existing Uttarakhand multi-image
    crossfade card to all destination cards (needs 2–4 real photos per destination).
-3. Custom domain skylinetravelplanner.com — buy on Hostinger, then add GitHub Pages DNS: four A
+3. DONE (skylinetravelplanner.com is live). Was: custom domain skylinetravelplanner.com — buy on Hostinger, then add GitHub Pages DNS: four A
    records 185.199.108.153 / .109.153 / .110.153 / .111.153 on @, and CNAME www →
    piyushm-kk.github.io. Then add a CNAME file to the repo, set the domain in Pages settings and
    enable Enforce HTTPS.

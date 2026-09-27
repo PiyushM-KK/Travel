@@ -1,6 +1,6 @@
 # Skyline Travel Planner — Technical Handover
 
-_Last updated: 2026-09-26. This supersedes the original `README-HANDOFF.md` for current state, deployment, and how-to-update instructions._
+_Last updated: 2026-09-27. This supersedes the original `README-HANDOFF.md` for current state, deployment, and how-to-update instructions._
 
 ---
 
@@ -40,6 +40,8 @@ Known, not fixed: `index.html` is wider than a 320px phone in Hindi/Gujarati (it
 - **4th Diwali video ("garland welcome on Diwali evening"):** not made. Higgsfield flagged it (`ip_detected`) and the
   free AI-video quota available to the agent was used up. Retry in Higgsfield with the reworded prompt in `MEMORY.md`
   (Diwali entry), or set a free Hugging Face token as `HF_TOKEN` on the PC so an agent can generate it.
+- **Diwali pages (before the 3 Nov departure):** paste the chat worker (above); a fluent Hindi + Gujarati read of
+  `diwali-bali.html` and `offers.html`; the owner decisions listed in `HANDOVER-PROMPT.md` (PENDING - OWNER).
 - **Cleanup:** the now-unused `skyline-api` Cloudflare Worker + Sky-Scrapper RapidAPI subscription can be deleted/cancelled (flights & trains are refer-out).
 
 **🔮 Future:**

@@ -5,6 +5,10 @@ Scope: **only the `social-automation/` folder.** The rest of the Skyline project
 structure + provenance. **NOTE: this session also changed the WEBSITE (language fix) and started the
 client CHATBOT (`../pricing-portal/`) — see the checkpoint below; those live OUTSIDE this folder.**
 
+**WEBSITE CHECKPOINT 2026-09-27 (outside this folder):** the Diwali in Bali page in EN / HI / GU, a new `/offers`
+page and a promo card in the visitor's language are LIVE (`89c2980`). Current state, the held-commits push rule
+and every pending website task: `../HANDOVER-PROMPT.md` (CURRENT STATE / PENDING).
+
 ---
 
 ## CHECKPOINT 2026-09-17 - AIRTABLE MONTHLY API QUOTA EXHAUSTED: every automation is paused (owner: B-AIRTABLE-QUOTA)

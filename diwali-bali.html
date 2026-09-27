@@ -11,7 +11,8 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#0A0A0B">
 <link rel="icon" type="image/png" href="images/favicon.png">
-<link rel="preload" as="image" href="images/dest-bali.jpg">
+<link rel="preload" as="image" href="images/diwali-bali/hero-diwali.jpg" media="not all and (max-aspect-ratio: 4/5)">
+<link rel="preload" as="image" href="images/diwali-bali/hero-diwali-m.jpg" media="(max-aspect-ratio: 4/5)">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=JetBrains+Mono:wght@400;600&family=Manrope:wght@400;500;700&family=Tiro+Devanagari+Hindi&display=swap">
@@ -103,7 +104,7 @@ body.grain::after{content:"";position:fixed;inset:-50%;pointer-events:none;z-ind
 .hero{position:relative;height:100vh;height:100svh;min-height:600px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end}
 .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,10,11,.35) 0%,rgba(10,10,11,0) 30%,rgba(10,10,11,.15) 55%,rgba(10,10,11,.92) 100%);pointer-events:none}
 .hero-in{position:relative;z-index:2;padding:0 var(--gut) clamp(28px,5vh,56px);display:flex;flex-direction:column;gap:clamp(16px,2.4vh,26px)}
-.hero h1{font-size:clamp(54px,13.2vw,236px);text-transform:uppercase;line-height:.84}
+.hero h1{font-size:clamp(44px,9.4vw,172px);text-transform:uppercase;line-height:.84}
 .hero h1 .l2{display:block;padding-left:.9em}
 .hero-row{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap}
 .hero-copy{max-width:44ch;font-size:clamp(15px,1.3vw,18px);color:#E6E1D6}
@@ -115,6 +116,7 @@ body.grain::after{content:"";position:fixed;inset:-50%;pointer-events:none;z-ind
 .chips{display:flex;gap:8px;flex-wrap:wrap}
 .chip{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:6px 11px;border-radius:999px;border:1px solid var(--glass-line);background:rgba(10,10,11,.3);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 .scroll-cue{position:absolute;z-index:2;right:var(--gut);top:50%;writing-mode:vertical-rl;font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-2)}
+.hero .hero-tag{top:158px;bottom:auto}
 @media (max-width:640px){.scroll-cue{display:none}.hero h1 .l2{padding-left:0}}
 
 /* counters */
@@ -325,7 +327,8 @@ body.has-cur,body.has-cur a,body.has-cur button,body.has-cur summary,body.has-cu
 <header class="hero" id="top">
   <canvas class="live" id="heroCanvas" aria-hidden="true"></canvas>
   <div class="toran dw" id="toran" aria-hidden="true"></div>
-  <div class="scroll-cue">Scroll · Ulun Danu Beratan, Bali</div>
+  <div class="scroll-cue">Scroll</div>
+  <div class="photo-tag hero-tag">Illustrative image</div>
   <div class="hero-in">
     <div class="chips">
       <span class="chip accent">Diwali special</span>
@@ -430,8 +433,8 @@ body.has-cur,body.has-cur a,body.has-cur button,body.has-cur summary,body.has-cu
       <div class="lbl glass"><h3>Fairfield by Marriott</h3><p>Or Nagraa / Legian, or similar. Deluxe room, a short walk from Kuta Beach.</p></div>
     </a>
     <a class="tile" data-k="exp" href="#itinerary" data-cursor="Explore">
-      <div class="ph"><img src="images/diwali-bali/surf.jpg" alt="Jet ski throwing spray on turquoise water" loading="lazy" data-key="surf"></div>
-      <span class="chip kind">Day 2</span><span class="chip live-tag">Illustrative</span>
+      <div class="ph"><img src="images/diwali-bali/parasail-m.jpg" alt="Two people parasailing above the sea at Tanjung Benoa, Bali" loading="lazy" data-key="surf"></div>
+      <span class="chip kind">Day 2</span><span class="chip live-tag">Photo · Tanjung Benoa</span>
       <div class="lbl glass"><h3>Surf and spray</h3><p>Jet ski, banana boat and parasailing.</p></div>
     </a>
     <div class="tile type dark" data-k="stay">
@@ -449,8 +452,13 @@ body.has-cur,body.has-cur a,body.has-cur button,body.has-cur summary,body.has-cu
       <span class="chip kind">Day 1</span><span class="chip live-tag">Illustrative</span>
       <div class="lbl glass"><h3>Garland welcome</h3><p>A fresh garland and a private transfer on arrival.</p></div>
     </a>
+    <a class="tile" data-k="exp" href="#itinerary" data-cursor="Explore">
+      <div class="ph"><img src="images/diwali-bali/beach-day.jpg" alt="A quiet beach at sunset (illustrative)" loading="lazy" data-key="beach"></div>
+      <span class="chip kind">Day 4</span><span class="chip live-tag">Illustrative</span>
+      <div class="lbl glass"><h3>A free day</h3><p>A free day for the beach, spa or shopping.</p></div>
+    </a>
     <a class="tile" data-k="stay" href="#enquire" data-cursor="View">
-      <div class="ph"><img src="images/diwali-bali/villa.jpg" alt="A private pool villa at dusk (illustrative, not the actual hotel)" loading="lazy" data-key="villa"></div>
+      <div class="ph"><img src="images/diwali-bali/jimbaran-villa.jpg" alt="A private plunge-pool villa in a tropical garden (illustrative, not the actual hotel)" loading="lazy" data-key="villa"></div>
       <span class="chip kind">2 nights · Jimbaran</span><span class="chip live-tag">Illustrative</span>
       <div class="lbl glass"><h3>Royal Tulip Jimbaran</h3><p>Or similar. A one-bedroom villa with its own pool, for Diwali night.</p></div>
     </a>
@@ -460,9 +468,14 @@ body.has-cur,body.has-cur a,body.has-cur button,body.has-cur summary,body.has-cu
       <div class="lbl glass"><h3>Tanah Lot + Ulun Danu</h3><p>Full-day Ubud tour to the two temples on the water.</p></div>
     </a>
     <a class="tile" data-k="exp" href="#itinerary" data-cursor="Explore">
-      <div class="ph"><img src="images/diwali-bali/flight.jpg" alt="Wide-body jet climbing above the clouds at golden hour" loading="lazy" data-key="flight"></div>
+      <div class="ph"><img src="images/diwali-bali/flight.jpg" alt="A Singapore Airlines jet climbing above the clouds at golden hour (illustration)" loading="lazy" data-key="flight"></div>
       <span class="chip kind">Flights</span><span class="chip live-tag">Illustrative</span>
       <div class="lbl glass"><h3>Singapore Airlines</h3><p>Return flights from Ahmedabad, included in the package.</p></div>
+    </a>
+    <a class="tile" data-k="exp" href="#itinerary" data-cursor="Explore">
+      <div class="ph"><img src="images/diwali-bali/villa-day.jpg" alt="An infinity pool beside a villa terrace above the jungle (illustrative, not the actual hotel)" loading="lazy" data-key="villaday"></div>
+      <span class="chip kind">Day 7</span><span class="chip live-tag">Illustrative</span>
+      <div class="lbl glass"><h3>Villa day</h3><p>A free day at the villa.</p></div>
     </a>
     <div class="tile type dark" data-k="exp">
       <span class="mono">Day 6 · Diwali</span>
@@ -536,7 +549,7 @@ body.has-cur,body.has-cur a,body.has-cur button,body.has-cur summary,body.has-cu
     <div class="rv"><b>05</b><span>Entrance fees as per the itinerary</span></div>
     <div class="rv"><b>06</b><span>Garland welcome on arrival and daily mineral water</span></div>
   </div>
-  <p class="fine">*Prices are indicative starting-from estimates per person and can change with season, hotel availability and current rates. Hotels are "or similar" and are confirmed at booking. Photos show the destinations on this trip, not the specific hotels. Images and videos marked "Illustrative" are AI-generated to show the experience, and the aircraft image is not an actual Singapore Airlines plane. The Uluwatu clifftop and temple-gate photos are AI-enhanced from photographs by Bali Star Island.</p>
+  <p class="fine">*Prices are indicative starting-from estimates per person and can change with season, hotel availability and current rates. Hotels are "or similar" and are confirmed at booking. Photos show the destinations on this trip, not the specific hotels. Images and videos marked "Illustrative" are AI-generated to show the experience. The aircraft is an AI illustration in Singapore Airlines colours, not a photograph, and the aircraft type on your flights may differ. The Uluwatu clifftop and temple-gate photos are AI-enhanced from photographs by Bali Star Island. Parasailing photo: <a href="https://commons.wikimedia.org/wiki/File:Parasailing_in_Tanjung_Benoa.jpg" rel="noopener">"Parasailing in Tanjung Benoa"</a> by Christophe95, <a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="noopener">CC BY-SA 4.0</a>, colour-adjusted (and resized for phones).</p>
 </section>
 
 <!-- FAQ -->
@@ -667,8 +680,10 @@ function LiveScene(cv, scenes, opts){
   this.fg=document.createElement('canvas'); this.fgc=this.fg.getContext('2d');
   this.imgs=[]; this.glints=[]; this.blobs=[];
   var self=this;
-  loadImg(scenes[0].src,scenes[0].fb).then(function(im){ self.imgs[0]=im||'missing'; self.resize(); cv.classList.add('ready'); self.kick();
-    scenes.slice(1).forEach(function(s,i){ if(!s.src){ self.imgs[i+1]='gen'; return; } loadImg(s.src,s.fb).then(function(m){ self.imgs[i+1]=m||'missing'; }); });
+  /* a phone turned while these load re-frames the scene (reframe): an answer for a framing no longer wanted is dropped */
+  var first=scenes[0].src;
+  loadImg(first,scenes[0].fb).then(function(im){ if (scenes[0].src===first) self.imgs[0]=im||'missing'; self.resize(); if (self.imgs[0]) cv.classList.add('ready'); self.kick();
+    scenes.slice(1).forEach(function(s,i){ if(!s.src){ self.imgs[i+1]='gen'; return; } var w=s.src; loadImg(w,s.fb).then(function(m){ if (s.src===w) self.imgs[i+1]=m||'missing'; }); });
   });
   if (window.ResizeObserver) new ResizeObserver(function(){ self.resize(); }).observe(cv); else addEventListener('resize',function(){self.resize()});
   new IntersectionObserver(function(e){ self.visible=e[0].isIntersecting; self.kick(); },{rootMargin:'120px'}).observe(cv);
@@ -677,14 +692,16 @@ function LiveScene(cv, scenes, opts){
 }
 LiveScene.prototype.resize=function(){
   var r=this.cv.getBoundingClientRect(); if(!r.width) return;
-  var d=Math.min(window.devicePixelRatio||1,2), w=r.width*d, h=r.height*d, cap=this.opts.cap||(coarse?2.2e6:4.2e6);
+  var dpr=window.devicePixelRatio||1, d=Math.min(dpr,2), w=r.width*d, h=r.height*d, cap=this.opts.cap||(coarse?2.2e6:4.2e6);
   if (w*h>cap){ var k=Math.sqrt(cap/(w*h)); w*=k; h*=k; }
-  var qk=Math.sqrt(this.q||1); w*=qk; h*=qk; // the safety valve (pace) takes pixels off whatever size was settled on
+  /* the safety valve (pace) takes pixels off whatever size was settled on, but never below the size this page drew
+     before the sharpness work (1.5x density, at most 1.8 MP; tiles 0.6 MP): a slow computer is never worse off than before */
+  var d0=Math.min(dpr,1.5); this.minQ=Math.min(1,Math.min(r.width*d0*r.height*d0,this.opts.floor||(coarse?9e5:1.8e6))/(w*h));
+  var qk=Math.sqrt(Math.max(this.q||1,this.minQ)); w*=qk; h*=qk;
   w=Math.round(w); h=Math.round(h);
   if (w===this.W && h===this.H) return;
   this.W=this.cv.width=this.fg.width=w; this.H=this.cv.height=this.fg.height=h;
   this.px=w/r.width; // device px per css px
-  this.fits=null; // pre-shrunk copies are per canvas size
   this.seed();
   if (!this.running) this.frame(0);
 };
@@ -699,18 +716,20 @@ LiveScene.prototype.kick=function(){
   if (this.should() && !this.running){ this.running=true; var last=performance.now();
     var loop=function(now){ if(!self.should()){ self.running=false; return; }
       if (self.opts.every && (self.tick=(self.tick||0)+1)%self.opts.every){ requestAnimationFrame(loop); return; } // draw every Nth frame
-      var dt=Math.min(.05,(now-last)/1000); last=now; self.frame(dt); self.pace(dt); requestAnimationFrame(loop); };
+      var raw=(now-last)/1000, dt=Math.min(.05,raw); last=now; self.frame(dt); self.pace(Math.min(.1,raw/(self.opts.every||1)));
+      requestAnimationFrame(loop); };
     requestAnimationFrame(loop);
   } else if (!this.running && this.imgs[0]) { this.fade=1; this.frame(0); }
 };
-/* sharp by default; a computer that cannot keep ~28 fps (for ~2 s) gets a lower resolution, down to 40% */
+/* sharp by default; a computer that cannot keep ~28 fps (for ~2 s) gets a lower resolution, a step at a time, down to
+   the size this page used to draw at (minQ, set in resize) and never below it */
 LiveScene.prototype.pace=function(dt){
   this.ema=this.ema==null?dt:this.ema*.95+dt*.05; this.nf=(this.nf||0)+1;
-  if (this.nf>120 && this.ema>.036 && (this.q||1)>.4){ this.q=(this.q||1)*.7; this.nf=0; this.ema=null; this.W=0; this.resize(); }
+  if (this.nf>120 && this.ema>.036 && this.minQ && (this.q||1)>this.minQ+.001){ this.q=Math.max(this.minQ,(this.q||1)*.7); this.nf=0; this.ema=null; this.W=0; this.resize(); }
 };
 LiveScene.prototype.camera=function(s){
   var T=this.t, z, px, py;
-  if (this.opts.scroll){ var p=this.scroll; z=1.07+0.11*p; px=(s.pan||.03)*(p-.5)*2; py=-.02*p+Math.sin(T*.3)*.002; }
+  if (this.opts.scroll){ var p=this.scroll, zm=s.zoom||[1.07,.11]; z=zm[0]+zm[1]*p; px=(s.pan||.03)*(p-.5)*2; py=-.02*p+Math.sin(T*.3)*.002; }
   else { z=1.08+0.06*(0.5-0.5*Math.cos(T*0.09)); px=Math.sin(T*0.05)*0.022; py=Math.cos(T*0.037)*0.012; }
   this.mx+=(this.tx-this.mx)*.04; this.my+=(this.ty-this.my)*.04;
   return {z:z, px:px-this.mx*.012, py:py-this.my*.008};
@@ -730,11 +749,20 @@ LiveScene.prototype.fit=function(img){
   var iw=img.naturalWidth, ih=img.naturalHeight; if(!iw) return img;
   var k=Math.max(this.W/iw,this.H/ih)*1.25; // 1.25 covers the drone zoom (up to ~1.2x) so it never upscales the copy
   if (k>=.8) return img;
-  this.fits=this.fits||{}; var key=img.src, c=this.fits[key]; if (c) return c;
-  c=document.createElement('canvas'); c.width=Math.round(iw*k); c.height=Math.round(ih*k);
+  this.fits=this.fits||{}; var key=img.src, c=this.fits[key], cw=Math.round(iw*k);
+  if (c && c.width>=cw && c.width<=cw*1.5) return c; // still fits this canvas (a valve step is ~16%): no second shrink
+  c=document.createElement('canvas'); c.width=cw; c.height=Math.round(ih*k);
   var x=c.getContext('2d'); x.imageSmoothingEnabled=true; x.imageSmoothingQuality='high'; x.drawImage(img,0,0,c.width,c.height);
   c.naturalWidth=c.width; c.naturalHeight=c.height; // cover() reads these
   return this.fits[key]=c;
+};
+/* One copy of a band of the canvas, reused across frames: the ripple strips and the lens drops read from it. Drawing
+   the canvas onto itself strip by strip made the browser copy the whole canvas ~100 times a frame - that, more than
+   the picture size, is what held slower laptops at 20-30 fps. */
+LiveScene.prototype.grab=function(key,y,h,sc){
+  sc=sc||1; var c=this[key]||(this[key]=document.createElement('canvas')), w=Math.ceil(this.W*sc), hh=Math.max(1,Math.ceil(h*sc));
+  if (c.width!==w||c.height!==hh){ c.width=w; c.height=hh; }
+  c.getContext('2d').drawImage(this.cv,0,y,this.W,h,0,0,w,hh); return c;
 };
 LiveScene.prototype.base=function(idx,alpha){
   var s=this.scenes[idx], img=this.imgs[idx]; if(!img) return false;
@@ -773,9 +801,10 @@ LiveScene.prototype.frame=function(dt){
   /* water: strip displacement + glints */
   if (s.water!=null){
     var y0=Math.floor(H*s.water), step=Math.max(3,Math.round(4*d));
-    if (s.ripple!==false) for (var y=y0;y<H;y+=step){ var k=(y-y0)/(H-y0); // ripple:false keeps the glints, skips the strip shift
-      var off=Math.sin(T*1.2-Math.sqrt(k)*42)*(0.5+k*3.2)*d + Math.sin(T*.7+y*.02)*.6*d;
-      ctx.drawImage(this.cv,0,y,W,step,off-4*d,y,W+8*d,step); }
+    if (s.ripple!==false && y0<H){ var bW=this.grab('bandW',y0,H-y0); // ripple:false keeps the glints, skips the strip shift
+      for (var y=y0;y<H;y+=step){ var k=(y-y0)/(H-y0), shW=Math.min(step,H-y);
+        var off=Math.sin(T*1.2-Math.sqrt(k)*42)*(0.5+k*3.2)*d + Math.sin(T*.7+y*.02)*.6*d;
+        ctx.drawImage(bW,0,y-y0,W,shW,off-4*d,y,W+8*d,shW); } }
     ctx.globalCompositeOperation='lighter';
     for (var i=0;i<this.glints.length;i++){ var gl=this.glints[i]; var gy=y0+gl.y*(H-y0), gk=(gy-y0)/(H-y0);
       var al=Math.pow(Math.max(0,Math.sin(T*gl.s+gl.p)),8)*.45*a;
@@ -787,7 +816,9 @@ LiveScene.prototype.frame=function(dt){
   if (s.swell){
     var s0=H*s.swell[0], s1=H*s.swell[1];
     var yy0=Math.floor(s0), st=Math.max(3,Math.round(4*d));
-    for (var y2=yy0;y2<s1;y2+=st){ var o2=Math.sin(T*1.6-(y2-s0)/(s1-s0)*9)*1.6*d; ctx.drawImage(this.cv,0,y2,W,st,o2-4*d,y2,W+8*d,st); }
+    var bS=this.grab('bandS',yy0,Math.max(1,Math.min(H,Math.ceil(s1))-yy0));
+    for (var y2=yy0;y2<s1;y2+=st){ var o2=Math.sin(T*1.6-(y2-s0)/(s1-s0)*9)*1.6*d, sh2=Math.min(st,bS.height-(y2-yy0)); if (sh2<1) break;
+      ctx.drawImage(bS,0,y2-yy0,W,sh2,o2-4*d,y2,W+8*d,sh2); }
     ctx.globalCompositeOperation='lighter'; ctx.lineWidth=1.4*d;
     for (var j=0;j<4;j++){ var fr=((T*.05)+j/4)%1, ly=s0+Math.pow(fr,1.5)*(s1-s0), la=Math.sin(Math.PI*fr)*.22*a;
       ctx.strokeStyle='rgba(255,245,235,'+la+')'; ctx.beginPath();
@@ -860,12 +891,13 @@ LiveScene.prototype.frame=function(dt){
   /* lens: drops (the red/cyan fringe that used to double every edge is gone - owner wanted clear images) */
   if (prefs.lens && !this.opts.noLens){
     if (live && s.drops!==false){ this.dropTimer-=dt; if(this.dropTimer<0 && this.drops.length<4){ this.dropTimer=rand(3,7); this.drops.push({x:rand(.08,.92)*W,y:rand(.05,.6)*H,r:rand(7,20)*d,l:0,L:rand(8,14),v:0}); } }
-    for (var m=this.drops.length-1;m>=0;m--){ var D=this.drops[m];
+    var bD=null; for (var m=this.drops.length-1;m>=0;m--){ var D=this.drops[m];
       if (live){ D.l+=dt; if(Math.random()<.01) D.v=rand(6,26)*d; D.v*=.97; D.y+=D.v*dt; }
       var dl=D.l/D.L; if(dl>=1){ this.drops.splice(m,1); continue; }
       var da=Math.min(1,dl*4)*Math.min(1,(1-dl)*3);
       ctx.save(); ctx.globalAlpha=da; ctx.beginPath(); ctx.ellipse(D.x,D.y,D.r,D.r*1.08,0,0,6.283); ctx.clip();
-      ctx.translate(D.x,D.y); ctx.scale(1,-1); ctx.drawImage(this.cv,D.x-D.r*2.4,D.y-D.r*2.4,D.r*4.8,D.r*4.8,-D.r,-D.r,D.r*2,D.r*2); ctx.restore();
+      if (!bD) bD=this.grab('bandD',0,H,.5); // one half-size copy a frame serves every drop (each is drawn at under half size)
+      ctx.translate(D.x,D.y); ctx.scale(1,-1); ctx.drawImage(bD,(D.x-D.r*2.4)*.5,(D.y-D.r*2.4)*.5,D.r*2.4,D.r*2.4,-D.r,-D.r,D.r*2,D.r*2); ctx.restore();
       ctx.save(); ctx.globalAlpha=da; ctx.lineWidth=1.2*d; ctx.strokeStyle='rgba(0,0,0,.28)'; ctx.beginPath(); ctx.ellipse(D.x,D.y+.6*d,D.r,D.r*1.08,0,0,6.283); ctx.stroke();
       ctx.fillStyle='rgba(255,255,255,.55)'; ctx.beginPath(); ctx.arc(D.x-D.r*.35,D.y-D.r*.4,D.r*.18,0,6.283); ctx.fill(); ctx.restore(); }
   }
@@ -925,27 +957,44 @@ document.querySelectorAll('[data-rangoli]').forEach(buildRangoli);
 
 /* ---------- scenes ---------- */
 var ULUN={src:'images/dest-bali.jpg',focus:[.36,.5],horizon:.64,water:.71,glint:'255,190,120',mist:{y:.5,h:.12,a:.07,c:'255,220,190',dx:.6},embers:26,diyas:9,fireworks:.35,grade:['rgba(255,150,70,.35)','rgba(20,40,80,.3)']};
-var hero=new LiveScene(document.getElementById('heroCanvas'),[ULUN],{pointer:true});
+/* tall screens (phones) get the 9:16 versions, re-framed - picked at load and again whenever the screen turns (a
+   phone rotated after load used to keep the other crop) */
+var tallMQ=matchMedia('(max-aspect-ratio: 4/5)'), tall=tallMQ.matches;
+function frameFor(sc,t){ if(!sc.desk) sc.desk={src:sc.src,focus:sc.focus,spray:sc.spray}; // desktop framing, kept for the way back
+  if (t && sc.srcm){ sc.src=sc.srcm; sc.focus=[.5,.5]; sc.spray=sc.desk.spray&&[.5,sc.desk.spray[1]]; }
+  else { sc.src=sc.desk.src; sc.focus=(t&&sc.focusm)||sc.desk.focus; sc.spray=sc.desk.spray; } }
+/* the owner's Diwali image (illustrative), its photo half only - the words and button baked into the left are not used */
+var HERO={src:'images/diwali-bali/hero-diwali.jpg',srcm:'images/diwali-bali/hero-diwali-m.jpg',focus:[.5,.5],embers:20,fireworks:.45,grade:['rgba(255,150,70,.16)','rgba(20,20,60,.22)']};
+frameFor(HERO,tall);
+var hero=new LiveScene(document.getElementById('heroCanvas'),[HERO],{pointer:true});
 
 var AI='images/diwali-bali/';
 var STORY=[
   {src:AI+'flight.jpg',srcm:AI+'flight-m.jpg',tag:'Illustrative image',focus:[.62,.5],mist:{y:.72,h:.5,a:.1,c:'255,235,215',dx:1.6},grade:['rgba(255,170,90,.22)','rgba(40,60,120,.25)'],pan:.06,drops:false},
   {src:AI+'garland.jpg',srcm:AI+'garland-m.jpg',tag:'Illustrative image',focus:[.62,.45],petals:26,embers:10,grade:['rgba(255,160,70,.25)','rgba(60,20,10,.25)'],pan:.03,drops:false},
-  {src:AI+'surf.jpg',tag:'Illustrative image',focus:[.62,.5],water:.55,ripple:false,glint:'255,255,245',spray:[.66,.6],grade:['rgba(120,200,255,.15)','rgba(0,80,110,.2)'],pan:.05},
-  {src:AI+'uluwatu-cliff.jpg',tag:'Illustrative image',focus:[.52,.5],focusm:[.58,.5],mist:{y:.22,h:.2,a:.07,c:'255,220,200',dx:1.2},grade:['rgba(255,150,80,.25)','rgba(60,30,90,.25)'],pan:.05},
+  {src:AI+'parasail.jpg',srcm:AI+'parasail-m.jpg',tag:'Photo · parasailing at Tanjung Benoa',focus:[.5,.41],zoom:[1.02,0],grade:['rgba(120,200,255,.1)','rgba(0,80,110,.14)'],pan:.02},
+  {src:AI+'uluwatu-cliff.jpg',srcm:AI+'uluwatu-cliff-m.jpg',tag:'Illustrative image',focus:[.52,.5],mist:{y:.22,h:.2,a:.07,c:'255,220,200',dx:1.2},grade:['rgba(255,150,80,.25)','rgba(60,30,90,.25)'],pan:.05},
   {src:'images/dest-bali.jpg',tag:'Ulun Danu Beratan',focus:[.4,.55],horizon:.64,water:.71,glint:'255,190,120',mist:{y:.52,h:.1,a:.08,c:'255,225,200',dx:.5},embers:10,diyas:6,grade:['rgba(255,150,70,.3)','rgba(20,40,80,.3)'],pan:.04},
-  {src:null,gen:'night',tag:'Diwali night · diyas on the water',water:.6,glint:'255,170,90',embers:36,diyas:26,drops:false,fireworks:1}
+  {src:AI+'villa.jpg',tag:'Illustrative image',focus:[.5,.55],embers:30,fireworks:1,grade:['rgba(255,150,70,.22)','rgba(20,30,80,.28)'],pan:.04,drops:false}
 ];
-/* tall screens get the 9:16 versions, re-framed for phones */
-if (matchMedia('(max-aspect-ratio: 4/5)').matches) STORY.forEach(function(sc){ if(sc.srcm){ sc.src=sc.srcm; sc.focus=[.5,.5]; if(sc.spray) sc.spray=[.5,sc.spray[1]]; } else if(sc.focusm) sc.focus=sc.focusm; });
+STORY.forEach(function(sc){ frameFor(sc,tall); });
 var story=new LiveScene(document.getElementById('storyCanvas'),STORY,{scroll:true});
+function reframe(){ var t=tallMQ.matches; if (t===tall) return; tall=t;
+  [[hero,[HERO]],[story,STORY]].forEach(function(p){ var ls=p[0];
+    p[1].forEach(function(sc,i){ var was=sc.src; frameFor(sc,t); if (!sc.src || sc.src===was) return;
+      var want=sc.src; loadImg(want,sc.fb).then(function(im){ if (sc.src!==want) return; ls.imgs[i]=im||'missing';
+        if (i===0){ ls.cv.classList.add('ready'); ls.resize(); } ls.kick(); }); }); // kick: starts it if its first load was overtaken
+    if (!ls.running) ls.frame(0); }); }
+if (tallMQ.addEventListener) tallMQ.addEventListener('change',reframe); else if (tallMQ.addListener) tallMQ.addListener(reframe);
 
 /* live photo tiles in the grid (same engine, lighter settings) */
 var TILE_FX={
   kuta:{src:'images/places/bali-seminyak-and-kuta.jpg',focus:[.5,.5],swell:[.55,.63],water:.63,glint:'255,170,110',embers:6,grade:['rgba(80,120,255,.25)','rgba(255,140,60,.25)']},
   surf:STORY[2], garland:STORY[1], flight:STORY[0],
   uluwatu:{src:AI+'uluwatu-gate.jpg',focus:[.5,.5],embers:6,grade:['rgba(255,150,80,.2)','rgba(60,30,90,.2)']},
-  villa:{src:AI+'villa.jpg',focus:[.5,.55],embers:4,grade:['rgba(255,160,80,.15)','rgba(20,30,80,.2)']},
+  villa:{src:AI+'jimbaran-villa.jpg',focus:[.5,.6],embers:4,grade:['rgba(255,160,80,.12)','rgba(20,30,80,.16)']},
+  beach:{src:AI+'beach-day.jpg',focus:[.5,.5],grade:['rgba(255,160,80,.12)','rgba(20,30,80,.16)']},
+  villaday:{src:AI+'villa-day.jpg',focus:[.45,.55],grade:['rgba(255,190,120,.1)','rgba(20,40,60,.14)']},
   'garland-night':{src:AI+'garland-night.jpg',focus:[.62,.5],petals:10,embers:14,fireworks:.3,grade:['rgba(40,40,120,.2)','rgba(255,140,50,.25)']},
   'uluwatu-night':{src:AI+'uluwatu-night.jpg',focus:[.62,.5],swell:[.8,.98],spray:[.7,.86],embers:10,fireworks:.6,grade:['rgba(40,40,120,.2)','rgba(255,140,50,.2)']},
   'flight-night':{src:AI+'flight-night.jpg',focus:[.62,.5],mist:{y:.75,h:.4,a:.08,c:'255,210,170',dx:1.6},fireworks:.5,grade:['rgba(30,40,110,.2)','rgba(255,150,60,.2)']},
@@ -956,7 +1005,8 @@ document.querySelectorAll('#workSrc .tile .ph, #nights .tile .ph').forEach(funct
   var img=ph.querySelector('img'), fx=TILE_FX[img.dataset.key]; if(!fx) return;
   var c=document.createElement('canvas'); c.className='live'; c.setAttribute('aria-hidden','true'); ph.appendChild(c);
   var cfg={}; for (var k in fx) cfg[k]=fx[k]; delete cfg.horizon; cfg.drops=false; if(cfg.petals) cfg.petals=10;
-  tileScenes.push(new LiveScene(c,[cfg],{noLens:true,cap:1.2e6,every:2})); // tiles: sharper than before, at 30 fps (6-9 run at once)
+  if (cfg.src && img.getAttribute('src')!==cfg.src) img.src=cfg.src; // the fallback <img> shows the file the canvas draws: one download, not two
+  tileScenes.push(new LiveScene(c,[cfg],{noLens:true,cap:1.2e6,floor:6e5,every:2})); // tiles: sharper than before, at 30 fps (6-11 run at once)
 });
 
 /* ---------- scroll: progress, pinned story ---------- */

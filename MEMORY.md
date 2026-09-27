@@ -130,3 +130,19 @@ automation, grounded in Skyline's real packages and fact-checked. Read
   Intel UHD 630), no fringe, no ripple on the surf scene, grain halved, tiles at 30 fps, and a safety valve that
   lowers resolution on a slow computer. The dotted spray in `surf.jpg` is in the AI image itself - only a new
   image would remove it.
+- **Second round (same day):** the hero is the owner's Canva AI "Diwali Celebration" banner, photo half only
+  (`hero-diwali.jpg`, `hero-diwali-m.jpg` for tall screens; the banner's baked-in words, button and gold corners are
+  cropped away), headline about 27% smaller. The plane (`flight.jpg`, `flight-m.jpg`) wears Singapore Airlines colours
+  at the owner's request: an AI edit of the plane only, the sky is the original. It is a twin-jet, not the A380 the
+  owner asked for - the free AI editor keeps the two-engine shape - and the fine print says the aircraft type may
+  differ. Chapter 3 is a real photo, "Parasailing in Tanjung Benoa" by Christophe95 (CC BY-SA 4.0, credited in the
+  fine print; the free AI image services gave nothing realistic). Chapter 4 uses the biggest clifftop copy (3776px,
+  sharpened; `uluwatu-cliff-m.jpg` is its phone crop). Chapter 6 is `villa.jpg` with fireworks. Tiles: Jimbaran =
+  `jimbaran-villa.jpg`, new Day 4 `beach-day.jpg` and Day 7 `villa-day.jpg` (Canva AI, captions cropped, labelled
+  Illustrative). `surf.jpg` is no longer used. The phone/desktop crops (hero, and every chapter with an `-m` file)
+  are re-picked when a phone is turned (`reframe`); they used to be fixed at page load.
+- **Pictures went soft after ~20 s on slower PCs (fixed in the second round):** the water ripple and lens drops drew
+  the canvas onto itself, strip by strip - about 100 full-canvas copies a frame - so the safety valve kept cutting the
+  resolution. They now read one copy per frame (`LiveScene.grab`); the valve never goes below the size the page drew
+  before the sharpness work (1.5x density, 1.8 MP; tiles 0.6 MP), and tiles judge the page's frame rate rather than
+  their own every-other-frame one. Owner's Intel UHD 630 at 1920x1080: 31-47 fps at 70% resolution before, 60 fps at full resolution after (a 2x screen: 14-22 fps before, 51-60 fps after).

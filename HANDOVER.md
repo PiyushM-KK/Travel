@@ -10,6 +10,9 @@ H.264; Higgsfield URLs gone), owner's Uluwatu + villa images added, chat worker 
 `anthropic-5`; **paste it into Cloudflare to deploy**). Detail: `MEMORY.md`, 2026-09-26 entry.
 Phones (fixed 2026-09-26, `9386008`): 11 pages used to lay out 396-650px wide on a 390px phone; headers, the
 Customize form and three card grids now fit. Desktop Diwali photos made sharp without losing frame rate (see MEMORY.md).
+Diwali page, second round (same day): Diwali hero image and a smaller headline, a Singapore Airlines plane, a real
+parasailing photo for the water-sports chapter, new villa/beach tiles, and a fix for pictures going soft after ~20 s
+on slower PCs (see MEMORY.md).
 
 ---
 

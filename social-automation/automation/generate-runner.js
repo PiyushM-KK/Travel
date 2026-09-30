@@ -271,16 +271,21 @@ async function generateOne(store, row, ctx) {
   // 1c. #2 GUARDRAIL — never post an image carrying ANOTHER company's brand (a vendor/supplier
   //     poster would advertise them, not us). Hold it for the owner with a clear reason. Opt-in
   //     (ctx.checkForeignBrand) and only when we have bytes to inspect; the client's OWN branding
-  //     passes. A detector failure must never sink the draft.
+  //     passes. The detector FAILS CLOSED: a check that gave no clear answer (fb.unverified) holds the
+  //     row with its own plain reason, so the owner looks at the image instead of it being waved through.
   if (ctx.checkForeignBrand && imageBytes) {
     try {
-      const fb = await detectForeignBrand(imageBytes, { clientName: ctx.clientName || (ctx.profile && ctx.profile.name) || "the client" });
+      const fbOpts = { clientName: ctx.clientName || (ctx.profile && ctx.profile.name) || "the client" };
+      if (ctx.visionOpts && ctx.visionOpts.client) fbOpts.client = ctx.visionOpts.client; // injectable (tests)
+      const fb = await detectForeignBrand(imageBytes, fbOpts);
       if (fb.foreign) {
-        const note = `🚫 Held — the image shows another company's branding/contact (${fb.brand || "a supplier/competitor"}), not ${ctx.clientName || "your"} branding. Not posted.`;
+        const note = fb.unverified
+          ? `🚫 Held for review — the check for another company's branding on this image gave no clear answer, so it was not drafted. Please look at the image; if it shows only ${ctx.clientName || "your"} branding, send it again.`
+          : `🚫 Held — the image shows another company's branding/contact (${fb.brand || "a supplier/competitor"}), not ${ctx.clientName || "your"} branding. Not posted.`;
         await store.update(claimed.id, { status: "held", claimToken: null, claimedAt: null, reviewNotes: note, lastError: note });
-        return { id: claimed.id, outcome: "held", reason: "foreign brand in image", reviewNotes: note };
+        return { id: claimed.id, outcome: "held", reason: fb.unverified ? "foreign-brand check gave no answer" : "foreign brand in image", reviewNotes: note };
       }
-    } catch (e) { /* detector failure must not sink the draft */ }
+    } catch (e) { /* only a store failure lands here; detectForeignBrand itself never throws */ }
   }
 
   // 2. Draft + fact-check.
@@ -305,6 +310,14 @@ async function generateOne(store, row, ctx) {
   let caption = primary.caption;
   const hashtags = primary.hashtags || [];
   let reviewNotes = "";
+  // A review gate that was ON but did not run (no verdict came back — a missed tool call — or the call
+  // failed) keeps the row, but never silently: the skip is written as a WARNING, which the approval
+  // message shows the owner ("⚠ ...") and which stops the row auto-approving or auto-posting.
+  // A skipped check is not a passed one.
+  const checksNotRun = [];
+  const noteSkip = (evt, e) => {
+    try { console.warn(JSON.stringify({ evt, id: claimed.id, error: redact(String((e && e.message) || e)).slice(0, 200) })); } catch { /* ignore */ }
+  };
 
   // 5. The Social Media Manager agent verifies the draft before the client sees
   //    it. It can pass, suggest a revision, or reject — but it never loosens the
@@ -319,7 +332,9 @@ async function generateOne(store, row, ctx) {
         ctx.smmOpts
       );
     } catch (e) {
-      review = null; // the SMM is an enhancement — its failure must not sink the row
+      review = null; // the SMM is an enhancement — its failure must not sink the row, but the owner is told
+      checksNotRun.push("SMM review did not run — check the caption yourself before approving");
+      noteSkip("smm_review_skipped", e);
     }
     if (review) {
       reviewNotes = `SMM ${review.score}/10 (${review.verdict}): ${review.notes}`;
@@ -356,9 +371,12 @@ async function generateOne(store, row, ctx) {
       }
       if (qa.issues.length) reviewNotes += (reviewNotes ? " | " : "") + "QA: " + qa.issues.join("; ");
     } catch (e) {
-      // QA is an enhancement — its failure must not sink the row.
+      // QA is an enhancement — its failure must not sink the row, but the owner is told.
+      checksNotRun.push("QA did not run — check the post matches what was asked for before approving");
+      noteSkip("qa_review_skipped", e);
     }
   }
+  if (checksNotRun.length) reviewNotes = (reviewNotes ? reviewNotes + " | " : "") + checksNotRun.join(" | ");
 
   // The row SURVIVED fact-check + SMM + QA → now (and only now) host the AI-regenerated
   // preview so the client approves what will post. Hosting here (not at step 1b) means a
@@ -378,8 +396,8 @@ async function generateOne(store, row, ctx) {
   // misleading render before it posts ("never AI-fake real places").
   if (enhanceFlag) reviewNotes = (reviewNotes ? reviewNotes + " | " : "") + enhanceFlag;
 
-  const warnings = primary.warnings || [];
-  const status = primary.status === "approved" ? "approved" : "pending_approval";
+  const warnings = [...(primary.warnings || []), ...checksNotRun];
+  const status = primary.status === "approved" && !checksNotRun.length ? "approved" : "pending_approval";
   await store.update(claimed.id, {
     caption,
     hashtags,
@@ -395,7 +413,7 @@ async function generateOne(store, row, ctx) {
     claimedAt: null,
     lastError: warnings.length ? "warnings: " + warnings.join("; ") : "",
   });
-  return { id: claimed.id, outcome: status === "approved" ? "approved" : "pending", warnings, reviewNotes: reviewNotes || undefined };
+  return { id: claimed.id, outcome: status === "approved" ? "approved" : "pending", warnings, checksNotRun, reviewNotes: reviewNotes || undefined };
 }
 
 /**

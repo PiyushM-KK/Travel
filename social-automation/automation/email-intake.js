@@ -177,7 +177,9 @@ async function runEmailIntake(store, ctx = {}) {
       try {
         if (ctx.sendImage && cardUrlA) await ctx.sendImage(to, cardUrlA, (details + "\n\n🅰️ REAL PHOTO").slice(0, 1024));
         if (ctx.sendImage && cardUrlB) await ctx.sendImage(to, cardUrlB, `🅱️ ${bStyle.toUpperCase()} — ${pkg.item} ${pkg.route || ""}`.trim().slice(0, 1024));
-        const tail = `Caption:\n${(fresh.caption || "").trim()}${instr}`;
+        // An SMM/QA gate that did not run is told to the owner here, next to the caption (generate-runner).
+        const notRun = res.checksNotRun && res.checksNotRun.length ? "\n\n⚠️ " + res.checksNotRun.join("\n⚠️ ") : "";
+        const tail = `Caption:\n${(fresh.caption || "").trim()}${notRun}${instr}`;
         if (ctx.sendText) await ctx.sendText(to, tail.slice(0, 4000));
         else if (!cardUrlA && ctx.sendImage) { /* nothing to send */ }
       } catch (e) { /* best-effort */ }

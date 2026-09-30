@@ -179,6 +179,12 @@ async function generateSceneSpec(ctx = {}) {
   const timeoutMs = Number.isFinite(rawTimeout) && rawTimeout > 0 ? rawTimeout : 30000; // NaN/≤0 → default (never fire instantly)
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
+  // Both attempts of createWithTool (a missed tool call is re-sent once on Sonnet 5.5) share this ONE
+  // budget, which is what keeps the call bounded inside a capped function. A retry that starts with less
+  // than half the budget left would likely be aborted mid-flight (paid for, no answer), so it is skipped
+  // and the missing scene throws below -> the caller's static-pool fallback, as for any other failure.
+  const startedAt = Date.now();
+  const canRetry = () => Date.now() - startedAt < timeoutMs / 2;
   let msg;
   try {
     msg = await createWithTool(client, {
@@ -193,7 +199,7 @@ async function generateSceneSpec(ctx = {}) {
             `Produce ONE fresh, unique image concept + render-ready prompt for a marketing card featuring this package.\n\n${avoid}`,
         },
       ],
-    }, SCENE_TOOL, { signal: controller.signal });
+    }, SCENE_TOOL, { signal: controller.signal }, { canRetry });
   } finally {
     clearTimeout(timer);
   }

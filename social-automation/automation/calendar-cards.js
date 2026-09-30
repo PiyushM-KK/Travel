@@ -250,8 +250,10 @@ async function runCalendarCards(store, ctx = {}) {
   if (built.status === "skipped") return { considered: built.skipped[0] === smid ? 1 : 0, notified: [], held: [], skipped: built.skipped };
   if (built.status === "held") return { considered: 1, notified: [], held: built.held, skipped: [] };
 
-  const { fresh, cardUrlA, cardUrlB, bStyle, rp, options, caution, qaNote } = built;
+  const { fresh, cardUrlA, cardUrlB, bStyle, rp, options, caution, qaNote, res } = built;
   const code = shortCode(fresh.id);
+  // An SMM/QA gate that did not run is told to the owner here, next to the caption (generate-runner).
+  const notRun = res && res.checksNotRun && res.checksNotRun.length ? "\n\n⚠️ " + res.checksNotRun.join("\n⚠️ ") : "";
   // When a package has no stock photo, card A IS the QA-gated AI scene — label it honestly to the owner
   // (never call an AI scene a "real photo"). cardUrlB empty + bStyle AI_SCENE = "card A is the scene".
   const aIsScene = bStyle === AI_SCENE_STYLE && !cardUrlB;
@@ -264,7 +266,7 @@ async function runCalendarCards(store, ctx = {}) {
     try {
       if (ctx.sendImage && cardUrlA) await ctx.sendImage(to, cardUrlA, (details + "\n\n" + aLabel).slice(0, 1024));
       if (ctx.sendImage && cardUrlB) await ctx.sendImage(to, cardUrlB, `🅱️ ${bStyle.toUpperCase()} — ${pkg.item} ${pkg.route || ""}`.trim().slice(0, 1024));
-      if (ctx.sendText) await ctx.sendText(to, (`Caption:\n${(fresh.caption || "").trim()}${instr}`).slice(0, 4000));
+      if (ctx.sendText) await ctx.sendText(to, (`Caption:\n${(fresh.caption || "").trim()}${notRun}${instr}`).slice(0, 4000));
     } catch (e) { /* best-effort */ }
   }
   return { considered: 1, notified: [{ id: fresh.id, code, package: pkg.item, price: rp.line, options: Object.keys(options).join("/"), bStyle }], held: [], skipped: [] };

@@ -24,7 +24,7 @@
 const { factSheet } = require("./kb-adapter");
 const { SOCIAL_PLAYBOOK } = require("./social-playbook");
 const { imageBlockSource } = require("./generate");
-const { createWithTool } = require("./model-compat"); // forced tool where accepted; auto + strict + retry on Sonnet 5.5
+const { createWithTool, clampScore } = require("./model-compat"); // forced tool where accepted; auto + strict + retry on Sonnet 5.5
 
 function newClient() {
   const Anthropic = require("@anthropic-ai/sdk");
@@ -77,7 +77,7 @@ async function reviewAsSocialMediaManager(post, context = {}, opts = {}) {
   const out = block.input || {};
   return {
     verdict: out.verdict || "pass",
-    score: Number(out.score) || 0,
+    score: clampScore(Number(out.score)) || 0, // 0–10 enforced here: strict tool use drops min/max
     notes: String(out.notes || "").trim(),
     suggestedCaption: String(out.suggestedCaption || "").trim(),
   };

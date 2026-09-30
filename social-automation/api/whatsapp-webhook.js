@@ -272,7 +272,9 @@ module.exports = async (req, res) => {
                   if (r.cardUrlA) await sendImage(process.env.WHATSAPP_TO, r.cardUrlA, (details + "\n\n🅰️ REAL PHOTO").slice(0, 1024));
                   if (r.cardUrlB) await sendImage(process.env.WHATSAPP_TO, r.cardUrlB, `🅱️ ${r.bStyle.toUpperCase()} — ${r.pkg.item} ${r.pkg.route || ""}`.trim().slice(0, 1024));
                 } catch (e) { /* best-effort */ }
-                return `Caption:\n${(fresh.caption || "").trim()}${instr}`;
+                // An SMM/QA gate that did not run is told to the owner here, next to the caption (generate-runner).
+                const notRun = res.checksNotRun && res.checksNotRun.length ? "\n\n⚠️ " + res.checksNotRun.join("\n⚠️ ") : "";
+                return `Caption:\n${(fresh.caption || "").trim()}${notRun}${instr}`;
               }
               // Built but not sent-for-approval (held by fact-check/QA, or a claim race). Leave the row
               // in its terminal state — do NOT reset it. A 'held' row is surfaced; a 'drafting' strand

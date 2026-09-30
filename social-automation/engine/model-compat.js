@@ -41,9 +41,13 @@ function textRequest(body) {
   return { ...body, max_tokens: maxTokensFor(body.model, body.max_tokens), thinking: { type: "between_tools" } };
 }
 
-// JSON-schema keywords strict tool use does not accept (Anthropic: numerical and string-length
-// constraints are unsupported). They were descriptive only — every caller re-checks the values.
-const UNSUPPORTED_IN_STRICT = new Set(["minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "multipleOf", "minLength", "maxLength"]);
+// JSON-schema keywords strict tool use does not accept (Anthropic's structured-outputs page: numerical
+// and string-length constraints are unsupported, and so are array constraints beyond minItems 0 or 1).
+// They were descriptive only — every caller re-checks the values (see clampScore for the 0–10 scores).
+const UNSUPPORTED_IN_STRICT = new Set([
+  "minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "multipleOf", "minLength", "maxLength",
+  "maxItems", "uniqueItems", "contains", "minContains", "maxContains",
+]);
 
 /** A copy of a tool's input_schema made valid for `strict: true`: every object closed, unsupported keywords dropped. */
 function strictSchema(schema) {
@@ -52,7 +56,11 @@ function strictSchema(schema) {
   const out = {};
   for (const [k, v] of Object.entries(schema)) {
     if (UNSUPPORTED_IN_STRICT.has(k)) continue;
-    if (k === "properties" && v && typeof v === "object") {
+    if (k === "minItems") {
+      // Only 0 or 1 is accepted: "at least one" stays "at least one", anything else becomes 0.
+      const n = Number(v);
+      out.minItems = Number.isFinite(n) && n >= 1 ? 1 : 0;
+    } else if (k === "properties" && v && typeof v === "object") {
       out.properties = {};
       for (const [name, sub] of Object.entries(v)) out.properties[name] = strictSchema(sub);
     } else if (k === "enum" || k === "required" || k === "const") {
@@ -63,6 +71,15 @@ function strictSchema(schema) {
   }
   if (out.type === "object") out.additionalProperties = false;
   return out;
+}
+
+/**
+ * A reviewer's 0–10 score as a number in range, or null when there is none. Strict tool use drops the
+ * schema's minimum/maximum, so the range is enforced here, by the code that reads the answer.
+ */
+function clampScore(v) {
+  if (typeof v !== "number" || !Number.isFinite(v)) return null; // a string/NaN score is no score
+  return Math.min(10, Math.max(0, v));
 }
 
 /** The tool_use block for `name` in a reply, if any. A call whose name differs only in letter case counts. */
@@ -88,8 +105,11 @@ function toolCall(msg, name) {
  * @param body            the request WITHOUT tools/tool_choice: { model, max_tokens, system?, messages }
  * @param tool            { name, description, input_schema }
  * @param requestOptions  passed through to messages.create (e.g. { signal })
+ * @param opts.canRetry   optional () => boolean, asked before the one retry. A caller whose attempts share
+ *                        one time budget (one abort signal) uses it to skip a retry that could not finish
+ *                        in the time left; the caller's "no tool call" handling then runs as for a second miss.
  */
-async function createWithTool(client, body, tool, requestOptions) {
+async function createWithTool(client, body, tool, requestOptions, opts = {}) {
   const create = (req) => (requestOptions === undefined ? client.messages.create(req) : client.messages.create(req, requestOptions));
   if (!rejectsForcedTool(body.model)) {
     return create({ ...body, tools: [tool], tool_choice: { type: "tool", name: tool.name } });
@@ -106,9 +126,11 @@ async function createWithTool(client, body, tool, requestOptions) {
   if (isSonnet55(body.model)) req.thinking = { type: "between_tools" };
   const first = await create(req);
   if (toolCall(first, tool.name) || (first && first.stop_reason === "refusal")) return first;
+  const signal = requestOptions && requestOptions.signal;
+  if ((signal && signal.aborted) || (typeof opts.canRetry === "function" && !opts.canRetry())) return first;
   const second = await create(req);
   toolCall(second, tool.name);
   return second;
 }
 
-module.exports = { isSonnet55, rejectsForcedTool, maxTokensFor, textRequest, strictSchema, toolCall, createWithTool };
+module.exports = { isSonnet55, rejectsForcedTool, maxTokensFor, textRequest, strictSchema, clampScore, toolCall, createWithTool };

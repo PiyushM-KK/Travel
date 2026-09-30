@@ -30,6 +30,8 @@ function riskFlags(fresh) {
   if (String((fresh && fresh.lastError) || "").startsWith("warnings:")) flags.push("caption warnings");
   if (/\(revise\)|SMM suggests/i.test(notes)) flags.push("SMM suggested a change");
   if (/(^|\|\s*)QA:/.test(notes)) flags.push("QA flagged a detail");
+  // generate-runner writes this when an SMM/QA gate was on but returned no verdict: never auto-post it.
+  if (/(SMM review|QA) did not run/.test(notes)) flags.push("a review check did not run");
   if (((fresh && fresh.language) || "en") !== "en") flags.push("non-English (needs a human)");
   return flags;
 }

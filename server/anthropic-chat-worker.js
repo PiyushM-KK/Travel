@@ -52,6 +52,9 @@ const VERSION = 'anthropic-8'; // reported by the GET health check
 // (wheelchair assistance, "drive-up" sights), says who chooses, suggests and confirms hotels, and aims for 70-90 words
 // (hard limit 110). The price note follows the reply's language and is added only when no note is there in any of the
 // three languages (run 3: GU1 and GU2 showed the model's Gujarati note and then the English one; see PRICE_NOTE).
+// AI Security round, same version: a published figure must be the one of the trip it is quoted for (a package's own
+// figure, a destination's for its stated days - tripFigureMismatch), a note is recognised only as a real note sentence,
+// and the note's language is chosen with package, place and page names left out of the count.
 const SYSTEM_PROMPT = `You are the Skyline AI Travel Assistant for "Skyline Travel Planner", an India-based travel planning website (WhatsApp +91 8866050291, info@skylinetravelplanner.com). Help with: destination selection, trip duration, preliminary itineraries, hotel-category comparison (3/4/5-star), packing lists, transport recommendations, family/honeymoon/religious/group planning, budget planning, travel-season guidance, and FAQs. The destinations we cover are listed under DESTINATIONS WE COVER below. Reply in the same language the customer writes in (English, Hindi or Gujarati). Never say which languages our WhatsApp team speaks; only you, the assistant, answer in English, Hindi and Gujarati. Prices are in Indian Rupees and ALWAYS "starting from" estimates, never guaranteed. Budget is OPTIONAL — never insist on it and never make the traveller feel they must share money or budget details. If the traveller has not mentioned a budget, still give a genuinely helpful answer using the published starting-from prices listed below (never a made-up range); do NOT repeatedly ask about budget or money. Ask about budget at most once, and only if it would clearly improve your recommendation — otherwise proceed happily without it and simply invite them to the "Customize My Trip" form or WhatsApp for an exact quote. Whenever your reply mentions any prices, budget figures or cost estimates, end that reply with a short one-line note on its own line, such as: "Note: Prices are indicative starting-from estimates and can change with season, hotel availability and current rates." Write the note once, in the language of your reply. Add this note only when you actually mention prices. Keep replies warm, concise and practical (see the LENGTH limit at the end). After understanding the trip, encourage the user to request a customized package (the website "Customize My Trip" form) or chat on WhatsApp (+91 8866050291) for a quote. NEVER claim to confirm tickets, process payments, guarantee hotel availability, guarantee prices, guarantee visa approval, or give official immigration advice — politely defer those to the team or official provider. Never state flight durations, flying times or travel times between places, not even as an estimate (trip lengths in nights and days are fine). NEVER ask for card, bank, Aadhaar or passport details. Do not invent specific hotel bookings. Never describe services, facilities or website features that our website does not list, such as wheelchair assistance or sights that are "drive-up"; for mobility or health needs, ask the traveller to mention them on the "Customize My Trip" form or WhatsApp so our team can plan around them. Keep the "no payments on this website" disclosure when relevant. SAMPLE TOUR PACKAGES you can recommend (all fully customizable; prices are indicative "starting from" and shared on request via the "Customize My Trip" form or WhatsApp — never quote a fixed figure for these EXCEPT where a "from" price is stated below): (1) Nainital · Mussoorie · Jim Corbett — 6N/7D, Uttarakhand: Mussoorie sightseeing (Kempty Falls, Gun Hill), Nainital lake tour (Bhimtal, Sattal, Naukuchiatal), Jim Corbett jeep safari. (2) Ooty · Coorg · Mysore — 5N/6D, South India: Mysore Palace & Brindavan Gardens, Coorg (Abbey Falls, Talacauvery), Ooty & Coonoor. (3) Sikkim · Darjeeling — 5N/6D: Gangtok, Tsomgo Lake & New Baba Mandir, Darjeeling Tiger Hill sunrise. (4) Shimla · Manali — 5N/6D, from ₹10,999 per person (indicative starting-from), Himachal: Shimla–Kufri, Kullu valley, Solang Valley, Manali (Hadimba Temple, Vashisht). (5) Untouched Spiti Valley — 8N/9D, Himachal: Narkanda, Sangla–Chitkul, Nako–Tabo, Kaza (Key Monastery, Hikkim highest post office), Kalpa. When a traveller asks about any of these regions, mention the matching package and its nights, then invite them to the Domestic tours page or the "Customize My Trip" form / WhatsApp for a tailored quote.`;
 
 // PUBLISHED PRICES, DESTINATIONS and BEST SEASONS: copied by script (not typed) from the site files on 2026-09-30.
@@ -502,6 +505,108 @@ function honestPriceReply(question, now) {
   return hits.length === 1 ? `${HONEST_PRICE_LINE} ${hits[0].name}, ${hits[0].nights}, is ${hits[0].quote}` : HONEST_PRICE_LINE;
 }
 
+// ---- the figure must be the named trip's own (anthropic-8, AI Security review) ------------------------------------
+// With the owner's destination prices in the prompt, each of them is a published figure, so the check above let through
+// "Kashmir Valley 5N/6D (3-star) is from ₹12,900" (the package is ₹27,800; ₹12,900 is the Kashmir destination price),
+// "Sikkim Discovery from ₹20,900", "Meghalaya Wonders from ₹20,500", "Kausani & Kumaon from ₹15,900" and "Kashmir for 10
+// days from ₹12,900" (that figure is for 5-6 days). Here each published figure is judged against the trip it is quoted
+// for: the last package or destination named before it in its sentence, or else the first one named after it in the
+// same clause. A package's figure must be one on that package's own line (Shimla & Manali: also the owner's ₹15,000; a
+// package "on request" has none); a destination's must be its own "from" price or a figure of one of its packages; and
+// a day or night count stated with it ("for 10 days", "a 10-day", "5N / 6D") must fit that trip - the destination's
+// range, the package's own days. Otherwise the reply is replaced. A figure the traveller typed, repeated in a clause
+// about their budget, is left to the budget rules above. Names are read in English; a Hindi or Gujarati reply is judged
+// by the published-figure check alone.
+const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const ANY_SEP = '(?:\\s*(?:&|and|·|–|—|-|,)\\s*|\\s+)';
+const namePattern = (name, sep) => name.split(/\s*(?:&|·|–|,)\s*|\s+/).filter(Boolean).map(escapeRe).join(sep);
+const TRIPS = { packages: [], destinations: [] };
+for (const line of PUBLISHED_PRICES.split('\n')) {
+  const p = /^- (.+?), \d+N \/ (\d+)D \(([^)]*)\): (.*)$/.exec(line);
+  if (p) { TRIPS.packages.push({ name: p[1], lo: +p[2], hi: +p[2], figures: moneyFigures(p[4]).map((f) => f.n), keys: keysOf(p[1]), words: [p[1], ...p[3].split(' · ')] }); continue; }
+  const d = /^- (.+?) \((\d+)–(\d+) days\): from (₹[\d,]+)\.$/.exec(line);
+  if (d) TRIPS.destinations.push({ name: d[1], lo: +d[2], hi: +d[3], figures: moneyFigures(d[4]).map((f) => f.n), keys: keysOf(d[1]) });
+}
+if (DIWALI_PACKAGE) {
+  const days = +(/(\d+)D/.exec(DIWALI_PACKAGE.nights) || [])[1];
+  TRIPS.packages.push({ name: DIWALI_PACKAGE.name, lo: days, hi: days, figures: moneyFigures(DIWALI_OFFER_PRICE).map((f) => f.n), keys: DIWALI_PACKAGE.keys, words: [DIWALI_PACKAGE.name] });
+}
+// Each destination's places, from DESTINATIONS ("Places on our destination pages: Rajasthan: Jaipur, ...; ..."): a
+// package belongs to a destination when it names it or visits one of its named places (Kausani & Kumaon - Uttarakhand);
+// a shared common noun is not a place ("Tea gardens" would tie Gangtok & Darjeeling to Assam).
+const PLACES = new Map(((/Places on our destination pages: ([^\n]*)/.exec(DESTINATIONS) || [])[1] || '').replace(/\.$/, '').split('; ')
+  .map((e) => [e.slice(0, e.indexOf(': ')), e.slice(e.indexOf(': ') + 2).split(/,\s*|\s*&\s*/).map((w) => w.replace(/\s*\([^)]*\)/, '').trim().toLowerCase())]));
+for (const d of TRIPS.destinations) {
+  const places = new Set([...(PLACES.get(d.name) || []), ...d.name.split(/\s*(?:&|·)\s*/).map((w) => w.toLowerCase())]);
+  d.owners = [d, ...TRIPS.packages.filter((p) => [...d.keys].some((k) => p.keys.has(k)) || p.words.some((w) => places.has(w.trim().toLowerCase()) && keysOf(w).size > 0))];
+}
+// The names, in the order a match is tried: a destination written with its own "·" ("Assam · Kaziranga" is the
+// destination, "Assam & Kaziranga" the package), then the packages, longest first ("Kashmir Valley" before "Kashmir"),
+// then each part of a destination's name ("Himachal", "Coorg", "Mysore" for Mysuru).
+const MENTIONS = [
+  ...TRIPS.destinations.filter((d) => d.name.includes('·')).map((d) => ({ src: namePattern(d.name, '\\s*·\\s*'), owners: d.owners })),
+  ...[...TRIPS.packages].sort((a, b) => b.name.length - a.name.length).map((p) => ({ src: namePattern(p.name, ANY_SEP), owners: [p] })),
+  ...TRIPS.destinations.flatMap((d) => [...d.name.split(/\s*(?:&|·)\s*/), ...(d.keys.has('mysuru') ? ['Mysore'] : [])]
+    .map((part) => ({ src: /^\S+ Pradesh$/.test(part) ? `${escapeRe(part.split(' ')[0])}(?:\\s+Pradesh)?` : namePattern(part, '\\s+'), owners: d.owners, len: part.length })))
+    .sort((a, b) => b.len - a.len),
+].map((m) => ({ src: m.src, owners: m.owners, re: new RegExp(`^(?:${m.src})$`, 'i') }));
+const TRIP_MENTION = new RegExp(`\\b(?:${MENTIONS.map((m) => m.src).join('|')})\\b`, 'gi');
+const ownersOf = (name) => (MENTIONS.find((m) => m.re.test(name)) || { owners: [] }).owners;
+// Day counts: "10 days", "5–6 days", "10-day", "6D", "5 nights" and "5N" (6 days), in Hindi and Gujarati too.
+const DAY_COUNT = /(?<![\d,.])(\d{1,2})(?:\s*(?:-|–|—|to)\s*(\d{1,2}))?\s*-?\s*(?:([Dd]ays?\b|D\b|दिन|દિવસ)|([Nn]ights?\b|N\b|रात|રાત))/g;
+const DAY_COUNT_AT = new RegExp(`^(?:${DAY_COUNT.source})`);
+const dayCounts = (s) => [...s.matchAll(DAY_COUNT)].map((m) => { const add = m[4] ? 1 : 0, a = +m[1] + add; return [a, (m[2] ? +m[2] : +m[1]) + add]; });
+const FIGURE_TEXT = /^\d[\d,]*(?:\.\d+)?(?:\s*(?:k|lakhs?|lacs?|लाख|લાખ)(?![a-z]))?/i;
+// "from ₹12,900 per person for 10 days": a count right after the figure belongs to it too.
+const TRAILING_FOR = /^\s*(?:(?:\/-|rupees?|rs\.?|inr|per\s+person|pp|each|onwards|\((?:3-star|3★)\))\s*)*(?:for|of)\s+(?:a\s+|an\s+)?(?=\d)/i;
+const FIG_CLAUSE = /(?<!\d),|,(?!\d)|[;:]/g;
+function tripFigureMismatch(text, figures, known, convo) {
+  if (!figures.some((f) => known.figures.has(f.n))) return false;
+  const digits = asciiDigits(text);
+  let typed = null, fi = 0;
+  for (const { start, end } of sentences(text)) {
+    const figs = [];
+    for (; fi < figures.length && figures[fi].at < end; fi++) if (figures[fi].at >= start) figs.push(figures[fi]);
+    if (!figs.some((f) => known.figures.has(f.n))) continue;
+    const s = text.slice(start, end);
+    const mentions = [...s.matchAll(TRIP_MENTION)].map((m) => ({ start: start + m.index, end: start + m.index + m[0].length, owners: ownersOf(m[0]) }));
+    if (!mentions.length) continue;
+    const breakAt = [], breakEnd = [];
+    for (const m of s.matchAll(FIG_CLAUSE)) { breakAt.push(start + m.index); breakEnd.push(start + m.index + m[0].length); }
+    const ends = mentions.map((m) => m.end);
+    let prevFigEnd = start;
+    for (const f of figs) {
+      const figEnd = f.at + (FIGURE_TEXT.exec(digits.slice(f.at, f.at + 40)) || [''])[0].length;
+      if (known.figures.has(f.n) && (f.hi === undefined || known.figures.has(f.hi))) {
+        let k = 0; { let hi = ends.length; while (k < hi) { const mid = (k + hi) >> 1; if (ends[mid] <= f.at) k = mid + 1; else hi = mid; } } // mentions[k - 1] ends before f
+        let trip = null, span = '';
+        if (k > 0) {
+          trip = mentions[k - 1];
+          const clauseStart = Math.max(start, lastBefore(breakEnd, trip.start + 1));
+          span = digits.slice(Math.max(prevFigEnd, k > 1 ? mentions[k - 2].end : start, clauseStart), f.at);
+          const trail = TRAILING_FOR.exec(digits.slice(figEnd, figEnd + 60));
+          const count = trail && DAY_COUNT_AT.exec(digits.slice(figEnd + trail[0].length, figEnd + trail[0].length + 24));
+          if (count) span += ' ' + count[0];
+        } else if (firstIn(breakAt, figEnd, mentions[0].start) < 0) {
+          trip = mentions[0];
+          span = digits.slice(f.at, trip.end);
+        }
+        if (trip) {
+          const stated = dayCounts(span);
+          const fits = trip.owners.some((o) => o.figures.includes(f.n) && (f.hi === undefined || o.figures.includes(f.hi)) && stated.every(([a, b]) => a >= o.lo && b <= o.hi));
+          if (!fits) {
+            if (!typed) typed = typedAmounts(convo);
+            const a = lastBefore(breakEnd, f.at + 1), b = firstIn(breakAt, f.at, end);
+            if (!(typed.has(f.n) && BUDGET_WORDS.test(text.slice(Math.max(start, a), b < 0 ? end : b)))) return true;
+          }
+        }
+      }
+      prevFigEnd = Math.max(prevFigEnd, figEnd);
+    }
+  }
+  return false;
+}
+
 // Promises nobody can keep: a confirmed booking, a guaranteed/locked/fixed price, a visa outcome, a held seat, a
 // booking made or a payment received. "confirmed only/by/after/until ..." describes who confirms, not a confirmation.
 // anthropic-7 (AI Security): "booking is confirmed by ..." is the process only when the provider, airline, operator, hotel
@@ -540,8 +645,10 @@ const GARBLED_LINE = 'Sorry, something went wrong with that reply. Please ask ag
 // ---- the price note (anthropic-8) ---------------------------------------------------------------------------------
 // Live test run 3 (2026-09-30): a Gujarati reply that carried the model's own Gujarati note got the English note as well
 // (GU1, GU2), and one without a note got the English note under Gujarati text (GU3). The note now follows the reply: the
-// most Gujarati letters - Gujarati; the most Devanagari letters - Hindi; otherwise English. It is added only when no note
-// is there already, in any of the three languages, so a reply never carries two.
+// most Gujarati letters - Gujarati; the most Devanagari letters - Hindi; otherwise English, counting no Latin letters of
+// our package, destination, place or page names (AI Security review: a Hindi reply that quoted "Goa Getaway" and
+// "Customize My Trip" got the English note). It is added only when no note sentence is there already, in any of the
+// three languages, so a reply never carries two.
 // The Hindi and Gujarati wording is the site's own, copied by script (not typed): the sentence is the first one of the
 // fine print on diwali-bali.html - the data-hi / data-gu of the note whose data-en begins "*Prices are indicative
 // starting-from estimates per person and can change with season, hotel availability and current rates." - without its
@@ -555,27 +662,33 @@ const PRICE_NOTE = {
 const GUJARATI_LETTER = /[\u0A80-\u0AFF]/g;
 const DEVANAGARI_LETTER = /[\u0900-\u097F]/g;
 const LATIN_LETTER = /[A-Za-z]/g;
+const PAGE_NAMES = /\b(?:Customize\s+My\s+Trip|WhatsApp|Skyline(?:\s+AI)?(?:\s+Travel\s+(?:Planner|Assistant))?|Domestic\s+tours?|International|Festive\s+offers?)\b/gi;
+const PLACE_NAMES = new RegExp(`\\b(?:${[...new Set([...PLACES.values()].flat().concat(TRIPS.packages.flatMap((p) => p.words.slice(1).map((w) => w.toLowerCase()))))]
+  .filter((w) => w.length > 2).sort((a, b) => b.length - a.length).map((w) => namePattern(w, '\\s+')).join('|')})\\b`, 'gi');
 function priceNoteFor(reply) {
-  const n = (re) => (reply.match(re) || []).length;
+  const text = reply.replace(TRIP_MENTION, ' ').replace(PLACE_NAMES, ' ').replace(PAGE_NAMES, ' ');
+  const n = (re) => (text.match(re) || []).length;
   const gu = n(GUJARATI_LETTER), hi = n(DEVANAGARI_LETTER), en = n(LATIN_LETTER);
   if (gu > hi && gu > en) return PRICE_NOTE.gu;
   if (hi > gu && hi > en) return PRICE_NOTE.hi;
   return PRICE_NOTE.en;
 }
-// A note already there. English: as before. Hindi / Gujarati: a sentence with a price word and a "can change" or
-// "indicative" word - the model's own notes of run 3 (GU1: "નોંધ: કિંમતો સૂચક શરૂઆતના અંદાજ છે અને સીઝન, હોટેલ
-// ઉપલબ્ધતા તથા વર્તમાન દર મુજબ બદલાઈ શકે છે.") and the site's wording above both count. "Estimate" alone does not make
-// a price sentence a note ("કિંમત અંદાજે ₹22,400 થી શરૂ થાય છે" quotes a price), unless the sentence opens with a note
-// label ("नोट: ये कीमतें अनुमानित हैं।"); a sentence with no price word ("हमारी टीम अनुमान लगाकर ...") is never a note.
-const NOTE_EN = /indicative|subject to change|can change with/i;
+// A note already there - a real note SENTENCE (AI Security review: a stray word is not a note, and when in doubt the
+// note is added). English: a sentence that says "indicative" and opens with "Note:" or also says "starting-from" or
+// "estimate" ("Prices indicative? Ignore this." is not one). Hindi / Gujarati: a sentence with a price word and a
+// can-change / indicative word that opens with a note label (नोट: / ध्यान दें: / નોંધ:) or says starting-from
+// (शुरुआती / શરૂઆતી) - the model's own notes of run 3 (GU1: "નોંધ: કિંમતો સૂચક શરૂઆતના અંદાજ છે અને સીઝન, હોટેલ
+// ઉપલબ્ધતા તથા વર્તમાન દર મુજબ બદલાઈ શકે છે.") and the site's wording above count; "ભાવ ફેરફાર", "અમારી ટીમ ભાવ સૂચક
+// રીતે કહેશે" and a bare "कीमतें बदल सकती हैं" do not.
+const NOTE_LABEL = /^[\s(*_]*(?:note|नोट|ध्यान\s*दें|નોંધ|નોટ)\s*:/i;
+const INDICATIVE_EN = /indicative/i;
+const STARTING_EN = /starting[-\s]from|estimate/i;
 const INDIC_PRICE_WORD = /कीमत|क़ीमत|मूल्य|दाम|भाव|रेट|કિંમત|ભાવ|રેટ/;
 const INDIC_CHANGE_WORD = /बदल\s*सकत|बदल\s*जा\s*सकत|परिवर्तन|सांकेतिक|सूचक|બદલાઈ\s*શક|બદલાઇ\s*શક|બદલી\s*શક|બદલાય|ફેરફાર|સૂચક|સાંકેતિક/;
-const INDIC_NOTE_LABEL = /^\s*(?:नोट|ध्यान\s*दें|નોંધ|નોટ)\s*:/;
-const INDIC_ESTIMATE_WORD = /अनुमान|अंदाज|अंदाज़|અંદાજ/;
-const hasPriceNote = (reply) => NOTE_EN.test(reply) || sentences(reply).some(({ start, end }) => {
-  const s = reply.slice(start, end);
-  return INDIC_PRICE_WORD.test(s) && (INDIC_CHANGE_WORD.test(s) || (INDIC_NOTE_LABEL.test(s) && INDIC_ESTIMATE_WORD.test(s)));
-});
+const INDIC_STARTING = /शुरुआत|શરૂઆત/;
+const isNoteSentence = (s) => (INDICATIVE_EN.test(s) && (NOTE_LABEL.test(s) || STARTING_EN.test(s)))
+  || (INDIC_PRICE_WORD.test(s) && INDIC_CHANGE_WORD.test(s) && (NOTE_LABEL.test(s) || INDIC_STARTING.test(s)));
+const hasPriceNote = (reply) => sentences(reply).some(({ start, end }) => isNoteSentence(reply.slice(start, end)));
 
 // ---- what the chat window shows ----------------------------------------------------------------------------------
 // anthropic-7: single-asterisk and single-underscore italics are removed too (run 2 showed "*Note: ...*" with its
@@ -776,7 +889,8 @@ export default {
         const figures = moneyFigures(text);
         const offer = diwaliChecks(text, figures, now);
         extra = extra || offer.extra;
-        replaced = replaced || offer.lowPrice || quotesUnpublishedFigure(text, figures, system, convo);
+        replaced = replaced || offer.lowPrice || quotesUnpublishedFigure(text, figures, system, convo)
+          || tripFigureMismatch(text, figures, publishedFigures(system), convo);
       }
       if (replaced) reply = honestPriceReply(convo[convo.length - 1].content, now);
 

@@ -340,10 +340,14 @@ const replaced = (r) => r.startsWith(HONEST);
   for (const t of diwali) {
     const r = (await chat('Diwali in Bali?', t)).reply;
     if (r !== HONEST + ' ' + DIWALI_PRICE + '.' + NOTE_LINE) low.push(t + ' => ' + r);
-    if (replaced((await chat('Diwali in Bali?', t, { at: AFTER_OFFER })).reply)) lowAfter.push(t);
+    // anthropic-8 (AI Security): after the offer the offer check is off, but a reply that NAMES "Diwali in Bali" is still
+    // replaced by the trip check (that trip's own figure is ₹1,15,000); the Hindi one names no English trip and passes.
+    if (replaced((await chat('Diwali in Bali?', t, { at: AFTER_OFFER })).reply) !== /Diwali in Bali/.test(t)) lowAfter.push(t);
   }
   check('item 2: a Diwali price under the offer is caught in the new forms (unit after, Indic digits, k)', low.length === 0, low.join(' | '));
-  check('item 2: ...and it is the offer check that caught them (after the offer the same published figure passes)', lowAfter.length === 0, lowAfter.join(' | '));
+  check('item 2: ...and it is the offer check that caught them: after the offer the same published figure passes it (only the trip check still catches a reply naming "Diwali in Bali")', lowAfter.length === 0, lowAfter.join(' | '));
+  const honeymoon = 'Bali Honeymoon is from 46,000 rupees.';
+  check('item 2: after the offer, the Bali Honeymoon\'s own ₹46,000 passes', (await chat('Bali?', honeymoon, { at: AFTER_OFFER })).reply === honeymoon + NOTE_LINE);
 }
 {
   // Item 3: the reply is REPLACED; the published figure is added only when the question names exactly one package.
@@ -799,12 +803,15 @@ async function chatSeq(userText, answers) {
   check('P3: a Hindi reply with a price gets the site\'s Hindi note, not the English one', rHi === HI + NOTE_LINE_HI && !rHi.includes(DISCLAIMER), rHi);
   const own = [[GU_Q, GU3 + NOTE_LINE_GU], ['गोवा का पैकेज?', HI + NOTE_LINE_HI],
     ['गोवा का पैकेज?', HI + '\n\nनोट: कीमतें सांकेतिक शुरुआती अनुमान हैं और सीज़न, होटल उपलब्धता व मौजूदा दरों के अनुसार बदल सकती हैं।'],
-    ['गोवा का पैकेज?', HI + '\n\nनोट: ये कीमतें अनुमानित हैं।'],
     [GU_Q, GU3 + '\n\nનોંધ: ભાવ સમય અને ઉપલબ્ધતા પ્રમાણે બદલાઈ શકે છે.'],
     [GU_Q, GU3 + NOTE_LINE]];
   const doubled = [];
   for (const [q, t] of own) { const r = (await chat(q, t)).reply; if (r !== t) doubled.push(t.slice(-60) + ' => ' + r.slice(t.length)); }
-  check(`P3: ${own.length} replies that already carry a note (the site's Hindi / Gujarati note, the model's own Hindi / Gujarati note, a labelled "estimate" note, an English note under Gujarati) get no second one`, doubled.length === 0, doubled.join(' | '));
+  check(`P3: ${own.length} replies that already carry a note (the site's Hindi / Gujarati note, the model's own Hindi / Gujarati note, an English note under Gujarati) get no second one`, doubled.length === 0, doubled.join(' | '));
+  // AI Security round: "नोट: ये कीमतें अनुमानित हैं।" (a label and "estimated", no can-change word) no longer counts as a
+  // note - when in doubt the note is added.
+  const estimateOnly = HI + '\n\nनोट: ये कीमतें अनुमानित हैं।';
+  check('P3: a labelled "estimated" sentence with no can-change word gets the Hindi note (fail towards adding it)', (await chat('गोवा का पैकेज?', estimateOnly)).reply === estimateOnly + NOTE_LINE_HI);
   const notes = [[GU_Q, 'ગુજરાત દર્શન, 6N / 7D, ની કિંમત અંદાજે ₹22,400 પ્રતિ વ્યક્તિથી શરૂ થાય છે (3-સ્ટાર).', NOTE_LINE_GU],
     ['गोवा का पैकेज?', 'गोवा गेटअवे ₹9,999 से शुरू होता है। हमारी टीम आपकी ज़रूरतों का अनुमान लगाकर प्लान बनाएगी।', NOTE_LINE_HI],
     ['Gujarat?', 'Gujarat Darshan (ગુજરાત દર્શન), 6N / 7D, is from ₹22,400 per person (3-star).', NOTE_LINE],
@@ -820,6 +827,74 @@ async function chatSeq(userText, answers) {
   check('P3: English unchanged - run-3 Q6 (no price) is shown as written, with no note', (await chat("How does it work after I enquire? Can you reply on WhatsApp?", q6run3)).reply === q6run3);
   const q9run3 = "December is a lovely time for Rajasthan. The best season runs Oct-Mar, so you get pleasant days and cool nights (carry light woollens).\n\nOur Royal Rajasthan package is 7N/8D covering Jaipur, Jodhpur, Udaipur and Jaisalmer, from ₹24,900 per person (3-star). Shorter trips (4-7 days) start from ₹18,000 per person. It's fully customizable, so we can trim or extend the route.\n\nTo shape it better, how many travellers are going, and is it family, friends or a couple?\n\nNote: Prices are indicative starting-from estimates and can change with season, hotel availability and current rates.\n\nYou can fill in the \"Customize My Trip\" form or chat on WhatsApp (+91 8866050291) for a tailored quote.";
   check('P3: English unchanged - run-3 Q9 (its own English note mid-reply) is shown as written, with no second note', (await chat("We want to go to Rajasthan in December", q9run3)).reply === q9run3);
+}
+
+// ---- 9. anthropic-8, AI Security review (probe.mjs, 2026-09-30), one block per finding -------------------------------
+{
+  // S1 (MED): a published figure must be the one of the trip it is quoted for.
+  const wrong = [['Kashmir trip price?', 'Kashmir Valley 5N/6D (3-star) is from ₹12,900 per person. Want to customize?'],
+    ['Sikkim price?', 'Sikkim Discovery 6N/7D from ₹20,900 (3-star).'], ['Meghalaya', 'Meghalaya Wonders 6N/7D (3-star) from ₹20,500 per person.'],
+    ['Uttarakhand', 'Kausani & Kumaon 5N/6D from ₹15,900 (3-star).'], ['Kashmir 10 days?', 'Kashmir for 10 days starts from ₹12,900 per person.'],
+    ['Sikkim', 'Sikkim & Darjeeling 5N/6D from ₹20,900.'], ['Sikkim?', 'Sikkim · Darjeeling, 5N/6D, is from ₹20,900.'],
+    ['Kashmir?', 'Kashmir starts from ₹12,900 per person for 10 days.'], ['Kashmir?', 'A 10-day Kashmir trip is from ₹12,900 per person.'],
+    ['Kerala?', 'Kerala Backwaters for 5 days is from ₹23,900 per person (3-star).'], ['Kashmir?', 'Kashmir Valley, 9N / 10D, is from ₹27,800 per person (3-star).'],
+    ['Assam?', 'Assam & Kaziranga, 5N / 6D, is from ₹20,500 per person (3-star).'], ['Goa?', 'Starting from ₹12,900 the Goa Getaway is a great deal.'],
+    ['Kashmir?', 'Kashmir Valley, 5N / 6D, is from ₹27,800 per person (3-star), within your ₹12,900 budget.'],
+    ['Assam?', 'Assam trips start from ₹24,100 per person.']]; // Gangtok & Darjeeling's figure: a shared "Tea gardens" is no tie
+  const passed = [];
+  for (const [q, t] of wrong) if (!replaced((await chat(q, t)).reply)) passed.push(t);
+  check(`S1: ${wrong.length} replies that put a published figure on the wrong trip are replaced (the reviewer's five; a package on request; the wrong day count before, after or inside the figure's clause; a figure before its trip; an untyped "budget"; another region's package figure)`, passed.length === 0, passed.join(' | '));
+  const right = [['Kashmir?', 'Kashmir Valley 5N/6D (3-star) from ₹27,800 per person.'], ['Kashmir?', 'Trips to Kashmir of 5-6 days start from ₹12,900 per person.'],
+    ['Kashmir?', 'Kashmir Valley, 5N / 6D, is from ₹27,800 per person (3-star), and trips to Kashmir of 5–6 days start from ₹12,900.'],
+    ['Kashmir?', 'Kashmir for 6 days starts from ₹12,900 per person.'],
+    ['Assam?', 'Assam · Kaziranga (4–6 days) is from ₹20,500 per person, and Assam & Kaziranga, 5N / 6D, from ₹26,400 (3-star).'],
+    ['Rajasthan?', 'Royal Rajasthan, 7N / 8D, is from ₹24,900 per person (3-star), and Rajasthan trips of 4–7 days start from ₹18,000.'],
+    ['Uttarakhand?', 'In Uttarakhand, trips start from ₹15,900; Kausani & Kumaon, 5N / 6D, is from ₹19,700 per person (3-star).'],
+    ['Uttarakhand?', 'Uttarakhand trips start from ₹19,700 with the Kausani & Kumaon route.'],
+    ['Himachal?', 'Shimla & Manali, 5N / 6D, is from ₹10,999 per person (3-star); higher hotel tiers or dates can take it to ₹15,000 or more.'],
+    ['Sikkim?', 'Sikkim Honeymoon, 5N / 6D, is from ₹23,200 per person (3-star), and Sikkim trips of 6–7 days start from ₹20,900.'],
+    ['Diwali?', 'Diwali in Bali, 7N / 8D, is from ₹1,15,000 per person, and the Bali Honeymoon, 6N / 7D, from ₹46,000.'],
+    ['Ooty?', 'Mysore, Coorg and Ooty, 6N / 7D, is from ₹20,800 per person (3-star).']];
+  const flagged = [];
+  for (const [q, t] of right) { const r = (await chat(q, t)).reply; if (r !== t + NOTE_LINE) flagged.push(t + ' => ' + r.slice(0, 60)); }
+  check(`S1: ${right.length} right replies pass untouched (the reviewer's three; a destination "·" name beside the "&" package; a package and its destination in one sentence; a destination figure of one of its packages; Shimla's owner figure; the offer)`, flagged.length === 0, flagged.join(' | '));
+  const own = 'Kashmir Valley, 5N / 6D, is from ₹27,800 per person (3-star), above your ₹12,900 budget.';
+  check('S1: the traveller\'s own typed budget, in a clause about their budget, is still left to the budget rules', (await chat('Our budget is 12,900 per person', own)).reply === own + NOTE_LINE);
+  const reply = (await chat('Kashmir trip price?', 'Kashmir Valley 5N/6D (3-star) is from ₹12,900 per person.')).reply;
+  check('S1: the replacement quotes Kashmir Valley\'s own figure', reply === HONEST + ' Kashmir Valley, 5N / 6D, is from ₹27,800 per person (3-star).' + NOTE_LINE, reply);
+  let t0 = performance.now();
+  const many = 'Goa Getaway ₹9,999 and Kashmir ₹12,900 and '.repeat(380);
+  const rMany = (await chat('hi', many)).reply;
+  const ms = performance.now() - t0;
+  check(`S1: one ${many.length}-character sentence with 760 trips and 760 published figures is judged in under 100 ms (${ms.toFixed(1)} ms)`, many.length > 16000 && ms < 100 && rMany === many.trimEnd() + NOTE_LINE, rMany.slice(-80));
+}
+{
+  // S2 (LOW): only a real note sentence counts as a note; when in doubt the note is added.
+  const add = [['ગોવા?', 'ગોવા ₹9,999 થી શરૂ. ભાવ ફેરફાર', NOTE_LINE_GU], ['ગોવા?', 'ગોવા ₹9,999 થી શરૂ. અમારી ટીમ ભાવ સૂચક રીતે કહેશે.', NOTE_LINE_GU],
+    ['Goa?', 'Goa Getaway from ₹9,999 (3-star). कीमतें बदल सकती हैं', NOTE_LINE_HI], ['Goa?', 'Goa is from ₹9,999 (3-star). Prices indicative? Ignore this.', NOTE_LINE],
+    ['Goa?', 'Goa Getaway is from ₹9,999 per person; see the indicative itinerary below.', NOTE_LINE],
+    ['गोवा?', 'कीमत ₹9,999 से शुरू है। हमारी टीम फेरफार कर सकती है', NOTE_LINE_HI]];
+  const missing = [];
+  for (const [q, t, note] of add) { const r = (await chat(q, t)).reply; if (r !== t + note) missing.push(t + ' => ' + r.slice(t.length, t.length + 30)); }
+  check(`S2: ${add.length} replies with a stray "change" / "indicative" word but no note sentence get the note, in their language`, missing.length === 0, missing.join(' | '));
+  const keep = [['Goa?', 'Goa Getaway is from ₹9,999 per person.\n\nNote: Prices are indicative and can change.'],
+    ['Goa?', 'Goa Getaway is from ₹9,999 per person. Prices are indicative starting-from estimates.'],
+    ['Goa?', 'Goa Getaway is from ₹9,999. These are indicative estimates only.'],
+    ['ગોવા?', 'ગોવા ₹9,999 થી શરૂ છે. નોંધ: કિંમતો સૂચક છે.'],
+    ['गोवा?', 'गोवा गेटअवे ₹9,999 से शुरू है। कीमतें शुरुआती हैं और बदल सकती हैं।']];
+  const doubled = [];
+  for (const [q, t] of keep) { const r = (await chat(q, t)).reply; if (r !== t) doubled.push(t + ' => ' + r.slice(t.length, t.length + 30)); }
+  check(`S2: ${keep.length} real note sentences (English "Note: ... indicative", "indicative" with "starting-from" / "estimate"; a Gujarati labelled note; a Hindi starting-from + can-change note) still get no second note`, doubled.length === 0, doubled.join(' | '));
+}
+{
+  // S3 (LOW): the note's language is counted without our package, place and page names written in Latin letters.
+  const hiNames = 'गोवा गेटवे 4N/5D ₹9,999 से शुरू (3-स्टार) है। हमारी टीम Customize My Trip form से exact quote देगी। Goa Getaway Beaches North South Goa hotel.';
+  const guNames = 'Kashmir Valley, 5N / 6D, ₹27,800 થી શરૂ (3-સ્ટાર). Srinagar, Gulmarg, Pahalgam અને Sonamarg જોવા માટે Customize My Trip ફોર્મ અથવા WhatsApp પર લખો.';
+  const mostlyEn = 'ગોવા ગેટવે ₹9,999 થી શરૂ. This is an English mixed reply with many many latin words to outnumber the letters here for sure yes.';
+  const cases = [['गोवा?', hiNames, NOTE_LINE_HI], ['કાશ્મીર?', guNames, NOTE_LINE_GU], ['Goa?', mostlyEn, NOTE_LINE]];
+  const off = [];
+  for (const [q, t, note] of cases) { const r = (await chat(q, t)).reply; if (r !== t + note) off.push(t.slice(0, 30) + ' => ' + r.slice(t.length, t.length + 30)); }
+  check('S3: a Hindi reply and a Gujarati reply that quote package, place and page names in Latin letters get their own note; a mostly English reply keeps the English one', off.length === 0, off.join(' | '));
 }
 
 check('every fetch went to the fake Anthropic API only', calls.every((c) => c.url === ANTHROPIC), [...new Set(calls.map((c) => c.url))].join(' '));

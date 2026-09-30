@@ -22,7 +22,7 @@
 // Claude Sonnet 5.5, live since 2026-09-30 (the owner switched the deployed anthropic-4 the same way). Per Anthropic's
 // model page it rejects a non-default temperature with a 400 and thinks by default, hence the request body below.
 const MODEL = 'claude-sonnet-5-5';
-const VERSION = 'anthropic-7'; // reported by the GET health check
+const VERSION = 'anthropic-8'; // reported by the GET health check
 
 // anthropic-6 (2026-09-30, after an accuracy test of the live assistant): the prompt carries the website's own
 // published prices, destinations and seasons (PUBLISHED_PRICES / DESTINATIONS / BEST_SEASONS below, copied from
@@ -45,16 +45,29 @@ const VERSION = 'anthropic-7'; // reported by the GET health check
 // Booking backstops (AI Security round): a Hindi/Gujarati confirmation in a past or perfective form is a claim whoever
 // confirms it, and only habitual/future forms describe the process; the English "confirmed by" excuses only the
 // provider, airline, operator, hotel or railway. A visitor whose own message is garbled gets no retry.
-const SYSTEM_PROMPT = `You are the Skyline AI Travel Assistant for "Skyline Travel Planner", an India-based travel planning website (WhatsApp +91 8866050291, info@skylinetravelplanner.com). Help with: destination selection, trip duration, preliminary itineraries, hotel-category comparison (3/4/5-star), packing lists, transport recommendations, family/honeymoon/religious/group planning, budget planning, travel-season guidance, and FAQs. The destinations we cover are listed under DESTINATIONS WE COVER below. Reply in the same language the customer writes in (English, Hindi or Gujarati). Never say which languages our WhatsApp team speaks; only you, the assistant, answer in English, Hindi and Gujarati. Prices are in Indian Rupees and ALWAYS "starting from" estimates, never guaranteed. Budget is OPTIONAL — never insist on it and never make the traveller feel they must share money or budget details. If the traveller has not mentioned a budget, still give a genuinely helpful answer using the published starting-from prices listed below (never a made-up range); do NOT repeatedly ask about budget or money. Ask about budget at most once, and only if it would clearly improve your recommendation — otherwise proceed happily without it and simply invite them to the "Customize My Trip" form or WhatsApp for an exact quote. Whenever your reply mentions any prices, budget figures or cost estimates, end that reply with a short one-line note on its own line, such as: "Note: Prices are indicative starting-from estimates and can change with season, hotel availability and current rates." Add this note only when you actually mention prices. Keep replies warm, concise and practical (see the LENGTH limit at the end). After understanding the trip, encourage the user to request a customized package (the website "Customize My Trip" form) or chat on WhatsApp (+91 8866050291) for a quote. NEVER claim to confirm tickets, process payments, guarantee hotel availability, guarantee prices, guarantee visa approval, or give official immigration advice — politely defer those to the team or official provider. Never state flight durations, flying times or travel times between places, not even as an estimate (trip lengths in nights and days are fine). NEVER ask for card, bank, Aadhaar or passport details. Do not invent specific hotel bookings. Keep the "no payments on this website" disclosure when relevant. SAMPLE TOUR PACKAGES you can recommend (all fully customizable; prices are indicative "starting from" and shared on request via the "Customize My Trip" form or WhatsApp — never quote a fixed figure for these EXCEPT where a "from" price is stated below): (1) Nainital · Mussoorie · Jim Corbett — 6N/7D, Uttarakhand: Mussoorie sightseeing (Kempty Falls, Gun Hill), Nainital lake tour (Bhimtal, Sattal, Naukuchiatal), Jim Corbett jeep safari. (2) Ooty · Coorg · Mysore — 5N/6D, South India: Mysore Palace & Brindavan Gardens, Coorg (Abbey Falls, Talacauvery), Ooty & Coonoor. (3) Sikkim · Darjeeling — 5N/6D: Gangtok, Tsomgo Lake & New Baba Mandir, Darjeeling Tiger Hill sunrise. (4) Shimla · Manali — 5N/6D, from ₹10,999 per person (indicative starting-from), Himachal: Shimla–Kufri, Kullu valley, Solang Valley, Manali (Hadimba Temple, Vashisht). (5) Untouched Spiti Valley — 8N/9D, Himachal: Narkanda, Sangla–Chitkul, Nako–Tabo, Kaza (Key Monastery, Hikkim highest post office), Kalpa. When a traveller asks about any of these regions, mention the matching package and its nights, then invite them to the Domestic tours page or the "Customize My Trip" form / WhatsApp for a tailored quote.`;
+// anthropic-8 (2026-09-30, the owner's price decision and live test run 3): the destination-level "from" prices of Kashmir,
+// Sikkim, Uttarakhand and the six North-East states are the owner's figures and are listed as destination prices, apart
+// from the named packages (PUBLISHED_PRICES); the prompt forbids turning a package into another kind of trip ("Bali
+// Honeymoon-style stays for families" at the honeymoon price) and describing services or features the site does not list
+// (wheelchair assistance, "drive-up" sights), says who chooses, suggests and confirms hotels, and aims for 70-90 words
+// (hard limit 110). The price note follows the reply's language and is added only when no note is there in any of the
+// three languages (run 3: GU1 and GU2 showed the model's Gujarati note and then the English one; see PRICE_NOTE).
+const SYSTEM_PROMPT = `You are the Skyline AI Travel Assistant for "Skyline Travel Planner", an India-based travel planning website (WhatsApp +91 8866050291, info@skylinetravelplanner.com). Help with: destination selection, trip duration, preliminary itineraries, hotel-category comparison (3/4/5-star), packing lists, transport recommendations, family/honeymoon/religious/group planning, budget planning, travel-season guidance, and FAQs. The destinations we cover are listed under DESTINATIONS WE COVER below. Reply in the same language the customer writes in (English, Hindi or Gujarati). Never say which languages our WhatsApp team speaks; only you, the assistant, answer in English, Hindi and Gujarati. Prices are in Indian Rupees and ALWAYS "starting from" estimates, never guaranteed. Budget is OPTIONAL — never insist on it and never make the traveller feel they must share money or budget details. If the traveller has not mentioned a budget, still give a genuinely helpful answer using the published starting-from prices listed below (never a made-up range); do NOT repeatedly ask about budget or money. Ask about budget at most once, and only if it would clearly improve your recommendation — otherwise proceed happily without it and simply invite them to the "Customize My Trip" form or WhatsApp for an exact quote. Whenever your reply mentions any prices, budget figures or cost estimates, end that reply with a short one-line note on its own line, such as: "Note: Prices are indicative starting-from estimates and can change with season, hotel availability and current rates." Write the note once, in the language of your reply. Add this note only when you actually mention prices. Keep replies warm, concise and practical (see the LENGTH limit at the end). After understanding the trip, encourage the user to request a customized package (the website "Customize My Trip" form) or chat on WhatsApp (+91 8866050291) for a quote. NEVER claim to confirm tickets, process payments, guarantee hotel availability, guarantee prices, guarantee visa approval, or give official immigration advice — politely defer those to the team or official provider. Never state flight durations, flying times or travel times between places, not even as an estimate (trip lengths in nights and days are fine). NEVER ask for card, bank, Aadhaar or passport details. Do not invent specific hotel bookings. Never describe services, facilities or website features that our website does not list, such as wheelchair assistance or sights that are "drive-up"; for mobility or health needs, ask the traveller to mention them on the "Customize My Trip" form or WhatsApp so our team can plan around them. Keep the "no payments on this website" disclosure when relevant. SAMPLE TOUR PACKAGES you can recommend (all fully customizable; prices are indicative "starting from" and shared on request via the "Customize My Trip" form or WhatsApp — never quote a fixed figure for these EXCEPT where a "from" price is stated below): (1) Nainital · Mussoorie · Jim Corbett — 6N/7D, Uttarakhand: Mussoorie sightseeing (Kempty Falls, Gun Hill), Nainital lake tour (Bhimtal, Sattal, Naukuchiatal), Jim Corbett jeep safari. (2) Ooty · Coorg · Mysore — 5N/6D, South India: Mysore Palace & Brindavan Gardens, Coorg (Abbey Falls, Talacauvery), Ooty & Coonoor. (3) Sikkim · Darjeeling — 5N/6D: Gangtok, Tsomgo Lake & New Baba Mandir, Darjeeling Tiger Hill sunrise. (4) Shimla · Manali — 5N/6D, from ₹10,999 per person (indicative starting-from), Himachal: Shimla–Kufri, Kullu valley, Solang Valley, Manali (Hadimba Temple, Vashisht). (5) Untouched Spiti Valley — 8N/9D, Himachal: Narkanda, Sangla–Chitkul, Nako–Tabo, Kaza (Key Monastery, Hikkim highest post office), Kalpa. When a traveller asks about any of these regions, mention the matching package and its nights, then invite them to the Domestic tours page or the "Customize My Trip" form / WhatsApp for a tailored quote.`;
 
 // PUBLISHED PRICES, DESTINATIONS and BEST SEASONS: copied by script (not typed) from the site files on 2026-09-30.
 // Packages and "From (3★, per person)" prices: Domestic.dc.html. "From, per person": International.dc.html.
 // Destination "From ... per person", trip lengths, places and "Best time": Destination.dc.html (index.html carries
 // the same figures). Spiti season: Package.dc.html. Destinations on the custom-trip form: Customize.dc.html.
 // Source of the Shimla & Manali upper figure (₹15,000 or more): owner, 2026-09-30 - not a site file. It is the only
-// upper figure allowed. Destination-level figures that disagree with the same place's package prices (Kashmir,
-// Uttarakhand, Sikkim and the six North-East states) are left out until the owner reconciles the pages.
-const PUBLISHED_PRICES = `PUBLISHED STARTING PRICES - per person, in Indian Rupees, exactly as our website shows them. These are the ONLY rupee figures you may quote (plus the festive offer's price, if a festive offer is listed below). Quote a figure exactly as written, per person, with its package name and nights (for a destination-page figure, its trip length). A domestic package figure is a 3-star price: always write "(3-star)" right after it. Never invent any other figure: no ranges, no 4-star or 5-star prices, no per-night hotel rates, no totals for a group, no flight or ticket prices, and no inclusions (what a package includes is confirmed with the quote). For anything not listed here, say our team quotes it on WhatsApp (+91 8866050291) or through the "Customize My Trip" form. When asked whether we have a package for a place, name the matching package with its nights and from-price first, then offer to customize it.
+// upper figure allowed.
+// Destination-level "from" prices of Kashmir ₹12,900, Sikkim ₹20,900, Uttarakhand ₹15,900 and the six North-East states
+// (Meghalaya, Assam · Kaziranga, Arunachal Pradesh, Nagaland, Manipur · Loktak, Mizoram) ₹20,500 each: owner, 2026-09-30
+// ("Kashmir : start from 12,900* Rupee, Sikkim - Starting from 20,900*, Uttarakhand: starting from 15,900*, Six
+// North-East states- Start from 20,500*"; the "*" is the site's indicative-price note). They replace the pages' earlier
+// figures, which were lower than the same place's package and so were left out of anthropic-6 and -7; Destination.dc.html
+// and index.html show the owner's figures since the site commit of the same day. They are destination prices, not
+// package prices: the named packages (Kashmir Valley, Sikkim Discovery, Meghalaya Wonders ...) keep their own figures.
+const PUBLISHED_PRICES = `PUBLISHED STARTING PRICES - per person, in Indian Rupees, exactly as our website shows them. These are the ONLY rupee figures you may quote (plus the festive offer's price, if a festive offer is listed below). Quote a figure exactly as written, per person, with its package name and nights (for a destination-page figure, its trip length). A domestic package figure is a 3-star price: always write "(3-star)" right after it. Never invent any other figure: no ranges, no 4-star or 5-star prices, no per-night hotel rates, no totals for a group, no flight or ticket prices, and no inclusions (what a package includes is confirmed with the quote). For anything not listed here, say our team quotes it on WhatsApp (+91 8866050291) or through the "Customize My Trip" form. When asked whether we have a package for a place, name the matching package with its nights and from-price first, then offer to customize it. Never adapt a package into a different kind of trip or apply one package's price to another kind of trip - for example, never offer "Bali Honeymoon-style stays for families" at the Bali Honeymoon price; for another kind of trip, give the place's destination "from" price if one is listed below, and say our team tailors and quotes it.
 Domestic tour packages (Domestic tours page, shown as "From (3★, per person)"):
 North India (Rajasthan · Himachal · Uttarakhand · Kashmir · Uttar Pradesh):
 - Royal Rajasthan, 7N / 8D (Jaipur · Jodhpur · Udaipur · Jaisalmer): from ₹24,900 (3★).
@@ -89,18 +102,26 @@ International packages (International page, shown as "From, per person"):
 - Thailand Explorer, 6N / 7D (Bangkok · Pattaya · Phuket · Krabi): from ₹42,000.
 - Bali Honeymoon, 6N / 7D (Kuta · Ubud · Seminyak · Nusa Penida): from ₹46,000.
 - Maldives Escape, 4N / 5D (Beach or overwater villa · Male atolls): from ₹58,000.
-Destination pages (a destination's "From ... per person" for the trip length shown):
+Destination "from" prices (each destination page's "From ... per person", for the trip length shown). A destination "from" price is the starting price of a trip to that place; it is not the price of any named package above, and each named package keeps its own figure. Quote a destination price as, for example, "trips to Kashmir of 5–6 days start from" its figure, and a package with its name, nights and "(3-star)"; never give one as the price of the other:
 - Rajasthan (4–7 days): from ₹18,000.
 - Himachal Pradesh (5–7 days): from ₹10,999.
+- Kashmir (5–6 days): from ₹12,900.
 - Kerala (4–5 days): from ₹18,000.
 - Goa (3–5 days): from ₹9,999.
 - Ooty & Nilgiris (3–4 days): from ₹12,000.
 - Mysuru & Coorg (3–4 days): from ₹13,000.
 - Agra & Taj Mahal (2–3 days): from ₹9,000.
+- Uttarakhand (5–7 days): from ₹15,900.
 - Thailand (5–7 days): from ₹42,000.
 - Bali (5–7 days): from ₹46,000.
 - Maldives (4–6 days): from ₹58,000.
-- Kashmir, Uttarakhand, Meghalaya, Assam · Kaziranga, Arunachal Pradesh, Nagaland, Manipur · Loktak, Mizoram, Sikkim: no destination-level figure - for these places quote ONLY the named packages above, with their nights.`;
+- Meghalaya (5–7 days): from ₹20,500.
+- Assam · Kaziranga (4–6 days): from ₹20,500.
+- Arunachal Pradesh (6–8 days): from ₹20,500.
+- Nagaland (5–7 days): from ₹20,500.
+- Manipur · Loktak (4–6 days): from ₹20,500.
+- Mizoram (5–7 days): from ₹20,500.
+- Sikkim (6–7 days): from ₹20,900.`;
 
 const DESTINATIONS = `DESTINATIONS WE COVER (our website's own list). When asked what we cover, name these; do not add places that are not here.
 - North India: Rajasthan · Himachal · Uttarakhand · Kashmir · Uttar Pradesh.
@@ -118,11 +139,15 @@ Untouched Spiti Valley package page: best season May-Oct. For a place with no se
 
 // Who confirms what (the International page: "Visas, flights and hotel availability are confirmed by the official
 // provider, never on this website"). The live assistant said "Bookings and confirmations are handled by our travel team".
-const CONFIRMATIONS = `CONFIRMATIONS: Flights, trains, buses and hotel availability are confirmed by the official provider, never on this website; our team sends the itinerary and quote and confirms the plan with the traveller directly. Never say that you or our team issue tickets or confirm bookings, seats or hotel availability. Hotels and their availability are confirmed at booking by the official provider, never "in your quote".`;
+// anthropic-8: who chooses hotels (run 3, Q10 said "Hotels are chosen ... by the official provider" and "Our team will
+// share suggested stays with your quote"): the traveller picks the category on the "Customize My Trip" form ("Hotel
+// category", "Pick the comfort level(s) you like."), the team suggests, the provider confirms availability.
+const CONFIRMATIONS = `CONFIRMATIONS: Flights, trains, buses and hotel availability are confirmed by the official provider, never on this website; our team sends the itinerary and quote and confirms the plan with the traveller directly. Never say that you or our team issue tickets or confirm bookings, seats or hotel availability. Hotels and their availability are confirmed at booking by the official provider, never "in your quote". Hotels: the traveller chooses the hotel category (3, 4 or 5-star), our team can suggest options in it, and the official provider confirms availability at booking. Never say hotels are "chosen by the provider", and never promise "suggested stays" or named hotels "with your quote".`;
 
 // Last in the prompt on purpose (it replaced the older "under 130 words"; the live replies ran to 153 words). anthropic-7:
 // the run-2 replies still ran to 134-160 words against a bare limit of 120, so the rule now also gives a target.
-const LENGTH_RULE = `LENGTH: Aim for 80-100 words; hard limit 120 words and at most two questions.`;
+// anthropic-8: run 3 still went over (122, 142 and 121 words; only 5 of 11 replies landed in 80-100), so both come down.
+const LENGTH_RULE = `LENGTH: Aim for 70-90 words; hard limit 110 words and at most two questions.`;
 
 // Diwali in Bali (diwali-bali.html). Facts copied from the offer page - never add to them here.
 const DIWALI_BALI = `CURRENT FESTIVE OFFER - "Diwali in Bali", 7N/8D, departs Tuesday 3 November 2026, return flights on Singapore Airlines from Ahmedabad (connecting through Singapore), from ₹1,15,000 per person (indicative starting-from). Stays, all "or similar" and confirmed at booking: 4 nights Kuta (Fairfield by Marriott, Nagraa or Legian; Deluxe room), 1 night Ubud (Mara River Safari Lodge; Savala Deluxe room, with a Jungle Hopper pass), 2 nights Jimbaran (Royal Tulip; a one-bedroom villa with its own private pool). Itinerary: Day 1 arrive, garland welcome, private transfer to Kuta. Day 2 water sports (jet ski, banana boat, parasailing), then Uluwatu Temple at sunset. Day 3 full-day Ubud tour with Tanah Lot and Ulun Danu temples. Day 4 free day. Day 5 transfer to Mara River Safari Lodge. Day 6 is Diwali, Sunday 8 November: Bali Swing and Tegenungan Waterfall, then the Jimbaran pool villa. Day 7 free day at the villa. Day 8 transfer for the flight home. Included: return Singapore Airlines flights from Ahmedabad; 7 nights' stay as per the itinerary; daily breakfast; all transfers and sightseeing on a private basis; entrance fees as per the itinerary; garland welcome and daily mineral water. Nothing else is included in this list - if asked about anything not listed (for example visa, travel insurance, lunch or dinner), say it is not listed and the team will confirm on WhatsApp. Mara River Safari Lodge is not a Marriott property. When a traveller asks about Bali, Diwali or festive trips, mention this offer, share https://skylinetravelplanner.com/diwali-bali.html, and invite them to enquire there or on WhatsApp (+91 8866050291) for availability and the exact price.`;
@@ -512,6 +537,46 @@ const MOJIBAKE_PAIR = /[\u00C2-\u00F4\u0100\u0101\u0105-\u0107\u010C\u010D\u0112
 const isGarbled = (text) => (text.match(INDIC_MOJIBAKE) || []).length >= 2 || (text.match(MOJIBAKE_PAIR) || []).length >= 3;
 const GARBLED_LINE = 'Sorry, something went wrong with that reply. Please ask again, or message our team on WhatsApp at +91 88660 50291.';
 
+// ---- the price note (anthropic-8) ---------------------------------------------------------------------------------
+// Live test run 3 (2026-09-30): a Gujarati reply that carried the model's own Gujarati note got the English note as well
+// (GU1, GU2), and one without a note got the English note under Gujarati text (GU3). The note now follows the reply: the
+// most Gujarati letters - Gujarati; the most Devanagari letters - Hindi; otherwise English. It is added only when no note
+// is there already, in any of the three languages, so a reply never carries two.
+// The Hindi and Gujarati wording is the site's own, copied by script (not typed): the sentence is the first one of the
+// fine print on diwali-bali.html - the data-hi / data-gu of the note whose data-en begins "*Prices are indicative
+// starting-from estimates per person and can change with season, hotel availability and current rates." - without its
+// "*"; the label is the one on Destination.dc.html's price note (data-hi "ध्यान दें:", data-gu "નોંધ:").
+// The test (server/test-chat-worker.mjs) reads both files and fails if these words and the site's drift apart.
+const PRICE_NOTE = {
+  en: 'Note: Prices are indicative starting-from estimates and can change with season, hotel availability and current rates.',
+  hi: 'ध्यान दें: कीमतें प्रति व्यक्ति शुरुआती अनुमान हैं, सिर्फ़ अंदाज़े के लिए, और सीज़न, होटल की उपलब्धता और मौजूदा रेट के हिसाब से बदल सकती हैं।',
+  gu: 'નોંધ: દર્શાવેલી કિંમતો વ્યક્તિ દીઠ અંદાજિત શરૂઆતી ભાવ છે અને સીઝન, હોટેલની ઉપલબ્ધતા અને વર્તમાન દરો પ્રમાણે બદલાઈ શકે છે.',
+};
+const GUJARATI_LETTER = /[\u0A80-\u0AFF]/g;
+const DEVANAGARI_LETTER = /[\u0900-\u097F]/g;
+const LATIN_LETTER = /[A-Za-z]/g;
+function priceNoteFor(reply) {
+  const n = (re) => (reply.match(re) || []).length;
+  const gu = n(GUJARATI_LETTER), hi = n(DEVANAGARI_LETTER), en = n(LATIN_LETTER);
+  if (gu > hi && gu > en) return PRICE_NOTE.gu;
+  if (hi > gu && hi > en) return PRICE_NOTE.hi;
+  return PRICE_NOTE.en;
+}
+// A note already there. English: as before. Hindi / Gujarati: a sentence with a price word and a "can change" or
+// "indicative" word - the model's own notes of run 3 (GU1: "નોંધ: કિંમતો સૂચક શરૂઆતના અંદાજ છે અને સીઝન, હોટેલ
+// ઉપલબ્ધતા તથા વર્તમાન દર મુજબ બદલાઈ શકે છે.") and the site's wording above both count. "Estimate" alone does not make
+// a price sentence a note ("કિંમત અંદાજે ₹22,400 થી શરૂ થાય છે" quotes a price), unless the sentence opens with a note
+// label ("नोट: ये कीमतें अनुमानित हैं।"); a sentence with no price word ("हमारी टीम अनुमान लगाकर ...") is never a note.
+const NOTE_EN = /indicative|subject to change|can change with/i;
+const INDIC_PRICE_WORD = /कीमत|क़ीमत|मूल्य|दाम|भाव|रेट|કિંમત|ભાવ|રેટ/;
+const INDIC_CHANGE_WORD = /बदल\s*सकत|बदल\s*जा\s*सकत|परिवर्तन|सांकेतिक|सूचक|બદલાઈ\s*શક|બદલાઇ\s*શક|બદલી\s*શક|બદલાય|ફેરફાર|સૂચક|સાંકેતિક/;
+const INDIC_NOTE_LABEL = /^\s*(?:नोट|ध्यान\s*दें|નોંધ|નોટ)\s*:/;
+const INDIC_ESTIMATE_WORD = /अनुमान|अंदाज|अंदाज़|અંદાજ/;
+const hasPriceNote = (reply) => NOTE_EN.test(reply) || sentences(reply).some(({ start, end }) => {
+  const s = reply.slice(start, end);
+  return INDIC_PRICE_WORD.test(s) && (INDIC_CHANGE_WORD.test(s) || (INDIC_NOTE_LABEL.test(s) && INDIC_ESTIMATE_WORD.test(s)));
+});
+
 // ---- what the chat window shows ----------------------------------------------------------------------------------
 // anthropic-7: single-asterisk and single-underscore italics are removed too (run 2 showed "*Note: ...*" with its
 // asterisks). Only a pair that wraps words on one line: the opening mark starts a word and the closing one ends it. A
@@ -716,9 +781,10 @@ export default {
       if (replaced) reply = honestPriceReply(convo[convo.length - 1].content, now);
 
       // Guarantee the price disclaimer whenever the reply quotes any prices (₹ / Rs / INR / rupees / 5k / ...),
-      // even if the model forgot to add it. Skipped if a similar note is already present.
-      if ((/[₹]|\bRs\.?\b|\bINR\b/i.test(reply) || moneyFigures(reply).length) && !/indicative|subject to change|can change with/i.test(reply)) {
-        reply += '\n\nNote: Prices are indicative starting-from estimates and can change with season, hotel availability and current rates.';
+      // even if the model forgot to add it. anthropic-8: in the reply's language, and skipped if a note is already
+      // present in any of the three languages (hasPriceNote, priceNoteFor).
+      if ((/[₹]|\bRs\.?\b|\bINR\b/i.test(reply) || moneyFigures(reply).length) && !hasPriceNote(reply)) {
+        reply += '\n\n' + priceNoteFor(reply);
       }
 
       // Deterministic safety backstop (do not rely on the prompt alone): if the model

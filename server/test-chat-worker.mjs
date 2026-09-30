@@ -87,23 +87,33 @@ const formDests = lit(literalAfter(cust.slice(cust.indexOf("{ key: 'dests'")), '
 const diwaliPrice = (site('diwali-bali.html').match(/<span class="amt">([^<]+)<\/span>/) || [])[1];
 const allPackages = [...domestic.flatMap((c) => c.packages), ...international];
 
-// A destination-level "from" figure is withheld when it is lower than the cheapest package for that place whose
-// length falls inside the destination's own trip length (Kashmir 5-6 days from ₹22,000 vs Kashmir Valley 5N/6D ₹27,800).
-const PKG_DEST = { 'shimla-manali': ['himachal'], 'spiti-valley': ['himachal'], kausani: ['uttarakhand'], 'nainital-corbett': ['uttarakhand'],
-  'sikkim-darjeeling': ['sikkim'], mysuru: ['mysuru', 'ooty'], 'ooty-coorg-mysore': ['mysuru', 'ooty'], gujarat: [], 'south-temple': [] };
-const inr = (s) => Number(String(s).replace(/[^\d]/g, ''));
-const pkgDays = (d) => Number((/\d+N\s*\/\s*(\d+)D/.exec(d) || [])[1]);
-const withheld = new Set(destinations.filter((d) => {
-  const [lo, hi] = (/(\d+)\s*[–-]\s*(\d+)/.exec(d.duration) || []).slice(1).map(Number);
-  const inRange = allPackages.filter((p) => (PKG_DEST[p.slug] || [p.slug]).includes(d.slug) && /₹/.test(p.price) && pkgDays(p.duration) >= lo && pkgDays(p.duration) <= hi);
-  return d.fromPrice && inRange.length && inr(d.fromPrice) < Math.min(...inRange.map((p) => inr(p.price)));
-}).map((d) => d.slug));
+// anthropic-8: every destination page's "from" figure is in the prompt. Until 2026-09-30 the figures of Kashmir,
+// Uttarakhand, Sikkim and the six North-East states were withheld here, being lower than the same place's package; the
+// owner then set them as destination-level prices, distinct from the packages: "Kashmir : start from 12,900* Rupee,
+// Sikkim - Starting from 20,900*, Uttarakhand: starting from 15,900*, Six North-East states- Start from 20,500*".
+const OWNER_DEST_PRICES = { kashmir: '₹12,900', sikkim: '₹20,900', uttarakhand: '₹15,900', meghalaya: '₹20,500', assam: '₹20,500',
+  arunachal: '₹20,500', nagaland: '₹20,500', manipur: '₹20,500', mizoram: '₹20,500' };
+// anthropic-8: the worker's Hindi and Gujarati price notes must be the site's own words - the first sentence of
+// diwali-bali.html's fine print (without its "*"), under the label of Destination.dc.html's price note.
+function siteAttr(file, enStart, lang) {
+  const src = site(file), at = src.indexOf('data-en="' + enStart);
+  if (at < 0) throw new Error('note not found in ' + file + ': ' + enStart);
+  const i = src.indexOf(`data-${lang}="`, at) + `data-${lang}="`.length;
+  return src.slice(i, src.indexOf('"', i)).replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&');
+}
+const FINE_PRINT = '*Prices are indicative starting-from estimates per person and can change with season, hotel availability and current rates.';
+const LABELLED_NOTE = 'Note: Prices are indicative, per-person';
+const SITE_NOTE = {
+  hi: siteAttr('Destination.dc.html', LABELLED_NOTE, 'hi').split(':')[0] + ': ' + siteAttr('diwali-bali.html', FINE_PRINT, 'hi').replace(/^\*/, '').split('।')[0] + '।',
+  gu: siteAttr('Destination.dc.html', LABELLED_NOTE, 'gu').split(':')[0] + ': ' + siteAttr('diwali-bali.html', FINE_PRINT, 'gu').replace(/^\*/, '').split('. ')[0] + '.',
+};
+const NOTE_LINE_HI = '\n\n' + SITE_NOTE.hi, NOTE_LINE_GU = '\n\n' + SITE_NOTE.gu;
 
 // ---- 1. GET health check ----------------------------------------------------------------------------------------
 {
   const before = calls.length;
   const health = await (await worker.fetch(request('GET'), ENV)).json();
-  check('GET reports version anthropic-7', health.version === 'anthropic-7', JSON.stringify(health));
+  check('GET reports version anthropic-8', health.version === 'anthropic-8', JSON.stringify(health));
   check('GET reports model claude-sonnet-5-5', health.model === 'claude-sonnet-5-5', JSON.stringify(health));
   check('GET reports the key is present', health.ok === true && health.hasKey === true);
   check('GET reports a missing key', (await (await worker.fetch(request('GET'), {})).json()).hasKey === false);
@@ -130,7 +140,7 @@ const withheld = new Set(destinations.filter((d) => {
     block && Object.keys(block).sort().join() === 'cache_control,text,type' && block.type === 'text' && typeof block.text === 'string'
       && JSON.stringify(block.cache_control) === '{"type":"ephemeral"}', JSON.stringify(sent.system).slice(0, 200));
   check('caching: the cached text is the whole prompt (it starts with the assistant role and ends with the length rule)',
-    block && block.text.startsWith('You are the Skyline AI Travel Assistant') && block.text.trimEnd().endsWith('hard limit 120 words and at most two questions.'));
+    block && block.text.startsWith('You are the Skyline AI Travel Assistant') && block.text.trimEnd().endsWith('hard limit 110 words and at most two questions.'));
   check('caching: no beta header is needed or sent', !Object.keys(call.init.headers).some((h) => /beta/i.test(h)), Object.keys(call.init.headers).join());
   const sysJson = async (at, text) => JSON.stringify((await chat(text, 'Hello!', { at })).sent.system);
   const DAY = 24 * 3600 * 1000;
@@ -156,11 +166,8 @@ check('Shimla & Manali carries the owner figure (₹15,000 or more) and nothing 
 for (const d of destinations) {
   if (!d.fromPrice) continue;
   const l = lineStarting(`- ${d.name} (`);
-  if (withheld.has(d.slug)) {
-    check(`destination figure withheld (conflicts with its package): ${d.name} ${d.fromPrice}`, !l && lines.some((x) => /no destination-level figure/.test(x) && x.includes(d.name)), l || '');
-  } else {
-    check(`destination price: ${d.name} (${d.duration}) from ${d.fromPrice}`, l === `- ${d.name} (${d.duration}): from ${d.fromPrice}.`, l || 'no line for this destination');
-  }
+  // anthropic-8: none is withheld any more (the owner's figures, section 8).
+  check(`destination price: ${d.name} (${d.duration}) from ${d.fromPrice}`, l === `- ${d.name} (${d.duration}): from ${d.fromPrice}.`, l || 'no line for this destination');
 }
 for (const h of home) {
   const d = destinations.find((x) => x.slug === h.slug);
@@ -181,7 +188,7 @@ for (const d of destinations) {
 check('Spiti season from its package page', SYS.includes(`best season ${packagePages['spiti-valley'].season}`));
 for (const f of formDests) check(`custom-trip form destination known: ${f}`, f.split(' & ').some((w) => SYS.includes(w)));
 check('confirmations sentence verbatim', SYS.includes('Flights, trains, buses and hotel availability are confirmed by the official provider, never on this website; our team sends the itinerary and quote and confirms the plan with the traveller directly.'));
-check('length rule verbatim, and last (anthropic-7: with the 80-100 word target)', SYS.trimEnd().endsWith('LENGTH: Aim for 80-100 words; hard limit 120 words and at most two questions.'));
+check('length rule verbatim, and last (anthropic-8: aim for 70-90 words, hard limit 110)', SYS.trimEnd().endsWith('LENGTH: Aim for 70-90 words; hard limit 110 words and at most two questions.'));
 check('the old 130-word limit is gone', !/130 words/.test(SYS));
 check('the "broad ranges" instruction is gone', !/broad indicative/.test(SYS));
 check('earlier rules kept', ['never ask for card, bank, Aadhaar or passport details', 'Budget is OPTIONAL', 'no payments on this website', 'Reply in the same language', 'guarantee visa approval'].every((s) => SYS.toLowerCase().includes(s.toLowerCase())));
@@ -189,7 +196,7 @@ check('the Diwali in Bali offer is in the prompt before departure', SYS.includes
 {
   const departed = await systemAt(DEPARTED), after = await systemAt(AFTER_OFFER);
   check('after departure: "it has left", no offer price', departed.includes('has already left') && !departed.includes(diwaliPrice) && departed.includes('PUBLISHED STARTING PRICES'));
-  check('after 9 Nov: no Diwali text at all, price list still there', !/Diwali/.test(after) && after.includes('PUBLISHED STARTING PRICES') && after.trimEnd().endsWith('hard limit 120 words and at most two questions.'));
+  check('after 9 Nov: no Diwali text at all, price list still there', !/Diwali/.test(after) && after.includes('PUBLISHED STARTING PRICES') && after.trimEnd().endsWith('hard limit 110 words and at most two questions.'));
 }
 
 // ---- 4. post-processing and backstops ---------------------------------------------------------------------------
@@ -322,8 +329,9 @@ const replaced = (r) => r.startsWith(HONEST);
   check('item 2: the one published range (Shimla & Manali, ₹10,999 to ₹15,000) passes', !replaced(shimla), shimla);
   const published = ['Goa Getaway is from 9,999 rupees per person.', 'Goa Getaway: 9,999/- per person.', 'गोवा गेटअवे 9,999 रुपये से है।', 'Goa Getaway is from ₹९,९९९.', 'Diwali in Bali is from 1.15 lakh per person.', 'Royal Rajasthan is from 24.9k.'];
   const bad = [];
-  for (const t of published) { const r = (await chat('hi', t)).reply; if (r !== t + NOTE_LINE) bad.push(t + ' => ' + r); }
-  check('item 2: a PUBLISHED figure in those forms passes and gets the price disclaimer (the trigger reads them too)', bad.length === 0, bad.join(' | '));
+  // anthropic-8: the note follows the reply's language, so the Hindi one gets the site's Hindi note.
+  for (const t of published) { const r = (await chat('hi', t)).reply; if (r !== t + (t.startsWith('गोवा') ? NOTE_LINE_HI : NOTE_LINE)) bad.push(t + ' => ' + r); }
+  check('item 2: a PUBLISHED figure in those forms passes and gets the price disclaimer (the trigger reads them too; anthropic-8: the Hindi reply gets the Hindi note)', bad.length === 0, bad.join(' | '));
   const plain = 'Diwali in Bali, 7N / 8D, departs 3 November 2026 - call +91 88660 50291. Trips run 5–7 days, 120 km apart, and over 1 lakh devotees visit Tirupati daily.';
   check('item 2: dates, nights, phone numbers, distances and a head count are not money', (await chat('hi', plain)).reply === plain);
   // The Diwali check on its own: ₹46,000 IS published (Bali Honeymoon), so only the offer check can catch these.
@@ -663,10 +671,11 @@ async function chatSeq(userText, answers) {
     ['(d) hotels confirmed at booking by the official provider', 'Hotels and their availability are confirmed at booking by the official provider, never "in your quote".'],
   ];
   for (const [name, text] of rules) check(`M2 ${name}: in the prompt, before and after the offer`, before.includes(text) && after.includes(text), text);
-  const LENGTH = 'LENGTH: Aim for 80-100 words; hard limit 120 words and at most two questions.';
-  check('M2 (e) the 80-100 word target: verbatim, last and once, before and after the offer', before.trimEnd().endsWith(LENGTH) && after.trimEnd().endsWith(LENGTH) && count(before, 'LENGTH:') === 1);
-  const r1 = (await chat('hi', u('Goa Getaway is {20B9}80-100 per person.'))).reply, r2 = (await chat('hi', u('Goa Getaway is {20B9}120 per person.'))).reply;
-  check('M2: the new word counts are not prices ("80-100" and "120" in the prompt never become a published range or figure)', replaced(r1) && replaced(r2), r1 + ' | ' + r2);
+  // anthropic-8 lowered the target to 70-90 words and the limit to 110 (section 8, P2).
+  const LENGTH = 'LENGTH: Aim for 70-90 words; hard limit 110 words and at most two questions.';
+  check('M2 (e) the word target (anthropic-8: 70-90, hard limit 110): verbatim, last and once, before and after the offer', before.trimEnd().endsWith(LENGTH) && after.trimEnd().endsWith(LENGTH) && count(before, 'LENGTH:') === 1);
+  const r1 = (await chat('hi', u('Goa Getaway is {20B9}70-90 per person.'))).reply, r2 = (await chat('hi', u('Goa Getaway is {20B9}110 per person.'))).reply;
+  check('M2: the word counts are not prices ("70-90" and "110" in the prompt never become a published range or figure)', replaced(r1) && replaced(r2), r1 + ' | ' + r2);
 }
 {
   // M3: single-asterisk and underscore italics are stripped; lone stars, multiplication, the star sign, underscores
@@ -723,6 +732,94 @@ async function chatSeq(userText, answers) {
   check('M5: garbled message, readable reply - shown untouched, one call', readable.reply === CLEAN_GU_RUN2 && readable.n === 1 && readable.warned.length === 0, readable.reply.slice(0, 50));
   const asked = await chatSeq('Can you help us in Gujarati?', [answerWith(GARBLED_RUN2), answerWith(CLEAN_GU_RUN2)]);
   check('M5: a readable message still gets its one retry', asked.reply === CLEAN_GU_RUN2 && asked.n === 2, `${asked.n} calls`);
+}
+
+// ---- 8. anthropic-8: the owner's destination prices and live test run 3 (2026-09-30), one block per item ------------
+{
+  // P1: the owner's destination-level "from" prices, listed apart from the named packages, which keep their own.
+  for (const [slug, price] of Object.entries(OWNER_DEST_PRICES)) {
+    const d = destinations.find((x) => x.slug === slug), h = home.find((x) => x.slug === slug);
+    const l = d ? lineStarting(`- ${d.name} (`) : null;
+    check(`P1: ${slug} from ${price} (owner, 2026-09-30) - on Destination.dc.html, on index.html and in the prompt as a destination price`,
+      d && d.fromPrice === price && h && h.price === price && l === `- ${d.name} (${d.duration}): from ${price}.`, `${d && d.fromPrice} / ${h && h.price} / ${l}`);
+  }
+  const priceComment = SRC.slice(SRC.indexOf('// PUBLISHED PRICES, DESTINATIONS and BEST SEASONS'), SRC.indexOf('const PUBLISHED_PRICES'));
+  check('P1: the source marks the figures "owner, 2026-09-30"', ['Kashmir ₹12,900', 'Sikkim ₹20,900', 'Uttarakhand ₹15,900', '₹20,500 each: owner, 2026-09-30'].every((s) => priceComment.includes(s)), priceComment.slice(-500));
+  check('P1: no place is withheld any more ("no destination-level figure" is gone)', !/no destination-level figure/.test(SYS));
+  check('P1: the prompt tells a destination "from" price apart from a named package',
+    SYS.includes('A destination "from" price is the starting price of a trip to that place; it is not the price of any named package above, and each named package keeps its own figure.') && SYS.includes('never give one as the price of the other'));
+  const kept = [['Kashmir Valley, 5N / 6D', '₹27,800'], ['Sikkim Discovery, 6N / 7D', '₹25,600'], ['Kausani & Kumaon, 5N / 6D', '₹19,700'], ['Meghalaya Wonders, 6N / 7D', '₹28,900'], ['Arunachal Explorer, 7N / 8D', '₹34,500']];
+  check('P1: the named packages keep their own figures (Kashmir Valley ₹27,800, Sikkim Discovery ₹25,600, Kausani & Kumaon ₹19,700, ...)', kept.every(([p, f]) => (lineStarting(`- ${p}`) || '').includes(`from ${f}`)));
+  const both = 'Kashmir Valley, 5N / 6D, is from ₹27,800 per person (3-star). Trips to Kashmir of 5–6 days start from ₹12,900 per person.';
+  const rBoth = (await chat('Kashmir trip cost?', both)).reply;
+  check('P1: a reply with the Kashmir package and the Kashmir destination price passes, with one English note', rBoth === both + NOTE_LINE, rBoth);
+  const ne = 'Trips to Meghalaya of 5–7 days start from ₹20,500 per person, and trips to Sikkim of 6–7 days from ₹20,900. Uttarakhand starts from ₹15,900.';
+  const rNe = (await chat('North-East and the hills?', ne)).reply;
+  check('P1: the North-East, Sikkim and Uttarakhand destination prices pass', rNe === ne + NOTE_LINE, rNe);
+  const old = ['Trips to Kashmir start from ₹22,000 per person.', 'Arunachal Pradesh trips start from ₹26,000.', 'Uttarakhand trips start from ₹16,000.', 'Sikkim trips start from ₹20,000 per person.', 'Nagaland is from ₹22,000.'];
+  const stale = [];
+  for (const t of old) if (!replaced((await chat('Price?', t)).reply)) stale.push(t);
+  check('P1: the pages\' old figures (₹22,000 / ₹26,000 / ₹16,000 / ₹20,000) are no longer published and are replaced', stale.length === 0, stale.join(' | '));
+  const mixed = (await chat('Kashmir?', 'Kashmir trips cost ₹12,900-27,800 per person.')).reply;
+  check('P1: the destination price and the package price do not make a published range', replaced(mixed), mixed);
+}
+{
+  // P2: prompt rules from the run-3 verdicts (Q4 an adapted package, Q5 unlisted services, Q10 who picks hotels, and the
+  // lengths: Q4 122, Q6 142 and Q8 121 words).
+  const before = await systemAt(BEFORE_DEPARTURE), after = await systemAt(AFTER_OFFER);
+  const rules = [
+    ['(a) no package turned into another kind of trip, no package price for another kind of trip (Q4)', 'Never adapt a package into a different kind of trip or apply one package\'s price to another kind of trip - for example, never offer "Bali Honeymoon-style stays for families" at the Bali Honeymoon price'],
+    ['(b) no services or features the site does not list (Q5)', 'Never describe services, facilities or website features that our website does not list, such as wheelchair assistance or sights that are "drive-up"'],
+    ['(c) the traveller chooses the hotel category, the team suggests, the provider confirms (Q10)', 'Hotels: the traveller chooses the hotel category (3, 4 or 5-star), our team can suggest options in it, and the official provider confirms availability at booking. Never say hotels are "chosen by the provider", and never promise "suggested stays" or named hotels "with your quote".'],
+    ['(d) the note once, in the reply\'s language', 'Write the note once, in the language of your reply.'],
+  ];
+  for (const [name, text] of rules) check(`P2 ${name}: in the prompt, before and after the offer`, before.includes(text) && after.includes(text), text);
+  const LENGTH8 = 'LENGTH: Aim for 70-90 words; hard limit 110 words and at most two questions.';
+  check('P2 (e) 70-90 words, hard limit 110: verbatim, last and once, before and after the offer; the old 80-100 / 120 are gone',
+    before.trimEnd().endsWith(LENGTH8) && after.trimEnd().endsWith(LENGTH8) && count(before, 'LENGTH:') === 1 && !/80-100|120 words/.test(before + after));
+}
+{
+  // P3: the price note speaks the reply's language, once. Run 3 (2026-09-30) GU1 and GU2 carried the model's own
+  // Gujarati note and then the code's English one; GU3 had no note and got the English one under Gujarati text.
+  const GU_Q = "શું તમે ગુજરાતીમાં મદદ કરી શકો? મારાં માતા-પિતાને ગુજરાતી વધુ ફાવે છે.";
+  // The model's words as run 3 received them (the note the code appended at the end removed).
+  const GU1 = "હા, ચોક્કસ! હું ગુજરાતીમાં તમારી સંપૂર્ણ મદદ કરી શકું છું. તમારાં માતા-પિતા સાથેની યાત્રાનું આયોજન સરળ અને આરામદાયક બનાવીએ.\n\nમાતા-પિતા માટે ઘણા લોકો ધાર્મિક યાત્રા, શાંત હિલ સ્ટેશન કે ગુજરાત દર્શન જેવા ઓછા થાકવાળા પ્રવાસ પસંદ કરે છે. ઉદાહરણ તરીકે, અમારું \"ગુજરાત દર્શન\" પેકેજ 6 રાત્રિ / 7 દિવસનું છે (દ્વારકા, સોમનાથ, સ્ટેચ્યુ ઓફ યુનિટી, કચ્છ), જે ₹22,400 પ્રતિ વ્યક્તિથી શરૂ થાય છે (3-સ્ટાર).\n\nતમે કયા સ્થળે જવાનું વિચારો છો, અને કેટલા દિવસની યાત્રા ઇચ્છો છો? વધુ વિગતો માટે \"Customize My Trip\" ફોર્મ ભરો અથવા WhatsApp (+91 8866050291) પર લખો.\n\nનોંધ: કિંમતો સૂચક શરૂઆતના અંદાજ છે અને સીઝન, હોટેલ ઉપલબ્ધતા તથા વર્તમાન દર મુજબ બદલાઈ શકે છે.";
+  const GU2 = "હા, ચોક્કસ! હું ગુજરાતીમાં પૂરી મદદ કરી શકું છું. તમારાં માતા-પિતા માટે સરળ અને આરામદાયક પ્રવાસ ગોઠવવામાં મને આનંદ થશે.\n\nમુસાફરી માટે કેટલીક સરળ સલાહ: ઓછી દોડધામવાળા પ્રવાસ, સારી 3/4-સ્ટાર હોટેલ અને ખાનગી ગાડીની સુવિધા વડીલો માટે સારી રહે છે. ધાર્મિક યાત્રા હોય તો અમારું ગુજરાત દર્શન (દ્વારકા · સોમનાથ · સ્ટેચ્યુ ઓફ યુનિટી · કચ્છ), 6N/7D, 3-સ્ટાર ભાવ ₹22,400 પ્રતિ વ્યક્તિથી શરૂ, સારો વિકલ્પ છે.\n\nતમે ક્યાં જવા ઇચ્છો છો, અને કેટલા લોકો જશો? તમે \"Customize My Trip\" ફોર્મ અથવા WhatsApp (+91 8866050291) પર પણ વાત કરી શકો છો.\n\nનોંધ: ભાવ સૂચક શરૂઆતના અંદાજ છે અને સીઝન, હોટેલ ઉપલબ્ધતા તથા વર્તમાન દર પ્રમાણે બદલાઈ શકે છે.";
+  const GU3 = "હા, જરૂર! હું ગુજરાતીમાં પૂરી મદદ કરી શકું છું. તમારાં માતા-પિતા માટે સરળ અને આરામદાયક પ્રવાસ ગોઠવી શકાય.\n\nહું આમાં મદદ કરી શકું:\n• યોગ્ય સ્થળ અને ફરવાનો સમય પસંદ કરવામાં\n• ધાર્મિક યાત્રા કે શાંત હિલ સ્ટેશન જેવા સરળ પ્લાન\n• હોટલ કેટેગરી (3/4/5-સ્ટાર) અને મુસાફરીની પસંદગીમાં\n• પેકિંગ લિસ્ટ અને બજેટ આયોજનમાં\n\nજેમ કે, ગુજરાત દર્શન (દ્વારકા · સોમનાથ · સ્ટેચ્યુ ઓફ યુનિટી · કચ્છ), 6 રાત/7 દિવસ, ₹22,400 થી શરૂ (3-સ્ટાર, વ્યક્તિ દીઠ).\n\nમાતા-પિતાને ધાર્મિક યાત્રા ગમશે કે શાંત હવામાનવાળી જગ્યા? અને કેટલા દિવસ ફરવું છે?";
+  for (const [name, t] of [['GU1', GU1], ['GU2', GU2]]) {
+    const r = (await chat(GU_Q, t)).reply;
+    check(`P3: run-3 ${name} (the model's own Gujarati note) is shown as written - no English note, no second note`, r === t, r.slice(-200));
+  }
+  const r3 = (await chat(GU_Q, GU3)).reply;
+  check('P3: run-3 GU3 (Gujarati, no note) gets the site\'s Gujarati note, once, and not the English one', r3 === GU3 + NOTE_LINE_GU && count(r3, SITE_NOTE.gu) === 1 && !r3.includes(DISCLAIMER), r3.slice(-220));
+  check('P3: the worker\'s Hindi and Gujarati notes are the site\'s words (diwali-bali.html fine print, Destination.dc.html label)',
+    SRC.includes(`hi: '${SITE_NOTE.hi}'`) && SRC.includes(`gu: '${SITE_NOTE.gu}'`) && SITE_NOTE.hi.startsWith('ध्यान दें: कीमतें') && SITE_NOTE.gu.startsWith('નોંધ: દર્શાવેલી કિંમતો'), SITE_NOTE.hi + ' | ' + SITE_NOTE.gu);
+  const HI = 'गोवा गेटअवे, 4N / 5D, ₹9,999 प्रति व्यक्ति (3-स्टार) से शुरू होता है। नवंबर से फ़रवरी सबसे अच्छा समय है।';
+  const rHi = (await chat('गोवा का पैकेज?', HI)).reply;
+  check('P3: a Hindi reply with a price gets the site\'s Hindi note, not the English one', rHi === HI + NOTE_LINE_HI && !rHi.includes(DISCLAIMER), rHi);
+  const own = [[GU_Q, GU3 + NOTE_LINE_GU], ['गोवा का पैकेज?', HI + NOTE_LINE_HI],
+    ['गोवा का पैकेज?', HI + '\n\nनोट: कीमतें सांकेतिक शुरुआती अनुमान हैं और सीज़न, होटल उपलब्धता व मौजूदा दरों के अनुसार बदल सकती हैं।'],
+    ['गोवा का पैकेज?', HI + '\n\nनोट: ये कीमतें अनुमानित हैं।'],
+    [GU_Q, GU3 + '\n\nનોંધ: ભાવ સમય અને ઉપલબ્ધતા પ્રમાણે બદલાઈ શકે છે.'],
+    [GU_Q, GU3 + NOTE_LINE]];
+  const doubled = [];
+  for (const [q, t] of own) { const r = (await chat(q, t)).reply; if (r !== t) doubled.push(t.slice(-60) + ' => ' + r.slice(t.length)); }
+  check(`P3: ${own.length} replies that already carry a note (the site's Hindi / Gujarati note, the model's own Hindi / Gujarati note, a labelled "estimate" note, an English note under Gujarati) get no second one`, doubled.length === 0, doubled.join(' | '));
+  const notes = [[GU_Q, 'ગુજરાત દર્શન, 6N / 7D, ની કિંમત અંદાજે ₹22,400 પ્રતિ વ્યક્તિથી શરૂ થાય છે (3-સ્ટાર).', NOTE_LINE_GU],
+    ['गोवा का पैकेज?', 'गोवा गेटअवे ₹9,999 से शुरू होता है। हमारी टीम आपकी ज़रूरतों का अनुमान लगाकर प्लान बनाएगी।', NOTE_LINE_HI],
+    ['Gujarat?', 'Gujarat Darshan (ગુજરાત દર્શન), 6N / 7D, is from ₹22,400 per person (3-star).', NOTE_LINE],
+    ['Goa?', 'Goa Getaway (गोवा), 4N / 5D, is from ₹9,999 per person (3-star).', NOTE_LINE]];
+  const wrong = [];
+  for (const [q, t, note] of notes) { const r = (await chat(q, t)).reply; if (r !== t + note) wrong.push(t.slice(0, 40) + ' => ' + r.slice(t.length)); }
+  check('P3: "estimate" in a price sentence, or with no price word, is not a note (the note is still added); a mostly English reply with a Gujarati or Hindi name gets the English note', wrong.length === 0, wrong.join(' | '));
+  // English is unchanged: evidence Q6 (anthropic-6) and the run-3 English replies.
+  const q6 = (await chat('How much does a Shimla Manali trip cost?', 'A Shimla–Manali trip is usually 5–7 days. Indicative per-person starting-from estimates, including stay, breakfast and a private cab, are:\n\n• 3-star: from ₹12,000-15,000\n• 4-star: from ₹18,000-25,000\n• 5-star/luxury: from ₹30,000+')).reply;
+  check('P3: English unchanged - evidence Q6 (invented Shimla tiers) is replaced and ends with the one English note, as in anthropic-7',
+    q6 === HONEST + ' Shimla & Manali, 5N / 6D, is from ₹10,999 per person (3-star); higher hotel tiers or dates can take it to ₹15,000 or more - our team quotes the exact figure.' + NOTE_LINE, q6);
+  const q6run3 = "Here's how it works after you enquire:\n\n1. Share your plan: Fill in the \"Customize My Trip\" form on our website, or message us on WhatsApp at +91 8866050291.\n2. We review it: Our team looks at your dates, travellers, destination and preferences.\n3. You get an itinerary and quote: The team sends a preliminary itinerary and price, tailored to you.\n4. Refine together: Change hotels, days or activities until it feels right.\n5. Confirmation: Flights, trains and hotel availability are confirmed by the official provider. Our team confirms the final plan with you directly.\n\nAs for WhatsApp, yes, our team chats with you there at +91 8866050291. I'm the AI assistant here on the website, so I can help you plan, but I don't reply on WhatsApp myself.\n\nPlease note that no payments are taken on this website.\n\nWould you like help choosing a destination first?";
+  check('P3: English unchanged - run-3 Q6 (no price) is shown as written, with no note', (await chat("How does it work after I enquire? Can you reply on WhatsApp?", q6run3)).reply === q6run3);
+  const q9run3 = "December is a lovely time for Rajasthan. The best season runs Oct-Mar, so you get pleasant days and cool nights (carry light woollens).\n\nOur Royal Rajasthan package is 7N/8D covering Jaipur, Jodhpur, Udaipur and Jaisalmer, from ₹24,900 per person (3-star). Shorter trips (4-7 days) start from ₹18,000 per person. It's fully customizable, so we can trim or extend the route.\n\nTo shape it better, how many travellers are going, and is it family, friends or a couple?\n\nNote: Prices are indicative starting-from estimates and can change with season, hotel availability and current rates.\n\nYou can fill in the \"Customize My Trip\" form or chat on WhatsApp (+91 8866050291) for a tailored quote.";
+  check('P3: English unchanged - run-3 Q9 (its own English note mid-reply) is shown as written, with no second note', (await chat("We want to go to Rajasthan in December", q9run3)).reply === q9run3);
 }
 
 check('every fetch went to the fake Anthropic API only', calls.every((c) => c.url === ANTHROPIC), [...new Set(calls.map((c) => c.url))].join(' '));

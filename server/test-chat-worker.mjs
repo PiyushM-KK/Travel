@@ -693,6 +693,21 @@ async function chatSeq(userText, answers) {
   check('M3: an italic word next to a published price is stripped and the price still passes, with one note', kept === 'Kerala Backwaters, 6N / 7D, is from ₹23,900 per person (3-star).' + NOTE_LINE, kept);
 }
 
+{
+  // M4 (coordinator, after prompt rule (d)): a sentence that says WHO or WHEN confirms gets no "To be clear" note in any
+  // of the three languages ("... प्रदाता द्वारा", "बुकिंग के समय", "... के बाद ही", "होने तक", "દ્વારા", "બુકિંગ સમયે",
+  // "પછી જ", "ત્યાં સુધી"; English "confirmed at (the time of) booking" / "confirmed directly by"). Every one of these
+  // got the note before this fix. A confirmation stated as done is still a claim, next to such a word too.
+  const honest = ["टिकट की उपलब्धता आधिकारिक प्रदाता द्वारा कन्फर्म की जाती है।", "होटल बुकिंग के समय आधिकारिक प्रदाता द्वारा कन्फर्म किए जाते हैं।", "बुकिंग हमारी टीम के जवाब के बाद ही कन्फर्म होती है।", "टिकट कन्फर्म होने तक हमारी टीम आपसे संपर्क में रहेगी।", "ટિકિટ સત્તાવાર પ્રદાતા દ્વારા કન્ફર્મ કરવામાં આવે છે.", "હોટેલ બુકિંગ સમયે સત્તાવાર પ્રદાતા દ્વારા કન્ફર્મ થાય છે.", "બુકિંગ અમારી ટીમ જવાબ આપે પછી જ કન્ફર્મ થાય છે.", "ટિકિટ કન્ફર્મ થાય ત્યાં સુધી અમારી ટીમ તમારા સંપર્કમાં રહેશે.", "Your hotel booking is confirmed at the time of booking by the official provider.", "Your booking is confirmed at booking by the official provider, never on this website.", "Your booking is confirmed directly by the official provider."];
+  const noisy = [];
+  for (const t of honest) { const r = (await chat('Is my booking confirmed?', t)).reply; if (r !== t) noisy.push(t + ' => ' + r.slice(t.length, t.length + 30)); }
+  check(`M4: ${honest.length} who/when-confirms sentences (Hindi, Gujarati, English: by the provider, at booking, only after the team replies, until) get no note`, noisy.length === 0, noisy.join(' | '));
+  const claims = ["आपकी बुकिंग कन्फर्म है।", "તમારું બુકિંગ કન્ફર્મ છે.", "आपकी बुकिंग कन्फर्म्ड है।", "आपकी बुकिंग प्रदाता द्वारा कन्फर्म कर दी गई है।", "पेमेंट के बाद आपकी सीट पक्की हो गई है।", "हमारी टीम के जवाब के बाद आपकी बुकिंग कन्फर्म की गई है।", "પ્રદાતા દ્વારા તમારું બુકિંગ કન્ફર્મ થઈ ગયું છે.", "બુકિંગ સમયે તમારી સીટ રિઝર્વ થઈ ગઈ છે.", "પેમેન્ટ પછી તમારું બુકિંગ કન્ફર્મ છે.", "Your booking is confirmed at 5 pm today.", "Your booking is confirmed for 3 November."];
+  const quiet = [];
+  for (const t of claims) if (!(await chat('Is my booking confirmed?', t)).reply.includes(BOOKING_NOTE)) quiet.push(t);
+  check(`M4: ${claims.length} real claims ("आपकी बुकिंग कन्फर्म है", "તમારું બુકિંગ કન્ફર્મ છે", and done confirmations next to a who/when word) still get the note`, quiet.length === 0, quiet.join(' | '));
+}
+
 check('every fetch went to the fake Anthropic API only', calls.every((c) => c.url === ANTHROPIC), [...new Set(calls.map((c) => c.url))].join(' '));
 console.log(`\n${passed} passed, ${failed} failed (${calls.length} fake API calls, no network)`);
 process.exit(failed ? 1 : 0);

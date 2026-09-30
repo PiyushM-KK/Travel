@@ -253,6 +253,12 @@ export default {
       const textBlock = Array.isArray(data.content) ? data.content.find((b) => b.type === 'text') : null;
       let reply = textBlock ? String(textBlock.text || '').trim() : '';
       if (!reply) reply = 'Sorry, could you please rephrase that? 🙏';
+      // The chat window shows plain text: remove markdown symbols (**bold**, headings, "- " bullets). Live since 2026-09-30.
+      reply = reply
+        .replace(/\*\*(.+?)\*\*/g, '$1')
+        .replace(/__(.+?)__/g, '$1')
+        .replace(/^#{1,6}\s+/gm, '')
+        .replace(/^(\s*)[-*]\s+/gm, '$1• ');
 
       // Guarantee the price disclaimer whenever the reply quotes any prices (₹ / Rs / INR),
       // even if the model forgot to add it. Skipped if a similar note is already present.

@@ -10,10 +10,11 @@ affiliate-referral and customized-tour enquiry website. NO payments, checkout, o
 issuance happen on the site; it refers users to official providers (Air India, IndiGo,
 IRCTC, redBus, Booking.com) and captures enquiries via a form + WhatsApp.
 
-CURRENT STATE - 2026-09-27 (newest; where it differs from anything below, this wins)
+CURRENT STATE - 2026-09-30 (newest; where it differs from anything below, this wins)
 - Live site: https://skylinetravelplanner.com (custom domain on GitHub Pages).
-- The owner's local `main` is 3 commits AHEAD of origin ON PURPOSE (the social queue's Redis switch, held until
-  the owner's Upstash/Vercel click). NEVER push `main` plainly - it would ship those. Ship website work from a
+- The owner's local `main` is AHEAD of origin ON PURPOSE: the 3 social-queue Redis commits (held until the owner's
+  Upstash/Vercel click) plus the chat-worker commits of 2026-09-30 (server/ only; the worker is deployed by paste,
+  so they are the source of what is LIVE). NEVER push `main` plainly - it would ship those. Ship website work from a
   branch cut from origin/main: `git worktree add <dir> -b <branch> origin/main`, commit there,
   `git push origin <branch>:main` (fast-forward only), then `git -C <checkout> rebase origin/main`.
   Pushing main auto-deploys GitHub Pages and the Vercel projects.
@@ -27,10 +28,30 @@ CURRENT STATE - 2026-09-27 (newest; where it differs from anything below, this w
   parasailing photo is credited (Christophe95, CC BY-SA 4.0). Keep the fine print true to what is shown.
 - Tests of any form must NEVER reach Formspree: start test Chrome with
   --host-resolver-rules="MAP formspree.io 0.0.0.0, MAP *.formspree.io 0.0.0.0" and answer the requests yourself.
+- 2026-09-30 (session with the FullFirm agent):
+  - CHAT ASSISTANT LIVE = "anthropic-8" (GET the worker: version + model). Claude Sonnet 5.5 (`thinking:
+    between_tools`, NO temperature - Sonnet 5.5 returns a 400 for a non-default one, max_tokens 1000, prompt caching).
+    It quotes ONLY the site's published prices (extracted from the page data; the owner's Shimla & Manali "from
+    Rs 10,999, up to Rs 15,000+"; destination "from" prices set by the owner: Kashmir 12,900, Sikkim 20,900,
+    Uttarakhand 15,900, the six North-East states 20,500 - packages keep their own prices), names only site
+    destinations/seasons, knows the Diwali offer until departure, never states flight times or the WhatsApp team's
+    languages, and CODE backstops replace a wrong or unpublished figure (also a destination figure given for a
+    package, across sentences and in Hindi/Gujarati names), false inclusions and booking/visa promises, strip markdown,
+    add the price note in the reply's language, and retry once on garbled Indic text. Offline test:
+    `node server/test-chat-worker.mjs` (344 checks, reads the site files - it fails if a site price changes without the
+    worker). ANY price change on the site needs the worker updated + the owner's paste. Two live accuracy tests
+    passed (transcripts in the FullFirm session scratchpad, summarised in FullFirm HANDOVER).
+  - The chat window is bigger (AssistantWidget.dc.html, min() sizes, live a50c098); prices live cfaf2f3.
+  - Social automation now uses Claude Sonnet 5.5 for its reply model (live bd5bb59; engine/model-compat.js: auto +
+    strict tools instead of forced tool_choice, one retry, deadlines in the 60 s webhook, cleaned model text in owner
+    messages, visible "QA/SMM did not run", fail-closed foreign-brand check; no MODEL env var on Vercel skyline-social).
+  - The Cloudflare editor's Preview pane shows "Error 1031 Invalid Workers Preview configuration": the preview tool
+    only; the live worker is fine. Do not redeploy an old version to clear it.
 
 PENDING - OWNER (time-limited: the trip departs Tue 3 Nov 2026)
-1. Paste server/anthropic-chat-worker.js into Cloudflare -> Workers -> hello-world -> Edit code -> Deploy; a GET
-   of the worker must show "version":"anthropic-5" (it knows the Diwali offer; git does not deploy it).
+1. DONE 2026-09-30 (anthropic-8 live). Still open: does the WhatsApp team reply in Gujarati/Hindi (then the assistant
+   may say so); a fluent read of the worker's Hindi/Gujarati transliterations of package names; the Cloudflare
+   Workers plan (Free = 10 ms CPU); "Sarthi" decisions (the plan: C:/Automation/clients/skyline-travel/sarthi/PLAN.md).
 2. A fluent Hindi reader and a fluent Gujarati reader skim diwali-bali.html?lang=hi / ?lang=gu and offers.html
    once (AI-translated, then checked twice by independent AI native editors).
 3. The 4th video, "garland welcome on Diwali evening": retry in Higgsfield with the reworded prompt in MEMORY.md
@@ -46,6 +67,14 @@ PENDING - AGENT
 - index.html is wider than a 320px phone in Hindi/Gujarati (its language menu + burger) - fix when asked.
 - Add the next festival to offers.html FESTIVALS (with _hi/_gu fields) when the owner gives an offer.
 - After 2026-11-09 the two <script src="diwali-promo.js"> tags can go (the card already hides itself).
+- 2026-09-30: watch the social automation's first Sonnet 5.5 runs (400 invalid_request_error, a high "did not run"
+  rate); LOW open: the approval digest prints the vision photoDescription uncleaned (use cleanModelText).
+- Site data found broken: Package.dc.html opens Royal Rajasthan for Gujarat Darshan, the 3 Sikkim packages and South
+  Temple Trail; Gujarat Darshan and South Temple Trail show the wrong photos; season conflicts between Destination and
+  Package pages; the Privacy page never mentions the AI chat. Fix with the owner (Sarthi P0/P1).
+- "Sarthi" (the assistant's new name, owner 2026-09-30) v1: streaming with per-sentence checks, chips, package cards,
+  trip brief -> WhatsApp/Customize prefill, voice, page-aware greetings - plan in the private clients repo
+  (C:/Automation/clients/skyline-travel/sarthi/PLAN.md), phases P0-P5, owner decisions pending.
 
 FIRST, BEFORE ANY EDIT:
 1. Run `git pull`. This repo is edited from more than one place (Copilot / other agents),

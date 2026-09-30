@@ -22,7 +22,7 @@
 // Claude Sonnet 5.5, live since 2026-09-30 (the owner switched the deployed anthropic-4 the same way). Per Anthropic's
 // model page it rejects a non-default temperature with a 400 and thinks by default, hence the request body below.
 const MODEL = 'claude-sonnet-5-5';
-const VERSION = 'anthropic-6'; // reported by the GET health check
+const VERSION = 'anthropic-7'; // reported by the GET health check
 
 // anthropic-6 (2026-09-30, after an accuracy test of the live assistant): the prompt carries the website's own
 // published prices, destinations and seasons (PUBLISHED_PRICES / DESTINATIONS / BEST_SEASONS below, copied from
@@ -37,7 +37,12 @@ const VERSION = 'anthropic-6'; // reported by the GET health check
 // inclusion; the honest line quotes the tier ("(3-star)") and gives no figure to a star / hotel / night / group
 // question; a typed budget tied to a place or "fits" is no longer exempt; money is read before the markdown strip;
 // paise are dropped, not rounded up; blank turns are dropped before the role checks.
-const SYSTEM_PROMPT = `You are the Skyline AI Travel Assistant for "Skyline Travel Planner", an India-based travel planning website (WhatsApp +91 8866050291, info@skylinetravelplanner.com). Help with: destination selection, trip duration, preliminary itineraries, hotel-category comparison (3/4/5-star), packing lists, transport recommendations, family/honeymoon/religious/group planning, budget planning, travel-season guidance, and FAQs. The destinations we cover are listed under DESTINATIONS WE COVER below. Reply in the same language the customer writes in (English, Hindi or Gujarati). Prices are in Indian Rupees and ALWAYS "starting from" estimates, never guaranteed. Budget is OPTIONAL — never insist on it and never make the traveller feel they must share money or budget details. If the traveller has not mentioned a budget, still give a genuinely helpful answer using the published starting-from prices listed below (never a made-up range); do NOT repeatedly ask about budget or money. Ask about budget at most once, and only if it would clearly improve your recommendation — otherwise proceed happily without it and simply invite them to the "Customize My Trip" form or WhatsApp for an exact quote. Whenever your reply mentions any prices, budget figures or cost estimates, end that reply with a short one-line note on its own line, such as: "Note: Prices are indicative starting-from estimates and can change with season, hotel availability and current rates." Add this note only when you actually mention prices. Keep replies warm, concise and practical (see the LENGTH limit at the end). After understanding the trip, encourage the user to request a customized package (the website "Customize My Trip" form) or chat on WhatsApp (+91 8866050291) for a quote. NEVER claim to confirm tickets, process payments, guarantee hotel availability, guarantee prices, guarantee visa approval, or give official immigration advice — politely defer those to the team or official provider. NEVER ask for card, bank, Aadhaar or passport details. Do not invent specific hotel bookings. Keep the "no payments on this website" disclosure when relevant. SAMPLE TOUR PACKAGES you can recommend (all fully customizable; prices are indicative "starting from" and shared on request via the "Customize My Trip" form or WhatsApp — never quote a fixed figure for these EXCEPT where a "from" price is stated below): (1) Nainital · Mussoorie · Jim Corbett — 6N/7D, Uttarakhand: Mussoorie sightseeing (Kempty Falls, Gun Hill), Nainital lake tour (Bhimtal, Sattal, Naukuchiatal), Jim Corbett jeep safari. (2) Ooty · Coorg · Mysore — 5N/6D, South India: Mysore Palace & Brindavan Gardens, Coorg (Abbey Falls, Talacauvery), Ooty & Coonoor. (3) Sikkim · Darjeeling — 5N/6D: Gangtok, Tsomgo Lake & New Baba Mandir, Darjeeling Tiger Hill sunrise. (4) Shimla · Manali — 5N/6D, from ₹10,999 per person (indicative starting-from), Himachal: Shimla–Kufri, Kullu valley, Solang Valley, Manali (Hadimba Temple, Vashisht). (5) Untouched Spiti Valley — 8N/9D, Himachal: Narkanda, Sangla–Chitkul, Nako–Tabo, Kaza (Key Monastery, Hikkim highest post office), Kalpa. When a traveller asks about any of these regions, mention the matching package and its nights, then invite them to the Domestic tours page or the "Customize My Trip" form / WhatsApp for a tailored quote.`;
+// anthropic-7 (2026-09-30, after a live re-test of anthropic-6, run 2): a reply that arrives garbled (one Gujarati reply
+// came back as its own UTF-8 bytes read as Windows-1257 text) is asked for ONCE more with the same request, and a fixed
+// line replaces it if the second one is garbled too; the prompt forbids flight and travel times and any claim about the
+// WhatsApp team's languages, asks for "(3-star)" with every domestic package price, says hotels are confirmed at booking
+// by the official provider, and aims for 80-100 words; single-asterisk and underscore italics are stripped as well.
+const SYSTEM_PROMPT = `You are the Skyline AI Travel Assistant for "Skyline Travel Planner", an India-based travel planning website (WhatsApp +91 8866050291, info@skylinetravelplanner.com). Help with: destination selection, trip duration, preliminary itineraries, hotel-category comparison (3/4/5-star), packing lists, transport recommendations, family/honeymoon/religious/group planning, budget planning, travel-season guidance, and FAQs. The destinations we cover are listed under DESTINATIONS WE COVER below. Reply in the same language the customer writes in (English, Hindi or Gujarati). Never say which languages our WhatsApp team speaks; only you, the assistant, answer in English, Hindi and Gujarati. Prices are in Indian Rupees and ALWAYS "starting from" estimates, never guaranteed. Budget is OPTIONAL — never insist on it and never make the traveller feel they must share money or budget details. If the traveller has not mentioned a budget, still give a genuinely helpful answer using the published starting-from prices listed below (never a made-up range); do NOT repeatedly ask about budget or money. Ask about budget at most once, and only if it would clearly improve your recommendation — otherwise proceed happily without it and simply invite them to the "Customize My Trip" form or WhatsApp for an exact quote. Whenever your reply mentions any prices, budget figures or cost estimates, end that reply with a short one-line note on its own line, such as: "Note: Prices are indicative starting-from estimates and can change with season, hotel availability and current rates." Add this note only when you actually mention prices. Keep replies warm, concise and practical (see the LENGTH limit at the end). After understanding the trip, encourage the user to request a customized package (the website "Customize My Trip" form) or chat on WhatsApp (+91 8866050291) for a quote. NEVER claim to confirm tickets, process payments, guarantee hotel availability, guarantee prices, guarantee visa approval, or give official immigration advice — politely defer those to the team or official provider. Never state flight durations, flying times or travel times between places, not even as an estimate (trip lengths in nights and days are fine). NEVER ask for card, bank, Aadhaar or passport details. Do not invent specific hotel bookings. Keep the "no payments on this website" disclosure when relevant. SAMPLE TOUR PACKAGES you can recommend (all fully customizable; prices are indicative "starting from" and shared on request via the "Customize My Trip" form or WhatsApp — never quote a fixed figure for these EXCEPT where a "from" price is stated below): (1) Nainital · Mussoorie · Jim Corbett — 6N/7D, Uttarakhand: Mussoorie sightseeing (Kempty Falls, Gun Hill), Nainital lake tour (Bhimtal, Sattal, Naukuchiatal), Jim Corbett jeep safari. (2) Ooty · Coorg · Mysore — 5N/6D, South India: Mysore Palace & Brindavan Gardens, Coorg (Abbey Falls, Talacauvery), Ooty & Coonoor. (3) Sikkim · Darjeeling — 5N/6D: Gangtok, Tsomgo Lake & New Baba Mandir, Darjeeling Tiger Hill sunrise. (4) Shimla · Manali — 5N/6D, from ₹10,999 per person (indicative starting-from), Himachal: Shimla–Kufri, Kullu valley, Solang Valley, Manali (Hadimba Temple, Vashisht). (5) Untouched Spiti Valley — 8N/9D, Himachal: Narkanda, Sangla–Chitkul, Nako–Tabo, Kaza (Key Monastery, Hikkim highest post office), Kalpa. When a traveller asks about any of these regions, mention the matching package and its nights, then invite them to the Domestic tours page or the "Customize My Trip" form / WhatsApp for a tailored quote.`;
 
 // PUBLISHED PRICES, DESTINATIONS and BEST SEASONS: copied by script (not typed) from the site files on 2026-09-30.
 // Packages and "From (3★, per person)" prices: Domestic.dc.html. "From, per person": International.dc.html.
@@ -46,7 +51,7 @@ const SYSTEM_PROMPT = `You are the Skyline AI Travel Assistant for "Skyline Trav
 // Source of the Shimla & Manali upper figure (₹15,000 or more): owner, 2026-09-30 - not a site file. It is the only
 // upper figure allowed. Destination-level figures that disagree with the same place's package prices (Kashmir,
 // Uttarakhand, Sikkim and the six North-East states) are left out until the owner reconciles the pages.
-const PUBLISHED_PRICES = `PUBLISHED STARTING PRICES - per person, in Indian Rupees, exactly as our website shows them. These are the ONLY rupee figures you may quote (plus the festive offer's price, if a festive offer is listed below). Quote a figure exactly as written, per person, with its package name and nights (for a destination-page figure, its trip length). Never invent any other figure: no ranges, no 4-star or 5-star prices, no per-night hotel rates, no totals for a group, no flight or ticket prices, and no inclusions (what a package includes is confirmed with the quote). For anything not listed here, say our team quotes it on WhatsApp (+91 8866050291) or through the "Customize My Trip" form. When asked whether we have a package for a place, name the matching package with its nights and from-price first, then offer to customize it.
+const PUBLISHED_PRICES = `PUBLISHED STARTING PRICES - per person, in Indian Rupees, exactly as our website shows them. These are the ONLY rupee figures you may quote (plus the festive offer's price, if a festive offer is listed below). Quote a figure exactly as written, per person, with its package name and nights (for a destination-page figure, its trip length). A domestic package figure is a 3-star price: always write "(3-star)" right after it. Never invent any other figure: no ranges, no 4-star or 5-star prices, no per-night hotel rates, no totals for a group, no flight or ticket prices, and no inclusions (what a package includes is confirmed with the quote). For anything not listed here, say our team quotes it on WhatsApp (+91 8866050291) or through the "Customize My Trip" form. When asked whether we have a package for a place, name the matching package with its nights and from-price first, then offer to customize it.
 Domestic tour packages (Domestic tours page, shown as "From (3★, per person)"):
 North India (Rajasthan · Himachal · Uttarakhand · Kashmir · Uttar Pradesh):
 - Royal Rajasthan, 7N / 8D (Jaipur · Jodhpur · Udaipur · Jaisalmer): from ₹24,900 (3★).
@@ -110,10 +115,11 @@ Untouched Spiti Valley package page: best season May-Oct. For a place with no se
 
 // Who confirms what (the International page: "Visas, flights and hotel availability are confirmed by the official
 // provider, never on this website"). The live assistant said "Bookings and confirmations are handled by our travel team".
-const CONFIRMATIONS = `CONFIRMATIONS: Flights, trains, buses and hotel availability are confirmed by the official provider, never on this website; our team sends the itinerary and quote and confirms the plan with the traveller directly. Never say that you or our team issue tickets or confirm bookings, seats or hotel availability.`;
+const CONFIRMATIONS = `CONFIRMATIONS: Flights, trains, buses and hotel availability are confirmed by the official provider, never on this website; our team sends the itinerary and quote and confirms the plan with the traveller directly. Never say that you or our team issue tickets or confirm bookings, seats or hotel availability. Hotels and their availability are confirmed at booking by the official provider, never "in your quote".`;
 
-// Last in the prompt on purpose (it replaces the older "under 130 words"; the live replies ran to 153 words).
-const LENGTH_RULE = `LENGTH: Hard limit: 120 words and at most two questions per reply.`;
+// Last in the prompt on purpose (it replaced the older "under 130 words"; the live replies ran to 153 words). anthropic-7:
+// the run-2 replies still ran to 134-160 words against a bare limit of 120, so the rule now also gives a target.
+const LENGTH_RULE = `LENGTH: Aim for 80-100 words; hard limit 120 words and at most two questions.`;
 
 // Diwali in Bali (diwali-bali.html). Facts copied from the offer page - never add to them here.
 const DIWALI_BALI = `CURRENT FESTIVE OFFER - "Diwali in Bali", 7N/8D, departs Tuesday 3 November 2026, return flights on Singapore Airlines from Ahmedabad (connecting through Singapore), from ₹1,15,000 per person (indicative starting-from). Stays, all "or similar" and confirmed at booking: 4 nights Kuta (Fairfield by Marriott, Nagraa or Legian; Deluxe room), 1 night Ubud (Mara River Safari Lodge; Savala Deluxe room, with a Jungle Hopper pass), 2 nights Jimbaran (Royal Tulip; a one-bedroom villa with its own private pool). Itinerary: Day 1 arrive, garland welcome, private transfer to Kuta. Day 2 water sports (jet ski, banana boat, parasailing), then Uluwatu Temple at sunset. Day 3 full-day Ubud tour with Tanah Lot and Ulun Danu temples. Day 4 free day. Day 5 transfer to Mara River Safari Lodge. Day 6 is Diwali, Sunday 8 November: Bali Swing and Tegenungan Waterfall, then the Jimbaran pool villa. Day 7 free day at the villa. Day 8 transfer for the flight home. Included: return Singapore Airlines flights from Ahmedabad; 7 nights' stay as per the itinerary; daily breakfast; all transfers and sightseeing on a private basis; entrance fees as per the itinerary; garland welcome and daily mineral water. Nothing else is included in this list - if asked about anything not listed (for example visa, travel insurance, lunch or dinner), say it is not listed and the team will confirm on WhatsApp. Mara River Safari Lodge is not a Marriott property. When a traveller asks about Bali, Diwali or festive trips, mention this offer, share https://skylinetravelplanner.com/diwali-bali.html, and invite them to enquire there or on WhatsApp (+91 8866050291) for availability and the exact price.`;
@@ -471,6 +477,34 @@ const claimsIndicBooking = (reply) => sentences(reply).some(({ start, end }) => 
   return INDIC_BOOKING_CLAIM.test(s) && !NEGATION.test(s);
 });
 
+// ---- garbled text (anthropic-7) ----------------------------------------------------------------------------------
+// Live re-test, run 2 (2026-09-30): one Gujarati reply arrived as its own UTF-8 bytes read as Windows-1257 text. The
+// model produced it that way (the raw JSON carried U+0105 U+0156 pairs), so the code can only notice it and ask again.
+// An Indic letter is three UTF-8 bytes: E0, then A4-B7 (Devanagari A4/A5, Gujarati AA/AB, ...), then one more. Read as
+// Windows-1252 the E0 shows as U+00E0, read as Windows-1257 as U+0105, and the second byte as a character of the second
+// class of INDIC_MOJIBAKE; two such pairs make a run. Any other UTF-8 read either way shows a lead byte (C2-F4) followed
+// by a continuation byte (80-BF): MOJIBAKE_PAIR counts those, three or more, using only the continuation characters
+// that never follow a letter in real text - not quotes, dashes, the bullet, the ellipsis, NBSP, guillemets, the
+// registered / copyright / trade mark signs, superscripts, nor the letters among them - so accented words, real
+// Gujarati and Hindi, the rupee sign and the stars never count. Written as escapes on purpose: an editor or tool that
+// "repairs" encodings cannot change them.
+const INDIC_MOJIBAKE = /[\u00E0\u0105][\u00A4-\u00B7\u00C6\u00D8\u0156\u0157]/g;
+// Lead: Windows-1252 C2-F4 (U+00C2-U+00F4) and Windows-1257's own letters there. Continuation: the symbols of 80-BF.
+const MOJIBAKE_PAIR = /[\u00C2-\u00F4\u0100\u0101\u0105-\u0107\u010C\u010D\u0112\u0113\u0116-\u0119\u0122\u0123\u012A\u012B\u012F\u0136\u0137\u013B\u013C\u0141\u0143-\u0146\u014C\u014D\u015A\u0160\u0161\u016A\u0172\u0179-\u017B\u017D][\u00A1-\u00A8\u00AA\u00AC\u00AF-\u00B1\u00B4-\u00B6\u00B8\u00BA\u00BC-\u00BF\u02C6\u02C7\u02DB\u02DC\u2020\u2021\u2030\u20AC]/g;
+const isGarbled = (text) => (text.match(INDIC_MOJIBAKE) || []).length >= 2 || (text.match(MOJIBAKE_PAIR) || []).length >= 3;
+const GARBLED_LINE = 'Sorry, something went wrong with that reply. Please ask again, or message our team on WhatsApp at +91 88660 50291.';
+
+// ---- what the chat window shows ----------------------------------------------------------------------------------
+// anthropic-7: single-asterisk and single-underscore italics are removed too (run 2 showed "*Note: ...*" with its
+// asterisks). Only a pair that wraps words on one line: the opening mark starts a word and the closing one ends it. A
+// lone "*", "2*3" and "5 * 3", the star sign, underscores inside words (snake_case, first_last@...) and anything inside
+// a link are left alone.
+const ITALIC_STAR = /(?<![*\p{L}\p{M}\p{N}_])\*(?=[^\s*])([^*\n]*?[^\s*])\*(?![*\p{L}\p{M}\p{N}_])/gu;
+const ITALIC_UNDERSCORE = /(?<![_\p{L}\p{M}\p{N}/=@#.])_(?=[^\s_])([^_\n]*?[^\s_])_(?![_\p{L}\p{M}\p{N}])/gu;
+const LINK = /((?:https?:\/\/|www\.)\S+)/i;
+const stripItalics = (text) => text.split(LINK)
+  .map((part, i) => (i % 2 ? part : part.replace(ITALIC_STAR, '$1').replace(ITALIC_UNDERSCORE, '$1'))).join('');
+
 const REFUSAL_LINE = 'For this one, please message our team on WhatsApp at +91 88660 50291.';
 const FALLBACK_LINE = "I'm having trouble right now. For quick help, please message us on WhatsApp at +91 88660 50291. 🙏";
 
@@ -580,48 +614,68 @@ export default {
 
       const now = Date.now();
       const system = systemPromptFor(now);
-      const resp = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': env.ANTHROPIC_API_KEY,
-          'anthropic-version': '2023-06-01',
-        },
-        body: JSON.stringify({
-          model: MODEL,
-          max_tokens: 1000, // Sonnet 5.5 writes longer replies; at 400 a reply was cut off mid-number (2026-09-30)
-          thinking: { type: 'between_tools' }, // no up-front thinking: with no tools the reply is text only
-          // Prompt caching (Anthropic's prompt-caching page, checked 2026-09-30): the system prompt as one text block
-          // marked ephemeral (5-minute cache, no beta header; Sonnet 5.5 caches from 512 tokens, this is ~3,000).
-          // A hit needs the prefix byte-identical: systemPromptFor() changes only at the Diwali date cutovers, and the
-          // thinking setting above must stay as it is, because changing it invalidates the cache.
-          system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }],
-          messages: convo,
-        }),
+      // ONE request body: the retry below sends it again byte for byte, so the retry also hits the prompt cache.
+      const payload = JSON.stringify({
+        model: MODEL,
+        max_tokens: 1000, // Sonnet 5.5 writes longer replies; at 400 a reply was cut off mid-number (2026-09-30)
+        thinking: { type: 'between_tools' }, // no up-front thinking: with no tools the reply is text only
+        // Prompt caching (Anthropic's prompt-caching page, checked 2026-09-30): the system prompt as one text block
+        // marked ephemeral (5-minute cache, no beta header; Sonnet 5.5 caches from 512 tokens, this is ~3,000).
+        // A hit needs the prefix byte-identical: systemPromptFor() changes only at the Diwali date cutovers, and the
+        // thinking setting above must stay as it is, because changing it invalidates the cache.
+        system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }],
+        messages: convo,
       });
+      // One call to Anthropic: its JSON, or null after an error. Anthropic's error (bad key, no credits, etc.) goes to
+      // the Worker log for the owner - never to the visitor.
+      const ask = async () => {
+        const resp = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': env.ANTHROPIC_API_KEY,
+            'anthropic-version': '2023-06-01',
+          },
+          body: payload,
+        });
+        const data = await resp.json();
+        if (!resp.ok || data.type === 'error' || data.error) {
+          console.error(JSON.stringify({ upstream: resp.status, type: data.error && data.error.type, message: data.error && data.error.message }));
+          return null;
+        }
+        return data;
+      };
+      const textOf = (data) => {
+        const textBlock = Array.isArray(data.content) ? data.content.find((b) => b.type === 'text') : null;
+        return textBlock ? String(textBlock.text || '').trim() : '';
+      };
+      const answer = (text) => new Response(JSON.stringify({ reply: text }), { status: 200, headers: { 'Content-Type': 'application/json', ...cors } });
 
-      const data = await resp.json();
-
-      // Anthropic's error (bad key, no credits, etc.) goes to the Worker log for the owner - never to the visitor.
-      if (!resp.ok || data.type === 'error' || data.error) {
-        console.error(JSON.stringify({ upstream: resp.status, type: data.error && data.error.type, message: data.error && data.error.message }));
-        return new Response(
-          JSON.stringify({ reply: FALLBACK_LINE }),
-          { status: 200, headers: { 'Content-Type': 'application/json', ...cors } }
-        );
+      let data = await ask();
+      if (!data) return answer(FALLBACK_LINE);
+      let reply = textOf(data);
+      // anthropic-7: a garbled reply (see isGarbled) is asked for ONCE more with the same request; if that one is garbled
+      // too, the visitor gets a fixed line. The log says what happened and carries none of the reply.
+      if (isGarbled(reply)) {
+        console.warn(JSON.stringify({ garbled: 'retrying once' }));
+        data = await ask();
+        if (!data) return answer(FALLBACK_LINE);
+        reply = textOf(data);
+        if (isGarbled(reply)) {
+          console.warn(JSON.stringify({ garbled: 'again, fixed line sent' }));
+          return answer(GARBLED_LINE);
+        }
       }
-
-      const textBlock = Array.isArray(data.content) ? data.content.find((b) => b.type === 'text') : null;
-      let reply = textBlock ? String(textBlock.text || '').trim() : '';
       // A refusal with no text: the team can help (asking to rephrase would invite rewording until it passes).
       if (!reply) reply = data.stop_reason === 'refusal' ? REFUSAL_LINE : 'Sorry, could you please rephrase that? 🙏';
       // The chat window shows plain text: remove markdown symbols (**bold**, headings, "- " bullets). Live since 2026-09-30.
+      // anthropic-7: *italics* and _italics_ too (stripItalics), after the bullets so a "* " list item stays a bullet.
       const written = reply;
-      reply = reply
+      reply = stripItalics(reply
         .replace(/\*\*(.+?)\*\*/g, '$1')
         .replace(/__(.+?)__/g, '$1')
         .replace(/^#{1,6}\s+/gm, '')
-        .replace(/^(\s*)[-*]\s+/gm, '$1• ');
+        .replace(/^(\s*)[-*]\s+/gm, '$1• '));
 
       // Judged on the model's own words, before any note. A figure nobody published, or a Diwali price under the
       // offer, REPLACES the reply (a note after it would still show the wrong figure); the rest append a note.

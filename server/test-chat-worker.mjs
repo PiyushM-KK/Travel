@@ -22,10 +22,11 @@ function check(name, ok, detail = '') {
 const ANTHROPIC = 'https://api.anthropic.com/v1/messages';
 const calls = [];
 let next = null; // what the fake API answers next: { status, body }
+const queue = []; // anthropic-7: answers for consecutive calls (the garbled-text retry), used up before `next`
 globalThis.fetch = async (url, init) => {
   calls.push({ url: String(url), init });
   if (String(url) !== ANTHROPIC) throw new Error('unexpected network call to ' + url);
-  const r = next || { status: 200, body: { content: [{ type: 'text', text: 'Hello!' }] } };
+  const r = queue.length ? queue.shift() : next || { status: 200, body: { content: [{ type: 'text', text: 'Hello!' }] } };
   return { ok: r.status >= 200 && r.status < 300, status: r.status, json: async () => { if (r.notJson) throw new SyntaxError('Unexpected token <'); return r.body; } };
 };
 
@@ -102,7 +103,7 @@ const withheld = new Set(destinations.filter((d) => {
 {
   const before = calls.length;
   const health = await (await worker.fetch(request('GET'), ENV)).json();
-  check('GET reports version anthropic-6', health.version === 'anthropic-6', JSON.stringify(health));
+  check('GET reports version anthropic-7', health.version === 'anthropic-7', JSON.stringify(health));
   check('GET reports model claude-sonnet-5-5', health.model === 'claude-sonnet-5-5', JSON.stringify(health));
   check('GET reports the key is present', health.ok === true && health.hasKey === true);
   check('GET reports a missing key', (await (await worker.fetch(request('GET'), {})).json()).hasKey === false);
@@ -129,7 +130,7 @@ const withheld = new Set(destinations.filter((d) => {
     block && Object.keys(block).sort().join() === 'cache_control,text,type' && block.type === 'text' && typeof block.text === 'string'
       && JSON.stringify(block.cache_control) === '{"type":"ephemeral"}', JSON.stringify(sent.system).slice(0, 200));
   check('caching: the cached text is the whole prompt (it starts with the assistant role and ends with the length rule)',
-    block && block.text.startsWith('You are the Skyline AI Travel Assistant') && block.text.trimEnd().endsWith('two questions per reply.'));
+    block && block.text.startsWith('You are the Skyline AI Travel Assistant') && block.text.trimEnd().endsWith('hard limit 120 words and at most two questions.'));
   check('caching: no beta header is needed or sent', !Object.keys(call.init.headers).some((h) => /beta/i.test(h)), Object.keys(call.init.headers).join());
   const sysJson = async (at, text) => JSON.stringify((await chat(text, 'Hello!', { at })).sent.system);
   const DAY = 24 * 3600 * 1000;
@@ -180,7 +181,7 @@ for (const d of destinations) {
 check('Spiti season from its package page', SYS.includes(`best season ${packagePages['spiti-valley'].season}`));
 for (const f of formDests) check(`custom-trip form destination known: ${f}`, f.split(' & ').some((w) => SYS.includes(w)));
 check('confirmations sentence verbatim', SYS.includes('Flights, trains, buses and hotel availability are confirmed by the official provider, never on this website; our team sends the itinerary and quote and confirms the plan with the traveller directly.'));
-check('length rule verbatim, and last', SYS.trimEnd().endsWith('Hard limit: 120 words and at most two questions per reply.'));
+check('length rule verbatim, and last (anthropic-7: with the 80-100 word target)', SYS.trimEnd().endsWith('LENGTH: Aim for 80-100 words; hard limit 120 words and at most two questions.'));
 check('the old 130-word limit is gone', !/130 words/.test(SYS));
 check('the "broad ranges" instruction is gone', !/broad indicative/.test(SYS));
 check('earlier rules kept', ['never ask for card, bank, Aadhaar or passport details', 'Budget is OPTIONAL', 'no payments on this website', 'Reply in the same language', 'guarantee visa approval'].every((s) => SYS.toLowerCase().includes(s.toLowerCase())));
@@ -188,7 +189,7 @@ check('the Diwali in Bali offer is in the prompt before departure', SYS.includes
 {
   const departed = await systemAt(DEPARTED), after = await systemAt(AFTER_OFFER);
   check('after departure: "it has left", no offer price', departed.includes('has already left') && !departed.includes(diwaliPrice) && departed.includes('PUBLISHED STARTING PRICES'));
-  check('after 9 Nov: no Diwali text at all, price list still there', !/Diwali/.test(after) && after.includes('PUBLISHED STARTING PRICES') && after.trimEnd().endsWith('two questions per reply.'));
+  check('after 9 Nov: no Diwali text at all, price list still there', !/Diwali/.test(after) && after.includes('PUBLISHED STARTING PRICES') && after.trimEnd().endsWith('hard limit 120 words and at most two questions.'));
 }
 
 // ---- 4. post-processing and backstops ---------------------------------------------------------------------------
@@ -540,6 +541,156 @@ const replaced = (r) => r.startsWith(HONEST);
   check('blank turns: the reviewer\'s [blank user, assistant, blank user] gets the greeting with no API call', /Namaste/.test(probe.reply) && probe.sent === null, JSON.stringify(probe));
   const mid = await post([GREETING, { role: 'user', content: 'Plan Goa' }, { role: 'assistant', content: 'Sure!' }, { role: 'user', content: '   ' }]);
   check('blank turns: a blank last turn is dropped, then the trailing assistant turn, and only real turns are sent', mid.sent && JSON.stringify(mid.sent.messages) === JSON.stringify([{ role: 'user', content: 'Plan Goa' }]), JSON.stringify(mid.sent && mid.sent.messages));
+}
+
+// ---- 7. anthropic-7: the live re-test of anthropic-6 (run 2, 2026-09-30), one block per item ------------------------
+// Every special character in these fixtures is built from its code point ({hex} below), never typed or escaped, so no
+// editor or tool that "repairs" encodings can quietly turn the garbled sample into something else.
+const u = (s) => s.replace(/\{([0-9A-F]{1,6})\}/g, (_, h) => String.fromCodePoint(parseInt(h, 16)));
+const GARBLED_LINE = 'Sorry, something went wrong with that reply. Please ask again, or message our team on WhatsApp at +91 88660 50291.';
+const FALLBACK = u("I'm having trouble right now. For quick help, please message us on WhatsApp at +91 88660 50291. {1F64F}");
+// Q3 of run 2 exactly as the live worker returned it: Gujarati UTF-8 read as Windows-1257 - the model's own output.
+const GARBLED_RUN2 = u('{105}{156}{105}{156}{B0}{105}{156}{BE}{105}{156}{AC}{105}{156}{A3}{105}{156}{A4}{105}{156}, {105}{156}{AC}'
+  + '{105}{156}{BE}{105}{156}{A3}{105}{156}{2022} {105}{156}{105}{156}{B0}{105}{156}{BE}{105}{156}{AC}{105}{156}'
+  + '{A3}{105}{156}{2022} {105}{156}{A4}{105}{156}{AE}{105}{156}{BE}{105}{156}{B0}{105}{156}{BE} {105}{156}{AE}'
+  + '{105}{156}{BE}{105}{156}{A4}{105}{156}{BE}-{105}{156}{156}{105}{156}{E6}{105}{156}{A4}{105}{156}{BE}{105}'
+  + '{156}{A8}{105}{156}{BE}{105}{156}{201A} {105}{156}{F8}{105}{156}{BE}{105}{156}{201E}{105}{156}{BE} {105}'
+  + '{156}{2014}{105}{AB}{105}{156}{153}{105}{156}{B0}{105}{156}{BE}{105}{156}{A4}{105}{AB}{20AC}{105}{156}{AE}'
+  + '{105}{156}{BE}{105}{156}{201A} {105}{156}{AC}{105}{156}{B0}{105}{156}{BE}{105}{156}{AC}{105}{156}{B0} {105}'
+  + '{156}{B6}{105}{156}{2022}{105}{156}{BE}{105}{156}{B6}{105}{156}{BE} {105}{156}{A4}{105}{AB}{105}{156}{AE}'
+  + '{105}{156}{BE}{105}{156}{B0}{105}{156}{BE} {105}{156}{AE}{105}{156}{BE}{105}{156}{D8}{105}{AB}{105}{156}'
+  + '{201C}{105}{156}{D8}{105}{AB}{105}{156}{A6}{105}{156}{156}{105}{156}{B0}{105}{156}{BE} {105}{156}{AE}{105}'
+  + '{156}{BE}{105}{156}{201C}{105}{156}{D8}{105}{156}{BE}{105}{156}{201C}{105}{156}{D8}{105}{156}{BE}{105}{156}'
+  + '{201C}{105}{156}{D8}{105}{156}{BE} ...{A}{A}Sorry, let me start that reply properly.{A}{A}{105}{156}{AC}'
+  + '{105}{AB}{105}{156}{B6} {105}{156}{2026}{105}{156}{B5}{105}{156}{B6}{105}{AB}{105}{156}{AF}! {105}{AB}{105}'
+  + '{156}{153}{105}{156}{B0}{105}{156}{BE}{105}{156}{A4}{105}{AB}{20AC}{105}{156}{AE}{105}{156}{BE}{105}{156}'
+  + '{201A} {105}{156}{AE}{105}{156}{A6}{105}{156}{A6}{105}{156}{2022}{105}{156}{B0}{105}{156}{B5}{105}{156}{BE}'
+  + '{105}{156}{AE}{105}{156}{BE}{105}{156}{201A} {105}{156}{AE}{105}{156}{153}{105}{156}{BE} {105}{156}{2020}'
+  + '{105}{156}{B5}{105}{156}{B6}{105}{AB}{2021}. {105}{156}{A4}{105}{AB}{105}{156}{AE}{105}{156}{BE}{105}{156}'
+  + '{B0}{105}{156}{BE} {105}{156}{AE}{105}{156}{BE}{105}{156}{A4}{105}{AB}{105}{156}{156}{105}{156}{E6}{105}'
+  + '{156}{A4}{105}{156}{BE} {105}{156}{AE}{105}{156}{BE}{105}{156}{178}{105}{AB}{2021} {105}{156}{2020}{105}'
+  + '{156}{B0}{105}{156}{BE}{105}{156}{AE}{105}{156}{A6}{105}{156}{BE}{105}{156}{C6}{105}{156}{2022} {105}{156}'
+  + '{AF}{105}{156}{BE}{105}{156}{A4}{105}{AB}{105}{156}{B0}{105}{156}{BE} {105}{156}{2014}{105}{AB}{2039}{105}'
+  + '{156}{201D}{105}{156}{B5}{105}{AB}{20AC} {105}{156}{B6}{105}{156}{2022}{105}{156}{BE}{105}{156}{B6}{105}'
+  + '{156}{BE}.');
+// Its repeat (transcript-repeat.jsonl): the same question, answered in readable Gujarati.
+const CLEAN_GU_RUN2 = u('{A9A}{ACB}{A95}{ACD}{A95}{AB8}, {AB9}{AC1}{A82} {A97}{AC1}{A9C}{AB0}{ABE}{AA4}{AC0}{AAE}{ABE}{A82} {A9C}'
+  + '{AB0}{AC2}{AB0} {AAE}{AA6}{AA6} {A95}{AB0}{AC0}{AB6}! {1F64F} {AA4}{AAE}{ABE}{AB0}{ABE} {AAE}{ABE}{AA4}{ABE}'
+  + '-{AAA}{ABF}{AA4}{ABE} {A9C}{AC7} {AAD}{ABE}{AB7}{ABE}{AAE}{ABE}{A82} {AB8}{AB9}{A9C} {AB9}{ACB}{AAF}, {A8F} '
+  + '{A9C} {AAD}{ABE}{AB7}{ABE}{AAE}{ABE}{A82} {AB5}{ABE}{AA4} {A95}{AB0}{AC0}{AB6}{AC1}{A82}.{A}{A}{AB9}{AC1}'
+  + '{A82} {A86}{AAE}{ABE}{A82} {AAE}{AA6}{AA6} {A95}{AB0}{AC0} {AB6}{A95}{AC1}{A82}:{A}{2022} {AB8}{ACD}{AA5}'
+  + '{AB3}{AA8}{AC0} {AAA}{AB8}{A82}{AA6}{A97}{AC0} {A85}{AA8}{AC7} {A95}{AC7}{A9F}{AB2}{ABE} {AA6}{ABF}{AB5}'
+  + '{AB8}{AA8}{AC0} {A9F}{ACD}{AB0}{AC0}{AAA} {AB0}{ABE}{A96}{AB5}{AC0}{A}{2022} {AB6}{AB0}{AC2}{A86}{AA4}{AA8}'
+  + '{ACB} {AAA}{ACD}{AB0}{AB5}{ABE}{AB8} {A95}{ABE}{AB0}{ACD}{AAF}{A95}{ACD}{AB0}{AAE} (itinerary){A}{2022} 3/4/'
+  + '5-{AB8}{ACD}{A9F}{ABE}{AB0} {AB9}{ACB}{A9F}{AC7}{AB2}{AA8}{AC0} {AB8}{AB0}{A96}{ABE}{AAE}{AA3}{AC0}{A}{2022}'
+  + ' {AAF}{ABE}{AA4}{ACD}{AB0}{ABE}, {AB9}{AA8}{AC0}{AAE}{AC2}{AA8}, {AAB}{AC7}{AAE}{ABF}{AB2}{AC0} {A95}{AC7} '
+  + '{A97}{ACD}{AB0}{AC1}{AAA} {A9F}{ACD}{AB0}{AC0}{AAA}{AA8}{AC1}{A82} {A86}{AAF}{ACB}{A9C}{AA8}{A}{2022} {AAE}'
+  + '{AC1}{AB8}{ABE}{AAB}{AB0}{AC0}{AA8}{AC0} {AB8}{AC0}{A9D}{AA8} {A85}{AA8}{AC7} {AAA}{AC7}{A95}{ABF}{A82}{A97}'
+  + ' {AB2}{ABF}{AB8}{ACD}{A9F}{A}{A}{AB6}{AB0}{AC2} {A95}{AB0}{AB5}{ABE} {AAE}{ABE}{A9F}{AC7}, {A95}{AC3}{AAA}'
+  + '{ABE} {A95}{AB0}{AC0}{AA8}{AC7} {A9C}{AA3}{ABE}{AB5}{ACB}:{A}1. {AA4}{AAE}{AC7} {A95}{AAF}{ABE} {AB8}{ACD}'
+  + '{AA5}{AB3}{AC7} {A85}{AA5}{AB5}{ABE} {A95}{AAF}{ABE} {AAA}{ACD}{AB0}{A95}{ABE}{AB0}{AA8}{AC0} {A9F}{ACD}'
+  + '{AB0}{AC0}{AAA} ({AA6}{AB0}{ACD}{AB6}{AA8}, {AAB}{AB0}{AB5}{ABE}{AB2}{ABE}{AAF}{A95} {A95}{AC7} {A86}{AB0}'
+  + '{ABE}{AAE}{AA6}{ABE}{AAF}{A95}) {AB5}{ABF}{A9A}{ABE}{AB0}{ACB} {A9B}{ACB}?{A}2. {A95}{AC1}{AB2} {A95}{AC7}'
+  + '{A9F}{AB2}{ABE} {AB2}{ACB}{A95}{ACB} {A9C}{AB6}{ACB} {A85}{AA8}{AC7} {A95}{AAF}{ABE} {AAE}{AB9}{ABF}{AA8}'
+  + '{ABE}{AAE}{ABE}{A82}?{A}{A}{AA4}{AAE}{AC7} WhatsApp (+91 8866050291) {AAA}{AB0} {AAA}{AA3} {A85}{AAE}{ABE}'
+  + '{AB0}{AC0} {A9F}{AC0}{AAE} {AB8}{ABE}{AA5}{AC7} {A97}{AC1}{A9C}{AB0}{ABE}{AA4}{AC0}{AAE}{ABE}{A82} {AB5}'
+  + '{ABE}{AA4} {A95}{AB0}{AC0} {AB6}{A95}{ACB} {A9B}{ACB}.');
+const answerWith = (text) => ({ status: 200, body: { content: [{ type: 'text', text }] } });
+// One question, with the fake API giving `answers` in turn: the reply, how many calls were made, their bodies, the log.
+async function chatSeq(userText, answers) {
+  NOW = BEFORE_DEPARTURE; next = null; queue.length = 0; queue.push(...answers);
+  const warned = [], logged = [], realWarn = console.warn, realError = console.error;
+  console.warn = (...a) => warned.push(a.join(' ')); console.error = (...a) => logged.push(a.join(' '));
+  const before = calls.length;
+  let json;
+  try { json = await (await worker.fetch(request('POST', { body: { messages: [GREETING, { role: 'user', content: userText }] } }), ENV)).json(); }
+  finally { console.warn = realWarn; console.error = realError; queue.length = 0; }
+  const made = calls.slice(before);
+  return { reply: json.reply, n: made.length, bodies: made.map((c) => c.init.body), warned, logged };
+}
+{
+  // M1: a garbled reply (mojibake) is asked for ONCE more with the same request; garbled again, a fixed line.
+  const gujaratiLetters = (s) => [...s].filter((c) => c.codePointAt(0) >= 0xA80 && c.codePointAt(0) <= 0xAFF).length;
+  check('M1: the fixtures are the run-2 replies (garbled: 546 characters from U+0105 U+0156, no Gujarati letter; clean: 391 Gujarati letters)',
+    GARBLED_RUN2.length === 546 && GARBLED_RUN2.startsWith(u('{105}{156}{105}{156}{B0}')) && gujaratiLetters(GARBLED_RUN2) === 0
+      && CLEAN_GU_RUN2.length === 556 && gujaratiLetters(CLEAN_GU_RUN2) === 391, `${GARBLED_RUN2.length} / ${CLEAN_GU_RUN2.length}`);
+  const q = 'Can you help us in Gujarati? My parents are more comfortable with it.';
+  const fixed = await chatSeq(q, [answerWith(GARBLED_RUN2), answerWith(CLEAN_GU_RUN2)]);
+  check('M1: the real run-2 garbled reply is caught and asked for once more; the readable second reply is shown untouched',
+    fixed.reply === CLEAN_GU_RUN2 && fixed.n === 2 && fixed.warned.length === 1, `${fixed.n} calls: ${fixed.reply.slice(0, 50)}`);
+  check('M1: the retry is the same request, byte for byte (so it also hits the prompt cache)', fixed.bodies.length === 2 && fixed.bodies[0] === fixed.bodies[1]);
+  const twice = await chatSeq(q, [answerWith(GARBLED_RUN2), answerWith(GARBLED_RUN2)]);
+  check('M1: garbled twice - exactly two calls, then only the fixed line', twice.reply === GARBLED_LINE && twice.n === 2, `${twice.n} calls: ${twice.reply.slice(0, 50)}`);
+  check('M1: the log says what happened and carries none of the reply', twice.warned.length === 2 && twice.warned.every((l) => l.length < 60 && !l.includes(GARBLED_RUN2.slice(0, 2))), twice.warned.join(' | '));
+  const clean = await chatSeq(q, [answerWith(CLEAN_GU_RUN2)]);
+  check('M1: the run-2 clean Gujarati reply passes untouched - one call, no retry, nothing logged', clean.reply === CLEAN_GU_RUN2 && clean.n === 1 && clean.warned.length === 0, clean.reply.slice(0, 50));
+  const thenError = await chatSeq(q, [answerWith(GARBLED_RUN2), { status: 529, body: { type: 'error', error: { type: 'overloaded_error', message: 'Overloaded' } } }]);
+  check('M1: garbled, then an upstream error on the retry - the usual WhatsApp fallback, logged, no third call',
+    thenError.reply === FALLBACK && thenError.n === 2 && thenError.logged.some((l) => l.includes('529')), `${thenError.n} calls: ${thenError.reply}`);
+  const refusedAfter = await chatSeq(q, [answerWith(GARBLED_RUN2), { status: 200, body: { content: [], stop_reason: 'refusal' } }]);
+  check('M1: garbled, then a refusal on the retry - the refusal line, no third call', refusedAfter.reply === REFUSAL && refusedAfter.n === 2, refusedAfter.reply);
+  // Real text read back through both code pages is caught, as the whole reply or as one phrase inside it.
+  const sources = ['है और', 'ગુજરાતી', 'नमस्ते! गोवा नवंबर से फ़रवरी तक सबसे अच्छा है।', 'નમસ્તે! ગોવા નવેમ્બરથી ફેબ્રુઆરી સુધી શ્રેષ્ઠ છે.',
+    u('We{2019}re happy to help {2013} it{2019}s {201C}easy{201D}.')];
+  const missed = [];
+  for (const cp of ['windows-1252', 'windows-1257']) {
+    const decoder = new TextDecoder(cp);
+    for (const s of sources) {
+      const garbled = decoder.decode(Buffer.from(s, 'utf8'));
+      for (const text of [garbled, 'Sure! ' + garbled + ' Tell me your dates.']) {
+        const r = await chatSeq('hi', [answerWith(text), answerWith(text)]);
+        if (r.reply !== GARBLED_LINE || r.n !== 2) missed.push(`${cp}: ${s.slice(0, 12)}`);
+      }
+    }
+  }
+  check(`M1: Hindi, Gujarati and English (curly quotes) read as Windows-1252 and as Windows-1257 are caught, alone or inside a sentence (${sources.length * 4} cases)`, missed.length === 0, missed.join(' | '));
+  const real = [u('Caf{E9}, r{E9}sum{E9}, na{EF}ve, d{E9}j{E0} vu, cr{E8}me br{FB}l{E9}e, S{E3}o Paulo, Z{FC}rich, pi{F1}ata, fa{E7}ade and {E0} la carte.'),
+    u('{201C}Caf{E9}{201D} {2013} r{E9}sum{E9}{2014}style {2022} Nestl{E9}{AE} {2022} {E0} {AB}bient{F4}t{BB} {2022} the caf{E9}{2019}s menu{2026} {C9}t{E9}{B2}'),
+    u('Goa Getaway, 4N / 5D, is from {20B9}9,999 per person (3-star) {2605}{2605}{2605} {2013} Kerala {2014} Goa {2022} Bali'),
+    CLEAN_GU_RUN2, 'दिवाली बाली पैकेज में लंच और डिनर शामिल नहीं हैं।', 'ગોવા હોટેલ કેટલામાં? ગુજરાતી', 'Namaste! How can I help plan your trip?'];
+  const flagged = [];
+  for (const t of real) { const r = await chatSeq('hi', [answerWith(t)]); if (r.n !== 1 || r.reply === GARBLED_LINE || !r.reply.startsWith(t)) flagged.push(t.slice(0, 30)); }
+  check(`M1: ${real.length} real replies (accented words, curly quotes, dashes, bullets, the rupee sign, stars, Gujarati, Hindi, English) are never taken for garbled`, flagged.length === 0, flagged.join(' | '));
+}
+{
+  // M2: prompt rules from the run-2 verdicts (Q1 flight time, Q3 the team's language, Q11 the missing tier, Q12b
+  // "confirmed in your quote", Q1/Q8/Q11/Q12b over length).
+  const before = await systemAt(BEFORE_DEPARTURE), after = await systemAt(AFTER_OFFER);
+  const rules = [
+    ['(a) no flight durations or travel times', 'Never state flight durations, flying times or travel times between places, not even as an estimate'],
+    ['(b) no claim about the WhatsApp team\'s languages', 'Never say which languages our WhatsApp team speaks; only you, the assistant, answer in English, Hindi and Gujarati.'],
+    ['(c) "(3-star)" with a domestic package price', 'A domestic package figure is a 3-star price: always write "(3-star)" right after it.'],
+    ['(d) hotels confirmed at booking by the official provider', 'Hotels and their availability are confirmed at booking by the official provider, never "in your quote".'],
+  ];
+  for (const [name, text] of rules) check(`M2 ${name}: in the prompt, before and after the offer`, before.includes(text) && after.includes(text), text);
+  const LENGTH = 'LENGTH: Aim for 80-100 words; hard limit 120 words and at most two questions.';
+  check('M2 (e) the 80-100 word target: verbatim, last and once, before and after the offer', before.trimEnd().endsWith(LENGTH) && after.trimEnd().endsWith(LENGTH) && count(before, 'LENGTH:') === 1);
+  const r1 = (await chat('hi', u('Goa Getaway is {20B9}80-100 per person.'))).reply, r2 = (await chat('hi', u('Goa Getaway is {20B9}120 per person.'))).reply;
+  check('M2: the new word counts are not prices ("80-100" and "120" in the prompt never become a published range or figure)', replaced(r1) && replaced(r2), r1 + ' | ' + r2);
+}
+{
+  // M3: single-asterisk and underscore italics are stripped; lone stars, multiplication, the star sign, underscores
+  // inside words and links are not.
+  const q5 = 'Kerala Backwaters, 6N / 7D, is from ₹23,900 per person (3-star).\n\n';
+  const note = 'Note: Prices are indicative starting-from estimates and can change with season, hotel availability and current rates.';
+  const r5 = (await chat('Kerala?', q5 + '*' + note + '*')).reply;
+  check('M3: the run-2 Q5 note "*Note: ...*" loses its asterisks, and no second note is added', r5 === q5 + note, r5);
+  const cases = [['The _best_ time is *October*.', 'The best time is October.'], ['*Kerala* and *Goa* are lovely.', 'Kerala and Goa are lovely.'],
+    ['(*note*) and _Note:_ read this', '(note) and Note: read this'], ['*नोट:* मौसम _सबसे अच्छा_ है', 'नोट: मौसम सबसे अच्छा है'], ['*ગુજરાતી* _ભાષા_', 'ગુજરાતી ભાષા'],
+    ['- Kochi\n- *Munnar*', u('{2022} Kochi\n{2022} Munnar')], ['* Kochi\n* Munnar', u('{2022} Kochi\n{2022} Munnar')], ['*a* and _b_', 'a and b']];
+  const wrong = [];
+  for (const [t, want] of cases) { const r = (await chat('hi', t)).reply; if (r !== want) wrong.push(t + ' => ' + r); }
+  check(`M3: ${cases.length} single-asterisk / underscore italics are stripped (English, Hindi, Gujarati, list items; a "* " item stays a bullet)`, wrong.length === 0, wrong.join(' | '));
+  const untouched = [u('Rated {2605}{2605}{2605}{2605} (3{2605}) by our guests'), 'Prices* are indicative.', 'Terms* apply', 'a lone * here', '*', 'x*',
+    '2*3*4 = 24', '2 * 3 * 4 = 24', '5 * 3 = 15', 'snake_case_name and file_name_v2', 'mid_word_under and mid*word*star', 'first_last@example.com',
+    'https://example.com/my_page_name', 'https://x.com/?q=_x_&y=_z_', 'www.example.com/_a_ and https://example.com/*a*', 'see /_next_/ path', 'x=_y_', '*a * b*', '*two\nlines*'];
+  const touched = [];
+  for (const t of untouched) { const r = (await chat('hi', t)).reply; if (r !== t) touched.push(JSON.stringify(t) + ' => ' + JSON.stringify(r)); }
+  check(`M3: ${untouched.length} lone asterisks, multiplication, the star sign, underscores inside words, links and paths are left alone`, touched.length === 0, touched.join(' | '));
+  const range = (await chat('Goa?', u('Goa 3-star is *{20B9}9,999*-*12,500* per person.'))).reply;
+  check('M3: an italic range "*₹9,999*-*12,500*" is still caught (money is read again after the strip)', replaced(range), range);
+  const kept = (await chat('Kerala?', 'Kerala *Backwaters*, 6N / 7D, is from ₹23,900 per person (3-star).')).reply;
+  check('M3: an italic word next to a published price is stripped and the price still passes, with one note', kept === 'Kerala Backwaters, 6N / 7D, is from ₹23,900 per person (3-star).' + NOTE_LINE, kept);
 }
 
 check('every fetch went to the fake Anthropic API only', calls.every((c) => c.url === ANTHROPIC), [...new Set(calls.map((c) => c.url))].join(' '));

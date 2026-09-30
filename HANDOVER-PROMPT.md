@@ -95,7 +95,7 @@ GitHub Pages rebuilds in ~1 min and caches files 10 min (max-age=600) — hard-r
 AI CHAT BACKEND — NOT DEPLOYED BY GIT
 The floating "Ask Skyline AI" widget (AssistantWidget.dc.html, `aiEndpoint`) POSTs {messages:[...]}
 to a Cloudflare Worker at https://hello-world.skyline-dev.workers.dev running
-`server/anthropic-chat-worker.js` (Claude model `claude-haiku-4-5`) and receives {reply}.
+`server/anthropic-chat-worker.js` (Claude model `claude-sonnet-5-5` since 2026-09-30; was `claude-haiku-4-5`) and receives {reply}.
 - ANTHROPIC_API_KEY is an encrypted Cloudflare Worker secret (never in the repo).
 - ⚠️ To change the AI model/prompt/logic you MUST paste the file into the Cloudflare dashboard →
   the Worker → Edit code → Deploy. `git push` does NOT update the Worker.
@@ -103,7 +103,8 @@ to a Cloudflare Worker at https://hello-world.skyline-dev.workers.dev running
 - Behavior already baked in: replies in the user's language (EN/HI/GU); budget is OPTIONAL (never
   pushes for money); a price-disclaimer note is auto-appended whenever a reply quotes ₹/Rs/INR;
   CORS locked to the site's origins.
-- Higher quality: change `const MODEL = 'claude-haiku-4-5'` → `'claude-sonnet-5'` and redeploy.
+- Model (2026-09-30): Claude Sonnet 5.5 (`claude-sonnet-5-5`), with `thinking: { type: 'between_tools' }`, no
+  `temperature` (Sonnet 5.5 returns a 400 for a non-default one) and `max_tokens: 1000`. Change all three together.
 
 LEAD CAPTURE
 Customize.dc.html submits to Formspree (endpoint in the file) → email, plus a prefilled WhatsApp

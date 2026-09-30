@@ -12,15 +12,18 @@
  * Design notes:
  *   - Skips cleanly (exit 0) with NO ANTHROPIC_API_KEY, so a git hook never blocks
  *     on a missing key. The SDK is required lazily so this file imports offline.
- *   - Forced tool use gives structured findings (no prose parsing).
+ *   - A tool call gives structured findings (no prose parsing): forced where the model
+ *     accepts it, auto + strict + one checked retry on Sonnet 5.5 (engine/model-compat.js).
  *   - Model via REVIEW_MODEL (default claude-opus-4-8 — best at finding real bugs;
- *     set REVIEW_MODEL=claude-haiku-4-5 for cheap/fast runs).
+ *     set REVIEW_MODEL=claude-sonnet-5-5 for cheaper/faster runs — claude-haiku-4-5
+ *     retires, owner decision 2026-09-30).
  *   - This is a SECOND pair of eyes, not a substitute for tests/run-all.ps1 (the
  *     deterministic gate). Run both.
  */
 
 const { execSync } = require("child_process");
 const { redact } = require("../engine/publish");
+const { createWithTool } = require("../engine/model-compat");
 
 const MODEL = process.env.REVIEW_MODEL || "claude-opus-4-8";
 const MAX_DIFF = 180000; // chars — keep the prompt bounded; split larger changes
@@ -78,11 +81,9 @@ const FINDINGS_TOOL = {
 };
 
 async function reviewRole(client, role, diff) {
-  const msg = await client.messages.create({
+  const msg = await createWithTool(client, {
     model: MODEL,
     max_tokens: 4096,
-    tools: [FINDINGS_TOOL],
-    tool_choice: { type: "tool", name: "report_findings" }, // force structured output
     messages: [
       {
         role: "user",
@@ -95,7 +96,7 @@ async function reviewRole(client, role, diff) {
           "```diff\n" + diff + "\n```",
       },
     ],
-  });
+  }, FINDINGS_TOOL); // structured output via the report_findings tool
   const use = (msg.content || []).find((b) => b.type === "tool_use");
   return (use && use.input && Array.isArray(use.input.findings)) ? use.input.findings : [];
 }

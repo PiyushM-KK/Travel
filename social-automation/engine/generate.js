@@ -8,18 +8,21 @@
  * how automated social accounts go stale without anyone noticing.
  *
  * Models follow the cost split in the business plan (captions on Sonnet, replies
- * on Haiku) — both overridable by env so the economics stay tunable:
+ * on the light model) — both overridable by env so the economics stay tunable:
  *   SOCIAL_CAPTION_MODEL   default "claude-sonnet-5"
- *   SOCIAL_REPLY_MODEL     default "claude-haiku-4-5"
+ *   SOCIAL_REPLY_MODEL     default "claude-sonnet-5-5" (was claude-haiku-4-5 until 2026-09-30:
+ *                          Haiku 4.5 retires, owner decision — see engine/model-compat.js)
  *
- * Structured output uses forced tool use (SDK 0.57), which guarantees the shape
- * without relying on the model to format JSON by hand.
+ * Structured output uses a tool call (SDK 0.57), which guarantees the shape
+ * without relying on the model to format JSON by hand: forced tool use where the
+ * model accepts it, auto + strict + a checked retry on Sonnet 5.5 (model-compat.js).
  */
 
 const { factSheet } = require("./kb-adapter");
 const { SOCIAL_PLAYBOOK } = require("./social-playbook");
 const { validatePost } = require("./validate-post");
 const { redact } = require("./publish"); // secret-safe error text (no cycle: publish.js never requires generate.js)
+const { textRequest, createWithTool } = require("./model-compat"); // per-model request shape (Sonnet 5.5)
 
 // Lazy: the SDK is only needed when we actually call the API. Requiring it at
 // runtime (not import time) keeps the engine importable offline — e.g. tests
@@ -30,7 +33,7 @@ function newClient() {
 }
 
 const CAPTION_MODEL = process.env.SOCIAL_CAPTION_MODEL || "claude-sonnet-5";
-const REPLY_MODEL = process.env.SOCIAL_REPLY_MODEL || "claude-haiku-4-5";
+const REPLY_MODEL = process.env.SOCIAL_REPLY_MODEL || "claude-sonnet-5-5";
 const MAX_TOKENS = 1200;
 
 /**
@@ -308,11 +311,11 @@ async function describeImage(image, opts = {}) {
     const model = models[Math.min(i, models.length - 1)];
     let msg;
     try {
-      msg = await client.messages.create({
+      msg = await client.messages.create(textRequest({
         model,
         max_tokens: 300,
         messages: [{ role: "user", content: [{ type: "image", source }, { type: "text", text: prompt }] }],
-      });
+      }));
     } catch (e) { continue; } // transient API error -> retry (next attempt may escalate the model)
     // Join ALL text blocks (the model may split), strip a stray markdown heading.
     const text = (msg.content || [])
@@ -338,7 +341,7 @@ async function classifyImageForEnhance(image, opts = {}) {
   if (!source) return "graphic";
   const client = opts.client || newClient();
   try {
-    const msg = await client.messages.create({
+    const msg = await client.messages.create(textRequest({
       model: opts.model || REPLY_MODEL,
       max_tokens: 8,
       messages: [{
@@ -351,7 +354,7 @@ async function classifyImageForEnhance(image, opts = {}) {
             "Answer with exactly one word: PHOTO or GRAPHIC." },
         ],
       }],
-    });
+    }));
     const block = (msg.content || []).find((b) => b.type === "text");
     const ans = block ? String(block.text || "").toUpperCase() : "";
     return /\bPHOTO\b/.test(ans) && !/\bGRAPHIC\b/.test(ans) ? "photo" : "graphic";
@@ -360,7 +363,7 @@ async function classifyImageForEnhance(image, opts = {}) {
   }
 }
 
-// The QA vision gate returns its verdict through a forced tool call, so we parse structured
+// The QA vision gate returns its verdict through a tool call (model-compat.js), so we parse structured
 // fields instead of prose. `ok` is the headline pass/fail; `score` (0–10) and `defects` explain it.
 const IMAGE_QA_TOOL = {
   name: "report_image_quality",
@@ -399,12 +402,10 @@ async function assessAiSceneQuality(image, opts = {}) {
   const client = opts.client || newClient();
   const minScore = Number.isFinite(opts.minScore) ? opts.minScore : 7;
   try {
-    const msg = await client.messages.create({
-      // Defect-spotting needs a strong vision model — haiku misses subtle warping. Default Sonnet.
+    const msg = await createWithTool(client, {
+      // Defect-spotting needs a strong vision model — Haiku 4.5 missed subtle warping. Default Sonnet.
       model: opts.model || CAPTION_MODEL,
       max_tokens: 400,
-      tools: [IMAGE_QA_TOOL],
-      tool_choice: { type: "tool", name: "report_image_quality" },
       messages: [{
         role: "user",
         content: [
@@ -440,7 +441,7 @@ async function assessAiSceneQuality(image, opts = {}) {
             "actually see; empty list only if it is genuinely clean and publishable." },
         ],
       }],
-    });
+    }, IMAGE_QA_TOOL);
     const use = (msg.content || []).find((b) => b.type === "tool_use");
     const out = (use && use.input) || {};
     const score = Number.isFinite(out.score) ? out.score : null;
@@ -457,7 +458,7 @@ async function assessAiSceneQuality(image, opts = {}) {
   }
 }
 
-// The VIDEO QA verdict comes back through a forced tool call (structured, no prose parsing). `ok` is the
+// The VIDEO QA verdict comes back through a tool call (structured, no prose parsing). `ok` is the
 // headline pass/fail; `score` (0–10) and `defects` explain it. Same shape as the image gate so callers
 // can treat image and video verdicts uniformly.
 const VIDEO_QA_TOOL = {
@@ -529,13 +530,11 @@ async function assessVideoQuality(frames, opts = {}) {
     "cinematographer — would not let it go out. List every flaw you actually see across the frames; empty " +
     "list only if the clip is genuinely clean and publishable." });
   try {
-    const msg = await client.messages.create({
+    const msg = await createWithTool(client, {
       model: opts.model || CAPTION_MODEL,
       max_tokens: 500,
-      tools: [VIDEO_QA_TOOL],
-      tool_choice: { type: "tool", name: "report_video_quality" },
       messages: [{ role: "user", content }],
-    });
+    }, VIDEO_QA_TOOL);
     const use = (msg.content || []).find((b) => b.type === "tool_use");
     const out = (use && use.input) || {};
     const score = Number.isFinite(out.score) ? out.score : null;
@@ -558,8 +557,8 @@ async function describeOffer(image, opts = {}) {
   if (!source) return "";
   const client = opts.client || newClient();
   try {
-    const msg = await client.messages.create({
-      // Poster reading needs a strong vision model — the cheap REPLY_MODEL (haiku) returns EMPTY on
+    const msg = await client.messages.create(textRequest({
+      // Poster reading needs a strong vision model — Haiku 4.5 (the old REPLY_MODEL) returned EMPTY on
       // stylised vendor posters. Default to CAPTION_MODEL (Sonnet); overridable via opts.model.
       model: opts.model || CAPTION_MODEL,
       max_tokens: 120,
@@ -573,7 +572,7 @@ async function describeOffer(image, opts = {}) {
             "name, logo, phone number, website, or price. Reply as a short phrase, no sentences." },
         ],
       }],
-    });
+    }));
     const block = (msg.content || []).find((b) => b.type === "text");
     return block ? String(block.text || "").replace(/^#+\s.*$/gm, "").trim() : "";
   } catch (e) { return ""; }
@@ -589,8 +588,8 @@ async function extractPrices(image, opts = {}) {
   if (!source) return [];
   const client = opts.client || newClient();
   try {
-    const msg = await client.messages.create({
-      // Strong vision model — haiku blanked poster prices, and a +10% markup is MANDATORY so reading
+    const msg = await client.messages.create(textRequest({
+      // Strong vision model — Haiku 4.5 blanked poster prices, and a +10% markup is MANDATORY so reading
       // the original price reliably matters. Default to CAPTION_MODEL (Sonnet); overridable.
       model: opts.model || CAPTION_MODEL,
       max_tokens: 60,
@@ -604,7 +603,7 @@ async function extractPrices(image, opts = {}) {
             "any non-price number. If there are no prices, reply exactly NONE." },
         ],
       }],
-    });
+    }));
     const block = (msg.content || []).find((b) => b.type === "text");
     const t = block ? String(block.text || "") : "";
     if (/\bNONE\b/i.test(t)) return [];
@@ -627,7 +626,7 @@ async function detectForeignBrand(image, opts = {}) {
   const clientName = String(opts.clientName || "the client").trim();
   const client = opts.client || newClient();
   try {
-    const msg = await client.messages.create({
+    const msg = await client.messages.create(textRequest({
       model: opts.model || REPLY_MODEL,
       max_tokens: 40,
       messages: [{
@@ -641,7 +640,7 @@ async function detectForeignBrand(image, opts = {}) {
             `other-company branding, or "FOREIGN: <the other brand/name/number you see>".` },
         ],
       }],
-    });
+    }));
     const block = (msg.content || []).find((b) => b.type === "text");
     const ans = block ? String(block.text || "").trim() : "";
     if (/^\s*FOREIGN\b/i.test(ans)) return { foreign: true, brand: ans.replace(/^\s*FOREIGN:\s*/i, "").slice(0, 120) };
@@ -666,14 +665,12 @@ async function generateForBrief(brief, facts, profile, opts = {}) {
   );
 
   const call = async (messages) =>
-    client.messages.create({
+    createWithTool(client, {
       model: opts.model || CAPTION_MODEL,
       max_tokens: MAX_TOKENS,
       system,
-      tools: [POST_TOOL],
-      tool_choice: { type: "tool", name: POST_TOOL.name },
       messages,
-    });
+    }, POST_TOOL);
 
   const messages = [{ role: "user", content: userPromptFor(brief, language) }];
   let candidates = extractPosts(await call(messages));
@@ -737,7 +734,7 @@ async function generateForBrief(brief, facts, profile, opts = {}) {
 }
 
 /**
- * Review / DM replies (WF-reviews). Same fact base, cheaper model.
+ * Review / DM replies (WF-reviews). Same fact base, the REPLY_MODEL.
  * Replies never invent, never promise a refund or comp, and escalate anything
  * that needs the owner — a bot that promises a free meal has spent the owner's
  * money without asking.
@@ -773,19 +770,17 @@ RULES:
     },
   };
 
-  const msg = await client.messages.create({
+  const msg = await createWithTool(client, {
     model: opts.model || REPLY_MODEL,
     max_tokens: 400,
     system,
-    tools: [TOOL],
-    tool_choice: { type: "tool", name: TOOL.name },
     messages: [
       {
         role: "user",
         content: `Rating: ${review.rating}/5\nPlatform: ${review.platform || "google"}\nReview: ${review.text}`,
       },
     ],
-  });
+  }, TOOL);
 
   const block = (msg.content || []).find((b) => b.type === "tool_use");
   if (!block) throw new Error("model did not return the emit_reply tool call");

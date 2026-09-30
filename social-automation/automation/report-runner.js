@@ -10,6 +10,8 @@
  * makeMetricsFetcher(). The Claude summary uses an injected summarizeFn in tests.
  */
 
+const { textRequest } = require("../engine/model-compat");
+
 const GRAPH = "https://graph.facebook.com/v21.0";
 
 function nowIso(now) {
@@ -89,15 +91,17 @@ function renderPlainSummary(totals, monthLabel) {
  */
 async function summarizeWithClaude(data, opts = {}) {
   const client = opts.client || (() => { const A = require("@anthropic-ai/sdk"); return new A({ apiKey: process.env.ANTHROPIC_API_KEY }); })();
-  const model = opts.model || process.env.SOCIAL_REPLY_MODEL || "claude-haiku-4-5";
-  const msg = await client.messages.create({
+  // Claude Sonnet 5.5 since 2026-09-30 (was claude-haiku-4-5, which retires; owner decision). textRequest
+  // turns its up-front thinking off and raises the cap (engine/model-compat.js); other models: unchanged.
+  const model = opts.model || process.env.SOCIAL_REPLY_MODEL || "claude-sonnet-5-5";
+  const msg = await client.messages.create(textRequest({
     model,
     max_tokens: 400,
     system:
       "You are an honest small-business marketing reporter. Summarise the month's social results in 3-4 short sentences of plain English for a busy owner. " +
       "No hype, no vanity spin. If it was a slow month, say so kindly and give ONE concrete, low-effort suggestion. Use only the numbers provided; never invent metrics.",
     messages: [{ role: "user", content: `Month: ${data.monthLabel || ""}\nTotals: ${JSON.stringify(data.totals)}\nWrite the summary.` }],
-  });
+  }));
   const block = (msg.content || []).find((b) => b.type === "text");
   return block ? String(block.text || "").trim() : renderPlainSummary(data.totals, data.monthLabel);
 }

@@ -27,6 +27,7 @@
  */
 
 const { loadMasterTemplate } = require("./scene-prompts");
+const { createWithTool } = require("../engine/model-compat"); // forced tool where accepted; auto + strict + retry on Sonnet 5.5
 
 const SCENE_MODEL = process.env.SOCIAL_SCENE_MODEL || process.env.SOCIAL_CAPTION_MODEL || "claude-sonnet-5";
 
@@ -180,12 +181,10 @@ async function generateSceneSpec(ctx = {}) {
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   let msg;
   try {
-    msg = await client.messages.create({
+    msg = await createWithTool(client, {
       model: ctx.model || SCENE_MODEL,
       max_tokens: 1200,
       system: master + honesty,
-      tools: [SCENE_TOOL],
-      tool_choice: { type: "tool", name: SCENE_TOOL.name },
       messages: [
         {
           role: "user",
@@ -194,7 +193,7 @@ async function generateSceneSpec(ctx = {}) {
             `Produce ONE fresh, unique image concept + render-ready prompt for a marketing card featuring this package.\n\n${avoid}`,
         },
       ],
-    }, { signal: controller.signal });
+    }, SCENE_TOOL, { signal: controller.signal });
   } finally {
     clearTimeout(timer);
   }

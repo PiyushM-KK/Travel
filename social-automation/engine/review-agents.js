@@ -1,7 +1,7 @@
 /**
  * review-agents.js — the senior "agent team" that sits on top of the mechanical
- * fact-check. Two experienced personas, each a distinct Claude call with a forced
- * structured output:
+ * fact-check. Two experienced personas, each a distinct Claude call with a
+ * structured (tool-call) output — see model-compat.js for how that differs per model:
  *
  *   Social Media Manager (20 yrs) — reviewAsSocialMediaManager()
  *     A second set of eyes on a DRAFT before it reaches the client. Judges hook,
@@ -24,6 +24,7 @@
 const { factSheet } = require("./kb-adapter");
 const { SOCIAL_PLAYBOOK } = require("./social-playbook");
 const { imageBlockSource } = require("./generate");
+const { createWithTool } = require("./model-compat"); // forced tool where accepted; auto + strict + retry on Sonnet 5.5
 
 function newClient() {
   const Anthropic = require("@anthropic-ai/sdk");
@@ -60,19 +61,17 @@ async function reviewAsSocialMediaManager(post, context = {}, opts = {}) {
     `HARD RULES: use ONLY the facts below. Never suggest inventing a dish, price, promotion, award or claim. Any revision must stay 100% grounded in these facts. If the draft states something the facts do not support, or is misleading, the verdict is "reject". Keep any revision in the same language as the draft.\n\n` +
     `${SOCIAL_PLAYBOOK}\n\n${factSheet(facts)}\n\nBrand voice: ${profile.tone || "warm, plain, unpretentious"}.`;
 
-  const msg = await client.messages.create({
+  const msg = await createWithTool(client, {
     model: opts.model || process.env.SOCIAL_CAPTION_MODEL || "claude-sonnet-5",
     max_tokens: 500,
     system,
-    tools: [SMM_TOOL],
-    tool_choice: { type: "tool", name: SMM_TOOL.name },
     messages: [
       {
         role: "user",
         content: `Platform: ${post.platform}\nCaption: ${post.caption}\nHashtags: ${(post.hashtags || []).join(" ")}\nCTA: ${post.cta || "(none)"}`,
       },
     ],
-  });
+  }, SMM_TOOL);
   const block = (msg.content || []).find((b) => b.type === "tool_use" && b.name === SMM_TOOL.name);
   if (!block) throw new Error("Social Media Manager did not return a review");
   const out = block.input || {};
@@ -130,12 +129,10 @@ async function reviewCreative(image, context = {}, opts = {}) {
     `HARD RULES: for any claim in your CAPTION use ONLY the facts below; never invent a price, dish, package, promo or date. If the DESIGN itself shows a claim you cannot verify from the facts (e.g. a price), do NOT repeat it as fact in the caption — instead add a suggestion like "confirm the shown price is current". List every product/package you name in mentionedItems and every price figure in claimedPrices so it can be fact-checked. Write the caption in: ${language}.\n\n` +
     `Judge the design and write the caption against this playbook:\n${SOCIAL_PLAYBOOK}\n\n${factSheet(facts)}\n\nBrand voice: ${profile.tone || "warm, plain, unpretentious"}.`;
 
-  const msg = await client.messages.create({
+  const msg = await createWithTool(client, {
     model: opts.model || process.env.SOCIAL_CAPTION_MODEL || "claude-sonnet-5",
     max_tokens: 800,
     system,
-    tools: [CREATIVE_TOOL],
-    tool_choice: { type: "tool", name: CREATIVE_TOOL.name },
     messages: [
       {
         role: "user",
@@ -145,7 +142,7 @@ async function reviewCreative(image, context = {}, opts = {}) {
         ],
       },
     ],
-  });
+  }, CREATIVE_TOOL);
   const block = (msg.content || []).find((b) => b.type === "tool_use" && b.name === CREATIVE_TOOL.name);
   if (!block) throw new Error("creative review returned nothing");
   const out = block.input || {};
@@ -207,12 +204,10 @@ async function reviewAsQualityAnalyst(request = {}, post = {}, context = {}, opt
     `THE CLIENT is "${business.name}" — ${business.cuisine || business.tagline || "a local business"}. Only content appropriate to THIS business may pass. If the request or the output is about something this business does not do, HOLD it with a plain reason.\n\n` +
     `${factSheet(facts)}`;
 
-  const msg = await client.messages.create({
+  const msg = await createWithTool(client, {
     model: opts.model || process.env.SOCIAL_CAPTION_MODEL || "claude-sonnet-5",
     max_tokens: 400,
     system,
-    tools: [QA_TOOL],
-    tool_choice: { type: "tool", name: QA_TOOL.name },
     messages: [
       {
         role: "user",
@@ -222,7 +217,7 @@ async function reviewAsQualityAnalyst(request = {}, post = {}, context = {}, opt
           `Does this fulfil the request AND fit "${business.name}"? Return via the tool.`,
       },
     ],
-  });
+  }, QA_TOOL);
   const block = (msg.content || []).find((b) => b.type === "tool_use" && b.name === QA_TOOL.name);
   if (!block) throw new Error("QA analyst returned nothing");
   const out = block.input || {};
@@ -263,19 +258,18 @@ async function respondAsPRManager(review, context = {}, opts = {}) {
     `Triage the severity: "routine" (praise or a minor gripe), "sensitive" (angry but an ordinary service issue), "crisis" (alleges illness, injury, discrimination, harassment, or a legal threat).\n\n` +
     `RULES: sound like a real owner, 2-3 sentences, acknowledge specifically, never argue or blame the customer. NEVER invent facts. NEVER offer a refund, free item, discount or compensation — that spends the owner's money, so set needsOwner=true instead. For a CRISIS, write NO public reply (reply empty, publicReplyOk=false, needsOwner=true) and explain why. Never claim certifications or allergen safety.\n\n${factSheet(facts)}`;
 
-  const msg = await client.messages.create({
-    model: opts.model || process.env.SOCIAL_REPLY_MODEL || "claude-haiku-4-5",
+  const msg = await createWithTool(client, {
+    // Claude Sonnet 5.5 since 2026-09-30 (was claude-haiku-4-5, which retires; owner decision).
+    model: opts.model || process.env.SOCIAL_REPLY_MODEL || "claude-sonnet-5-5",
     max_tokens: 400,
     system,
-    tools: [PR_TOOL],
-    tool_choice: { type: "tool", name: PR_TOOL.name },
     messages: [
       {
         role: "user",
         content: `Rating: ${review.rating != null ? review.rating + "/5" : "n/a"}\nPlatform: ${review.platform || "google"}\nReview: ${review.text || ""}`,
       },
     ],
-  });
+  }, PR_TOOL);
   const block = (msg.content || []).find((b) => b.type === "tool_use" && b.name === PR_TOOL.name);
   if (!block) throw new Error("PR Manager did not return a response");
   const out = block.input || {};

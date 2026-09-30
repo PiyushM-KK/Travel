@@ -42,7 +42,9 @@ const VERSION = 'anthropic-7'; // reported by the GET health check
 // line replaces it if the second one is garbled too; the prompt forbids flight and travel times and any claim about the
 // WhatsApp team's languages, asks for "(3-star)" with every domestic package price, says hotels are confirmed at booking
 // by the official provider, and aims for 80-100 words; single-asterisk and underscore italics are stripped as well.
-// The booking backstops no longer note a sentence that says who or when confirms, in Hindi and Gujarati too.
+// Booking backstops (AI Security round): a Hindi/Gujarati confirmation in a past or perfective form is a claim whoever
+// confirms it, and only habitual/future forms describe the process; the English "confirmed by" excuses only the
+// provider, airline, operator, hotel or railway. A visitor whose own message is garbled gets no retry.
 const SYSTEM_PROMPT = `You are the Skyline AI Travel Assistant for "Skyline Travel Planner", an India-based travel planning website (WhatsApp +91 8866050291, info@skylinetravelplanner.com). Help with: destination selection, trip duration, preliminary itineraries, hotel-category comparison (3/4/5-star), packing lists, transport recommendations, family/honeymoon/religious/group planning, budget planning, travel-season guidance, and FAQs. The destinations we cover are listed under DESTINATIONS WE COVER below. Reply in the same language the customer writes in (English, Hindi or Gujarati). Never say which languages our WhatsApp team speaks; only you, the assistant, answer in English, Hindi and Gujarati. Prices are in Indian Rupees and ALWAYS "starting from" estimates, never guaranteed. Budget is OPTIONAL — never insist on it and never make the traveller feel they must share money or budget details. If the traveller has not mentioned a budget, still give a genuinely helpful answer using the published starting-from prices listed below (never a made-up range); do NOT repeatedly ask about budget or money. Ask about budget at most once, and only if it would clearly improve your recommendation — otherwise proceed happily without it and simply invite them to the "Customize My Trip" form or WhatsApp for an exact quote. Whenever your reply mentions any prices, budget figures or cost estimates, end that reply with a short one-line note on its own line, such as: "Note: Prices are indicative starting-from estimates and can change with season, hotel availability and current rates." Add this note only when you actually mention prices. Keep replies warm, concise and practical (see the LENGTH limit at the end). After understanding the trip, encourage the user to request a customized package (the website "Customize My Trip" form) or chat on WhatsApp (+91 8866050291) for a quote. NEVER claim to confirm tickets, process payments, guarantee hotel availability, guarantee prices, guarantee visa approval, or give official immigration advice — politely defer those to the team or official provider. Never state flight durations, flying times or travel times between places, not even as an estimate (trip lengths in nights and days are fine). NEVER ask for card, bank, Aadhaar or passport details. Do not invent specific hotel bookings. Keep the "no payments on this website" disclosure when relevant. SAMPLE TOUR PACKAGES you can recommend (all fully customizable; prices are indicative "starting from" and shared on request via the "Customize My Trip" form or WhatsApp — never quote a fixed figure for these EXCEPT where a "from" price is stated below): (1) Nainital · Mussoorie · Jim Corbett — 6N/7D, Uttarakhand: Mussoorie sightseeing (Kempty Falls, Gun Hill), Nainital lake tour (Bhimtal, Sattal, Naukuchiatal), Jim Corbett jeep safari. (2) Ooty · Coorg · Mysore — 5N/6D, South India: Mysore Palace & Brindavan Gardens, Coorg (Abbey Falls, Talacauvery), Ooty & Coonoor. (3) Sikkim · Darjeeling — 5N/6D: Gangtok, Tsomgo Lake & New Baba Mandir, Darjeeling Tiger Hill sunrise. (4) Shimla · Manali — 5N/6D, from ₹10,999 per person (indicative starting-from), Himachal: Shimla–Kufri, Kullu valley, Solang Valley, Manali (Hadimba Temple, Vashisht). (5) Untouched Spiti Valley — 8N/9D, Himachal: Narkanda, Sangla–Chitkul, Nako–Tabo, Kaza (Key Monastery, Hikkim highest post office), Kalpa. When a traveller asks about any of these regions, mention the matching package and its nights, then invite them to the Domestic tours page or the "Customize My Trip" form / WhatsApp for a tailored quote.`;
 
 // PUBLISHED PRICES, DESTINATIONS and BEST SEASONS: copied by script (not typed) from the site files on 2026-09-30.
@@ -180,6 +182,13 @@ const FRAMERS = /\b(?:if|whether|ask|asking)\b|अगर|यदि|पूछ|પ
 const AFFIRMING = /\b(?:at\s+)?no\s+(?:extra|additional|added)\s+(?:cost|charge|fee|price)s?\b|\bat\s+no\s+(?:cost|charge)\b|\bfree\s+of\s+(?:cost|charge)\b|\bwithout\s+(?:any\s+)?(?:extra|additional)\s+(?:cost|charge|fee)s?\b|बिना\s+(?:किसी\s+)?अतिरिक्त\s+(?:शुल्क|खर्च|चार्ज|लागत)|कोई\s+अतिरिक्त\s+(?:शुल्क|खर्च|चार्ज)\s+नहीं|વધારાના\s+(?:ખર્ચ|ચાર્જ)\s+વિના|કોઈ\s+વધારાનો\s+(?:ખર્ચ|ચાર્જ)\s+નહીં/gi;
 // Sentence-wide, for the Hindi/Gujarati booking check only.
 const NEGATION = new RegExp(`${NEGATORS.source}|${FRAMERS.source}`, 'i');
+// The Hindi/Gujarati booking check reads the VERB after कन्फर्म / पक्की / રિઝર્વ ... (AI Security, anthropic-7). A past or
+// perfective form, or the plain "is confirmed" state, is a claim whoever is said to confirm it ("हमारी टीम द्वारा कन्फर्म
+// हुई", "... द्वारा कन्फर्म कर दी गई है", "... દ્વારા કન્ફર્મ કરવામાં આવી", "કન્ફર્મ કરાઈ છે", "કન્ફર્મ છે"). Only a
+// habitual, future, "can" or "until / after being" form describes the process ("प्रदाता द्वारा कन्फर्म की जाती है",
+// "कन्फर्म होने तक", "કન્ફર્મ થાય છે", "કન્ફર્મ થશે", "કન્ફર્મ થયા પછી"). A done form wins over a process form in the same
+// sentence. The process forms are here; the done forms (INDIC_CONFIRMED_DONE) sit beside claimsIndicBooking.
+const INDIC_CONFIRM_PROCESS = /(?:कन्फर्म(?:्ड)?|पक्की|पक्का|रिज़र्व|रिजर्व|होल्ड)\s*(?:(?:भी|तो|ही)\s*)?(?:(?:(?:की|किया|किए|हो|कर\s*(?:दी|दिया|दिए))\s*)?(?:जाती|जाता|जाते|जाएगी|जाएगा|जाएंगे|जाएँगे|जाए|जा\s*सक)|होती|होता|होते|होगी|होगा|होंगे|होने|हो\s*सक|करता|करती|करते|करेगा|करेगी|करेंगे|करना|करने)|(?:કન્ફર્મ|પાકી|પાકું|રિઝર્વ|હોલ્ડ)\s*(?:(?:પણ|તો|જ)\s*)?(?:થાય|થશે|થઈ\s*શક|થઇ\s*શક|થવા|થયા\s*પછી|કરવામાં\s*આવે|કરવામાં\s*આવશે|કરી\s*દેવામાં\s*આવશે|કરાય\s*છે|કરે|કરશે|કરી\s*શક|કરવા)/;
 // Clauses: segments end at ; : dashes or "but"; inside a segment, commas (not the ones inside a number) end a clause.
 const SEGMENT_BREAK = /[;:—–]|\s-\s|\bbut\b|लेकिन|किंतु|परंतु|પરંતુ/gi;
 const COMMA = /(?<!\d),|,(?!\d)/g;
@@ -470,21 +479,20 @@ function honestPriceReply(question, now) {
 
 // Promises nobody can keep: a confirmed booking, a guaranteed/locked/fixed price, a visa outcome, a held seat, a
 // booking made or a payment received. "confirmed only/by/after/until ..." describes who confirms, not a confirmation.
-// anthropic-7: so do "confirmed at (the time of) booking" and one adverb in between ("confirmed directly by ...").
-const PROMISE = /\b(booking\s+(is\s+)?confirmed(?!\s+(?:[a-z]+ly\s+)?(only|by|after|until|at\s+(?:the\s+time\s+of\s+)?booking)\b)|confirmed\s+your\s+booking|guarantee[ds]?\s+(the\s+|your\s+)?price|price\s+(is\s+)?(locked|guaranteed)|locked[-\s]?in\s+price|visa\s+(is\s+)?(approved|guaranteed|confirmed)(?!\s+(only|by|after|until)\b)|guarantee[ds]?\s+(your\s+)?visa|reserved\s+(a\s+|your\s+|the\s+)?(seats?|spots?|places?)|hold(ing)?\s+((you|for\s+you)\s+)?(a\s+|your\s+|the\s+)?(seats?|spots?|places?)|lock(ed|ing)?\s+(it|this|that|them)\s+in|lock(ed|ing)?\s+in\s+(the\s+|your\s+|this\s+|a\s+)?(price|rate|deal|seats?|spots?|fare)|(seats?|spots?|places?|booking)\s+(is|are|has\s+been|have\s+been)\s+(now\s+)?(reserved|held|secured|locked)|(?<!\bnot\s|n't\s|n’t\s)booked\s+(your|the)\s+(seats?|tickets?|hotel)|payment\s+(is\s+|has\s+been\s+)?received|received\s+your\s+payment|(visa|approval)\s+(is\s+)?assured|prices?\s+(is\s+|are\s+)?fixed|prices?\s+(won't|won’t|will\s+not)\s+change)\b/i;
+// anthropic-7 (AI Security): "booking is confirmed by ..." is the process only when the provider, airline, operator, hotel
+// or railway confirms it (also "at (the time of) booking by" one of them, and with one adverb: "confirmed directly by the
+// airline"), and never in a sentence that also says today, now, already, done or is booked; "confirmed after / until /
+// once / when ..." (also "only after") still describes the process. "Your booking is confirmed by our team today", "...
+// confirmed at booking time. Done." and "Your booking is already / now confirmed" are claims.
+const PROMISE = /\b(booking\s+(is\s+)?(?:(?:already|now|also|all|fully)\s+)?confirmed(?!\s+(?:[a-z]+ly\s+)?(?:after|until|once|when)\b|(?<!\b(?:today|now|already|done|is\s+booked)\b[^.!?\n]*)\s+(?:[a-z]+ly\s+)?(?:at\s+(?:the\s+time\s+of\s+)?booking\s+)?by\s+(?:the\s+)?(?:official\s+)?(?:provider|airline|operator|hotel|railway)s?\b(?![^.!?\n]*\b(?:today|now|already|done|is\s+booked)\b))|confirmed\s+your\s+booking|guarantee[ds]?\s+(the\s+|your\s+)?price|price\s+(is\s+)?(locked|guaranteed)|locked[-\s]?in\s+price|visa\s+(is\s+)?(approved|guaranteed|confirmed)(?!\s+(only|by|after|until)\b)|guarantee[ds]?\s+(your\s+)?visa|reserved\s+(a\s+|your\s+|the\s+)?(seats?|spots?|places?)|hold(ing)?\s+((you|for\s+you)\s+)?(a\s+|your\s+|the\s+)?(seats?|spots?|places?)|lock(ed|ing)?\s+(it|this|that|them)\s+in|lock(ed|ing)?\s+in\s+(the\s+|your\s+|this\s+|a\s+)?(price|rate|deal|seats?|spots?|fare)|(seats?|spots?|places?|booking)\s+(is|are|has\s+been|have\s+been)\s+(now\s+)?(reserved|held|secured|locked)|(?<!\bnot\s|n't\s|n’t\s)booked\s+(your|the)\s+(seats?|tickets?|hotel)|payment\s+(is\s+|has\s+been\s+)?received|received\s+your\s+payment|(visa|approval)\s+(is\s+)?assured|prices?\s+(is\s+|are\s+)?fixed|prices?\s+(won't|won’t|will\s+not)\s+change)\b/i;
 
-// Hindi/Gujarati "booking confirmed / seat reserved" claims (the English ones are PROMISE above).
-// anthropic-7 (after prompt rule (d)): a sentence that says WHO or WHEN confirms - "... आधिकारिक प्रदाता द्वारा कन्फर्म की
-// जाती है", "बुकिंग के समय", "टीम के जवाब के बाद ही", "कन्फर्म होने तक", "... દ્વારા", "બુકિંગ સમયે", "... પછી જ",
-// "કન્ફર્મ થાય ત્યાં સુધી" - is the twin of the English "confirmed by / only after / until / at booking", not a
-// confirmation, UNLESS it also states the confirmation as done ("कन्फर्म है", "कन्फर्म हो गई", "कन्फर्म कर दी गई", "કન્ફર્મ
-// છે", "કન્ફર્મ થઈ ગયું"): "प्रदाता द्वारा आपकी बुकिंग कन्फर्म कर दी गई है" is still a claim. Habitual, future and "can"
-// forms ("कन्फर्म की जाती है", "કન્ફર્મ થાય છે", "કન્ફર્મ થશે") describe how it works.
-const INDIC_WHO_CONFIRMS = /द्वारा|के\s*समय|के\s*वक़्त|के\s*वक्त|करते\s*समय|के\s*बाद|होने\s*तक|जाने\s*तक|जब\s*तक|દ્વારા|સમયે|વખતે|પછી|ત્યાં\s*સુધી|થવા\s*સુધી/;
-const INDIC_CONFIRMED_DONE = /(?:कन्फर्म(?:्ड)?|पक्की|पक्का|रिज़र्व|रिजर्व|होल्ड)\s*(?:है|हैं|हो\s*(?:गई|गया|गए|चुकी|चुका|चुके)|कर\s*(?:दी|दिया|दिए|ली|लिया|लिए)|(?:की|किया|किए)\s*(?:गई|गया|गए))|(?:કન્ફર્મ|પાકી|પાકું|રિઝર્વ|હોલ્ડ)\s*(?:છે|થઈ\s*ગ|થઇ\s*ગ|થઈ\s*ચૂક|થયુ|થયો|થયા|થયેલ|કરી\s*દીધ|કરી\s*લીધ|કરવામાં\s*આવ્ય|કરેલ)/;
+// Hindi/Gujarati "booking confirmed / seat reserved" claims (the English ones are PROMISE above). The verb decides whether
+// a sentence that names a booking and a confirmation claims one: a done form (below) always does; otherwise a process
+// form (INDIC_CONFIRM_PROCESS, beside NEGATION, which explains both) means it does not.
+const INDIC_CONFIRMED_DONE = /(?:कन्फर्म(?:्ड)?|पक्की|पक्का|रिज़र्व|रिजर्व|होल्ड)\s*(?:(?:भी|तो|अब|आज|ही)\s*)?(?:है|हैं|हुई|हुआ|हुए|किया(?!\s*जा)|(?:की|किया|किए)\s*(?:गई|गयी|गया|गए)|कर\s*(?:दी|दिया|दिए|ली|लिया|लिए)(?!\s*जा)|हो\s*(?:गई|गयी|गया|गए|चुकी|चुका|चुके))|(?:કન્ફર્મ|પાકી|પાકું|રિઝર્વ|હોલ્ડ)\s*(?:(?:પણ|તો|હવે|આજે|જ)\s*)?(?:છે|થયું|થયો|થયેલ|થયા(?!\s*પછી)|થઈ\s*(?:ગ|ચૂક)|થઇ\s*(?:ગ|ચૂક)|કરાઈ|કરાઇ|કરાયું|કરાયો|કરાયા|કરી\s*(?:દીધ|લીધ)|કરી\s*દેવા(?:ઈ|યું|માં\s*આવ(?:ી|્ય))|કરવામાં\s*(?:આવી|આવ્ય)|કરેલ)/;
 const claimsIndicBooking = (reply) => sentences(reply).some(({ start, end }) => {
   const s = reply.slice(start, end);
-  return INDIC_BOOKING_CLAIM.test(s) && !NEGATION.test(s) && (!INDIC_WHO_CONFIRMS.test(s) || INDIC_CONFIRMED_DONE.test(s));
+  return INDIC_BOOKING_CLAIM.test(s) && !NEGATION.test(s) && (INDIC_CONFIRMED_DONE.test(s) || !INDIC_CONFIRM_PROCESS.test(s));
 });
 
 // ---- garbled text (anthropic-7) ----------------------------------------------------------------------------------
@@ -667,6 +675,12 @@ export default {
       // anthropic-7: a garbled reply (see isGarbled) is asked for ONCE more with the same request; if that one is garbled
       // too, the visitor gets a fixed line. The log says what happened and carries none of the reply.
       if (isGarbled(reply)) {
+        // AI Security: when the visitor's own message is garbled too, a retry would only bring the same again - no second
+        // call (it would double the cost of every such message).
+        if (isGarbled(convo[convo.length - 1].content)) {
+          console.warn(JSON.stringify({ garbled: 'visitor text garbled too, no retry' }));
+          return answer(GARBLED_LINE);
+        }
         console.warn(JSON.stringify({ garbled: 'retrying once' }));
         data = await ask();
         if (!data) return answer(FALLBACK_LINE);

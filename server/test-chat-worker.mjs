@@ -694,18 +694,35 @@ async function chatSeq(userText, answers) {
 }
 
 {
-  // M4 (coordinator, after prompt rule (d)): a sentence that says WHO or WHEN confirms gets no "To be clear" note in any
-  // of the three languages ("... प्रदाता द्वारा", "बुकिंग के समय", "... के बाद ही", "होने तक", "દ્વારા", "બુકિંગ સમયે",
-  // "પછી જ", "ત્યાં સુધી"; English "confirmed at (the time of) booking" / "confirmed directly by"). Every one of these
-  // got the note before this fix. A confirmation stated as done is still a claim, next to such a word too.
-  const honest = ["टिकट की उपलब्धता आधिकारिक प्रदाता द्वारा कन्फर्म की जाती है।", "होटल बुकिंग के समय आधिकारिक प्रदाता द्वारा कन्फर्म किए जाते हैं।", "बुकिंग हमारी टीम के जवाब के बाद ही कन्फर्म होती है।", "टिकट कन्फर्म होने तक हमारी टीम आपसे संपर्क में रहेगी।", "ટિકિટ સત્તાવાર પ્રદાતા દ્વારા કન્ફર્મ કરવામાં આવે છે.", "હોટેલ બુકિંગ સમયે સત્તાવાર પ્રદાતા દ્વારા કન્ફર્મ થાય છે.", "બુકિંગ અમારી ટીમ જવાબ આપે પછી જ કન્ફર્મ થાય છે.", "ટિકિટ કન્ફર્મ થાય ત્યાં સુધી અમારી ટીમ તમારા સંપર્કમાં રહેશે.", "Your hotel booking is confirmed at the time of booking by the official provider.", "Your booking is confirmed at booking by the official provider, never on this website.", "Your booking is confirmed directly by the official provider."];
-  const noisy = [];
-  for (const t of honest) { const r = (await chat('Is my booking confirmed?', t)).reply; if (r !== t) noisy.push(t + ' => ' + r.slice(t.length, t.length + 30)); }
-  check(`M4: ${honest.length} who/when-confirms sentences (Hindi, Gujarati, English: by the provider, at booking, only after the team replies, until) get no note`, noisy.length === 0, noisy.join(' | '));
-  const claims = ["आपकी बुकिंग कन्फर्म है।", "તમારું બુકિંગ કન્ફર્મ છે.", "आपकी बुकिंग कन्फर्म्ड है।", "आपकी बुकिंग प्रदाता द्वारा कन्फर्म कर दी गई है।", "पेमेंट के बाद आपकी सीट पक्की हो गई है।", "हमारी टीम के जवाब के बाद आपकी बुकिंग कन्फर्म की गई है।", "પ્રદાતા દ્વારા તમારું બુકિંગ કન્ફર્મ થઈ ગયું છે.", "બુકિંગ સમયે તમારી સીટ રિઝર્વ થઈ ગઈ છે.", "પેમેન્ટ પછી તમારું બુકિંગ કન્ફર્મ છે.", "Your booking is confirmed at 5 pm today.", "Your booking is confirmed for 3 November."];
-  const quiet = [];
-  for (const t of claims) if (!(await chat('Is my booking confirmed?', t)).reply.includes(BOOKING_NOTE)) quiet.push(t);
-  check(`M4: ${claims.length} real claims ("आपकी बुकिंग कन्फर्म है", "તમારું બુકિંગ કન્ફર્મ છે", and done confirmations next to a who/when word) still get the note`, quiet.length === 0, quiet.join(' | '));
+  // M4 (coordinator, then AI Security): the booking-claim check reads the verb. Hindi/Gujarati: a past or perfective form
+  // is a claim whoever confirms ("... द्वारा कन्फर्म हुई", "... દ્વારા કન્ફર્મ કરવામાં આવી"); only habitual, future and
+  // "until / after being" forms describe the process. English: "confirmed by" excuses only the provider / airline /
+  // operator / hotel / railway, never with today / now / already / done / is booked; "confirmed at booking" only with
+  // such an agent. Every quiet sentence below got the note before the coordinator's fix; the AI Security claims did not.
+  const indicQuiet = ["टिकट की उपलब्धता आधिकारिक प्रदाता द्वारा कन्फर्म की जाती है।", "होटल बुकिंग के समय आधिकारिक प्रदाता द्वारा कन्फर्म किए जाते हैं।", "बुकिंग हमारी टीम के जवाब के बाद ही कन्फर्म होती है।", "टिकट कन्फर्म होने तक हमारी टीम आपसे संपर्क में रहेगी।", "बुकिंग के समय प्रदाता द्वारा कन्फर्म की जाती है।", "आपकी बुकिंग कन्फर्म होने के बाद हमारी टीम आपसे संपर्क करेगी।", "सीट की बुकिंग प्रदाता द्वारा ही कन्फर्म कर दी जाएगी।", "ટિકિટ સત્તાવાર પ્રદાતા દ્વારા કન્ફર્મ કરવામાં આવે છે.", "હોટેલ બુકિંગ સમયે સત્તાવાર પ્રદાતા દ્વારા કન્ફર્મ થાય છે.", "બુકિંગ અમારી ટીમ જવાબ આપે પછી જ કન્ફર્મ થાય છે.", "ટિકિટ કન્ફર્મ થાય ત્યાં સુધી અમારી ટીમ તમારા સંપર્કમાં રહેશે.", "તમારું બુકિંગ સત્તાવાર પ્રદાતા દ્વારા કન્ફર્મ થશે.", "બુકિંગ કન્ફર્મ થયા પછી અમારી ટીમ તમને સંપર્ક કરશે."];
+  const indicCaught = ["आपकी बुकिंग कन्फर्म है।", "તમારું બુકિંગ કન્ફર્મ છે.", "आपकी बुकिंग कन्फर्म्ड है।", "आपकी बुकिंग प्रदाता द्वारा कन्फर्म कर दी गई है।", "पेमेंट के बाद आपकी सीट पक्की हो गई है।", "हमारी टीम के जवाब के बाद आपकी बुकिंग कन्फर्म की गई है।", "આપની બુકિંગ પ્રદાતા દ્વારા કન્ફર્મ થઈ ગઈ છે.", "બુકિંગ સમયે તમારી સીટ રિઝર્વ થઈ ગઈ છે.", "પેમેન્ટ પછી તમારું બુકિંગ કન્ફર્મ છે.", "आपकी बुकिंग हमारी टीम द्वारा कन्फर्म हुई।", "आपकी बुकिंग टीम द्वारा कन्फर्म किया।", "आपकी बुकिंग हमारी टीम द्वारा आज कन्फर्म कर ली गई।", "आपकी बुकिंग टीम द्वारा कन्फर्म हो चुकी।", "आपकी बुकिंग टीम द्वारा कन्फर्म कर दी गयी है।", "તમારી બુકિંગ આજે અમારી ટીમ દ્વારા કન્ફર્મ કરવામાં આવી.", "તમારી બુકિંગ ટીમ દ્વારા કન્ફર્મ કરાઈ છે.", "તમારી બુકિંગ ટીમ દ્વારા કન્ફર્મ કરી દેવામાં આવી છે.", "તમારી બુકિંગ ટીમ દ્વારા કન્ફર્મ કરી દેવાઈ.", "તમારી બુકિંગ ટીમ દ્વારા કન્ફર્મ થયું."];
+  const enQuiet = ["Hotels are confirmed at booking by the official provider.", "Your booking is confirmed only after our team replies.", "The visa is confirmed by the official provider.", "Your hotel booking is confirmed at the time of booking by the official provider.", "Your booking is confirmed at booking by the official provider, never on this website.", "Your booking is confirmed directly by the official provider.", "Your booking is confirmed by the airline once the fare is paid.", "Your booking confirmed only after payment."];
+  const enCaught = ["Your booking is confirmed by our team today.", "Your booking is confirmed at booking time. Done.", "Booking confirmed directly by our team.", "Your booking is confirmed by our team today, seats reserved.", "Your booking is confirmed by the airline today.", "Today your booking is confirmed by the official provider.", "Your booking is confirmed by the airline, and your seat is booked.", "Your booking is already confirmed by the airline.", "Your booking is now confirmed.", "Your booking is confirmed at 5 pm today.", "Your booking is confirmed for 3 November.", "Your booking is confirmed, by the way."];
+  const replyTo = async (t) => (await chat('Is my booking confirmed?', t)).reply;
+  const loud = [], silent = [], loudEn = [], silentEn = [];
+  for (const t of indicQuiet) { const r = await replyTo(t); if (r !== t) loud.push(t); }
+  check(`M4: ${indicQuiet.length} Hindi/Gujarati process sentences (by the provider, at booking, only after the team replies, until, will be) get no note`, loud.length === 0, loud.join(' | '));
+  for (const t of indicCaught) if (!(await replyTo(t)).includes(BOOKING_NOTE)) silent.push(t);
+  check(`M4: ${indicCaught.length} Hindi/Gujarati claims (plain, and past or perfective forms next to "द्वारा" / "દ્વારા": हुई, किया, कर ली गई, કરવામાં આવી, કરાઈ, કરી દેવાઈ ...) get the note`, silent.length === 0, silent.join(' | '));
+  for (const t of enQuiet) { const r = await replyTo(t); if (r !== t) loudEn.push(t); }
+  check(`M4: ${enQuiet.length} English process sentences (confirmed by the official provider / airline, only after, at booking by the provider) get no note`, loudEn.length === 0, loudEn.join(' | '));
+  for (const t of enCaught) if (!(await replyTo(t)).includes(BOOKING_NOTE)) silentEn.push(t);
+  check(`M4: ${enCaught.length} English claims ("confirmed by our team today", "at booking time. Done.", "already / now confirmed", by the airline + today / is booked) get the note`, silentEn.length === 0, silentEn.join(' | '));
+}
+{
+  // M5 (AI Security, optional item): a visitor whose own message is garbled gets no retry - the second call could only
+  // bring the same again, and would double the cost of every such message.
+  const both = await chatSeq(GARBLED_RUN2, [answerWith(GARBLED_RUN2), answerWith(CLEAN_GU_RUN2)]);
+  check('M5: garbled message and garbled reply - one call, the fixed line, no retry', both.reply === GARBLED_LINE && both.n === 1 && both.warned.length === 1, `${both.n} calls: ${both.reply.slice(0, 50)}`);
+  const readable = await chatSeq(GARBLED_RUN2, [answerWith(CLEAN_GU_RUN2)]);
+  check('M5: garbled message, readable reply - shown untouched, one call', readable.reply === CLEAN_GU_RUN2 && readable.n === 1 && readable.warned.length === 0, readable.reply.slice(0, 50));
+  const asked = await chatSeq('Can you help us in Gujarati?', [answerWith(GARBLED_RUN2), answerWith(CLEAN_GU_RUN2)]);
+  check('M5: a readable message still gets its one retry', asked.reply === CLEAN_GU_RUN2 && asked.n === 2, `${asked.n} calls`);
 }
 
 check('every fetch went to the fake Anthropic API only', calls.every((c) => c.url === ANTHROPIC), [...new Set(calls.map((c) => c.url))].join(' '));

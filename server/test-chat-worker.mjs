@@ -341,8 +341,9 @@ const replaced = (r) => r.startsWith(HONEST);
     const r = (await chat('Diwali in Bali?', t)).reply;
     if (r !== HONEST + ' ' + DIWALI_PRICE + '.' + NOTE_LINE) low.push(t + ' => ' + r);
     // anthropic-8 (AI Security): after the offer the offer check is off, but a reply that NAMES "Diwali in Bali" is still
-    // replaced by the trip check (that trip's own figure is ₹1,15,000); the Hindi one names no English trip and passes.
-    if (replaced((await chat('Diwali in Bali?', t, { at: AFTER_OFFER })).reply) !== /Diwali in Bali/.test(t)) lowAfter.push(t);
+    // replaced by the trip check (that trip's own figure is ₹1,15,000). AI Security round 2: Hindi / Gujarati names are
+    // read too, so "दिवाली बाली" names it as well; "Diwali in Bali is from ₹४६,०००" etc. name it in English.
+    if (replaced((await chat('Diwali in Bali?', t, { at: AFTER_OFFER })).reply) !== /Diwali in Bali|दिवाली बाली/.test(t)) lowAfter.push(t);
   }
   check('item 2: a Diwali price under the offer is caught in the new forms (unit after, Indic digits, k)', low.length === 0, low.join(' | '));
   check('item 2: ...and it is the offer check that caught them: after the offer the same published figure passes it (only the trip check still catches a reply naming "Diwali in Bali")', lowAfter.length === 0, lowAfter.join(' | '));
@@ -895,6 +896,57 @@ async function chatSeq(userText, answers) {
   const off = [];
   for (const [q, t, note] of cases) { const r = (await chat(q, t)).reply; if (r !== t + note) off.push(t.slice(0, 30) + ' => ' + r.slice(t.length, t.length + 30)); }
   check('S3: a Hindi reply and a Gujarati reply that quote package, place and page names in Latin letters get their own note; a mostly English reply keeps the English one', off.length === 0, off.join(' | '));
+}
+
+// ---- 10. anthropic-8, AI Security round 2 (q.mjs / r.mjs, 2026-09-30) ------------------------------------------------------
+{
+  // T1: a figure in a sentence that names no trip is judged by the last trip named earlier in the same paragraph or
+  // bullet line.
+  const K = 'Kashmir price?';
+  const wrong = ['Kashmir Valley 5N/6D. Starts from ₹12,900.', 'Great for Kashmir Valley! Prices start from ₹12,900 per person.',
+    'Kashmir Valley 5N/6D.\nStarts from ₹12,900.', 'Kashmir Valley is lovely. Book early. It starts from ₹12,900.',
+    'Kashmir Valley 5N/6D. Starts from ₹12,900 for 6 days.', 'Kashmir is lovely. A 10-day trip starts from ₹12,900.',
+    '- Kashmir Valley 5N/6D. Starts from ₹12,900.'];
+  const passed = [];
+  for (const t of wrong) if (!replaced((await chat(K, t)).reply)) passed.push(t);
+  check(`T1: ${wrong.length} replies that name a trip in one sentence and quote another trip's figure in the next are replaced (the reviewer's two; a line break; two sentences on; the package's own length; a carried destination with the wrong length; inside one bullet line)`, passed.length === 0, passed.join(' | '));
+  const right = [[K, 'Trips to Kashmir of 5–6 days start from ₹12,900.'], [K, 'Kashmir is lovely in spring. Trips start from ₹12,900 per person.'],
+    [K, 'Kashmir Valley, 5N / 6D, is from ₹27,800 (3-star). Shorter 5-day trips start from ₹12,900.'],
+    ['Rajasthan?', 'Our Royal Rajasthan package is 7N/8D, from ₹24,900 per person (3-star). Shorter trips (4-7 days) start from ₹18,000 per person.'],
+    [K, 'Kashmir Valley, 5N / 6D, is from ₹27,800 (3-star).\n\nOur lowest starting price is ₹9,999.'],
+    [K, 'Options:\n- Kashmir Valley, 5N / 6D\n- Lowest starting price: ₹9,999']];
+  const flagged = [];
+  for (const [q, t] of right) { const r = (await chat(q, t)).reply; if (r !== t.replace(/^- /gm, '• ') + NOTE_LINE) flagged.push(t + ' => ' + r.slice(0, 60)); } // the window shows "- " bullets as "• "
+  check(`T1: ${right.length} right replies pass (a destination named in the same sentence or the sentence before; a shorter trip of the destination's own length after its package; a new paragraph or bullet line starts afresh)`, flagged.length === 0, flagged.join(' | '));
+}
+{
+  // T2: Hindi / Gujarati. The prompt asks for package names in English, and Devanagari / Gujarati names are read too -
+  // the site's own (name_hi / name_gu) and the transliterations the owner is asked to read.
+  const before = await systemAt(BEFORE_DEPARTURE), after = await systemAt(AFTER_OFFER);
+  const rule = 'In Hindi or Gujarati replies, write package names in English (Latin script) exactly as listed.';
+  check('T2: the prompt asks Hindi and Gujarati replies to keep package names in English, before and after the offer', before.includes(rule) && after.includes(rule));
+  const siteBlock = SRC.slice(SRC.indexOf('const INDIC_SITE_NAMES = {'), SRC.indexOf('\n};', SRC.indexOf('const INDIC_SITE_NAMES = {')));
+  const missingNames = [...allPackages, ...destinations].filter((p) => !siteBlock.includes(`"${p.name}": ["${p.name_hi}", "${p.name_gu}"]`)).map((p) => p.name);
+  check(`T2: the worker carries the site's own Hindi and Gujarati name of every package and destination (${allPackages.length + destinations.length})`, missingNames.length === 0, missingNames.join(' | '));
+  check('T2: the transliterations are marked for the owner\'s fluent read', SRC.includes("// TRANSLITERATION - needs the owner's fluent read.") && SRC.includes('//   Kashmir Valley: कश्मीर वैली, काश्मीर वैली, કાશ્મીર વેલી'));
+  const K = 'Kashmir price?';
+  const wrong = ['कश्मीर वैली 5N/6D ₹12,900 से शुरू है।', 'કાશ્મીર વેલી 5N/6D ₹12,900 થી શરૂ થાય છે.', 'कश्मीर घाटी (5 रात / 6 दिन) ₹12,900 से शुरू है।',
+    'કાશ્મીર ખીણ ₹12,900 થી શરૂ.', 'सिक्किम डिस्कवरी ₹20,900 से शुरू है।', 'मेघालय के अजूबे 6N/7D ₹20,500 से।', 'मिजोरम डिस्कवरी ₹20,500 से।',
+    'कश्मीर 10 दिन के लिए ₹12,900 से शुरू है।', 'કાશ્મીર વેલી 5N/6D. ₹12,900 થી શરૂ.', 'કૌસાની અને કુમાઉં ₹15,900 થી.'];
+  const passed = [];
+  for (const t of wrong) if (!replaced((await chat(K, t)).reply)) passed.push(t);
+  check(`T2: ${wrong.length} Hindi / Gujarati replies that put a figure on the wrong trip are replaced (the reviewer's two; the site's own names; a name without its nukta; a wrong day count; across sentences)`, passed.length === 0, passed.join(' | '));
+  const right = ['कश्मीर घाटी, 5N / 6D, ₹27,800 से शुरू (3-स्टार)।', 'कश्मीर की 5–6 दिन की यात्राएँ ₹12,900 से शुरू होती हैं।',
+    'કાશ્મીરમાં 5–6 દિવસની યાત્રા ₹12,900 થી શરૂ થાય છે.', 'Kashmir Valley, 5N / 6D, ₹27,800 થી શરૂ (3-સ્ટાર).',
+    'असम · काज़ीरंगा (4–6 दिन) ₹20,500 से, और असम और काज़ीरंगा 5N / 6D ₹26,400 से।', 'मेघालय वंडर्स 6N / 7D ₹28,900 से है।'];
+  const flagged = [];
+  for (const t of right) { const r = (await chat(K, t)).reply; if (replaced(r) || !r.startsWith(t)) flagged.push(t + ' => ' + r.slice(0, 60)); }
+  check(`T2: ${right.length} right Hindi / Gujarati replies pass (a package's own figure, a destination's for its own days, a Gujarati case ending, English names in a Gujarati reply, the "·" destination beside the "और" package)`, flagged.length === 0, flagged.join(' | '));
+  const t0 = performance.now();
+  const many = 'कश्मीर ₹12,900 और गोवा गेटअवे ₹9,999 और '.repeat(420);
+  const rMany = (await chat('hi', many)).reply;
+  const ms = performance.now() - t0;
+  check(`T2: one ${many.length}-character Hindi sentence with 840 names and figures is judged in under 100 ms (${ms.toFixed(1)} ms)`, many.length > 16000 && ms < 100 && !replaced(rMany), rMany.slice(-60));
 }
 
 check('every fetch went to the fake Anthropic API only', calls.every((c) => c.url === ANTHROPIC), [...new Set(calls.map((c) => c.url))].join(' '));

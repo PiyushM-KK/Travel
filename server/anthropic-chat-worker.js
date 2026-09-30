@@ -50,12 +50,12 @@ const VERSION = 'anthropic-8'; // reported by the GET health check
 // from the named packages (PUBLISHED_PRICES); the prompt forbids turning a package into another kind of trip ("Bali
 // Honeymoon-style stays for families" at the honeymoon price) and describing services or features the site does not list
 // (wheelchair assistance, "drive-up" sights), says who chooses, suggests and confirms hotels, and aims for 70-90 words
-// (hard limit 110). The price note follows the reply's language and is added only when no note is there in any of the
+// (hard limit 110); Hindi and Gujarati replies keep the package names in English. The price note follows the reply's language and is added only when no note is there in any of the
 // three languages (run 3: GU1 and GU2 showed the model's Gujarati note and then the English one; see PRICE_NOTE).
 // AI Security round, same version: a published figure must be the one of the trip it is quoted for (a package's own
 // figure, a destination's for its stated days - tripFigureMismatch), a note is recognised only as a real note sentence,
 // and the note's language is chosen with package, place and page names left out of the count.
-const SYSTEM_PROMPT = `You are the Skyline AI Travel Assistant for "Skyline Travel Planner", an India-based travel planning website (WhatsApp +91 8866050291, info@skylinetravelplanner.com). Help with: destination selection, trip duration, preliminary itineraries, hotel-category comparison (3/4/5-star), packing lists, transport recommendations, family/honeymoon/religious/group planning, budget planning, travel-season guidance, and FAQs. The destinations we cover are listed under DESTINATIONS WE COVER below. Reply in the same language the customer writes in (English, Hindi or Gujarati). Never say which languages our WhatsApp team speaks; only you, the assistant, answer in English, Hindi and Gujarati. Prices are in Indian Rupees and ALWAYS "starting from" estimates, never guaranteed. Budget is OPTIONAL — never insist on it and never make the traveller feel they must share money or budget details. If the traveller has not mentioned a budget, still give a genuinely helpful answer using the published starting-from prices listed below (never a made-up range); do NOT repeatedly ask about budget or money. Ask about budget at most once, and only if it would clearly improve your recommendation — otherwise proceed happily without it and simply invite them to the "Customize My Trip" form or WhatsApp for an exact quote. Whenever your reply mentions any prices, budget figures or cost estimates, end that reply with a short one-line note on its own line, such as: "Note: Prices are indicative starting-from estimates and can change with season, hotel availability and current rates." Write the note once, in the language of your reply. Add this note only when you actually mention prices. Keep replies warm, concise and practical (see the LENGTH limit at the end). After understanding the trip, encourage the user to request a customized package (the website "Customize My Trip" form) or chat on WhatsApp (+91 8866050291) for a quote. NEVER claim to confirm tickets, process payments, guarantee hotel availability, guarantee prices, guarantee visa approval, or give official immigration advice — politely defer those to the team or official provider. Never state flight durations, flying times or travel times between places, not even as an estimate (trip lengths in nights and days are fine). NEVER ask for card, bank, Aadhaar or passport details. Do not invent specific hotel bookings. Never describe services, facilities or website features that our website does not list, such as wheelchair assistance or sights that are "drive-up"; for mobility or health needs, ask the traveller to mention them on the "Customize My Trip" form or WhatsApp so our team can plan around them. Keep the "no payments on this website" disclosure when relevant. SAMPLE TOUR PACKAGES you can recommend (all fully customizable; prices are indicative "starting from" and shared on request via the "Customize My Trip" form or WhatsApp — never quote a fixed figure for these EXCEPT where a "from" price is stated below): (1) Nainital · Mussoorie · Jim Corbett — 6N/7D, Uttarakhand: Mussoorie sightseeing (Kempty Falls, Gun Hill), Nainital lake tour (Bhimtal, Sattal, Naukuchiatal), Jim Corbett jeep safari. (2) Ooty · Coorg · Mysore — 5N/6D, South India: Mysore Palace & Brindavan Gardens, Coorg (Abbey Falls, Talacauvery), Ooty & Coonoor. (3) Sikkim · Darjeeling — 5N/6D: Gangtok, Tsomgo Lake & New Baba Mandir, Darjeeling Tiger Hill sunrise. (4) Shimla · Manali — 5N/6D, from ₹10,999 per person (indicative starting-from), Himachal: Shimla–Kufri, Kullu valley, Solang Valley, Manali (Hadimba Temple, Vashisht). (5) Untouched Spiti Valley — 8N/9D, Himachal: Narkanda, Sangla–Chitkul, Nako–Tabo, Kaza (Key Monastery, Hikkim highest post office), Kalpa. When a traveller asks about any of these regions, mention the matching package and its nights, then invite them to the Domestic tours page or the "Customize My Trip" form / WhatsApp for a tailored quote.`;
+const SYSTEM_PROMPT = `You are the Skyline AI Travel Assistant for "Skyline Travel Planner", an India-based travel planning website (WhatsApp +91 8866050291, info@skylinetravelplanner.com). Help with: destination selection, trip duration, preliminary itineraries, hotel-category comparison (3/4/5-star), packing lists, transport recommendations, family/honeymoon/religious/group planning, budget planning, travel-season guidance, and FAQs. The destinations we cover are listed under DESTINATIONS WE COVER below. Reply in the same language the customer writes in (English, Hindi or Gujarati). In Hindi or Gujarati replies, write package names in English (Latin script) exactly as listed. Never say which languages our WhatsApp team speaks; only you, the assistant, answer in English, Hindi and Gujarati. Prices are in Indian Rupees and ALWAYS "starting from" estimates, never guaranteed. Budget is OPTIONAL — never insist on it and never make the traveller feel they must share money or budget details. If the traveller has not mentioned a budget, still give a genuinely helpful answer using the published starting-from prices listed below (never a made-up range); do NOT repeatedly ask about budget or money. Ask about budget at most once, and only if it would clearly improve your recommendation — otherwise proceed happily without it and simply invite them to the "Customize My Trip" form or WhatsApp for an exact quote. Whenever your reply mentions any prices, budget figures or cost estimates, end that reply with a short one-line note on its own line, such as: "Note: Prices are indicative starting-from estimates and can change with season, hotel availability and current rates." Write the note once, in the language of your reply. Add this note only when you actually mention prices. Keep replies warm, concise and practical (see the LENGTH limit at the end). After understanding the trip, encourage the user to request a customized package (the website "Customize My Trip" form) or chat on WhatsApp (+91 8866050291) for a quote. NEVER claim to confirm tickets, process payments, guarantee hotel availability, guarantee prices, guarantee visa approval, or give official immigration advice — politely defer those to the team or official provider. Never state flight durations, flying times or travel times between places, not even as an estimate (trip lengths in nights and days are fine). NEVER ask for card, bank, Aadhaar or passport details. Do not invent specific hotel bookings. Never describe services, facilities or website features that our website does not list, such as wheelchair assistance or sights that are "drive-up"; for mobility or health needs, ask the traveller to mention them on the "Customize My Trip" form or WhatsApp so our team can plan around them. Keep the "no payments on this website" disclosure when relevant. SAMPLE TOUR PACKAGES you can recommend (all fully customizable; prices are indicative "starting from" and shared on request via the "Customize My Trip" form or WhatsApp — never quote a fixed figure for these EXCEPT where a "from" price is stated below): (1) Nainital · Mussoorie · Jim Corbett — 6N/7D, Uttarakhand: Mussoorie sightseeing (Kempty Falls, Gun Hill), Nainital lake tour (Bhimtal, Sattal, Naukuchiatal), Jim Corbett jeep safari. (2) Ooty · Coorg · Mysore — 5N/6D, South India: Mysore Palace & Brindavan Gardens, Coorg (Abbey Falls, Talacauvery), Ooty & Coonoor. (3) Sikkim · Darjeeling — 5N/6D: Gangtok, Tsomgo Lake & New Baba Mandir, Darjeeling Tiger Hill sunrise. (4) Shimla · Manali — 5N/6D, from ₹10,999 per person (indicative starting-from), Himachal: Shimla–Kufri, Kullu valley, Solang Valley, Manali (Hadimba Temple, Vashisht). (5) Untouched Spiti Valley — 8N/9D, Himachal: Narkanda, Sangla–Chitkul, Nako–Tabo, Kaza (Key Monastery, Hikkim highest post office), Kalpa. When a traveller asks about any of these regions, mention the matching package and its nights, then invite them to the Domestic tours page or the "Customize My Trip" form / WhatsApp for a tailored quote.`;
 
 // PUBLISHED PRICES, DESTINATIONS and BEST SEASONS: copied by script (not typed) from the site files on 2026-09-30.
 // Packages and "From (3★, per person)" prices: Domestic.dc.html. "From, per person": International.dc.html.
@@ -511,12 +511,13 @@ function honestPriceReply(question, now) {
 // "Sikkim Discovery from ₹20,900", "Meghalaya Wonders from ₹20,500", "Kausani & Kumaon from ₹15,900" and "Kashmir for 10
 // days from ₹12,900" (that figure is for 5-6 days). Here each published figure is judged against the trip it is quoted
 // for: the last package or destination named before it in its sentence, or else the first one named after it in the
-// same clause. A package's figure must be one on that package's own line (Shimla & Manali: also the owner's ₹15,000; a
+// same clause; in a sentence that names none, the last one named earlier in the same paragraph or bullet line (AI
+// Security round 2: "Kashmir Valley 5N/6D. Starts from ₹12,900."). A package's figure must be one on that package's own line (Shimla & Manali: also the owner's ₹15,000; a
 // package "on request" has none); a destination's must be its own "from" price or a figure of one of its packages; and
 // a day or night count stated with it ("for 10 days", "a 10-day", "5N / 6D") must fit that trip - the destination's
 // range, the package's own days. Otherwise the reply is replaced. A figure the traveller typed, repeated in a clause
-// about their budget, is left to the budget rules above. Names are read in English; a Hindi or Gujarati reply is judged
-// by the published-figure check alone.
+// about their budget, is left to the budget rules above. Names are read in English and, since round 2, in Devanagari and
+// Gujarati script too (INDIC_SITE_NAMES, INDIC_TRANSLITERATIONS below).
 const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const ANY_SEP = '(?:\\s*(?:&|and|·|–|—|-|,)\\s*|\\s+)';
 const namePattern = (name, sep) => name.split(/\s*(?:&|·|–|,)\s*|\s+/).filter(Boolean).map(escapeRe).join(sep);
@@ -540,18 +541,144 @@ for (const d of TRIPS.destinations) {
   const places = new Set([...(PLACES.get(d.name) || []), ...d.name.split(/\s*(?:&|·)\s*/).map((w) => w.toLowerCase())]);
   d.owners = [d, ...TRIPS.packages.filter((p) => [...d.keys].some((k) => p.keys.has(k)) || p.words.some((w) => places.has(w.trim().toLowerCase()) && keysOf(w).size > 0))];
 }
+for (const p of TRIPS.packages) p.dests = TRIPS.destinations.filter((d) => d.owners.includes(p));
 // The names, in the order a match is tried: a destination written with its own "·" ("Assam · Kaziranga" is the
 // destination, "Assam & Kaziranga" the package), then the packages, longest first ("Kashmir Valley" before "Kashmir"),
 // then each part of a destination's name ("Himachal", "Coorg", "Mysore" for Mysuru).
 const MENTIONS = [
   ...TRIPS.destinations.filter((d) => d.name.includes('·')).map((d) => ({ src: namePattern(d.name, '\\s*·\\s*'), owners: d.owners })),
-  ...[...TRIPS.packages].sort((a, b) => b.name.length - a.name.length).map((p) => ({ src: namePattern(p.name, ANY_SEP), owners: [p] })),
+  ...[...TRIPS.packages].sort((a, b) => b.name.length - a.name.length).map((p) => ({ src: namePattern(p.name, ANY_SEP), owners: [p], pkg: p })),
   ...TRIPS.destinations.flatMap((d) => [...d.name.split(/\s*(?:&|·)\s*/), ...(d.keys.has('mysuru') ? ['Mysore'] : [])]
     .map((part) => ({ src: /^\S+ Pradesh$/.test(part) ? `${escapeRe(part.split(' ')[0])}(?:\\s+Pradesh)?` : namePattern(part, '\\s+'), owners: d.owners, len: part.length })))
     .sort((a, b) => b.len - a.len),
-].map((m) => ({ src: m.src, owners: m.owners, re: new RegExp(`^(?:${m.src})$`, 'i') }));
+].map((m) => ({ src: m.src, owners: m.owners, pkg: m.pkg, re: new RegExp(`^(?:${m.src})$`, 'i') }));
 const TRIP_MENTION = new RegExp(`\\b(?:${MENTIONS.map((m) => m.src).join('|')})\\b`, 'gi');
-const ownersOf = (name) => (MENTIONS.find((m) => m.re.test(name)) || { owners: [] }).owners;
+// Hindi and Gujarati names (AI Security round 2: "कश्मीर वैली 5N/6D ₹12,900 से शुरू है।" passed). The prompt asks for
+// package names in English; these catch a reply that translates or spells them out anyway. The site's own names, copied
+// by script from name_hi / name_gu in Domestic.dc.html, International.dc.html and Destination.dc.html:
+const INDIC_SITE_NAMES = {
+  "Royal Rajasthan": ["शाही राजस्थान", "શાહી રાજસ્થાન"],
+  "Himachal Hills": ["हिमाचल की पहाड़ियाँ", "હિમાચલની ટેકરીઓ"],
+  "Kashmir Valley": ["कश्मीर घाटी", "કાશ્મીર ખીણ"],
+  "Kausani & Kumaon": ["कौसानी और कुमाऊँ", "કૌસાની અને કુમાઉં"],
+  "Nainital · Mussoorie · Corbett": ["नैनीताल · मसूरी · कॉर्बेट", "નૈનીતાલ · મસૂરી · કોર્બેટ"],
+  "Shimla & Manali": ["शिमला और मनाली", "શિમલા અને મનાલી"],
+  "Untouched Spiti Valley": ["अछूती स्पीति घाटी", "અસ્પૃશ્ય સ્પિતિ ખીણ"],
+  "Gujarat Darshan": ["गुजरात दर्शन", "ગુજરાત દર્શન"],
+  "Goa Getaway": ["गोवा गेटअवे", "ગોવા ગેટવે"],
+  "Braj & Agra Yatra": ["ब्रज और आगरा यात्रा", "બ્રજ અને આગ્રા યાત્રા"],
+  "Sikkim Discovery": ["सिक्किम खोज", "સિક્કિમ શોધ"],
+  "Sikkim Honeymoon": ["सिक्किम हनीमून", "સિક્કિમ હનીમૂન"],
+  "Gangtok & Darjeeling": ["गंगटोक और दार्जिलिंग", "ગંગટોક અને દાર્જિલિંગ"],
+  "Sikkim & Darjeeling": ["सिक्किम और दार्जिलिंग", "સિક્કિમ અને દાર્જિલિંગ"],
+  "Meghalaya Wonders": ["मेघालय के अजूबे", "મેઘાલયના અજાયબીઓ"],
+  "Assam & Kaziranga": ["असम और काज़ीरंगा", "આસામ અને કાઝીરંગા"],
+  "Arunachal Explorer": ["अरुणाचल एक्सप्लोरर", "અરુણાચલ એક્સપ્લોરર"],
+  "Nagaland Highlands": ["नागालैंड हाइलैंड्स", "નાગાલેન્ડ હાઇલેન્ડ્સ"],
+  "Manipur & Loktak": ["मणिपुर और लोकतक", "મણિપુર અને લોકતક"],
+  "Mizoram Discovery": ["मिज़ोरम खोज", "મિઝોરમ શોધ"],
+  "Kerala Backwaters": ["केरल बैकवाटर्स", "કેરળ બેકવોટર્સ"],
+  "Mysuru–Coorg–Ooty": ["मैसूर–कूर्ग–ऊटी", "મૈસૂર–કૂર્ગ–ઊટી"],
+  "South Temple Trail": ["दक्षिण मंदिर यात्रा", "દક્ષિણ મંદિર માર્ગ"],
+  "Ooty · Coorg · Mysore": ["ऊटी · कूर्ग · मैसूर", "ઊટી · કૂર્ગ · મૈસૂર"],
+  "Thailand Explorer": ["थाईलैंड एक्सप्लोरर", "થાઇલેન્ડ એક્સપ્લોરર"],
+  "Bali Honeymoon": ["बाली हनीमून", "બાલી હનીમૂન"],
+  "Maldives Escape": ["मालदीव एस्केप", "માલદીવ્સ એસ્કેપ"],
+  "Rajasthan": ["राजस्थान", "રાજસ્થાન"],
+  "Himachal Pradesh": ["हिमाचल प्रदेश", "હિમાચલ પ્રદેશ"],
+  "Kashmir": ["कश्मीर", "કાશ્મીર"],
+  "Kerala": ["केरल", "કેરળ"],
+  "Goa": ["गोवा", "ગોવા"],
+  "Ooty & Nilgiris": ["ऊटी और नीलगिरि", "ઊટી અને નીલગિરિ"],
+  "Mysuru & Coorg": ["मैसूर और कूर्ग", "મૈસૂર અને કૂર્ગ"],
+  "Agra & Taj Mahal": ["आगरा और ताज महल", "આગ્રા અને તાજમહેલ"],
+  "Uttarakhand": ["उत्तराखंड", "ઉત્તરાખંડ"],
+  "Thailand": ["थाईलैंड", "થાઇલેન્ડ"],
+  "Bali": ["बाली", "બાલી"],
+  "Maldives": ["मालदीव", "માલદીવ્સ"],
+  "Meghalaya": ["मेघालय", "મેઘાલય"],
+  "Assam · Kaziranga": ["असम · काज़ीरंगा", "આસામ · કાઝીરંગા"],
+  "Arunachal Pradesh": ["अरुणाचल प्रदेश", "અરુણાચલ પ્રદેશ"],
+  "Nagaland": ["नागालैंड", "નાગાલેન્ડ"],
+  "Manipur · Loktak": ["मणिपुर · लोकतक", "મણિપુર · લોકતક"],
+  "Mizoram": ["मिज़ोरम", "મિઝોરમ"],
+  "Sikkim": ["सिक्किम", "સિક્કિમ"],
+};
+// TRANSLITERATION - needs the owner's fluent read. The English names spelt out in Devanagari / Gujarati script, and a
+// few spelling variants, written for this check (not site text):
+//   Royal Rajasthan: रॉयल राजस्थान, રોયલ રાજસ્થાન
+//   Himachal Hills: हिमाचल हिल्स, હિમાચલ હિલ્સ
+//   Kashmir Valley: कश्मीर वैली, काश्मीर वैली, કાશ્મીર વેલી
+//   Kausani & Kumaon: कौसानी और कुमाऊं, કૌસાની અને કુમાઉ
+//   Untouched Spiti Valley: स्पीति वैली, સ્પિતિ વેલી
+//   Goa Getaway: गोवा गेटवे, ગોવા ગેટઅવે
+//   Sikkim Discovery: सिक्किम डिस्कवरी, સિક્કિમ ડિસ્કવરી
+//   Meghalaya Wonders: मेघालय वंडर्स, મેઘાલય વન્ડર્સ, મેઘાલય વંડર્સ
+//   Mizoram Discovery: मिज़ोरम डिस्कवरी, મિઝોરમ ડિસ્કવરી
+//   Kerala Backwaters: केरला बैकवाटर्स, કેરલા બેકવોટર્સ
+//   Mysuru–Coorg–Ooty: मैसूरु–कूर्ग–ऊटी, મૈસુરુ–કૂર્ગ–ઊટી
+//   South Temple Trail: साउथ टेम्पल ट्रेल, સાઉથ ટેમ્પલ ટ્રેલ
+//   Thailand Explorer: थाइलैंड एक्सप्लोरर, થાઈલેન્ડ એક્સપ્લોરર
+//   Maldives Escape: मालदीव्स एस्केप, માલદીવ એસ્કેપ
+//   Diwali in Bali: दिवाली इन बाली, बाली में दिवाली, दिवाली बाली, દિવાળી ઇન બાલી, બાલીમાં દિવાળી, દિવાળી બાલી
+//   Kashmir: काश्मीर, કશ્મીર
+//   Kerala: केरला, કેરલ, કેરાલા
+//   Assam · Kaziranga: आसाम
+//   Uttarakhand: उत्तराखण्ड
+//   Thailand: थाइलैंड, થાઈલેન્ડ
+//   Maldives: मालदीव्स, માલદીવ
+//   Mysuru & Coorg: मैसूरु, મૈસુરુ, મૈસુર
+//   Agra & Taj Mahal: ताजमहल
+const INDIC_TRANSLITERATIONS = {
+  "Royal Rajasthan": ["रॉयल राजस्थान", "રોયલ રાજસ્થાન"],
+  "Himachal Hills": ["हिमाचल हिल्स", "હિમાચલ હિલ્સ"],
+  "Kashmir Valley": ["कश्मीर वैली", "काश्मीर वैली", "કાશ્મીર વેલી"],
+  "Kausani & Kumaon": ["कौसानी और कुमाऊं", "કૌસાની અને કુમાઉ"],
+  "Untouched Spiti Valley": ["स्पीति वैली", "સ્પિતિ વેલી"],
+  "Goa Getaway": ["गोवा गेटवे", "ગોવા ગેટઅવે"],
+  "Sikkim Discovery": ["सिक्किम डिस्कवरी", "સિક્કિમ ડિસ્કવરી"],
+  "Meghalaya Wonders": ["मेघालय वंडर्स", "મેઘાલય વન્ડર્સ", "મેઘાલય વંડર્સ"],
+  "Mizoram Discovery": ["मिज़ोरम डिस्कवरी", "મિઝોરમ ડિસ્કવરી"],
+  "Kerala Backwaters": ["केरला बैकवाटर्स", "કેરલા બેકવોટર્સ"],
+  "Mysuru–Coorg–Ooty": ["मैसूरु–कूर्ग–ऊटी", "મૈસુરુ–કૂર્ગ–ઊટી"],
+  "South Temple Trail": ["साउथ टेम्पल ट्रेल", "સાઉથ ટેમ્પલ ટ્રેલ"],
+  "Thailand Explorer": ["थाइलैंड एक्सप्लोरर", "થાઈલેન્ડ એક્સપ્લોરર"],
+  "Maldives Escape": ["मालदीव्स एस्केप", "માલદીવ એસ્કેપ"],
+  "Diwali in Bali": ["दिवाली इन बाली", "बाली में दिवाली", "दिवाली बाली", "દિવાળી ઇન બાલી", "બાલીમાં દિવાળી", "દિવાળી બાલી"],
+  "Kashmir": ["काश्मीर", "કશ્મીર"],
+  "Kerala": ["केरला", "કેરલ", "કેરાલા"],
+  "Assam · Kaziranga": ["आसाम"],
+  "Uttarakhand": ["उत्तराखण्ड"],
+  "Thailand": ["थाइलैंड", "થાઈલેન્ડ"],
+  "Maldives": ["मालदीव्स", "માલદીવ"],
+  "Mysuru & Coorg": ["मैसूरु", "મૈસુરુ", "મૈસુર"],
+  "Agra & Taj Mahal": ["ताजमहल"],
+};
+// Matched like the English names (a "·" destination first, then packages longest first, then destination parts; "X
+// प्रदेश" also as X), with any nukta optional (मिज़ोरम = मिजोरम). A Devanagari name must end the word ("असम" is not in
+// "असमर्थ"); a Gujarati one may carry a case ending ("કાશ્મીરમાં").
+const NUKTA = String.fromCharCode(0x093C);
+const INDIC_SEP = '(?:\\s*(?:&|और|અને|·|–|—|-|,)\\s*|\\s+)';
+const indicPattern = (alias, sep) => {
+  const words = alias.normalize('NFD').split(NUKTA).join('').split(/\s*(?:&|·|–|—|,)\s*|\s+(?:और|અને)\s+|\s+/).filter(Boolean);
+  const pradesh = words.length === 2 && /^(?:प्रदेश|પ્રદેશ)$/.test(words[1]);
+  const pat = pradesh ? `${escapeRe(words[0])}(?:\\s+${words[1]})?` : words.map((w) => escapeRe(w).replace(/[कखगजडढफय]/g, (c) => c + NUKTA + '?')).join(sep);
+  const deva = alias.charCodeAt(0) >= 0x0900 && alias.charCodeAt(0) <= 0x097F;
+  return `(?<![\\p{L}\\p{M}])${pat}${deva ? '(?![\\p{L}\\p{M}])' : ''}`;
+};
+const indicAliases = (name) => [...(INDIC_SITE_NAMES[name] || []), ...(INDIC_TRANSLITERATIONS[name] || [])];
+const INDIC_MENTIONS = [
+  ...TRIPS.destinations.filter((d) => d.name.includes('·')).flatMap((d) => indicAliases(d.name).filter((a) => a.includes('·')).map((a) => ({ src: indicPattern(a, '\\s*·\\s*'), owners: d.owners }))),
+  ...TRIPS.packages.flatMap((p) => indicAliases(p.name).map((a) => ({ src: indicPattern(a, INDIC_SEP), owners: [p], pkg: p, len: a.length }))).sort((a, b) => b.len - a.len),
+  ...TRIPS.destinations.flatMap((d) => indicAliases(d.name).flatMap((a) => (/^\S+ (?:प्रदेश|પ્રદેશ)$/.test(a) ? [a] : a.split(/\s*·\s*|\s+(?:और|અને)\s+/)))
+    .map((part) => ({ src: indicPattern(part, '\\s+'), owners: d.owners, len: part.length }))).sort((a, b) => b.len - a.len),
+].map((m) => ({ src: m.src, owners: m.owners, pkg: m.pkg, re: new RegExp(`^(?:${m.src})$`, 'u') }));
+const INDIC_TRIP_MENTION = new RegExp(INDIC_MENTIONS.map((m) => m.src).join('|'), 'gu');
+const mentionOf = (list, name) => list.find((m) => m.re.test(name)) || { owners: [] };
+// Every trip named in s (which starts at `at` in the reply), in order.
+const mentionsIn = (s, at) => [...s.matchAll(TRIP_MENTION)].map((m) => ({ start: at + m.index, end: at + m.index + m[0].length, ...mentionOf(MENTIONS, m[0]) }))
+  .concat([...s.matchAll(INDIC_TRIP_MENTION)].map((m) => ({ start: at + m.index, end: at + m.index + m[0].length, ...mentionOf(INDIC_MENTIONS, m[0]) })))
+  .sort((a, b) => a.start - b.start);
 // Day counts: "10 days", "5–6 days", "10-day", "6D", "5 nights" and "5N" (6 days), in Hindi and Gujarati too.
 const DAY_COUNT = /(?<![\d,.])(\d{1,2})(?:\s*(?:-|–|—|to)\s*(\d{1,2}))?\s*-?\s*(?:([Dd]ays?\b|D\b|दिन|દિવસ)|([Nn]ights?\b|N\b|रात|રાત))/g;
 const DAY_COUNT_AT = new RegExp(`^(?:${DAY_COUNT.source})`);
@@ -560,49 +687,63 @@ const FIGURE_TEXT = /^\d[\d,]*(?:\.\d+)?(?:\s*(?:k|lakhs?|lacs?|लाख|લા
 // "from ₹12,900 per person for 10 days": a count right after the figure belongs to it too.
 const TRAILING_FOR = /^\s*(?:(?:\/-|rupees?|rs\.?|inr|per\s+person|pp|each|onwards|\((?:3-star|3★)\))\s*)*(?:for|of)\s+(?:a\s+|an\s+)?(?=\d)/i;
 const FIG_CLAUSE = /(?<!\d),|,(?!\d)|[;:]/g;
+// A paragraph ends at a blank line, and a bullet or numbered line is a paragraph of its own.
+const UNIT_BREAK = /\n[ \t]*\n|\n(?=[ \t]*(?:[-*•]|\d{1,2}[.)])\s)/g;
 function tripFigureMismatch(text, figures, known, convo) {
   if (!figures.some((f) => known.figures.has(f.n))) return false;
   const digits = asciiDigits(text);
-  let typed = null, fi = 0;
+  const unitEnds = [...text.matchAll(UNIT_BREAK)].map((m) => m.index);
+  let typed = null, fi = 0, ui = 0, carry = null, carryUnit = -1;
   for (const { start, end } of sentences(text)) {
+    while (ui < unitEnds.length && unitEnds[ui] < start) ui++;
+    if (ui !== carryUnit) carry = null;
     const figs = [];
     for (; fi < figures.length && figures[fi].at < end; fi++) if (figures[fi].at >= start) figs.push(figures[fi]);
-    if (!figs.some((f) => known.figures.has(f.n))) continue;
     const s = text.slice(start, end);
-    const mentions = [...s.matchAll(TRIP_MENTION)].map((m) => ({ start: start + m.index, end: start + m.index + m[0].length, owners: ownersOf(m[0]) }));
-    if (!mentions.length) continue;
-    const breakAt = [], breakEnd = [];
-    for (const m of s.matchAll(FIG_CLAUSE)) { breakAt.push(start + m.index); breakEnd.push(start + m.index + m[0].length); }
-    const ends = mentions.map((m) => m.end);
-    let prevFigEnd = start;
-    for (const f of figs) {
-      const figEnd = f.at + (FIGURE_TEXT.exec(digits.slice(f.at, f.at + 40)) || [''])[0].length;
-      if (known.figures.has(f.n) && (f.hi === undefined || known.figures.has(f.hi))) {
-        let k = 0; { let hi = ends.length; while (k < hi) { const mid = (k + hi) >> 1; if (ends[mid] <= f.at) k = mid + 1; else hi = mid; } } // mentions[k - 1] ends before f
-        let trip = null, span = '';
-        if (k > 0) {
-          trip = mentions[k - 1];
-          const clauseStart = Math.max(start, lastBefore(breakEnd, trip.start + 1));
-          span = digits.slice(Math.max(prevFigEnd, k > 1 ? mentions[k - 2].end : start, clauseStart), f.at);
-          const trail = TRAILING_FOR.exec(digits.slice(figEnd, figEnd + 60));
-          const count = trail && DAY_COUNT_AT.exec(digits.slice(figEnd + trail[0].length, figEnd + trail[0].length + 24));
-          if (count) span += ' ' + count[0];
-        } else if (firstIn(breakAt, figEnd, mentions[0].start) < 0) {
-          trip = mentions[0];
-          span = digits.slice(f.at, trip.end);
-        }
-        if (trip) {
-          const stated = dayCounts(span);
-          const fits = trip.owners.some((o) => o.figures.includes(f.n) && (f.hi === undefined || o.figures.includes(f.hi)) && stated.every(([a, b]) => a >= o.lo && b <= o.hi));
-          if (!fits) {
-            if (!typed) typed = typedAmounts(convo);
-            const a = lastBefore(breakEnd, f.at + 1), b = firstIn(breakAt, f.at, end);
-            if (!(typed.has(f.n) && BUDGET_WORDS.test(text.slice(Math.max(start, a), b < 0 ? end : b)))) return true;
+    const mentions = mentionsIn(s, start);
+    if (figs.some((f) => known.figures.has(f.n)) && (mentions.length || carry)) {
+      const breakAt = [], breakEnd = [];
+      for (const m of s.matchAll(FIG_CLAUSE)) { breakAt.push(start + m.index); breakEnd.push(start + m.index + m[0].length); }
+      const ends = mentions.map((m) => m.end);
+      let prevFigEnd = start;
+      for (const f of figs) {
+        const figEnd = f.at + (FIGURE_TEXT.exec(digits.slice(f.at, f.at + 40)) || [''])[0].length;
+        if (known.figures.has(f.n) && (f.hi === undefined || known.figures.has(f.hi))) {
+          let k = 0; { let hi = ends.length; while (k < hi) { const mid = (k + hi) >> 1; if (ends[mid] <= f.at) k = mid + 1; else hi = mid; } } // mentions[k - 1] ends before f
+          let trip = null, span = '', carried = false;
+          const trailing = () => {
+            const trail = TRAILING_FOR.exec(digits.slice(figEnd, figEnd + 60));
+            const count = trail && DAY_COUNT_AT.exec(digits.slice(figEnd + trail[0].length, figEnd + trail[0].length + 24));
+            return count ? ' ' + count[0] : '';
+          };
+          if (k > 0) {
+            trip = mentions[k - 1];
+            const clauseStart = Math.max(start, lastBefore(breakEnd, trip.start + 1));
+            span = digits.slice(Math.max(prevFigEnd, k > 1 ? mentions[k - 2].end : start, clauseStart), f.at) + trailing();
+          } else if (mentions.length) {
+            if (firstIn(breakAt, figEnd, mentions[0].start) < 0) { trip = mentions[0]; span = digits.slice(f.at, trip.end); }
+          } else {
+            trip = carry; carried = true;
+            span = digits.slice(prevFigEnd, f.at) + trailing();
+          }
+          if (trip) {
+            const stated = dayCounts(span);
+            const fitsTrip = (o) => o.figures.includes(f.n) && (f.hi === undefined || o.figures.includes(f.hi)) && stated.every(([a, b]) => a >= o.lo && b <= o.hi);
+            // A package named in an earlier sentence: its own figure, or - only when this sentence states a length the
+            // package does not have ("Shorter trips (4-7 days) start from ₹18,000") - one of its destinations' figures.
+            let owners = trip.owners;
+            if (carried && trip.pkg) owners = stated.length && !stated.every(([a, b]) => a >= trip.pkg.lo && b <= trip.pkg.hi) ? [trip.pkg, ...trip.pkg.dests] : [trip.pkg];
+            if (!owners.some(fitsTrip)) {
+              if (!typed) typed = typedAmounts(convo);
+              const a = lastBefore(breakEnd, f.at + 1), b = firstIn(breakAt, f.at, end);
+              if (!(typed.has(f.n) && BUDGET_WORDS.test(text.slice(Math.max(start, a), b < 0 ? end : b)))) return true;
+            }
           }
         }
+        prevFigEnd = Math.max(prevFigEnd, figEnd);
       }
-      prevFigEnd = Math.max(prevFigEnd, figEnd);
     }
+    if (mentions.length) { carry = mentions[mentions.length - 1]; carryUnit = ui; }
   }
   return false;
 }

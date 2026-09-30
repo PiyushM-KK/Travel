@@ -33,6 +33,10 @@ const VERSION = 'anthropic-6'; // reported by the GET health check
 // replaced by an honest line instead of carrying a note; a figure the visitor typed is no longer taken as published;
 // visa/"confirmed" misfires, wider promise net, linear-time checks, refusal line, no upstream error to the visitor,
 // and prompt caching on the system prompt.
+// Round-2 fixes, same version (2026-09-30): a hedge word elsewhere in the sentence no longer excuses a false Diwali
+// inclusion; the honest line quotes the tier ("(3-star)") and gives no figure to a star / hotel / night / group
+// question; a typed budget tied to a place or "fits" is no longer exempt; money is read before the markdown strip;
+// paise are dropped, not rounded up; blank turns are dropped before the role checks.
 const SYSTEM_PROMPT = `You are the Skyline AI Travel Assistant for "Skyline Travel Planner", an India-based travel planning website (WhatsApp +91 8866050291, info@skylinetravelplanner.com). Help with: destination selection, trip duration, preliminary itineraries, hotel-category comparison (3/4/5-star), packing lists, transport recommendations, family/honeymoon/religious/group planning, budget planning, travel-season guidance, and FAQs. The destinations we cover are listed under DESTINATIONS WE COVER below. Reply in the same language the customer writes in (English, Hindi or Gujarati). Prices are in Indian Rupees and ALWAYS "starting from" estimates, never guaranteed. Budget is OPTIONAL — never insist on it and never make the traveller feel they must share money or budget details. If the traveller has not mentioned a budget, still give a genuinely helpful answer using the published starting-from prices listed below (never a made-up range); do NOT repeatedly ask about budget or money. Ask about budget at most once, and only if it would clearly improve your recommendation — otherwise proceed happily without it and simply invite them to the "Customize My Trip" form or WhatsApp for an exact quote. Whenever your reply mentions any prices, budget figures or cost estimates, end that reply with a short one-line note on its own line, such as: "Note: Prices are indicative starting-from estimates and can change with season, hotel availability and current rates." Add this note only when you actually mention prices. Keep replies warm, concise and practical (see the LENGTH limit at the end). After understanding the trip, encourage the user to request a customized package (the website "Customize My Trip" form) or chat on WhatsApp (+91 8866050291) for a quote. NEVER claim to confirm tickets, process payments, guarantee hotel availability, guarantee prices, guarantee visa approval, or give official immigration advice — politely defer those to the team or official provider. NEVER ask for card, bank, Aadhaar or passport details. Do not invent specific hotel bookings. Keep the "no payments on this website" disclosure when relevant. SAMPLE TOUR PACKAGES you can recommend (all fully customizable; prices are indicative "starting from" and shared on request via the "Customize My Trip" form or WhatsApp — never quote a fixed figure for these EXCEPT where a "from" price is stated below): (1) Nainital · Mussoorie · Jim Corbett — 6N/7D, Uttarakhand: Mussoorie sightseeing (Kempty Falls, Gun Hill), Nainital lake tour (Bhimtal, Sattal, Naukuchiatal), Jim Corbett jeep safari. (2) Ooty · Coorg · Mysore — 5N/6D, South India: Mysore Palace & Brindavan Gardens, Coorg (Abbey Falls, Talacauvery), Ooty & Coonoor. (3) Sikkim · Darjeeling — 5N/6D: Gangtok, Tsomgo Lake & New Baba Mandir, Darjeeling Tiger Hill sunrise. (4) Shimla · Manali — 5N/6D, from ₹10,999 per person (indicative starting-from), Himachal: Shimla–Kufri, Kullu valley, Solang Valley, Manali (Hadimba Temple, Vashisht). (5) Untouched Spiti Valley — 8N/9D, Himachal: Narkanda, Sangla–Chitkul, Nako–Tabo, Kaza (Key Monastery, Hikkim highest post office), Kalpa. When a traveller asks about any of these regions, mention the matching package and its nights, then invite them to the Domestic tours page or the "Customize My Trip" form / WhatsApp for a tailored quote.`;
 
 // PUBLISHED PRICES, DESTINATIONS and BEST SEASONS: copied by script (not typed) from the site files on 2026-09-30.
@@ -159,8 +163,25 @@ const OFFER_WORDS = /bali|diwali|deepavali|बाली|दिवाली|द�
 // Every other place the prompt now lists (anthropic-6), so a published price for, say, Meghalaya after a Bali mention
 // is judged by Meghalaya. English names must start a word ("pelling" is not in "spelling"); असम must end one (असमर्थ).
 const OTHER_PLACES = /\b(?:rajasthan|himachal|kashmir|kerala|goa|sikkim|mysuru|mysore|coorg|ooty|mathura|vrindavan|agra|gujarat|uttar pradesh|uttarakhand|thailand|maldives|nainital|mussoorie|corbett|darjeeling|gangtok|shimla|manali|kullu|spiti|meghalaya|shillong|cherrapunji|assam|kaziranga|guwahati|arunachal|tawang|nagaland|kohima|manipur|loktak|imphal|mizoram|aizawl|kausani|kumaon|almora|dharamshala|srinagar|gulmarg|pahalgam|jaipur|jodhpur|udaipur|jaisalmer|dwarka|somnath|kutch|braj|pelling|kochi|munnar|thekkady|alappuzha|alleppey|madurai|rameswaram|kanyakumari|bengaluru|bangkok|pattaya|phuket|krabi|varanasi|amritsar|tirupati|char dham|shirdi)|शिमला|मनाली|गोवा|केरल|कश्मीर|थाईलैंड|मालदीव|राजस्थान|हिमाचल|उत्तराखंड|सिक्किम|दार्जिलिंग|गंगटोक|मेघालय|असम(?![\u0900-\u097F])|काज़ीरंगा|अरुणाचल|नागालैंड|मणिपुर|मिज़ोरम|मिजोरम|गुजरात|आगरा|मथुरा|वृंदावन|ऊटी|कूर्ग|मैसूर|स्पीति|कौसानी|नैनीताल|जयपुर|उदयपुर|कोच्चि|मुन्नार|શિમલા|મનાલી|ગોવા|કેરળ|કાશ્મીર|થાઈલેન્ડ|થાઇલેન્ડ|માલદીવ|રાજસ્થાન|હિમાચલ|ઉત્તરાખંડ|સિક્કિમ|દાર્જિલિંગ|ગંગટોક|મેઘાલય|આસામ|કાઝીરંગા|અરુણાચલ|નાગાલેન્ડ|મણિપુર|મિઝોરમ|ગુજરાત|આગ્રા|મથુરા|વૃંદાવન|ઊટી|કૂર્ગ|મૈસૂર|સ્પિતિ|કૌસાની|નૈનીતાલ|જયપુર|ઉદયપુર|કોચી|મુન્નાર/gi;
-// "not listed", "isn't", "unless", "whether", "if", "ask", "confirm" (review of anthropic-6) hedge a sentence too.
-const NEGATION = /\b(not|no|never|excluded|extra|separate(ly)?|additional|own|except|cannot|unless|whether|if|ask|asking|confirm(s|ed)?)\b|n't|n’t|नहीं|अलग|अतिरिक्त|अगर|यदि|पूछ|નથી|નહીં|અલગ|વધારાન|પૂછ/i;
+// A hedge excuses an offer item only in the clause that governs it (review round 2: "Yes, please confirm - the package
+// includes dinners and visa", "If you like, Diwali in Bali includes dinner" and "...includes lunch, and we confirm it"
+// were excused by a hedge elsewhere in the sentence). NEGATORS count anywhere in that clause; FRAMERS ("if", "whether",
+// "ask") only before its claim ("Ask whether it includes lunch" - not "includes dinner if you like"); "confirm" never
+// does. "At no extra cost" / "free of charge" affirm an inclusion, so they are not negations.
+const NEGATORS = /\b(?:not|no|never|excluded|extra|separate(?:ly)?|additional|except|cannot|unless|only\s+if|(?:your|their)\s+own)\b|n't|n’t|नहीं|अलग|अतिरिक्त|નથી|નહીં|અલગ|વધારાન/i;
+const FRAMERS = /\b(?:if|whether|ask|asking)\b|अगर|यदि|पूछ|પૂછ/i;
+const AFFIRMING = /\b(?:at\s+)?no\s+(?:extra|additional|added)\s+(?:cost|charge|fee|price)s?\b|\bat\s+no\s+(?:cost|charge)\b|\bfree\s+of\s+(?:cost|charge)\b|\bwithout\s+(?:any\s+)?(?:extra|additional)\s+(?:cost|charge|fee)s?\b|बिना\s+(?:किसी\s+)?अतिरिक्त\s+(?:शुल्क|खर्च|चार्ज|लागत)|कोई\s+अतिरिक्त\s+(?:शुल्क|खर्च|चार्ज)\s+नहीं|વધારાના\s+(?:ખર્ચ|ચાર્જ)\s+વિના|કોઈ\s+વધારાનો\s+(?:ખર્ચ|ચાર્જ)\s+નહીં/gi;
+// Sentence-wide, for the Hindi/Gujarati booking check only.
+const NEGATION = new RegExp(`${NEGATORS.source}|${FRAMERS.source}`, 'i');
+// Clauses: segments end at ; : dashes or "but"; inside a segment, commas (not the ones inside a number) end a clause.
+const SEGMENT_BREAK = /[;:—–]|\s-\s|\bbut\b|लेकिन|किंतु|परंतु|પરંતુ/gi;
+const COMMA = /(?<!\d),|,(?!\d)/g;
+// A clause with a verb that does not open with a conjunction can be the predicate of the list before it ("Visa,
+// insurance and lunch are not included"); "..., and visa is not needed" or "..., not visa" cannot.
+const PREDICATE = /\b(?:is|are|was|were|be|been|comes?|includes?|including|included|covered|costs?|needs?|has|have|do|does|did|will|would|can|could|must|should|may|might|gets?)\b|n't|n’t|है|हैं|था|थे|होगा|होगी|होंगे|છે|હતું|હશે|નથી/i;
+const JOINER = /^\s*(?:(?:and|or|so|which|that|then|while|plus|as|because|though|although)\b|(?:और|तथा|जबकि|અને|જ્યારે)\s)/i;
+// A claim that takes a list after it: "includes breakfast, lunch and dinner, visa is not included" - the list is its.
+const TRANSITIVE = /\b(?:includes|include|including|comes?\s+with)\b|\bincluded\s*:/i;
 
 function sentences(text) {
   const out = []; let start = 0;
@@ -194,7 +215,9 @@ function moneyFigures(raw) {
     const mult = unit === 'k' ? 1000 : unit ? 100000 : 1;
     const at = m.index, end = m.index + m[0].length, after = text.slice(end, end + 16);
     const marked = CURRENCY_BEFORE.test(text.slice(Math.max(0, at - 10), at)) || CURRENCY_AFTER.test(after);
-    toks.push({ at, end, num, mult, n: Math.round(num * mult), money: marked || (mult > 1 && !HEADCOUNT_AFTER.test(after)) });
+    // Paise are dropped, never rounded up ("₹1,15,000.50" is ₹1,15,000, not ₹1,15,001); "1.15 lakh" is rounded only to
+    // undo floating-point error (1.15 * 100000 = 114999.99...).
+    toks.push({ at, end, num, mult, n: mult === 1 ? Math.floor(num) : Math.round(num * mult), money: marked || (mult > 1 && !HEADCOUNT_AFTER.test(after)) });
   }
   // Both ends of a range are money when either end is. "12-15k" is 12,000-15,000; "Option 1 - ₹9,999" is no range.
   for (let i = 0; i + 1 < toks.length; i++) {
@@ -240,12 +263,59 @@ const DIWALI_WORDS = /diwali|deepavali|festive|दिवाली|दीपा�
 const HONEYMOON = /honeymoon|हनीमून|હનીમૂન/i;
 const isBaliPackageFigure = (n, s, at) => BALI_PUBLISHED_INR.has(n) && (!DIWALI_WORDS.test(s) || HONEYMOON.test(s.slice(Math.max(0, at - 60), at)));
 
-// Index (in s) of an offer item the sentence claims is included, or -1. Not a claim: a question, a hedged or negated
-// sentence, or visa-on-arrival / visa-free advice (its visa mention; a meal claimed in the same sentence still counts).
+function clausesOf(s) {
+  const out = [];
+  const add = (start, end, seg) => {
+    const text = s.slice(start, end), claim = INCLUDED_CLAIM.exec(text), framer = FRAMERS.exec(text);
+    const neg = NEGATORS.test(text.replace(AFFIRMING, ' '));
+    out.push({ start, end, seg, neg, claim: claim ? claim.index : -1, framer: framer ? framer.index : -1, decisive: !!claim || neg,
+      pred: PREDICATE.test(text), joiner: JOINER.test(text), trans: TRANSITIVE.test(text), colon: /:\s*$/.test(text) });
+  };
+  const segment = (a, b, seg) => {
+    let from = a;
+    for (const m of s.slice(a, b).matchAll(COMMA)) { add(from, a + m.index + 1, seg); from = a + m.index + 1; }
+    add(from, b, seg);
+  };
+  let from = 0, seg = 0;
+  for (const m of s.matchAll(SEGMENT_BREAK)) { const e = m.index + m[0].length; segment(from, e, seg++); from = e; }
+  segment(from, s.length, seg);
+  return out;
+}
+const hedgedClause = (c) => c.neg || (c.framer >= 0 && c.claim >= 0 && c.framer < c.claim);
+// The clause that says whether the item at cs[k] is included: its own clause when that one claims or negates;
+// otherwise, for a list: the "includes" clause it follows ("includes breakfast, lunch and dinner, visa is not
+// included"), else the verb clause after it ("Visa, insurance and lunch are not included"; "..., and lunch, dinner and
+// visa are extra"), else the clause before it ("..., not visa"), else the head of a colon list ("Not included: visa").
+function governing(cs, k) {
+  const c = cs[k];
+  if (c.decisive) return c;
+  let j = k + 1; while (j < cs.length && cs[j].seg === c.seg && !cs[j].decisive) j++;
+  const next = j < cs.length && cs[j].seg === c.seg ? cs[j] : null;
+  let i = k - 1; while (i >= 0 && cs[i].seg === c.seg && !cs[i].decisive) i--;
+  const prev = i >= 0 && cs[i].seg === c.seg ? cs[i] : null;
+  if (prev && prev.trans && !cs[i + 1].joiner) return prev;
+  if (next && next.pred && !next.joiner) return next;
+  if (prev || next) return prev || next;
+  if (i >= 0 && cs[i].colon) for (let h = i; h >= 0 && cs[h].seg === cs[i].seg; h--) if (cs[h].decisive) return cs[h];
+  return null;
+}
+
+// Index (in s) of an offer item the sentence claims is included, or -1. Not a claim: a question, an item whose
+// governing clause is hedged or negated, or visa-on-arrival / visa-free advice (its visa mention; a meal claimed in
+// the same sentence still counts).
 function claimedExtraAt(s) {
-  if (QUESTION_END.test(s) || !INCLUDED_CLAIM.test(s) || NEGATION.test(s)) return -1;
+  if (QUESTION_END.test(s) || !INCLUDED_CLAIM.test(s)) return -1;
   const advice = VISA_ADVICE.test(s);
-  for (const m of s.matchAll(OFFER_ITEMS)) if (!(advice && VISA_ITEM.test(m[0]))) return m.index;
+  let cs = null, k = 0;
+  for (const m of s.matchAll(OFFER_ITEMS)) {
+    if (advice && VISA_ITEM.test(m[0])) continue;
+    if (!cs) cs = clausesOf(s);
+    while (cs[k].end <= m.index) k++;
+    const own = cs[k];
+    if (!own.decisive && own.framer >= 0 && own.start + own.framer < m.index) continue; // "Ask whether lunch, ..."
+    const gov = governing(cs, k);
+    if (gov ? !hedgedClause(gov) : cs.some((c) => c.claim >= 0 && !hedgedClause(c))) return m.index;
+  }
   return -1;
 }
 
@@ -324,7 +394,17 @@ function typedAmounts(convo) {
 const BUDGET_WORDS = /\b(?:budget|your|you mentioned|within)\b|बजट|आपके|आपका|आपकी|आपने|भीतर|અંદર|બજેટ|તમારા|તમારું|તમારી|તમે|अंदर/i;
 const PRICE_WORDS = /\b(?:from|starts?|starting|costs?|costing|per person|packages?|prices?|priced|pricing|fares?)\b|शुरू|प्रति व्यक्ति|पैकेज|कीमत|શરૂ|વ્યક્તિ દીઠ|પેકેજ|કિંમત/i;
 const CLAUSE_BREAK = /(?<!\d),|,(?!\d)|[;:()[\]]/g;
-function aboutOwnBudget(reply, figures, sents, at) {
+// Review round 2: "Goa trip fits within ₹4,999", "Within your budget of ₹5,000 we include Kerala houseboat" and "Kerala
+// houseboat stay is available within your budget ₹20,000" passed as budget talk. The typed figure's own clause may
+// not name a place or package or say it fits / is available / includes / covers / gets you; a sentence that does, or a
+// reply that names a place or package, needs a separately published figure to carry the price ("Within your budget of
+// ₹30,000, Kerala Backwaters, 6N / 7D, from ₹23,900, fits well." still passes).
+const FIT_WORDS = /\b(?:fits?|fitting|available|include[sd]?|including|covers?|covered|covering|gets?\s+you|enough|afford(?:s|able)?|doable|possible|manageable)\b|फिट|उपलब्ध|शामिल|कवर|काफ़ी|काफी|पर्याप्त|संभव|ફિટ|ઉપલબ્ધ|સામેલ|શામેલ|કવર|પૂરતું|પૂરતા|શક્ય/i;
+const PACKAGE_NAMES = new RegExp(PUBLISHED_PRICES.split('\n').map((l) => /^- (.+?), \d+N \/ \d+D/.exec(l)).filter(Boolean)
+  .map((m) => m[1].replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'i');
+const namesPlace = (t) => keysOf(t).size > 0 || PACKAGE_NAMES.test(t);
+function aboutOwnBudget(reply, figures, sents, f, published, replyNamesPlace) {
+  const at = f.at;
   const sent = sents.find((x) => at >= x.start && at < x.end);
   if (!sent) return false;
   const bounds = []; let from = sent.start;
@@ -332,8 +412,12 @@ function aboutOwnBudget(reply, figures, sents, at) {
   bounds.push([from, sent.end]);
   const own = bounds.find(([a, b]) => at >= a && at < b);
   const ownText = reply.slice(own[0], own[1]);
-  if (!BUDGET_WORDS.test(ownText) || PRICE_WORDS.test(ownText)) return false;
-  return bounds.every(([a, b]) => a === own[0] || !PRICE_WORDS.test(reply.slice(a, b)) || figures.some((g) => g.at >= a && g.at < b));
+  if (!BUDGET_WORDS.test(ownText) || PRICE_WORDS.test(ownText) || FIT_WORDS.test(ownText) || namesPlace(ownText)) return false;
+  if (!bounds.every(([a, b]) => a === own[0] || !PRICE_WORDS.test(reply.slice(a, b)) || figures.some((g) => g.at >= a && g.at < b))) return false;
+  const carried = (a, b) => figures.some((g) => g.at !== at && g.at >= a && g.at < b && published(g));
+  const sentText = reply.slice(sent.start, sent.end);
+  if ((namesPlace(sentText) || FIT_WORDS.test(sentText)) && !carried(sent.start, sent.end)) return false;
+  return !replyNamesPlace || carried(0, reply.length);
 }
 function quotesUnpublishedFigure(reply, figures, system, convo) {
   const known = publishedFigures(system);
@@ -341,7 +425,13 @@ function quotesUnpublishedFigure(reply, figures, system, convo) {
   if (!unknown.length) return false;
   const typed = typedAmounts(convo);
   const sents = sentences(reply);
-  return unknown.some((f) => !(typed.has(f.n) && (f.hi === undefined || typed.has(f.hi)) && aboutOwnBudget(reply, figures, sents, f.at)));
+  const published = (g) => known.figures.has(g.n) && (g.hi === undefined || known.ranges.has(g.n + '-' + g.hi));
+  let replyNamesPlace;
+  return unknown.some((f) => {
+    if (!(typed.has(f.n) && (f.hi === undefined || typed.has(f.hi)))) return true;
+    if (replyNamesPlace === undefined) replyNamesPlace = namesPlace(reply);
+    return !aboutOwnBudget(reply, figures, sents, f, published, replyNamesPlace);
+  });
 }
 
 // The replacement for a wrong figure, plus the ONE published package the traveller's question names, if exactly one
@@ -351,17 +441,24 @@ const KEY_ALIAS = { mysore: 'mysuru', alleppey: 'alappuzha', deepavali: 'diwali'
 const keysOf = (s) => new Set([...s.matchAll(KEY_WORDS)]
   .filter((m) => !/^[a-z]/i.test(m[0]) || !/[a-z]/i.test(s[m.index + m[0].length] || '')) // "goal" is not Goa
   .map((m) => { const k = m[0].toLowerCase(); return KEY_ALIAS[k] || k; }));
+// Review round 2: the figure keeps its tier - a "(3★)" line is quoted as "(3-star)", and Shimla & Manali keeps the
+// owner's own wording (its line already says "per person"); an international package's line carries no tier.
 const PRICED_PACKAGES = PUBLISHED_PRICES.split('\n')
-  .map((l) => /^- (.+?), (\d+N \/ \d+D) \([^)]*\): from (₹[\d,]+)/.exec(l)).filter(Boolean)
-  .map(([, name, nights, price]) => ({ name, nights, price, keys: keysOf(name) }));
+  .map((l) => /^- (.+?), (\d+N \/ \d+D) \([^)]*\): from (₹[\d,]+)(.*)$/.exec(l)).filter(Boolean)
+  .map(([, name, nights, price, rest]) => ({ name, nights, keys: keysOf(name),
+    quote: /per person/.test(rest) ? `from ${price}${rest}` : `from ${price} per person${/\(3★\)|\(3-star\)/.test(rest) ? ' (3-star)' : ''}.` }));
 // Read from the offer text (never typed twice); if that wording ever changes, the offer is simply not suggested here.
 const DIWALI_OFFER_PRICE = (/from (₹[\d,]+) per person/.exec(DIWALI_BALI) || [])[1];
-const DIWALI_PACKAGE = DIWALI_OFFER_PRICE ? { name: 'Diwali in Bali', nights: '7N / 8D', price: DIWALI_OFFER_PRICE, keys: keysOf('Diwali in Bali') } : null;
+const DIWALI_PACKAGE = DIWALI_OFFER_PRICE ? { name: 'Diwali in Bali', nights: '7N / 8D', quote: `from ${DIWALI_OFFER_PRICE} per person.`, keys: keysOf('Diwali in Bali') } : null;
+// A question about star ratings, luxury, hotels, nights or a group size gets no package figure: a 3-star per-person
+// starting price is not its answer ("Goa 5-star price?", "Goa for 6 people?", "per night?").
+const NO_FIGURE_QUESTION = /\bstars?\b|★|\bluxur(?:y|ious)\b|\bpremium\b|\bdeluxe\b|\bhotels?\b|\bresorts?\b|\bnights?\b|\bnightly\b|\bgroups?\b|\b(?:\d{1,3}|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|dozen)\s+(?:people|persons?|pax|adults?|travell?ers|guests|members|friends|couples|families|kids|children|of\s+us)\b|\bfamily\s+of\s+(?:\d{1,2}|two|three|four|five|six|seven|eight|nine|ten)\b|\bwe\s+are\s+(?:\d{1,2}|two|three|four|five|six|seven|eight|nine|ten)\b|\bfor\s+(?:\d{1,2}|two|three|four|five|six|seven|eight|nine|ten)\b(?!\s*(?:days?|nights?|weeks?|months?|years?)\b)|होटल|स्टार|लक्ज़री|लक्जरी|लग्ज़री|लग्जरी|प्रति\s+रात|रातों|रातें|\d+\s*रात|ग्रुप|समूह|\d+\s*(?:लोग|लोगों|व्यक्ति)|હોટેલ|હોટલ|સ્ટાર|લક્ઝરી|રાત્રિ|રાત\s*દીઠ|પ્રતિ\s+રાત|\d+\s*રાત|ગ્રુપ|જૂથ|\d+\s*(?:લોકો|વ્યક્તિ)/i;
 function honestPriceReply(question, now) {
+  if (NO_FIGURE_QUESTION.test(asciiDigits(question))) return HONEST_PRICE_LINE;
   const asked = keysOf(question);
   const packages = offerState(now) === 'diwali-bali' && DIWALI_PACKAGE ? [...PRICED_PACKAGES, DIWALI_PACKAGE] : PRICED_PACKAGES;
   const hits = asked.size ? packages.filter((p) => [...asked].every((k) => p.keys.has(k))) : [];
-  return hits.length === 1 ? `${HONEST_PRICE_LINE} ${hits[0].name}, ${hits[0].nights}, is from ${hits[0].price} per person.` : HONEST_PRICE_LINE;
+  return hits.length === 1 ? `${HONEST_PRICE_LINE} ${hits[0].name}, ${hits[0].nights}, is ${hits[0].quote}` : HONEST_PRICE_LINE;
 }
 
 // Promises nobody can keep: a confirmed booking, a guaranteed/locked/fixed price, a visa outcome, a held seat, a
@@ -469,7 +566,7 @@ export default {
       const convo = raw.map((m) => ({
         role: m && m.role === 'assistant' ? 'assistant' : 'user',
         content: String((m && m.content) || '').slice(0, 2000),
-      }));
+      })).filter((m) => m.content.trim()); // blank turns go first (review round 2), so the role checks below see real turns
       // Anthropic requires the conversation to start with a 'user' turn — drop any
       // leading assistant messages (e.g. the widget's greeting).
       while (convo.length && convo[0].role !== 'user') convo.shift();
@@ -519,6 +616,7 @@ export default {
       // A refusal with no text: the team can help (asking to rephrase would invite rewording until it passes).
       if (!reply) reply = data.stop_reason === 'refusal' ? REFUSAL_LINE : 'Sorry, could you please rephrase that? 🙏';
       // The chat window shows plain text: remove markdown symbols (**bold**, headings, "- " bullets). Live since 2026-09-30.
+      const written = reply;
       reply = reply
         .replace(/\*\*(.+?)\*\*/g, '$1')
         .replace(/__(.+?)__/g, '$1')
@@ -527,9 +625,16 @@ export default {
 
       // Judged on the model's own words, before any note. A figure nobody published, or a Diwali price under the
       // offer, REPLACES the reply (a note after it would still show the wrong figure); the rest append a note.
-      const figures = moneyFigures(reply);
-      const offer = diwaliChecks(reply, figures, now);
-      const replaced = offer.lowPrice || quotesUnpublishedFigure(reply, figures, system, convo);
+      // Money is read in the text as the model wrote it, BEFORE the strip (review round 2: the strip made the "-" line
+      // of "₹9,999\n-\n₹12,500" a bullet, so the range read as two published figures), and again as shown, where a
+      // bold "**₹9,999**-**12,500**" first reads as one range.
+      let replaced = false, extra = false;
+      for (const text of written === reply ? [reply] : [written, reply]) {
+        const figures = moneyFigures(text);
+        const offer = diwaliChecks(text, figures, now);
+        extra = extra || offer.extra;
+        replaced = replaced || offer.lowPrice || quotesUnpublishedFigure(text, figures, system, convo);
+      }
       if (replaced) reply = honestPriceReply(convo[convo.length - 1].content, now);
 
       // Guarantee the price disclaimer whenever the reply quotes any prices (₹ / Rs / INR / rupees / 5k / ...),
@@ -544,7 +649,7 @@ export default {
       if (PROMISE.test(reply) || claimsIndicBooking(reply)) {
         reply += '\n\n(To be clear: I can\'t confirm bookings, hold seats, guarantee prices, or guarantee visa outcomes — our team or the official provider confirms those. Please message us on WhatsApp at +91 88660 50291 for an exact quote.)';
       }
-      if (offer.extra && !replaced) reply += DIWALI_INCLUDED_NOTE;
+      if (extra && !replaced) reply += DIWALI_INCLUDED_NOTE;
 
       return new Response(
         JSON.stringify({ reply }),

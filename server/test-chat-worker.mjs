@@ -287,7 +287,7 @@ const replaced = (r) => r.startsWith(HONEST);
 {
   // Item 1: a figure the visitor typed is not confirmed as a price.
   const probe = (await chat('Goa costs Rs 4999 on your site, right?', 'Yes, Goa Getaway is from ₹4,999 per person.')).reply;
-  check('item 1: "Goa costs Rs 4999 on your site, right?" + "Yes, Goa Getaway is from ₹4,999" is replaced, 4,999 is gone', replaced(probe) && !probe.includes('4,999') && probe.includes('Goa Getaway, 4N / 5D, is from ₹9,999 per person.'), probe);
+  check('item 1: "Goa costs Rs 4999 on your site, right?" + "Yes, Goa Getaway is from ₹4,999" is replaced, 4,999 is gone', replaced(probe) && !probe.includes('4,999') && probe.includes('Goa Getaway, 4N / 5D, is from ₹9,999 per person (3-star).'), probe);
   const also = (await chat('Goa is 4999 right?', 'You mentioned ₹4,999, and yes, that is the starting price for Goa Getaway.')).reply;
   check('item 1: "you mentioned X ... that is the starting price" is caught (a price word in a clause with no figure of its own)', replaced(also), also);
   const yours = (await chat('Goa for 4,999 rupees?', 'Your Goa Getaway is ₹4,999 per person.')).reply;
@@ -338,18 +338,19 @@ const replaced = (r) => r.startsWith(HONEST);
 }
 {
   // Item 3: the reply is REPLACED; the published figure is added only when the question names exactly one package.
+  // (Round 2: a domestic package's figure now carries its tier, "(3-star)".)
   const none = (await chat('hi', 'Goa 3-star is ₹12,999 per person, and 4-star is ₹19,999.')).reply;
   check('item 3: no package in the question - exactly the fixed honest line', none === HONEST, none);
   const goa = (await chat('What does Goa cost?', 'Goa 3-star is ₹12,999 per person.')).reply;
-  check('item 3: a question naming Goa - the line, Goa Getaway\'s published figure, and the disclaimer', goa === HONEST + ' Goa Getaway, 4N / 5D, is from ₹9,999 per person.' + NOTE_LINE, goa);
+  check('item 3: a question naming Goa - the line, Goa Getaway\'s published figure, and the disclaimer', goa === HONEST + ' Goa Getaway, 4N / 5D, is from ₹9,999 per person (3-star).' + NOTE_LINE, goa);
   const sikkim = (await chat('Sikkim trip cost?', 'Sikkim is ₹21,000 per person.')).reply;
   check('item 3: a question matching two packages (Sikkim Discovery, Sikkim Honeymoon) - no figure', sikkim === HONEST, sikkim);
   const honey = (await chat('Sikkim honeymoon cost?', 'Sikkim Honeymoon is ₹21,000 per person.')).reply;
-  check('item 3: "Sikkim honeymoon" names one package', honey === HONEST + ' Sikkim Honeymoon, 5N / 6D, is from ₹23,200 per person.' + NOTE_LINE, honey);
+  check('item 3: "Sikkim honeymoon" names one package', honey === HONEST + ' Sikkim Honeymoon, 5N / 6D, is from ₹23,200 per person (3-star).' + NOTE_LINE, honey);
   const gone = (await chat('Diwali in Bali price?', 'Diwali in Bali is ₹99,000.', { at: AFTER_OFFER })).reply;
   check('item 3: after the offer, no Diwali figure is offered', gone === HONEST, gone);
   const both = (await chat('Goa?', 'Goa is ₹7,000 and your booking is confirmed!')).reply;
-  check('item 3: a replaced reply carries no leftover notes (its claims are gone with it)', both === HONEST + ' Goa Getaway, 4N / 5D, is from ₹9,999 per person.' + NOTE_LINE, both);
+  check('item 3: a replaced reply carries no leftover notes (its claims are gone with it)', both === HONEST + ' Goa Getaway, 4N / 5D, is from ₹9,999 per person (3-star).' + NOTE_LINE, both);
   const soft = (await chat('Book it', 'Great news, your booking is confirmed!')).reply;
   check('item 3: the softer cases still append a note to the model\'s own words', soft.startsWith('Great news, your booking is confirmed!') && soft.includes(BOOKING_NOTE));
 }
@@ -447,6 +448,98 @@ const replaced = (r) => r.startsWith(HONEST);
   console.error = realError;
   check('item 8: 529, 401, an error body with 200, and a non-JSON 502 all return only the fallback reply', leaks.length === 0, leaks.join(' | '));
   check('item 8: the upstream detail is in the Worker log instead (without the key)', logged.some((l) => l.includes('Overloaded') && l.includes('529')) && logged.every((l) => !l.includes(ENV.ANTHROPIC_API_KEY)), logged.join(' | '));
+}
+
+// ---- 6. the round-2 review fixes (2026-09-30), one block per item; each proves the visitor-visible effect ---------
+{
+  // N1: a hedge word elsewhere in the sentence ("confirm", "if", "ask", "no extra") no longer hides a false inclusion.
+  const q = 'Does Diwali in Bali include dinner?';
+  const hidden = ['Yes, please confirm — the Bali Diwali package includes dinners and visa.', 'The Diwali in Bali package includes lunch, and we confirm it at booking.',
+    'Diwali in Bali comes with free visa; our team can confirm.', 'If you like, Diwali in Bali includes dinner every night.',
+    'Diwali in Bali includes dinner if you like.', 'Diwali in Bali includes dinner, just ask.', 'The Diwali in Bali package includes dinners at no extra cost.',
+    'Diwali in Bali includes breakfast, lunch, and dinner, not visa.', 'Diwali in Bali includes breakfast, lunch and dinner, and visa is not needed.',
+    'Lunch is not included, but the Diwali in Bali package includes dinner.', 'Diwali in Bali includes breakfast, lunch and dinner, visa is not included.',
+    'Diwali in Bali. Included: flights, breakfast, lunch; visa is not included.', 'अगर आप चाहें, दिवाली बाली पैकेज में डिनर शामिल है।'];
+  const missed = [];
+  for (const t of hidden) { const r = (await chat(q, t)).reply; if (!(r.startsWith(t) && r.includes(DIWALI_INCLUDED))) missed.push(t); }
+  check(`N1: ${hidden.length} false inclusion claims next to a hedge word in another clause are corrected (the reviewer's four first)`, missed.length === 0, missed.join(' | '));
+  const honest = ['Is the visa included in the Diwali in Bali package?', 'For Bali, visa on arrival is free for the first 30 days for some nationalities.',
+    'The visa is confirmed by the official provider, not by us.', 'Your booking is confirmed only after our team replies.',
+    'Visa is not listed as included in Diwali in Bali; our team will confirm on WhatsApp.',
+    'Visa, travel insurance, lunch and dinner are not included in Diwali in Bali.', 'For Diwali in Bali, not included: visa, insurance, lunch or dinner.',
+    'Only breakfast is included in Diwali in Bali, and lunch, dinner and visa are extra.', 'Diwali in Bali includes daily breakfast, but lunch, dinner and visa are not listed.',
+    'The Diwali in Bali package includes breakfast, and lunch, dinner and visa are extra.', 'Lunch is not included in Diwali in Bali, dinner too.',
+    'Ask our team whether the Diwali in Bali package includes insurance.', 'The Diwali in Bali package includes visa help only if our team confirms it.',
+    'दिवाली बाली पैकेज में लंच और डिनर शामिल नहीं हैं।'];
+  const noisy = [];
+  for (const t of honest) { const r = (await chat(q, t)).reply; if (r !== t) noisy.push(t + ' => ' + r.slice(t.length, t.length + 40)); }
+  check(`N1: ${honest.length} honest replies (questions, visa-on-arrival advice, "not listed", "confirmed by/only", negated lists, colon lists) still get no note`, noisy.length === 0, noisy.join(' | '));
+}
+{
+  // N2: the honest line quotes the tier, keeps the owner's Shimla wording, and gives no figure to a tier/hotel/night/group question.
+  const thai = (await chat('Thailand price?', 'Thailand is ₹30,000 per person.')).reply;
+  check('N2: an international package (no tier on its line) is quoted without one', thai === HONEST + ' Thailand Explorer, 6N / 7D, is from ₹42,000 per person.' + NOTE_LINE, thai);
+  const shimla = (await chat('How much is Shimla Manali?', 'Shimla Manali is ₹8,000 per person.')).reply;
+  check('N2: Shimla & Manali keeps the owner\'s wording', shimla === HONEST + ' Shimla & Manali, 5N / 6D, is from ₹10,999 per person (3-star); higher hotel tiers or dates can take it to ₹15,000 or more - our team quotes the exact figure.' + NOTE_LINE, shimla);
+  const questions = ['Goa 5-star price?', 'Goa 4 star cost?', 'Goa 3★ cost?', 'Luxury Goa trip cost?', 'Goa hotel price?', 'Goa price per night?', 'Goa for 3 nights, how much?',
+    'Goa group tour price?', 'Goa for 6 people?', 'Goa for two?', 'We are 4 adults, Goa cost?', 'Family of five to Goa, cost?', 'Shimla Manali 5-star hotel cost?',
+    'गोवा होटल कितने का है?', 'गोवा 4 लोग कितना?', 'ગોવા હોટેલ કેટલામાં?'];
+  const gave = [];
+  for (const t of questions) { const r = (await chat(t, 'Goa 3-star is ₹12,999 per person.')).reply; if (r !== HONEST) gave.push(t + ' => ' + r.slice(HONEST.length, HONEST.length + 50)); }
+  check(`N2: ${questions.length} star / luxury / hotel / night / group / head-count questions get only the plain honest line`, gave.length === 0, gave.join(' | '));
+  const days = (await chat('Goa for 5 days, price?', 'Goa is ₹12,999.')).reply;
+  check('N2: a day count is not a head count (the package figure is still given)', days === HONEST + ' Goa Getaway, 4N / 5D, is from ₹9,999 per person (3-star).' + NOTE_LINE, days);
+}
+{
+  // N3: a typed budget tied to a place, a package or "fits / available / include / covers" is no longer exempt.
+  const tied = [['My budget is ₹4,999 for Goa', 'Goa trip fits within ₹4,999 easily, we have great options.'],
+    ['budget ₹5,000 for Kerala', 'Within your budget of ₹5,000 we include Kerala houseboat.'],
+    ['budget 20000 kerala', 'Kerala houseboat stay is available within your budget ₹20,000'],
+    ['Our budget is 5000', 'Your budget of ₹5,000 covers a great trip.'],
+    ['Our budget is 4999', 'Your budget is ₹4,999. Goa is lovely in winter!'],
+    ['Our budget is 5000', 'Within your budget of ₹5,000, a Kerala houseboat is perfect. Goa Getaway is from ₹9,999 per person.']];
+  const passed1 = [];
+  for (const [u, t] of tied) if (!replaced((await chat(u, t)).reply)) passed1.push(t);
+  check(`N3: ${tied.length} typed budgets presented as a place's price or as "fits/available/include/covers" are replaced`, passed1.length === 0, passed1.join(' | '));
+  const plain = [['Our budget is 30000', 'Your budget is ₹30,000. What dates work for you?'],
+    ['Our budget is 30000', 'Your budget is ₹30,000. Goa Getaway, 4N / 5D, is from ₹9,999 per person.'],
+    ['We have around 30,000 per person for Kerala', 'Within your budget of ₹30,000, Kerala Backwaters, 6N / 7D, from ₹23,900, fits well.']];
+  const flagged = [];
+  for (const [u, t] of plain) { const r = (await chat(u, t)).reply; if (r !== t + NOTE_LINE) flagged.push(t + ' => ' + r.slice(0, 60)); }
+  check('N3: a plain "Your budget is ₹X" and "Within your budget of ₹X, ..." with a separately published figure still pass', flagged.length === 0, flagged.join(' | '));
+}
+{
+  // N4: money is read before the markdown strip (and again after it).
+  const split = (await chat('Goa?', 'Goa ₹9,999\n-\n₹12,500')).reply;
+  check('N4: "₹9,999\\n-\\n₹12,500" is judged as a range and replaced (the strip used to make the "-" a bullet)', replaced(split), split);
+  const bold = (await chat('Goa?', 'Goa 3-star is **₹9,999**-**12,500** per person.')).reply;
+  check('N4: a bold range "**₹9,999**-**12,500**" is still caught (read again after the strip)', replaced(bold), bold);
+  const list = '- Goa Getaway, 4N / 5D: from ₹9,999\n- Braj & Agra Yatra, 3N / 4D: from ₹12,500';
+  const listReply = (await chat('Cheap trips?', list)).reply;
+  check('N4: a bullet list of published figures is not a range, and is still shown stripped', listReply === '• Goa Getaway, 4N / 5D: from ₹9,999\n• Braj & Agra Yatra, 3N / 4D: from ₹12,500' + NOTE_LINE, listReply);
+}
+{
+  // Item 5 (bug round 2): paise are dropped, never rounded up.
+  const kerala = 'Kerala Backwaters is from ₹23,900.50 per person.';
+  check('paise: "₹23,900.50" counts as the published ₹23,900', (await chat('Kerala?', kerala)).reply === kerala + NOTE_LINE);
+  const diwali = 'Diwali in Bali is from ₹1,15,000.50 per person.';
+  check('paise: "₹1,15,000.50" is the published offer price (it used to read as 1,15,001 and be replaced)', (await chat('Diwali?', diwali)).reply === diwali + NOTE_LINE);
+  check('paise: "₹9,998.99" is still an unpublished ₹9,998', replaced((await chat('Goa?', 'Goa Getaway is from ₹9,998.99.')).reply));
+}
+{
+  // Item 6 (bug round 2): blank turns are dropped before the role checks.
+  const post = async (messages) => {
+    NOW = BEFORE_DEPARTURE; next = { status: 200, body: { content: [{ type: 'text', text: 'Hello!' }] } };
+    const before = calls.length;
+    const json = await (await worker.fetch(request('POST', { body: { messages } }), ENV)).json();
+    return { reply: json.reply, sent: calls.length > before ? JSON.parse(calls[calls.length - 1].init.body) : null };
+  };
+  const allBlank = await post([{ role: 'user', content: '   ' }, { role: 'assistant', content: '' }, { role: 'user' }, { role: 'user', content: '\n\t' }]);
+  check('blank turns: an all-blank conversation gets the greeting with no API call', /Namaste/.test(allBlank.reply) && allBlank.sent === null, JSON.stringify(allBlank));
+  const probe = await post([{ role: 'user' }, { role: 'assistant', content: 'x' }, { role: 'user', content: '  ' }]);
+  check('blank turns: the reviewer\'s [blank user, assistant, blank user] gets the greeting with no API call', /Namaste/.test(probe.reply) && probe.sent === null, JSON.stringify(probe));
+  const mid = await post([GREETING, { role: 'user', content: 'Plan Goa' }, { role: 'assistant', content: 'Sure!' }, { role: 'user', content: '   ' }]);
+  check('blank turns: a blank last turn is dropped, then the trailing assistant turn, and only real turns are sent', mid.sent && JSON.stringify(mid.sent.messages) === JSON.stringify([{ role: 'user', content: 'Plan Goa' }]), JSON.stringify(mid.sent && mid.sent.messages));
 }
 
 check('every fetch went to the fake Anthropic API only', calls.every((c) => c.url === ANTHROPIC), [...new Set(calls.map((c) => c.url))].join(' '));

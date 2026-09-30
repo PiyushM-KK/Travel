@@ -17,7 +17,9 @@
  *     double. Output is billed per token actually written, so a higher cap costs nothing unless used.
  *
  * Any other model (claude-sonnet-5, claude-opus-4-8, ...) gets the same request parameters as before.
- * No network, no SDK: this only shapes request bodies, so it is testable offline.
+ * Also here: deadlineBudget (a per-call abort signal + retry decision inside a capped function) and
+ * cleanModelText (model-written text made safe to print in an owner message).
+ * No network, no SDK: this only shapes requests and text, so it is testable offline.
  */
 
 // "claude-sonnet-5-5" (optionally with a suffix like "-20260930"), never "claude-sonnet-5".
@@ -133,4 +135,70 @@ async function createWithTool(client, body, tool, requestOptions, opts = {}) {
   return second;
 }
 
-module.exports = { isSonnet55, rejectsForcedTool, maxTokensFor, textRequest, strictSchema, clampScore, toolCall, createWithTool };
+/**
+ * deadlineBudget — one model call's share of an absolute wall-clock deadline (epoch ms), for calls that
+ * run inside a capped function (the 60 s WhatsApp webhook runs the foreign-brand check, the SMM review
+ * and QA one after another). Gives the call:
+ *   signal    — aborts at the deadline (pass it as createWithTool's requestOptions.signal);
+ *   canRetry  — false once less than `retryShare` (default 40%) of the time left at the call's START
+ *               remains: the first attempt already used most of it, so a retry would be cut off, paid for
+ *               and unanswered;
+ *   expired   — the deadline had already passed: do not send the call at all;
+ *   done()    — clears the timer (call it in a finally).
+ * A deadline that is not a finite number is UNBOUNDED: no signal, retry allowed, never expires — the
+ * request is exactly what it was before.
+ */
+function deadlineBudget(deadlineMs, opts = {}) {
+  const retryShare = Number.isFinite(opts.retryShare) ? opts.retryShare : 0.4;
+  const deadline = deadlineMs == null || deadlineMs === "" ? NaN : Number(deadlineMs);
+  if (!Number.isFinite(deadline)) {
+    return { bounded: false, expired: false, signal: undefined, canRetry: () => true, done: () => {} };
+  }
+  const total = deadline - Date.now();
+  const controller = new AbortController();
+  let timer = null;
+  if (total <= 0) controller.abort();
+  // Cleared by done(); kept ref'd so it always fires. Beyond setTimeout's range (~24.8 days) Node would
+  // fire it at once, so no timer is set — nothing this project runs is that long.
+  else if (total <= 2147483647) timer = setTimeout(() => controller.abort(), total);
+  return {
+    bounded: true,
+    expired: total <= 0,
+    signal: controller.signal,
+    canRetry: () => total > 0 && !controller.signal.aborted && deadline - Date.now() >= retryShare * total,
+    done: () => { if (timer) clearTimeout(timer); },
+  };
+}
+
+// cleanModelText patterns. Format characters (zero-width, bidi overrides) are removed so they cannot hide
+// or re-order text; other control characters, line breaks and < > become spaces. Then every URL is
+// removed: any scheme://..., www...., and a bare domain (name.tld, with an optional :port or /path).
+const FORMAT_CHARS = /[\u00AD\u061C\u180E\u200B-\u200F\u202A-\u202E\u2060-\u2064\u2066-\u206F\uFEFF]/g;
+const CONTROL_CHARS = /[\u0000-\u001F\u007F-\u009F\u2028\u2029]/g;
+const DOT_LOOKALIKES = /[\u3002\uFF0E\uFF61]/g; // ideographic / fullwidth full stops some apps link as "."
+const SCHEME_URL = /\b[a-z][a-z0-9+.-]{1,15}:\/\/\S*/gi;
+const WWW_URL = /\bwww\.\S*/gi;
+const BARE_DOMAIN = /\b(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,24}\b(?:[:/]\S*)?/gi;
+
+/**
+ * cleanModelText — model-written text made safe to print in an owner message (WhatsApp / email) or a
+ * stored note (reviewNotes / lastError). The model's words can be steered by what it was shown (a
+ * poster's printed text, a caption), so what reaches the owner is ONE plain line: whitespace and line
+ * breaks collapsed, control and format characters and < > removed, no URL or bare domain (nothing the
+ * owner's app would turn into a link), at most `max` characters. Anything that is not text -> "".
+ */
+function cleanModelText(value, max = 200) {
+  if (value == null || typeof value === "object" || typeof value === "function") return "";
+  let s = String(value).replace(FORMAT_CHARS, "").replace(DOT_LOOKALIKES, ".").replace(CONTROL_CHARS, " ").replace(/[<>]/g, " ");
+  for (let i = 0; i < 3; i++) { // a removal leaves a space, so it cannot join two halves into a new URL
+    const next = s.replace(SCHEME_URL, " ").replace(WWW_URL, " ").replace(BARE_DOMAIN, " ");
+    if (next === s) break;
+    s = next;
+  }
+  s = s.replace(/\s+/g, " ").trim();
+  const cap = Number.isFinite(max) && max > 0 ? Math.floor(max) : 200;
+  const chars = Array.from(s); // by code point: never split a surrogate pair
+  return chars.length > cap ? chars.slice(0, cap).join("").trim() : s;
+}
+
+module.exports = { isSonnet55, rejectsForcedTool, maxTokensFor, textRequest, strictSchema, clampScore, toolCall, createWithTool, deadlineBudget, cleanModelText };

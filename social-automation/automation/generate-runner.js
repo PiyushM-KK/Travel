@@ -31,6 +31,7 @@ const { reviewAsSocialMediaManager, reviewAsQualityAnalyst } = require("../engin
 const { redact } = require("../engine/publish");
 const { resolveImageSourceBytes, hasImageSource } = require("./image-source");
 const { enhanceImage, describeEnhancement } = require("../engine/enhance-image");
+const { deadlineBudget, cleanModelText } = require("../engine/model-compat");
 
 function nowIso(now) {
   return (now instanceof Date ? now : new Date()).toISOString();
@@ -176,9 +177,25 @@ function briefFromRow(row, photoDescription) {
   };
 }
 
+// ctx.deadlineMs (optional, absolute epoch ms): the wall clock a caller inside a capped function must be
+// done by. The WhatsApp webhook (60 s) sets it. The foreign-brand check, the SMM review and QA then each
+// get an abort signal at that deadline and skip their one retry when less than 40% of the time left at
+// the call's start remains (deadlineBudget). A review cut off by the deadline is "did not run" (the
+// visible warning below); a foreign-brand check cut off is a HOLD ("could not check"). Never a pass.
+// Unset (runGenerate, CLI, tests) -> unbounded: the requests are exactly as before.
+function resolveReviewDeadlineMs(ctx) {
+  const d = ctx && ctx.deadlineMs;
+  return d != null && d !== "" && Number.isFinite(Number(d)) ? Number(d) : Infinity;
+}
+// The per-call options a review agent reads: the caller's own options plus the signal + retry rule.
+function withBudget(base, budget) {
+  return budget.bounded ? { ...(base || {}), signal: budget.signal, canRetry: budget.canRetry } : base;
+}
+
 async function generateOne(store, row, ctx) {
   const claimed = await store.claim(row.id, { fromStatus: "planned", toStatus: "drafting", runner: ctx.runner });
   if (!claimed) return { id: row.id, outcome: "skipped", reason: "not claimable (another generate runner or status changed)" };
+  const reviewDeadlineMs = resolveReviewDeadlineMs(ctx);
 
   // 1. Vision (best-effort): describe the photo as a hint. A vision failure must
   //    not sink the row — we fall back to the client's own note.
@@ -274,18 +291,26 @@ async function generateOne(store, row, ctx) {
   //     passes. The detector FAILS CLOSED: a check that gave no clear answer (fb.unverified) holds the
   //     row with its own plain reason, so the owner looks at the image instead of it being waved through.
   if (ctx.checkForeignBrand && imageBytes) {
+    const budget = deadlineBudget(reviewDeadlineMs);
     try {
-      const fbOpts = { clientName: ctx.clientName || (ctx.profile && ctx.profile.name) || "the client" };
+      const fbOpts = withBudget({ clientName: ctx.clientName || (ctx.profile && ctx.profile.name) || "the client" }, budget);
       if (ctx.visionOpts && ctx.visionOpts.client) fbOpts.client = ctx.visionOpts.client; // injectable (tests)
-      const fb = await detectForeignBrand(imageBytes, fbOpts);
+      const fb = budget.expired
+        ? { foreign: true, brand: "", unverified: true, timedOut: true } // no time left to check: hold, never pass
+        : await detectForeignBrand(imageBytes, fbOpts);
       if (fb.foreign) {
-        const note = fb.unverified
+        const brand = cleanModelText(fb.brand, 60); // read off the image: one plain line, no link
+        const note = fb.timedOut
+          ? `🚫 Held for review — the check for another company's branding on this image could not run in time, so it was not drafted. Please look at the image; if it shows only ${ctx.clientName || "your"} branding, send it again.`
+          : fb.unverified
           ? `🚫 Held for review — the check for another company's branding on this image gave no clear answer, so it was not drafted. Please look at the image; if it shows only ${ctx.clientName || "your"} branding, send it again.`
-          : `🚫 Held — the image shows another company's branding/contact (${fb.brand || "a supplier/competitor"}), not ${ctx.clientName || "your"} branding. Not posted.`;
+          : `🚫 Held — the image shows another company's branding/contact (${brand || "a supplier/competitor"}), not ${ctx.clientName || "your"} branding. Not posted.`;
         await store.update(claimed.id, { status: "held", claimToken: null, claimedAt: null, reviewNotes: note, lastError: note });
-        return { id: claimed.id, outcome: "held", reason: fb.unverified ? "foreign-brand check gave no answer" : "foreign brand in image", reviewNotes: note };
+        const reason = fb.timedOut ? "foreign-brand check could not run in time" : fb.unverified ? "foreign-brand check gave no answer" : "foreign brand in image";
+        return { id: claimed.id, outcome: "held", reason, reviewNotes: note };
       }
     } catch (e) { /* only a store failure lands here; detectForeignBrand itself never throws */ }
+    finally { budget.done(); }
   }
 
   // 2. Draft + fact-check.
@@ -325,19 +350,22 @@ async function generateOne(store, row, ctx) {
   //    a reject holds the row for the owner.
   if (ctx.useSmm) {
     let review = null;
+    const budget = deadlineBudget(reviewDeadlineMs);
     try {
+      if (budget.expired) throw new Error("no time left before the deadline");
       review = await reviewAsSocialMediaManager(
         { platform: primary.platform, caption, hashtags, cta: primary.cta },
         { facts: ctx.facts, profile: ctx.profile },
-        ctx.smmOpts
+        withBudget(ctx.smmOpts, budget)
       );
     } catch (e) {
       review = null; // the SMM is an enhancement — its failure must not sink the row, but the owner is told
       checksNotRun.push("SMM review did not run — check the caption yourself before approving");
       noteSkip("smm_review_skipped", e);
-    }
+    } finally { budget.done(); }
     if (review) {
-      reviewNotes = `SMM ${review.score}/10 (${review.verdict}): ${review.notes}`;
+      // Model-written text reaches the owner's WhatsApp/email: one plain line, no link, capped.
+      reviewNotes = `SMM ${review.score}/10 (${review.verdict}): ${cleanModelText(review.notes, 200)}`;
       if (review.verdict === "reject") {
         await store.update(claimed.id, { status: "held", claimToken: null, claimedAt: null, reviewNotes, lastError: "SMM rejected the draft" });
         return { id: claimed.id, outcome: "held", reason: "SMM rejected", reviewNotes };
@@ -347,8 +375,9 @@ async function generateOne(store, row, ctx) {
       // dish that re-validation (using the original draft's declarations) would
       // miss. Instead we KEEP the fact-checked original and surface the suggestion
       // for the human to apply at approval (a deliberate, accountable edit).
-      if (review.verdict === "revise" && review.suggestedCaption) {
-        reviewNotes += ` — SMM suggests: "${String(review.suggestedCaption).slice(0, 180)}"`;
+      const suggestion = cleanModelText(review.suggestedCaption, 180);
+      if (review.verdict === "revise" && suggestion) {
+        reviewNotes += ` — SMM suggests: "${suggestion}"`;
       }
     }
   }
@@ -357,24 +386,29 @@ async function generateOne(store, row, ctx) {
   //    and FIT THIS CLIENT? A mismatch (wrong topic/business, missing image, incomplete
   //    caption) is HELD with a plain reason — never sent onward as a nonsensical post.
   if (ctx.useQa) {
+    const budget = deadlineBudget(reviewDeadlineMs);
     try {
+      if (budget.expired) throw new Error("no time left before the deadline");
       const qa = await reviewAsQualityAnalyst(
         { hint: claimed.hint, subject: claimed.subject, source: claimed.source },
         { platforms: claimed.platforms, platform: primary.platform, caption, imageUrl: claimed.imageUrl, imageAttached: hasImage },
         { facts: ctx.facts, profile: ctx.profile },
-        ctx.qaOpts
+        withBudget(ctx.qaOpts, budget)
       );
+      // Model-written text reaches the owner's WhatsApp/email: one plain line each, no link, capped.
+      const qaReason = cleanModelText(qa.reason, 200);
+      const qaIssues = cleanModelText((qa.issues || []).map((s) => cleanModelText(s, 200)).filter(Boolean).join("; "), 200);
       if (qa.verdict === "hold") {
-        const qaNote = `QA hold: ${qa.reason}${qa.issues.length ? " (" + qa.issues.join("; ") + ")" : ""}`;
+        const qaNote = `QA hold: ${qaReason}${qaIssues ? " (" + qaIssues + ")" : ""}`;
         await store.update(claimed.id, { status: "held", claimToken: null, claimedAt: null, reviewNotes: (reviewNotes ? reviewNotes + " | " : "") + qaNote, lastError: qaNote });
         return { id: claimed.id, outcome: "held", reason: "QA mismatch", reviewNotes: qaNote };
       }
-      if (qa.issues.length) reviewNotes += (reviewNotes ? " | " : "") + "QA: " + qa.issues.join("; ");
+      if (qaIssues) reviewNotes += (reviewNotes ? " | " : "") + "QA: " + qaIssues;
     } catch (e) {
       // QA is an enhancement — its failure must not sink the row, but the owner is told.
       checksNotRun.push("QA did not run — check the post matches what was asked for before approving");
       noteSkip("qa_review_skipped", e);
-    }
+    } finally { budget.done(); }
   }
   if (checksNotRun.length) reviewNotes = (reviewNotes ? reviewNotes + " | " : "") + checksNotRun.join(" | ");
 

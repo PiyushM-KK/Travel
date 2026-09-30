@@ -22,7 +22,7 @@ const { factSheet } = require("./kb-adapter");
 const { SOCIAL_PLAYBOOK } = require("./social-playbook");
 const { validatePost } = require("./validate-post");
 const { redact } = require("./publish"); // secret-safe error text (no cycle: publish.js never requires generate.js)
-const { textRequest, createWithTool, clampScore, toolCall } = require("./model-compat"); // per-model request shape (Sonnet 5.5)
+const { textRequest, createWithTool, clampScore, toolCall, cleanModelText } = require("./model-compat"); // per-model request shape (Sonnet 5.5)
 
 // Lazy: the SDK is only needed when we actually call the API. Requiring it at
 // runtime (not import time) keeps the engine importable offline — e.g. tests
@@ -642,11 +642,15 @@ const FOREIGN_BRAND_TOOL = {
 
 async function detectForeignBrand(image, opts = {}) {
   if (!image) return { foreign: false, brand: "" }; // no image: nothing to inspect
-  const held = { foreign: true, brand: "", unverified: true };
+  // opts.signal (aborts at the caller's deadline) + opts.canRetry: a check cut off by the deadline is a
+  // check that could not run -> HELD, marked timedOut so the owner is told why. Never a pass.
+  const signal = opts.signal;
+  const held = () => ({ foreign: true, brand: "", unverified: true, ...(signal && signal.aborted ? { timedOut: true } : {}) });
   const clientName = String(opts.clientName || "the client").trim();
   try {
+    if (signal && signal.aborted) return held(); // out of time before it started
     const source = await imageBlockSource(image);
-    if (!source) return held; // an image we cannot read is not an image we checked
+    if (!source) return held(); // an image we cannot read is not an image we checked
     const client = opts.client || newClient();
     const msg = await createWithTool(client, {
       model: opts.model || REPLY_MODEL,
@@ -664,14 +668,15 @@ async function detectForeignBrand(image, opts = {}) {
             `foreign=true and brand = the other brand/name/number you see.` },
         ],
       }],
-    }, FOREIGN_BRAND_TOOL);
+    }, FOREIGN_BRAND_TOOL, signal ? { signal } : undefined, typeof opts.canRetry === "function" ? { canRetry: opts.canRetry } : {});
     const use = toolCall(msg, FOREIGN_BRAND_TOOL.name);
     const out = use && use.input;
-    if (!out || typeof out !== "object" || typeof out.foreign !== "boolean") return held;
+    if (!out || typeof out !== "object" || typeof out.foreign !== "boolean") return held();
     if (!out.foreign) return { foreign: false, brand: "" };
-    return { foreign: true, brand: typeof out.brand === "string" ? out.brand.trim().slice(0, 120) : "" };
+    // The brand is read off the image, so it is text a poster chose: one plain line, no link, 60 chars.
+    return { foreign: true, brand: cleanModelText(out.brand, 60) };
   } catch (e) {
-    return held;
+    return held();
   }
 }
 

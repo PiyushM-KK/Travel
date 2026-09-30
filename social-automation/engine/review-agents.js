@@ -31,6 +31,12 @@ function newClient() {
   return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 }
 
+// A caller running inside a capped function (the WhatsApp webhook) passes opts.signal (aborts at its
+// deadline) and opts.canRetry (skip the one retry when it could not finish). Neither given -> the request
+// is exactly as before.
+const requestOptionsFrom = (opts) => (opts && opts.signal ? { signal: opts.signal } : undefined);
+const retryOptionsFrom = (opts) => (opts && typeof opts.canRetry === "function" ? { canRetry: opts.canRetry } : {});
+
 // ---------------------------------------------------------------- Social Media Manager
 const SMM_TOOL = {
   name: "smm_review",
@@ -71,12 +77,15 @@ async function reviewAsSocialMediaManager(post, context = {}, opts = {}) {
         content: `Platform: ${post.platform}\nCaption: ${post.caption}\nHashtags: ${(post.hashtags || []).join(" ")}\nCTA: ${post.cta || "(none)"}`,
       },
     ],
-  }, SMM_TOOL);
+  }, SMM_TOOL, requestOptionsFrom(opts), retryOptionsFrom(opts));
   const block = (msg.content || []).find((b) => b.type === "tool_use" && b.name === SMM_TOOL.name);
   if (!block) throw new Error("Social Media Manager did not return a review");
   const out = block.input || {};
+  // No verdict (or one outside the enum) is a review that did not run — never a pass. The caller shows
+  // the owner "SMM review did not run" and the row cannot auto-approve.
+  if (!["pass", "revise", "reject"].includes(out.verdict)) throw new Error("Social Media Manager returned no verdict");
   return {
-    verdict: out.verdict || "pass",
+    verdict: out.verdict,
     score: clampScore(Number(out.score)) || 0, // 0–10 enforced here: strict tool use drops min/max
     notes: String(out.notes || "").trim(),
     suggestedCaption: String(out.suggestedCaption || "").trim(),
@@ -217,12 +226,14 @@ async function reviewAsQualityAnalyst(request = {}, post = {}, context = {}, opt
           `Does this fulfil the request AND fit "${business.name}"? Return via the tool.`,
       },
     ],
-  }, QA_TOOL);
+  }, QA_TOOL, requestOptionsFrom(opts), retryOptionsFrom(opts));
   const block = (msg.content || []).find((b) => b.type === "tool_use" && b.name === QA_TOOL.name);
   if (!block) throw new Error("QA analyst returned nothing");
   const out = block.input || {};
+  // Same rule as the SMM: no verdict is a check that did not run ("QA did not run"), never a pass.
+  if (out.verdict !== "pass" && out.verdict !== "hold") throw new Error("QA analyst returned no verdict");
   return {
-    verdict: out.verdict === "hold" ? "hold" : "pass",
+    verdict: out.verdict,
     fulfilsRequest: out.fulfilsRequest !== false,
     fitsClient: out.fitsClient !== false,
     captionComplete: out.captionComplete !== false,

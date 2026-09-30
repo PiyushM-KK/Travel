@@ -23,6 +23,12 @@ const { loadClient } = require("../automation/clients");
 // We need the raw body for the HMAC signature check, so disable Vercel's parser.
 module.exports.config = { api: { bodyParser: false } };
 
+// This function is capped at 60 s (vercel.json). A draft's review calls (foreign-brand check, SMM, QA)
+// run one after another and each can be re-sent once on Sonnet 5.5, so they get a hard wall-clock
+// deadline measured from the request's arrival: 45 s, leaving ~15 s to save the row and reply. A review
+// cut off by it is shown to the owner as "did not run"; a cut-off foreign-brand check holds the row.
+const REVIEW_DEADLINE_MS = 45 * 1000;
+
 function readRawBody(req) {
   return new Promise((resolve) => {
     if (typeof req.body === "string") return resolve(req.body);
@@ -44,6 +50,7 @@ function readRawBody(req) {
 }
 
 module.exports = async (req, res) => {
+  const reviewDeadlineMs = Date.now() + REVIEW_DEADLINE_MS; // from the request's arrival (see above)
   res.setHeader("Cache-Control", "no-store");
 
   // ---- GET: verification handshake ----
@@ -253,6 +260,7 @@ module.exports = async (req, res) => {
               const res = await generateOne(store, rrow, {
                 runner: "whatsapp-reseller", facts: client.facts, profile: client.profile,
                 useVision: false, useSmm: true, // caption grounded on the package; card is Skyline's own
+                deadlineMs: reviewDeadlineMs,   // review calls stop at the webhook's deadline
               });
               const fresh = await store.get(rrow.id);
               if (res.outcome === "pending" || res.outcome === "approved") {
@@ -307,6 +315,7 @@ module.exports = async (req, res) => {
           checkForeignBrand: true, clientName: client.label || "Skyline Travel Planner",
           // Vision runs on the image bytes (re-fetched from the source) — no public URL.
           useVision: !!(row.imageSource || row.imageUrl), useSmm: true,
+          deadlineMs: reviewDeadlineMs, // foreign-brand check + SMM stop at the webhook's deadline
           imageOpts: {}, // whatsapp media re-fetch uses WHATSAPP_TOKEN from env
           ...(aiEnhancer ? {
             aiEnhancer, regenerate: true,

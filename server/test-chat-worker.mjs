@@ -113,7 +113,7 @@ const NOTE_LINE_HI = '\n\n' + SITE_NOTE.hi, NOTE_LINE_GU = '\n\n' + SITE_NOTE.gu
 {
   const before = calls.length;
   const health = await (await worker.fetch(request('GET'), ENV)).json();
-  check('GET reports version anthropic-8', health.version === 'anthropic-8', JSON.stringify(health));
+  check('GET reports version anthropic-9', health.version === 'anthropic-9', JSON.stringify(health));
   check('GET reports model claude-sonnet-5-5', health.model === 'claude-sonnet-5-5', JSON.stringify(health));
   check('GET reports the key is present', health.ok === true && health.hasKey === true);
   check('GET reports a missing key', (await (await worker.fetch(request('GET'), {})).json()).hasKey === false);
@@ -175,7 +175,13 @@ for (const h of home) {
 }
 check('the Diwali offer price as diwali-bali.html writes it', SYS.includes(`from ${diwaliPrice} per person`), diwaliPrice);
 {
-  const siteFigures = new Set([...allPackages.map((p) => p.price), ...destinations.map((d) => d.fromPrice), diwaliPrice, '₹15,000' /* owner, 2026-09-30 */]);
+  // anthropic-9: the Bali package page's hotel options carry their own published prices.
+  const optionPrices = Object.values(packagePages).flatMap((p) => (p.hotelOptions || []).map((o) => o.price));
+  const siteFigures = new Set([...allPackages.map((p) => p.price), ...destinations.map((d) => d.fromPrice), ...optionPrices, diwaliPrice, '₹15,000' /* owner, 2026-09-30 */]);
+  const baliLine = lineStarting('- Bali 7 Nights with Flights, 7N / 8D') || '';
+  check('anthropic-9: the Bali line carries every hotel-option price of the package page', optionPrices.length === 3 && optionPrices.every((x) => baliLine.includes(x)), baliLine);
+  check('anthropic-9: each Bali hotel option is listed with its own price and hotels', (packagePages.bali.hotelOptions || []).every((o, i) =>
+    SYS.includes(`- Hotel option ${i + 1}, ${o.price} per person: `) && SYS.includes(o.stay1.split(' - ')[1].split(' (')[0])));
   const stray = (SYS.match(/₹[\d,]+/g) || []).filter((f) => !siteFigures.has(f));
   check('every rupee figure in the prompt is a site figure (or the owner\'s Shimla figure)', stray.length === 0, stray.join(' '));
 }
@@ -239,13 +245,36 @@ const count = (s, sub) => s.split(sub).length - 1;
   check('Diwali in Bali at the right price: no correction', !corrected((await chat('Diwali?', 'Diwali in Bali, 7N/8D, is from ₹1,15,000 per person.')).reply));
 }
 {
-  // anthropic-6: the price list quotes Bali Honeymoon (₹46,000) and more places, so the Diwali judgement must not
-  // mistake them for a discount on the offer.
-  const bali = (await chat('Bali packages?', 'Our Diwali in Bali trip is from ₹1,15,000 per person. We also have the Bali Honeymoon, 6N / 7D, from ₹46,000 per person.')).reply;
-  check('Bali Honeymoon price after the offer is not a Diwali discount', !bali.includes(DIWALI_PRICE) && !bali.includes(UNPUBLISHED), bali);
-  const same = (await chat('Bali packages?', 'Diwali in Bali is from ₹1,15,000, and the Bali Honeymoon is from ₹46,000.')).reply;
+  // anthropic-6 / -9: the price list quotes the regular Bali package (₹70,200, options to ₹74,000) and more places, so
+  // the Diwali judgement must not mistake them for a discount on the offer.
+  const bali = (await chat('Bali packages?', 'Our Diwali in Bali trip is from ₹1,15,000 per person. We also have the Bali 7 Nights with Flights, 7N / 8D, from ₹70,200 per person.')).reply;
+  check('the regular Bali package price after the offer is not a Diwali discount', !bali.includes(DIWALI_PRICE) && !bali.includes(UNPUBLISHED), bali);
+  const same = (await chat('Bali packages?', 'Diwali in Bali is from ₹1,15,000, and the Bali 7 Nights with Flights is from ₹70,200.')).reply;
   check('...also in the same sentence as the offer', !same.includes(DIWALI_PRICE), same);
-  check('"Diwali in Bali from ₹46,000" is still a discount', (await chat('Diwali?', 'Diwali in Bali is from ₹46,000 per person.')).reply.includes(DIWALI_PRICE));
+  const option = (await chat('Bali hotels?', 'Diwali in Bali is from ₹1,15,000; the Bali 7 Nights with Flights with hotel option 3 is ₹74,000.')).reply;
+  check('anthropic-9: a regular-package hotel-option price next to the offer is not a discount', !option.includes(DIWALI_PRICE), option);
+  check('"Diwali in Bali from ₹70,200" is still a discount', (await chat('Diwali?', 'Diwali in Bali is from ₹70,200 per person.')).reply.includes(DIWALI_PRICE));
+  check('anthropic-9: a bare "honeymoon" no longer excuses a Diwali figure', (await chat('Diwali?', 'Diwali in Bali, perfect for a honeymoon, is from ₹70,200.')).reply.includes(DIWALI_PRICE));
+  check('anthropic-9: the package name AFTER the figure does not excuse it', (await chat('Diwali?', 'Diwali in Bali is from ₹72,200 - like the Bali 7 Nights with Flights.')).reply.includes(DIWALI_PRICE));
+  // AI Security (anthropic-9): naming the regular package in a Diwali sentence must not excuse a Diwali figure.
+  const nameSmuggled = [
+    'The Diwali in Bali offer, like our Bali 7 Nights with Flights, starts at ₹70,200.',
+    'The Diwali offer is the Bali 7 Nights with Flights package from ₹70,200.',
+    'Diwali travellers can book Bali 7 Nights with Flights from ₹70,200, so that is the Diwali price.',
+    'Bali 7 Nights with Flights: ₹70,200 for the Diwali dates.',
+    'दिवाली इन बाली, बाली 7 रातें पैकेज सिर्फ ₹70,200 में।',
+    'દિવાળી ઇન બાલી, બાલી 7 રાત પેકેજ ફક્ત ₹70,200 માં.',
+    'Bali 7 Nights with Flights is from ₹70,200, a separate trip. Diwali in Bali is from ₹1,15,000, and Bali 7 Nights with Flights hotels are ₹74,000 for Diwali.',
+    'Diwali in Bali 7 Nights with Flights is just ₹70,200.',
+    // round 2: other spellings, "festival", the month; and linking words after the offer's price
+    'Deepawali in Bali is only ₹70,200.', 'Dipawali in Bali is only ₹70,200 per person.', 'दीवाली में बाली सिर्फ ₹70,200 में।',
+    'The festival offer to Bali is ₹70,200.', 'The November trip to Bali is ₹70,200 per person.', 'The 3 November Bali trip costs ₹70,200.',
+    'Diwali in Bali is from ₹1,15,000 but you can get it as the Bali 7 Nights with Flights at ₹70,200.',
+    'Diwali in Bali is from ₹1,15,000, while the Bali 7 Nights with Flights from ₹70,200 is the same itinerary.',
+  ];
+  const slipped = [];
+  for (const t of nameSmuggled) { const r = (await chat('Diwali?', t)).reply; if (!r.includes(DIWALI_PRICE)) slipped.push(t + ' => ' + r.slice(0, 80)); }
+  check(`anthropic-9: the regular package's name never carries a Diwali discount (${nameSmuggled.length} forms, EN/HI/GU)`, slipped.length === 0, slipped.join(' | '));
   const megh = (await chat('Other ideas?', 'Diwali in Bali is from ₹1,15,000 per person. Closer to home, Meghalaya Wonders, 6N / 7D, is from ₹28,900.')).reply;
   check('a North-East package after a Bali mention is judged by its own place', !megh.includes(DIWALI_PRICE), megh);
   const hi = (await chat('और?', 'दिवाली बाली ऑफ़र ₹1,15,000 से है। मेघालय वंडर्स 6N / 7D ₹28,900 से है।')).reply;
@@ -334,21 +363,22 @@ const replaced = (r) => r.startsWith(HONEST);
   check('item 2: a PUBLISHED figure in those forms passes and gets the price disclaimer (the trigger reads them too; anthropic-8: the Hindi reply gets the Hindi note)', bad.length === 0, bad.join(' | '));
   const plain = 'Diwali in Bali, 7N / 8D, departs 3 November 2026 - call +91 88660 50291. Trips run 5–7 days, 120 km apart, and over 1 lakh devotees visit Tirupati daily.';
   check('item 2: dates, nights, phone numbers, distances and a head count are not money', (await chat('hi', plain)).reply === plain);
-  // The Diwali check on its own: ₹46,000 IS published (Bali Honeymoon), so only the offer check can catch these.
-  const diwali = ['Diwali in Bali is from 46,000 rupees.', 'Diwali in Bali is from ₹४६,०००.', 'Diwali in Bali is just 46k.', 'दिवाली बाली पैकेज 46,000 रुपये से है।', 'Diwali in Bali costs 46,000 INR.'];
+  // The Diwali check on its own: ₹70,200 and ₹74,000 ARE published (the regular Bali package), so only the offer check
+  // can catch these.
+  const diwali = ['Diwali in Bali is from 70,200 rupees.', 'Diwali in Bali is from ₹७०,२००.', 'Diwali in Bali is just 74k.', 'दिवाली बाली पैकेज 70,200 रुपये से है।', 'Diwali in Bali costs 70,200 INR.'];
   const low = [], lowAfter = [];
   for (const t of diwali) {
     const r = (await chat('Diwali in Bali?', t)).reply;
     if (r !== HONEST + ' ' + DIWALI_PRICE + '.' + NOTE_LINE) low.push(t + ' => ' + r);
     // anthropic-8 (AI Security): after the offer the offer check is off, but a reply that NAMES "Diwali in Bali" is still
     // replaced by the trip check (that trip's own figure is ₹1,15,000). AI Security round 2: Hindi / Gujarati names are
-    // read too, so "दिवाली बाली" names it as well; "Diwali in Bali is from ₹४६,०००" etc. name it in English.
+    // read too, so "दिवाली बाली" names it as well; "Diwali in Bali is from ₹७०,२००" etc. name it in English.
     if (replaced((await chat('Diwali in Bali?', t, { at: AFTER_OFFER })).reply) !== /Diwali in Bali|दिवाली बाली/.test(t)) lowAfter.push(t);
   }
   check('item 2: a Diwali price under the offer is caught in the new forms (unit after, Indic digits, k)', low.length === 0, low.join(' | '));
   check('item 2: ...and it is the offer check that caught them: after the offer the same published figure passes it (only the trip check still catches a reply naming "Diwali in Bali")', lowAfter.length === 0, lowAfter.join(' | '));
-  const honeymoon = 'Bali Honeymoon is from 46,000 rupees.';
-  check('item 2: after the offer, the Bali Honeymoon\'s own ₹46,000 passes', (await chat('Bali?', honeymoon, { at: AFTER_OFFER })).reply === honeymoon + NOTE_LINE);
+  const regular = 'Bali 7 Nights with Flights is from 70,200 rupees.';
+  check('item 2: after the offer, the regular Bali package\'s own ₹70,200 passes', (await chat('Bali?', regular, { at: AFTER_OFFER })).reply === regular + NOTE_LINE);
 }
 {
   // Item 3: the reply is REPLACED; the published figure is added only when the question names exactly one package.
@@ -854,7 +884,7 @@ async function chatSeq(userText, answers) {
     ['Uttarakhand?', 'Uttarakhand trips start from ₹19,700 with the Kausani & Kumaon route.'],
     ['Himachal?', 'Shimla & Manali, 5N / 6D, is from ₹10,999 per person (3-star); higher hotel tiers or dates can take it to ₹15,000 or more.'],
     ['Sikkim?', 'Sikkim Honeymoon, 5N / 6D, is from ₹23,200 per person (3-star), and Sikkim trips of 6–7 days start from ₹20,900.'],
-    ['Diwali?', 'Diwali in Bali, 7N / 8D, is from ₹1,15,000 per person, and the Bali Honeymoon, 6N / 7D, from ₹46,000.'],
+    ['Diwali?', 'Diwali in Bali, 7N / 8D, is from ₹1,15,000 per person, and the Bali 7 Nights with Flights, 7N / 8D, from ₹70,200.'],
     ['Ooty?', 'Mysore, Coorg and Ooty, 6N / 7D, is from ₹20,800 per person (3-star).']];
   const flagged = [];
   for (const [q, t] of right) { const r = (await chat(q, t)).reply; if (r !== t + NOTE_LINE) flagged.push(t + ' => ' + r.slice(0, 60)); }

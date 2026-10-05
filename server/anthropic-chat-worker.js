@@ -22,7 +22,7 @@
 // Claude Sonnet 5.5, live since 2026-09-30 (the owner switched the deployed anthropic-4 the same way). Per Anthropic's
 // model page it rejects a non-default temperature with a 400 and thinks by default, hence the request body below.
 const MODEL = 'claude-sonnet-5-5';
-const VERSION = 'anthropic-8'; // reported by the GET health check
+const VERSION = 'anthropic-9'; // reported by the GET health check
 
 // anthropic-6 (2026-09-30, after an accuracy test of the live assistant): the prompt carries the website's own
 // published prices, destinations and seasons (PUBLISHED_PRICES / DESTINATIONS / BEST_SEASONS below, copied from
@@ -52,6 +52,12 @@ const VERSION = 'anthropic-8'; // reported by the GET health check
 // (wheelchair assistance, "drive-up" sights), says who chooses, suggests and confirms hotels, and aims for 70-90 words
 // (hard limit 110); Hindi and Gujarati replies keep the package names in English. The price note follows the reply's language and is added only when no note is there in any of the
 // three languages (run 3: GU1 and GU2 showed the model's Gujarati note and then the English one; see PRICE_NOTE).
+// anthropic-9 (2026-10-05, the owner's regular-rate flyer, live on the site in 53cf0e3): "Bali Honeymoon, 6N / 7D, from
+// ₹46,000" is replaced by "Bali 7 Nights with Flights", 7N / 8D, return flights from Ahmedabad on VietJet, from ₹70,200
+// with three hotel options (₹70,200 / ₹72,200 / ₹74,000) - BALI_PACKAGE holds the package page's details. A Bali figure
+// in a sentence that names Diwali (any spelling, "festival", November) is the regular package only as the honest
+// comparison - the offer's ₹1,15,000 first, then the package's NAME, no Diwali or linking word after that price
+// (isBaliPackageFigure; two AI Security rounds). A bare "honeymoon" no longer excuses anything.
 // AI Security round, same version: a published figure must be the one of the trip it is quoted for (a package's own
 // figure, a destination's for its stated days - tripFigureMismatch), a note is recognised only as a real note sentence,
 // and the note's language is chosen with package, place and page names left out of the count.
@@ -103,7 +109,7 @@ South India (Kerala · Karnataka & the Nilgiris · Tamil Nadu):
 - Ooty · Coorg · Mysore, 5N / 6D (Mysore · Coorg · Ooty · Coonoor): price on request (no published figure).
 International packages (International page, shown as "From, per person"):
 - Thailand Explorer, 6N / 7D (Bangkok · Pattaya · Phuket · Krabi): from ₹42,000.
-- Bali Honeymoon, 6N / 7D (Kuta · Ubud · Seminyak · Nusa Penida): from ₹46,000.
+- Bali 7 Nights with Flights, 7N / 8D (From Ahmedabad · Kuta · Ubud · Uluwatu · Tanah Lot): from ₹70,200 including return flights from Ahmedabad on VietJet; by hotel option ₹70,200 / ₹72,200 / ₹74,000.
 - Maldives Escape, 4N / 5D (Beach or overwater villa · Male atolls): from ₹58,000.
 Destination "from" prices (each destination page's "From ... per person", for the trip length shown). A destination "from" price is the starting price of a trip to that place; it is not the price of any named package above, and each named package keeps its own figure. Quote a destination price as, for example, "trips to Kashmir of 5–6 days start from" its figure, and a package with its name, nights and "(3-star)"; never give one as the price of the other:
 - Rajasthan (4–7 days): from ₹18,000.
@@ -116,7 +122,7 @@ Destination "from" prices (each destination page's "From ... per person", for th
 - Agra & Taj Mahal (2–3 days): from ₹9,000.
 - Uttarakhand (5–7 days): from ₹15,900.
 - Thailand (5–7 days): from ₹42,000.
-- Bali (5–7 days): from ₹46,000.
+- Bali (5–7 days): from ₹70,200.
 - Maldives (4–6 days): from ₹58,000.
 - Meghalaya (5–7 days): from ₹20,500.
 - Assam · Kaziranga (4–6 days): from ₹20,500.
@@ -167,13 +173,23 @@ function offerState(now) {
 }
 
 function systemPromptFor(now) {
-  const parts = [SYSTEM_PROMPT, PUBLISHED_PRICES, DESTINATIONS, BEST_SEASONS, CONFIRMATIONS];
+  const parts = [SYSTEM_PROMPT, PUBLISHED_PRICES, BALI_PACKAGE, DESTINATIONS, BEST_SEASONS, CONFIRMATIONS];
   const state = offerState(now);
   if (state === 'diwali-bali') parts.push(DIWALI_BALI);
   if (state === 'diwali-bali-departed') parts.push(DIWALI_BALI_DEPARTED);
   parts.push(LENGTH_RULE);
   return parts.join('\n\n');
 }
+
+// The Bali package page's details (Package.dc.html?pkg=bali, the owner's flyer). One option per line, so no two of its
+// figures form a "published range" by sharing a line.
+const BALI_PACKAGE = `BALI PACKAGE - "Bali 7 Nights with Flights", 7N / 8D, a REGULAR package (not a special offer), exactly as our Bali package page lists it. No departure dates are published for it: dates are given when the traveller enquires.
+- Included: 7 nights' accommodation; all transfers and tours on a private basis; entrance fees as per the itinerary; a garland welcome on arrival; return airfare from Ahmedabad on VietJet (non-refundable); daily mineral water during the tour. Nothing else is listed as included (no meals, visa or insurance).
+- Hotel option 1, ₹70,200 per person: 4 nights in Kuta at Golden Tulip (Deluxe Room) or similar, then 3 nights in Jimbaran at Royal Tulip (One Bedroom Pool Villa) or similar.
+- Hotel option 2, ₹72,200 per person: 4 nights in Kuta at Anathera Resort Kuta (Deluxe Room, no balcony) or similar, then 3 nights in Ubud at Samakhya Villa (One Bedroom Pool Villa) or similar.
+- Hotel option 3, ₹74,000 per person: 4 nights in Legian at Fairfield by Marriott Legian (Deluxe Room) or similar, then 3 nights in Ubud at Sathala by Marriott (Deluxe Room) or similar.
+- Itinerary: Day 1 arrival, garland welcome, private transfer to the hotel; Day 2 water sports (jet ski, banana boat, parasailing) and the Uluwatu temple; Day 3 free; Day 4 Ubud (a swing at My Swing, a coffee plantation, Celuk Mas village); Day 5 Bedugul (Ulun Danu temple) and the Tanah Lot sunset; Day 6 GWK Culture Park (entrance only) and Pandawa Beach; Day 7 free; Day 8 departure, private transfer from the hotel.
+- It is a separate trip from any special offer: never give one trip's price, airline, dates or inclusions for another. When you quote it, say "regular package"; do not describe it with festival or month words.`;
 
 // Code backstops for the offer's checkable facts (a prompt alone can be talked out of them): a rupee figure under
 // the from-price is a discount nobody offered, and a meal/visa/insurance "included" is an inclusion nobody listed.
@@ -299,13 +315,32 @@ function aboutTheOffer(places, at, sentenceEnd) {
 }
 const INDIC_BOOKING_CLAIM = /(बुकिंग|सीट|टिकट|બુકિંગ|સીટ|ટિકિટ)[^.।!?\n]{0,40}(कन्फर्म|पक्की|पक्का|रिज़र्व|रिजर्व|होल्ड|કન્ફર્મ|પાકી|પાકું|રિઝર્વ|હોલ્ડ)|(कन्फर्म|रिज़र्व|रिजर्व|होल्ड)\s*(कर\s*(दी|दिया|दिए)|हो\s*(गई|गया))|(કન્ફર્મ|રિઝર્વ|હોલ્ડ)\s*(કરી|થઈ)/;
 
-// Bali's own published figures (the Bali Honeymoon package and the Bali destination page), read from the price list.
-// Quoted in a sentence that names no Diwali word - or right after "honeymoon" - such a figure is that package, not a
-// discount on the offer; "Diwali in Bali from ₹46,000" is still caught.
+// Bali's own published figures (the Bali 7 Nights with Flights package and the Bali destination page), read from the
+// price list. Quoted in a sentence that names no Diwali word, such a figure is that package, not a discount on the offer.
+// In a sentence that DOES name Diwali it is excused only as the honest comparison: the offer's real price (₹1,15,000)
+// comes first, the regular package's NAME stands between that price and this figure, and no Diwali word follows that
+// price - "Diwali in Bali is from ₹1,15,000, and the Bali 7 Nights with Flights, 7N / 8D, from ₹70,200". AI Security
+// (anthropic-9): "the nearer name" excused "The Diwali in Bali offer, like our Bali 7 Nights with Flights, starts at
+// ₹70,200" and "दिवाली इन बाली, बाली 7 रातें पैकेज सिर्फ ₹70,200 में"; a bare "honeymoon" no longer excuses anything.
 const BALI_PUBLISHED_INR = new Set(PUBLISHED_PRICES.split('\n').filter((l) => /\bbali\b/i.test(l)).flatMap((l) => moneyFigures(l).map((f) => f.n)));
-const DIWALI_WORDS = /diwali|deepavali|festive|दिवाली|दीपावली|દિવાળી|દીવાળી/i;
+// AI Security round 2 (anthropic-9): every spelling of the festival, "festival", and the trip's month count - "Deepawali in
+// Bali is only ₹70,200" and "The November trip to Bali is ₹70,200" were excused as the regular package (a hole older than
+// this version). A sentence that merely mentions November is held to the comparison rule: it fails safe.
+const DIWALI_WORDS = /diwali|divali|deepavali|deepawali|dipawali|dipavali|festive|festival|november|\bnov\b|दिवाली|दीवाली|दीपावली|दिपावली|दिवाळी|नवंबर|નવેમ્બર|દિવાળી|દીવાળી/i;
+// Words that tie the regular package to the offer after the offer's price ("...but you can get it as the Bali 7 Nights
+// with Flights at ₹70,200", "...is the same itinerary"): the honest comparison never needs them.
+const LINKING = /\b(?:it|same|this|that|as|equivalent|instead|cheaper|alternative|get|book|also|discount|deal|offer|special)\b|वही|यही|इसी|सस्त|भी|એ\s*જ|આ\s*જ|સસ્ત|પણ/i;
+// "honeymoon" still names a package key (Sikkim Honeymoon vs Sikkim Discovery - KEY_WORDS below); it no longer excuses a
+// Bali figure next to the offer (anthropic-9).
 const HONEYMOON = /honeymoon|हनीमून|હનીમૂન/i;
-const isBaliPackageFigure = (n, s, at) => BALI_PUBLISHED_INR.has(n) && (!DIWALI_WORDS.test(s) || HONEYMOON.test(s.slice(Math.max(0, at - 60), at)));
+const REGULAR_BALI_NAME = /bali\s+7\s+nights?\s+with\s+flights|बाली\s*7\s*रातें|બાલી\s*7\s*રાત/i;
+const isBaliPackageFigure = (n, s, at) => {
+  if (!BALI_PUBLISHED_INR.has(n)) return false;
+  if (!DIWALI_WORDS.test(s)) return true;
+  const offerAt = moneyFigures(s).filter((f) => f.n === DIWALI_FROM_INR && f.at < at).map((f) => f.at).pop();
+  return offerAt !== undefined && !DIWALI_WORDS.test(s.slice(offerAt)) && !LINKING.test(s.slice(offerAt))
+    && REGULAR_BALI_NAME.test(s.slice(offerAt, at));
+};
 
 function clausesOf(s) {
   const out = [];
@@ -582,7 +617,7 @@ const INDIC_SITE_NAMES = {
   "South Temple Trail": ["दक्षिण मंदिर यात्रा", "દક્ષિણ મંદિર માર્ગ"],
   "Ooty · Coorg · Mysore": ["ऊटी · कूर्ग · मैसूर", "ઊટી · કૂર્ગ · મૈસૂર"],
   "Thailand Explorer": ["थाईलैंड एक्सप्लोरर", "થાઇલેન્ડ એક્સપ્લોરર"],
-  "Bali Honeymoon": ["बाली हनीमून", "બાલી હનીમૂન"],
+  "Bali 7 Nights with Flights": ["बाली 7 रातें, फ़्लाइट सहित", "બાલી 7 રાત, ફ્લાઇટ સાથે"],
   "Maldives Escape": ["मालदीव एस्केप", "માલદીવ્સ એસ્કેપ"],
   "Rajasthan": ["राजस्थान", "રાજસ્થાન"],
   "Himachal Pradesh": ["हिमाचल प्रदेश", "હિમાચલ પ્રદેશ"],

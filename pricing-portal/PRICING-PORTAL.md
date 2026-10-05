@@ -26,6 +26,12 @@ The site shows `price` as **“From (3★, per person)”**; it is a string — 
 So a price update = replacing the `price:` value for a matched package object, then committing the file.
 GitHub Pages serves the result. (`lib/read-site-prices.js` already extracts all 24 live packages.)
 
+**Bali is the exception (2026-10-05, the owner's regular-rate flyer).** Its package page
+(`Package.dc.html?pkg=bali`) lists three hotel options with their OWN prices (₹70,200 / ₹72,200 / ₹74,000) in
+`hotelOptions[].price`, and its "From" line is the lowest of those. The portal's `price`/`fromPrice` edits do not
+reach them: a new Bali rate needs `hotelOptions` changed by hand too, and the chat worker's Bali line
+(`server/anthropic-chat-worker.js`; its test checks the site and the worker agree).
+
 ## Flow
 ```
 Owner/client signs in (GitHub OAuth, allow-listed)

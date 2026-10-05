@@ -69,6 +69,9 @@
   <div style="margin-bottom: 48px">
     <h1 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 48px; margin: 0 0 12px">{{ packageName }}</h1>
     <p style="font-size: 16px; color: #5c6f80; margin: 0">{{ packageDuration }} • <span data-en="Perfect for" data-hi="के लिए उपयुक्त" data-gu="માટે યોગ્ય">Perfect for</span> {{ packageFor }}</p>
+    <sc-if value="{{ hasFrom }}" hint-placeholder-val="{{ false }}">
+      <p style="font-size: 18px; font-weight: 700; color: #0a5fd7; margin: 12px 0 0">{{ fromLine }}</p>
+    </sc-if>
   </div>
 
   <!-- Image Gallery -->
@@ -110,7 +113,52 @@
     </div>
   </div>
 
+  <!-- Day-by-day itinerary, hotel options with prices and inclusions: only for a package that carries them (Bali,
+       from the owner's flyer 2026-10-05). The generic hotel categories show for every other package. -->
+  <sc-if value="{{ hasItinerary }}" hint-placeholder-val="{{ false }}">
+  <div style="background: #fff; border-radius: 16px; padding: 32px; margin-bottom: 32px">
+    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 28px; margin: 0 0 24px" data-en="Day-by-day itinerary" data-hi="दिनवार यात्रा-कार्यक्रम" data-gu="દિવસવાર પ્રવાસ-કાર્યક્રમ">Day-by-day itinerary</h2>
+    <div style="display: grid; gap: 12px">
+      <sc-for list="{{ itinerary }}" as="d" hint-placeholder-count="8">
+        <div style="display: flex; gap: 14px; align-items: baseline; padding-bottom: 12px; border-bottom: 1px solid #eef3f8">
+          <span style="flex: none; min-width: 64px; font-weight: 800; color: #0a5fd7">{{ d.label }}</span>
+          <span style="color: #38495a; line-height: 1.6">{{ d.text }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ hasHotelOptions }}" hint-placeholder-val="{{ false }}">
+  <div style="margin-bottom: 32px">
+    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 28px; margin: 0 0 24px" data-en="Hotel options and prices" data-hi="होटल विकल्प और कीमतें" data-gu="હોટેલ વિકલ્પો અને કિંમતો">Hotel options and prices</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 16px">
+      <sc-for list="{{ hotelOptions }}" as="o" hint-placeholder-count="3">
+        <div style="background: #fff; border-radius: 14px; padding: 20px; border: 1.5px solid #0a5fd7">
+          <div style="font-weight: 700; font-size: 16px; margin-bottom: 6px">{{ o.label }}</div>
+          <div style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 24px; color: #0a5fd7; margin-bottom: 12px">{{ o.price }}</div>
+          <div style="font-size: 14px; color: #38495a; line-height: 1.6; margin-bottom: 6px">{{ o.stay1 }}</div>
+          <div style="font-size: 14px; color: #38495a; line-height: 1.6">{{ o.stay2 }}</div>
+        </div>
+      </sc-for>
+    </div>
+    <p style="font-size: 13px; color: #5c6f80; margin: 14px 0 0" data-en="Per person, in Indian rupees, indicative. Hotels as named or similar. The final price is shared when you enquire - no payments on this website." data-hi="प्रति व्यक्ति, भारतीय रुपये में, अनुमानित। होटल ऊपर बताए गए या उनके समकक्ष। अंतिम कीमत पूछताछ पर बताई जाती है - इस वेबसाइट पर कोई भुगतान नहीं।" data-gu="વ્યક્તિ દીઠ, ભારતીય રૂપિયામાં, અંદાજિત. હોટેલ ઉપર દર્શાવેલ અથવા તેના સમકક્ષ. અંતિમ કિંમત પૂછપરછ પર જણાવવામાં આવે છે - આ વેબસાઇટ પર કોઈ ચુકવણી નથી.">Per person, in Indian rupees, indicative. Hotels as named or similar. The final price is shared when you enquire - no payments on this website.</p>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ hasInclusions }}" hint-placeholder-val="{{ false }}">
+  <div style="background: #fff; border-radius: 16px; padding: 32px; margin-bottom: 32px">
+    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 28px; margin: 0 0 24px" data-en="What's included" data-hi="क्या शामिल है" data-gu="શું સામેલ છે">What's included</h2>
+    <ul style="margin: 0; padding-left: 18px; color: #38495a; line-height: 1.8">
+      <sc-for list="{{ inclusions }}" as="i" hint-placeholder-count="6">
+        <li>{{ i }}</li>
+      </sc-for>
+    </ul>
+  </div>
+  </sc-if>
+
   <!-- Hotel Categories -->
+  <sc-if value="{{ showGenericHotels }}" hint-placeholder-val="{{ true }}">
   <div style="margin-bottom: 32px">
     <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 28px; margin: 0 0 24px" data-en="Choose Your Hotel" data-hi="अपना होटल चुनें" data-gu="તમારી હોટેલ પસંદ કરો">Choose Your Hotel</h2>
 
@@ -134,6 +182,7 @@
       </div>
     </div>
   </div>
+  </sc-if>
 
   <!-- CTA -->
   <div style="background: linear-gradient(135deg, #0a5fd7, #0d7ae8); color: #fff; border-radius: 16px; padding: 40px; text-align: center">
@@ -792,38 +841,88 @@ class Component extends DCLogic {
         name: 'Bali',
         name_hi: 'बाली',
         name_gu: 'બાલી',
-        duration: '5-7 days',
-        duration_hi: '5-7 दिन',
-        duration_gu: '5-7 દિવસ',
+        duration: '7N / 8D',
+        duration_hi: '7 रात / 8 दिन',
+        duration_gu: '7 રાત / 8 દિવસ',
         season: 'Apr-Oct',
         season_hi: 'अप्रैल-अक्टू',
         season_gu: 'એપ્રિલ-ઑક્ટો',
-        for: 'Honeymooners, Relaxation',
-        for_hi: 'हनीमून यात्री, आराम',
-        for_gu: 'હનીમૂન યાત્રીઓ, આરામ',
+        for: 'Sightseeing, water sports, relaxation',
+        for_hi: 'सैर-सपाटा, वॉटर स्पोर्ट्स, आराम',
+        for_gu: 'સ્થળદર્શન, વોટર સ્પોર્ટ્સ, આરામ',
+        // Regular rates from the owner's flyer (2026-10-05): per person, return flights from Ahmedabad on VietJet.
+        fromNote: 'return flights from Ahmedabad included',
+        fromNote_hi: 'अहमदाबाद से आने-जाने की फ़्लाइट शामिल',
+        fromNote_gu: 'અમદાવાદથી જવા-આવવાની ફ્લાઇટ સામેલ',
         highlights: [
-          'Ubud culture and rice terraces',
-          'Kuta beach paradise',
-          'Seminyak nightlife',
-          'Temple explorations',
-          'Spa and wellness',
-          'Water sports'
+          'Return flights from Ahmedabad (VietJet)',
+          'Water sports: jet ski, banana boat, parasailing',
+          'Uluwatu temple and the Tanah Lot sunset',
+          'Ubud: swing, coffee plantation, Celuk Mas village',
+          'Bedugul and the Ulun Danu temple',
+          'GWK Culture Park and Pandawa Beach'
         ],
         highlights_hi: [
-          'उबुद की संस्कृति और चावल की सीढ़ियाँ',
-          'कुटा बीच स्वर्ग',
-          'सेमिन्याक नाइटलाइफ़',
-          'मंदिरों की सैर',
-          'स्पा और वेलनेस',
-          'वॉटर स्पोर्ट्स'
+          'अहमदाबाद से आने-जाने की फ़्लाइट (VietJet)',
+          'वॉटर स्पोर्ट्स: जेट स्की, बनाना बोट, पैरासेलिंग',
+          'उलुवातु मंदिर और तनाह लॉट का सूर्यास्त',
+          'उबुद: झूला, कॉफ़ी बागान, चेलुक मास गाँव',
+          'बेदुगुल और उलुन दानु मंदिर',
+          'GWK कल्चरल पार्क और पांडवा बीच'
         ],
         highlights_gu: [
-          'ઉબુદની સંસ્કૃતિ અને ચોખાની ટેરેસ',
-          'કુટા બીચ સ્વર્ગ',
-          'સેમિન્યાક નાઇટલાઇફ',
-          'મંદિરોની સહેલ',
-          'સ્પા અને વેલનેસ',
-          'વોટર સ્પોર્ટ્સ'
+          'અમદાવાદથી જવા-આવવાની ફ્લાઇટ (VietJet)',
+          'વોટર સ્પોર્ટ્સ: જેટ સ્કી, બનાના બોટ, પેરાસેલિંગ',
+          'ઉલુવાતુ મંદિર અને તનાહ લોટનો સૂર્યાસ્ત',
+          'ઉબુદ: ઝૂલો, કોફીનો બગીચો, ચેલુક માસ ગામ',
+          'બેદુગુલ અને ઉલુન દાનુ મંદિર',
+          'GWK કલ્ચરલ પાર્ક અને પાંડવા બીચ'
+        ],
+        itinerary: [
+          { text: 'Arrival in Bali; garland welcome and private transfer to your hotel.', text_hi: 'बाली आगमन; माला से स्वागत और होटल तक निजी ट्रांसफ़र।', text_gu: 'બાલી આગમન; માળાથી સ્વાગત અને હોટેલ સુધી ખાનગી ટ્રાન્સફર.' },
+          { text: 'Full-day water sports (jet ski, banana boat, parasailing), then the Uluwatu temple tour; private transfers.', text_hi: 'पूरे दिन वॉटर स्पोर्ट्स (जेट स्की, बनाना बोट, पैरासेलिंग), फिर उलुवातु मंदिर की सैर; निजी ट्रांसफ़र।', text_gu: 'આખો દિવસ વોટર સ્પોર્ટ્સ (જેટ સ્કી, બનાના બોટ, પેરાસેલિંગ), પછી ઉલુવાતુ મંદિરની મુલાકાત; ખાનગી ટ્રાન્સફર.' },
+          { text: 'Day free for leisure.', text_hi: 'आराम के लिए खाली दिन।', text_gu: 'આરામ માટે ખાલી દિવસ.' },
+          { text: 'Ubud tour: swing at My Swing, a coffee plantation and Celuk Mas village.', text_hi: 'उबुद की सैर: माय स्विंग (My Swing) पर झूला, कॉफ़ी बागान और चेलुक मास गाँव।', text_gu: 'ઉબુદ પ્રવાસ: માય સ્વિંગ (My Swing) પર ઝૂલો, કોફીનો બગીચો અને ચેલુક માસ ગામ.' },
+          { text: 'Bedugul tour (Ulun Danu temple) and the Tanah Lot sunset.', text_hi: 'बेदुगुल की सैर (उलुन दानु मंदिर) और तनाह लॉट का सूर्यास्त।', text_gu: 'બેદુગુલ પ્રવાસ (ઉલુન દાનુ મંદિર) અને તનાહ લોટનો સૂર્યાસ્ત.' },
+          { text: 'Full-day GWK Culture Park (entrance only), then Pandawa Beach.', text_hi: 'पूरे दिन GWK कल्चरल पार्क (केवल प्रवेश), फिर पांडवा बीच।', text_gu: 'આખો દિવસ GWK કલ્ચરલ પાર્ક (ફક્ત પ્રવેશ), પછી પાંડવા બીચ.' },
+          { text: 'Day free for leisure.', text_hi: 'आराम के लिए खाली दिन।', text_gu: 'આરામ માટે ખાલી દિવસ.' },
+          { text: 'Departure from Bali; private transfer from your hotel.', text_hi: 'बाली से प्रस्थान; होटल से निजी ट्रांसफ़र।', text_gu: 'બાલીથી પ્રસ્થાન; હોટેલથી ખાનગી ટ્રાન્સફર.' }
+        ],
+        // Hotel names exactly as the operator's flyer prints them, "or similar" as it says.
+        hotelOptions: [
+          { price: '₹70,200',
+            stay1: '4 nights in Kuta - Golden Tulip (Deluxe Room) or similar', stay1_hi: 'कुटा में 4 रातें - Golden Tulip (डीलक्स रूम) या समान', stay1_gu: 'કુટામાં 4 રાત - Golden Tulip (ડીલક્સ રૂમ) અથવા સમાન',
+            stay2: '3 nights in Jimbaran - Royal Tulip (One Bedroom Pool Villa) or similar', stay2_hi: 'जिम्बारन में 3 रातें - Royal Tulip (वन बेडरूम पूल विला) या समान', stay2_gu: 'જિમ્બારનમાં 3 રાત - Royal Tulip (વન બેડરૂમ પૂલ વિલા) અથવા સમાન' },
+          { price: '₹72,200',
+            stay1: '4 nights in Kuta - Anathera Resort Kuta (Deluxe Room, no balcony) or similar', stay1_hi: 'कुटा में 4 रातें - Anathera Resort Kuta (डीलक्स रूम, बिना बालकनी) या समान', stay1_gu: 'કુટામાં 4 રાત - Anathera Resort Kuta (ડીલક્સ રૂમ, બાલ્કની વગર) અથવા સમાન',
+            stay2: '3 nights in Ubud - Samakhya Villa (One Bedroom Pool Villa) or similar', stay2_hi: 'उबुद में 3 रातें - Samakhya Villa (वन बेडरूम पूल विला) या समान', stay2_gu: 'ઉબુદમાં 3 રાત - Samakhya Villa (વન બેડરૂમ પૂલ વિલા) અથવા સમાન' },
+          { price: '₹74,000',
+            stay1: '4 nights in Legian - Fairfield by Marriott Legian (Deluxe Room) or similar', stay1_hi: 'लेगियन में 4 रातें - Fairfield by Marriott Legian (डीलक्स रूम) या समान', stay1_gu: 'લેગિયનમાં 4 રાત - Fairfield by Marriott Legian (ડીલક્સ રૂમ) અથવા સમાન',
+            stay2: '3 nights in Ubud - Sathala by Marriott (Deluxe Room) or similar', stay2_hi: 'उबुद में 3 रातें - Sathala by Marriott (डीलक्स रूम) या समान', stay2_gu: 'ઉબુદમાં 3 રાત - Sathala by Marriott (ડીલક્સ રૂમ) અથવા સમાન' }
+        ],
+        inclusions: [
+          "7 nights' accommodation",
+          'All transfers and tours on a private basis',
+          'Entrance fees as per the itinerary',
+          'Garland welcome on arrival',
+          'Return airfare from Ahmedabad on VietJet (non-refundable)',
+          'Daily mineral water during the tour'
+        ],
+        inclusions_hi: [
+          '7 रातों का ठहराव',
+          'सभी ट्रांसफ़र और टूर निजी आधार पर',
+          'यात्रा-कार्यक्रम के अनुसार प्रवेश शुल्क',
+          'आगमन पर माला से स्वागत',
+          'अहमदाबाद से VietJet का आने-जाने का हवाई टिकट (नॉन-रिफ़ंडेबल)',
+          'टूर के दौरान रोज़ मिनरल वॉटर'
+        ],
+        inclusions_gu: [
+          '7 રાતનું રોકાણ',
+          'બધા ટ્રાન્સફર અને પ્રવાસ ખાનગી ધોરણે',
+          'પ્રવાસ-કાર્યક્રમ મુજબ પ્રવેશ ફી',
+          'આગમન પર માળાથી સ્વાગત',
+          'અમદાવાદથી VietJetની જવા-આવવાની હવાઈ ટિકિટ (નોન-રિફંડેબલ)',
+          'પ્રવાસ દરમિયાન દરરોજ મિનરલ વોટર'
         ],
       },
       maldives: {
@@ -1077,7 +1176,7 @@ class Component extends DCLogic {
       manipur: [{ src: 'images/dest-manipur.jpg' }, { src: 'images/places/manipur-loktak-lake.jpg', place: 'Loktak Lake' }, { src: 'images/places/manipur-imphal.jpg', place: 'Imphal' }],
       mizoram: [{ src: 'images/dest-mizoram.jpg' }, { src: 'images/places/mizoram-aizawl.jpg', place: 'Aizawl' }, { src: 'images/places/mizoram-vantawng-falls.jpg', place: 'Vantawng Falls' }, { src: 'images/places/mizoram-reiek.jpg', place: 'Reiek' }, { src: 'images/places/mizoram-hmuifang.jpg', place: 'Hmuifang' }],
       thailand: [{ src: 'images/dest-thailand.jpg' }, { src: 'images/places/thailand-bangkok.jpg', place: 'Bangkok' }, { src: 'images/places/thailand-phuket-and-krabi.jpg', place: 'Phuket & Krabi' }, { src: 'images/places/thailand-pattaya.jpg', place: 'Pattaya' }, { src: 'images/places/thailand-chiang-mai.jpg', place: 'Chiang Mai' }],
-      bali: [{ src: 'images/dest-bali.jpg' }, { src: 'images/places/bali-ubud.jpg', place: 'Ubud' }, { src: 'images/places/bali-seminyak-and-kuta.jpg', place: 'Seminyak & Kuta' }, { src: 'images/places/bali-nusa-penida.jpg', place: 'Nusa Penida' }, { src: 'images/places/bali-uluwatu.jpg', place: 'Uluwatu' }],
+      bali: [{ src: 'images/dest-bali.jpg' }, { src: 'images/places/bali-ubud.jpg', place: 'Ubud' }, { src: 'images/places/bali-seminyak-and-kuta.jpg', place: 'Kuta' }, { src: 'images/places/bali-uluwatu.jpg', place: 'Uluwatu' }],
       maldives: [{ src: 'images/dest-maldives.webp' }, { src: 'images/places/maldives-male-atolls.jpg', place: 'Male Atolls' }, { src: 'images/places/maldives-resort-islands.jpg', place: 'Resort Islands' }, { src: 'images/places/maldives-maafushi.jpg', place: 'Maafushi' }, { src: 'images/places/maldives-house-reefs.jpg', place: 'House Reefs' }],
       kausani: [{ src: 'images/dest-kausani.jpg' }, { src: 'images/places/uttarakhand-nainital.jpg', place: 'Nainital' }, { src: 'images/places/uttarakhand-kausani.jpg', place: 'Kausani' }, { src: 'images/places/uttarakhand-mukteshwar.jpg', place: 'Mukteshwar' }, { src: 'images/places/uttarakhand-jim-corbett.jpg', place: 'Jim Corbett' }]
     };
@@ -1085,6 +1184,13 @@ class Component extends DCLogic {
     const pkg = packages[this.state.packageSlug] || packages.rajasthan;
 
     const pkgName = this.tr(pkg, 'name');
+    const L = this.state.lang;
+    const dayWord = L === 'hi' ? 'दिन' : L === 'gu' ? 'દિવસ' : 'Day';
+    const optionWord = L === 'hi' ? 'होटल विकल्प' : L === 'gu' ? 'હોટેલ વિકલ્પ' : 'Hotel option';
+    const perPerson = L === 'hi' ? 'प्रति व्यक्ति' : L === 'gu' ? 'વ્યક્તિ દીઠ' : 'per person';
+    const rupees = (s) => +String(s).replace(/[^0-9]/g, '');
+    const fromPrice = pkg.fromPrice || (pkg.hotelOptions || []).map((o) => o.price)
+      .sort((a, b) => rupees(a) - rupees(b))[0] || '';
     // Real, credited photographs (shared with the Destination page) instead of the
     // empty editor upload slots that used to render here on the public site.
     const photoSlots = (PKG_PHOTOS[this.state.packageSlug] || []).map((p, i) => ({
@@ -1109,7 +1215,21 @@ class Component extends DCLogic {
       packageSeason: this.tr(pkg, 'season'),
       packageFor: this.tr(pkg, 'for'),
       highlights: this.tr(pkg, 'highlights'),
-      photoSlots: photoSlots
+      photoSlots: photoSlots,
+      // The flyer sections (Bali, 2026-10-05): shown only for a package that carries them.
+      hasFrom: !!fromPrice,
+      // Built from the lowest hotel option, so the line can never show a figure the options no longer hold.
+      fromLine: !fromPrice ? '' : (L === 'hi' ? 'प्रति व्यक्ति ' + fromPrice + ' से शुरू'
+        : L === 'gu' ? 'વ્યક્તિ દીઠ ' + fromPrice + 'થી શરૂ' : 'From ' + fromPrice + ' per person')
+        + (pkg.fromNote ? ' · ' + this.tr(pkg, 'fromNote') : ''),
+      hasItinerary: !!(pkg.itinerary && pkg.itinerary.length),
+      itinerary: (pkg.itinerary || []).map((d, i) => ({ label: dayWord + ' ' + (i + 1), text: this.tr(d, 'text') })),
+      hasHotelOptions: !!(pkg.hotelOptions && pkg.hotelOptions.length),
+      showGenericHotels: !(pkg.hotelOptions && pkg.hotelOptions.length),
+      hotelOptions: (pkg.hotelOptions || []).map((o, i) => ({ label: optionWord + ' ' + (i + 1), price: o.price + ' ' + perPerson,
+        stay1: this.tr(o, 'stay1'), stay2: this.tr(o, 'stay2') })),
+      hasInclusions: !!(pkg.inclusions && pkg.inclusions.length),
+      inclusions: this.tr(pkg, 'inclusions') || []
     };
   }
 }

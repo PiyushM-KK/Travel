@@ -101,7 +101,7 @@
 
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px">
       <sc-for list="{{ packages }}" as="p" hint-placeholder-count="3">
-        <a href="Customize.dc.html" class="tcard" style="display:block;border:1px solid #EAEFF3;border-radius:20px;overflow:hidden;background:#fff;box-shadow:0 12px 28px -22px rgba(7,59,102,.5)">
+        <a href="{{ p.href }}" class="tcard" style="display:block;border:1px solid #EAEFF3;border-radius:20px;overflow:hidden;background:#fff;box-shadow:0 12px 28px -22px rgba(7,59,102,.5)">
           <div style="position:relative;height:200px">
             <div style="{{ p.bg }}"></div>
             <span style="position:absolute;top:12px;left:12px;background:rgba(255,255,255,.92);backdrop-filter:blur(4px);color:#0A6FB8;font-weight:700;font-size:11.5px;padding:5px 11px;border-radius:999px">{{ p.duration }}</span>
@@ -121,7 +121,8 @@
                   </div>
                 </div>
               </sc-if>
-              <span style="background:#EAF5FD;color:#0A6FB8;font-weight:700;font-size:12.5px;padding:8px 14px;border-radius:10px" data-en="Get a quote →" data-hi="कोटेशन लें →" data-gu="કોટેશન મેળવો →">Get a quote →</span>
+              <sc-if value="{{ p.toPackage }}" hint-placeholder-val="{{ false }}"><span style="background:#EAF5FD;color:#0A6FB8;font-weight:700;font-size:12.5px;padding:8px 14px;border-radius:10px" data-en="View package →" data-hi="पैकेज देखें →" data-gu="પેકેજ જુઓ →">View package →</span></sc-if>
+              <sc-if value="{{ p.toQuote }}" hint-placeholder-val="{{ true }}"><span style="background:#EAF5FD;color:#0A6FB8;font-weight:700;font-size:12.5px;padding:8px 14px;border-radius:10px" data-en="Get a quote →" data-hi="कोटेशन लें →" data-gu="કોટેશન મેળવો →">Get a quote →</span></sc-if>
             </div>
           </div>
         </a>
@@ -178,9 +179,9 @@ class Component extends DCLogic {
     const bg = (img) => ({ position: 'absolute', inset: 0, backgroundColor: '#dce6f2', backgroundImage: 'url("' + img + '")', backgroundSize: 'cover', backgroundPosition: 'center' });
     const packages = [
       { id: 't-thai', slug: 'thailand', name: 'Thailand Explorer', name_hi: 'थाईलैंड एक्सप्लोरर', name_gu: 'થાઇલેન્ડ એક્સપ્લોરર', route: 'Bangkok · Pattaya · Phuket · Krabi', route_hi: 'बैंकॉक · पटाया · फुकेत · क्राबी', route_gu: 'બેંગકોક · પટાયા · ફૂકેત · ક્રાબી', duration: '6N / 7D', tag: 'Bestseller', tag_hi: 'बेस्टसेलर', tag_gu: 'બેસ્ટસેલર', price: '₹42,000', img: 'images/dest-thailand.jpg' },
-      { id: 't-bali', slug: 'bali', name: 'Bali Honeymoon', name_hi: 'बाली हनीमून', name_gu: 'બાલી હનીમૂન', route: 'Kuta · Ubud · Seminyak · Nusa Penida', route_hi: 'कुटा · उबुद · सेमिन्याक · नुसा पेनिडा', route_gu: 'કુટા · ઉબુદ · સેમિન્યાક · નુસા પેનિડા', duration: '6N / 7D', tag: 'Honeymoon', tag_hi: 'हनीमून', tag_gu: 'હનીમૂન', price: '₹46,000', img: 'images/dest-bali.jpg' },
+      { id: 't-bali', slug: 'bali', name: 'Bali 7 Nights with Flights', name_hi: 'बाली 7 रातें, फ़्लाइट सहित', name_gu: 'બાલી 7 રાત, ફ્લાઇટ સાથે', route: 'From Ahmedabad · Kuta · Ubud · Uluwatu · Tanah Lot', route_hi: 'अहमदाबाद से · कुटा · उबुद · उलुवातु · तनाह लॉट', route_gu: 'અમદાવાદથી · કુટા · ઉબુદ · ઉલુવાતુ · તનાહ લોટ', duration: '7N / 8D', tag: 'Flights included', tag_hi: 'फ़्लाइट सहित', tag_gu: 'ફ્લાઇટ સાથે', price: '₹70,200', href: 'Package.dc.html?pkg=bali', img: 'images/dest-bali.jpg' },
       { id: 't-mald', slug: 'maldives', name: 'Maldives Escape', name_hi: 'मालदीव एस्केप', name_gu: 'માલદીવ્સ એસ્કેપ', route: 'Beach or overwater villa · Male atolls', route_hi: 'समुद्र तट या वॉटर विला · माले एटोल', route_gu: 'દરિયાકિનારો કે વોટર વિલા · માલે એટોલ', duration: '4N / 5D', tag: 'Luxury', tag_hi: 'लक्ज़री', tag_gu: 'લક્ઝરી', price: '₹58,000', img: 'images/dest-maldives.webp' },
-    ].map((p) => ({ ...p, bg: bg(p.img), name: this.tr(p, 'name'), route: this.tr(p, 'route'), tag: this.tr(p, 'tag'), price4: p.price4 || '', price5: p.price5 || '', hasTiers: !!(p.price4 || p.price5), hasPrice4: !!p.price4, hasPrice5: !!p.price5, hasBoth: !!(p.price4 && p.price5) }));
+    ].map((p) => ({ ...p, href: p.href || 'Customize.dc.html', toPackage: !!p.href, toQuote: !p.href, bg: bg(p.img), name: this.tr(p, 'name'), route: this.tr(p, 'route'), tag: this.tr(p, 'tag'), price4: p.price4 || '', price5: p.price5 || '', hasTiers: !!(p.price4 || p.price5), hasPrice4: !!p.price4, hasPrice5: !!p.price5, hasBoth: !!(p.price4 && p.price5) }));
 
     return {
       root: this.setRoot,

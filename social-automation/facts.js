@@ -116,7 +116,7 @@ const BUSINESS = {
       ],
       International: [
         { item: "Thailand Explorer", price: "₹42,000", duration: "6N / 7D", tag: "Bestseller", route: "Bangkok · Pattaya · Phuket · Krabi" },
-        { item: "Bali Honeymoon", price: "₹46,000", duration: "6N / 7D", tag: "Honeymoon", route: "Kuta · Ubud · Seminyak · Nusa Penida" },
+        { item: "Bali 7 Nights with Flights", price: "₹70,200", duration: "7N / 8D", tag: "Flights included", route: "From Ahmedabad · Kuta · Ubud · Uluwatu · Tanah Lot" },
         { item: "Maldives Escape", price: "₹58,000", duration: "4N / 5D", tag: "Luxury", route: "Beach or overwater villa · Male atolls" },
       ],
     },
@@ -159,7 +159,7 @@ const LOCATIONS = [
   "Madurai", "Rameswaram", "Kanyakumari",
   // International
   "Bangkok", "Pattaya", "Phuket", "Krabi", "Thailand",
-  "Kuta", "Ubud", "Seminyak", "Nusa Penida", "Bali",
+  "Kuta", "Ubud", "Seminyak", "Nusa Penida", "Uluwatu", "Tanah Lot", "Bali",
   "Male atolls", "Maldives",
 ];
 

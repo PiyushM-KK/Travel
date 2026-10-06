@@ -1,0 +1,63 @@
+name: Chat worker (test, then deploy)
+
+# Deploys server/anthropic-chat-worker.js to the Cloudflare Worker "hello-world" (the website's AI chat) when a push to
+# main changes the worker, its settings, its test or the site's pages - and ONLY after the offline test passes
+# (server/test-chat-worker.mjs: no network, a fake Anthropic API). The test reads the site's own files, so a price changed
+# on the site without the worker turns this run red and nothing deploys: update the worker's price blocks, then push both.
+# Deploying an unchanged worker again is harmless. Pasting the file into the Cloudflare dashboard still works as a fallback.
+#
+# SETUP (done 2026-10-06): repository secrets CLOUDFLARE_API_TOKEN (the owner's Cloudflare user token; its scope covers
+# the whole account - accepted by the owner) and CLOUDFLARE_ACCOUNT_ID. Both are copied from social-automation/.env by
+# social-automation/sync-gh-secrets.sh. The Worker's own ANTHROPIC_API_KEY secret stays in Cloudflare.
+# Actions are pinned to full commit SHAs (a tag can be moved, a SHA cannot); the release is in the comment.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'server/anthropic-chat-worker.js'
+      - 'server/wrangler.toml'
+      - 'server/test-chat-worker.mjs'
+      - '.github/workflows/chat-worker.yml'
+      - '*.html'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: skyline-chat-worker
+  cancel-in-progress: false
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+      - name: Offline test (no network; compares the worker with the site's pages)
+        run: node server/test-chat-worker.mjs
+      - name: Deploy the worker
+        uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: server
+          wranglerVersion: '4.147.0'
+          command: deploy
+      - name: Health check (the live worker reports the version in the file)
+        run: |
+          want=$(grep -oE "^const VERSION = '[^']+'" server/anthropic-chat-worker.js | cut -d"'" -f2)
+          got=''
+          for i in 1 2 3 4 5 6; do
+            got=$(curl -s --max-time 10 https://hello-world.skyline-dev.workers.dev | python3 -c "import sys, json; print(json.load(sys.stdin).get('version', ''))" 2>/dev/null || true)
+            if [ "$got" = "$want" ]; then echo "live: $got"; exit 0; fi
+            sleep 10
+          done
+          echo "the live worker reports '$got', expected '$want'"
+          exit 1

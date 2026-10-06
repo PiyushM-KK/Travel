@@ -2,7 +2,7 @@
 # sync-gh-secrets.sh — push the secrets the scheduled workflows need from the local
 # .env into GitHub *repository secrets*.
 #
-# The GitHub Actions (package-post, video-post) cannot read .env — they read repo
+# The GitHub Actions (package-post, video-post, chat-worker) cannot read .env — they read repo
 # secrets. This copies the values across WITHOUT printing them: each value is piped
 # to `gh secret set` on stdin, so it never appears in the terminal, in your shell
 # history, or in the process list.
@@ -23,6 +23,7 @@ KEYS=(
   AIRTABLE_API_KEY AIRTABLE_BASE_ID
   WHATSAPP_PHONE_NUMBER_ID WHATSAPP_TOKEN WHATSAPP_TO
   CRON_SECRET
+  CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID
 )
 DRY=0; [ "${1:-}" = "--dry" ] && DRY=1
 set +e

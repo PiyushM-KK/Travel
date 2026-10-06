@@ -1,0 +1,15 @@
+# The website's AI chat: Cloudflare Worker "hello-world" (https://hello-world.skyline-dev.workers.dev).
+# Deployed by .github/workflows/chat-worker.yml after server/test-chat-worker.mjs passes; pasting the file into the
+# Cloudflare dashboard still works as a fallback.
+# Every setting below matches the live worker as Cloudflare's API reported it on 2026-10-06 (compatibility date
+# 2026-07-01, no flags, workers.dev on, preview URLs on, no routes, no cron, no observability), so a deploy changes the
+# code and nothing else. The ANTHROPIC_API_KEY secret lives only in Cloudflare and is kept by every deploy.
+name = "hello-world"
+main = "anthropic-chat-worker.js"
+compatibility_date = "2026-07-01"
+workers_dev = true
+preview_urls = true
+# Upload the file exactly as written (it imports nothing): no bundler pass may rewrite its regular expressions or text.
+no_bundle = true
+# Keep any variable set in the dashboard (there are none today).
+keep_vars = true

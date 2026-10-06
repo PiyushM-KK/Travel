@@ -33,7 +33,9 @@ globalThis.fetch = async (url, init) => {
 // The clock the worker sees (the Diwali offer is date-driven).
 const BEFORE_DEPARTURE = Date.parse('2026-10-01T12:00:00+05:30');
 const DEPARTED = Date.parse('2026-11-05T12:00:00+05:30');
-const AFTER_OFFER = Date.parse('2026-11-10T12:00:00+05:30');
+const AFTER_OFFER = Date.parse('2026-11-10T12:00:00+05:30'); // Bali's offer over; the Lakshadweep Escape still offered (anthropic-10)
+const LAKS_ENDED = Date.parse('2026-11-22T12:00:00+05:30'); // the Lakshadweep Escape has ended ("it has ended" for a week)
+const AFTER_ALL = Date.parse('2026-11-29T12:00:00+05:30'); // no festive offer at all
 let NOW = BEFORE_DEPARTURE;
 Date.now = () => NOW;
 
@@ -85,6 +87,8 @@ const packagePages = lit(literalAfter(site('Package.dc.html'), 'const packages =
 const cust = site('Customize.dc.html');
 const formDests = lit(literalAfter(cust.slice(cust.indexOf("{ key: 'dests'")), 'options: [', '[')).map((o) => o[1]);
 const diwaliPrice = (site('diwali-bali.html').match(/<span class="amt">([^<]+)<\/span>/) || [])[1];
+// anthropic-10: the Lakshadweep Escape's two prices, in the page's order (minimum 2, then minimum 4 travellers).
+const laksPrices = [...new Set([...site('diwali-lakshadweep.html').matchAll(/class="amt"[^>]*>([^<]+)</g)].map((m) => m[1]))];
 const allPackages = [...domestic.flatMap((c) => c.packages), ...international];
 
 // anthropic-8: every destination page's "from" figure is in the prompt. Until 2026-09-30 the figures of Kashmir,
@@ -113,7 +117,7 @@ const NOTE_LINE_HI = '\n\n' + SITE_NOTE.hi, NOTE_LINE_GU = '\n\n' + SITE_NOTE.gu
 {
   const before = calls.length;
   const health = await (await worker.fetch(request('GET'), ENV)).json();
-  check('GET reports version anthropic-9', health.version === 'anthropic-9', JSON.stringify(health));
+  check('GET reports version anthropic-10', health.version === 'anthropic-10', JSON.stringify(health));
   check('GET reports model claude-sonnet-5-5', health.model === 'claude-sonnet-5-5', JSON.stringify(health));
   check('GET reports the key is present', health.ok === true && health.hasKey === true);
   check('GET reports a missing key', (await (await worker.fetch(request('GET'), {})).json()).hasKey === false);
@@ -146,8 +150,13 @@ const NOTE_LINE_HI = '\n\n' + SITE_NOTE.hi, NOTE_LINE_GU = '\n\n' + SITE_NOTE.gu
   const DAY = 24 * 3600 * 1000;
   const a1 = await sysJson(BEFORE_DEPARTURE, 'Goa?'), a2 = await sysJson(BEFORE_DEPARTURE + 20 * DAY, 'Something else entirely, in हिन्दी');
   check('caching: the system block is byte-identical across requests, times and conversations inside one offer state', a1 === a2);
-  const d1 = await sysJson(DEPARTED, 'x'), d2 = await sysJson(DEPARTED + DAY, 'y'), n1 = await sysJson(AFTER_OFFER, 'x'), n2 = await sysJson(AFTER_OFFER + 60 * DAY, 'y');
-  check('caching: it changes only at the documented Diwali cutovers (3 Nov, 9 Nov IST), and is stable between them', d1 === d2 && n1 === n2 && a1 !== d1 && d1 !== n1);
+  const d1 = await sysJson(DEPARTED, 'x'), d2 = await sysJson(DEPARTED + DAY, 'y'), n1 = await sysJson(AFTER_OFFER, 'x'), n2 = await sysJson(AFTER_OFFER + 5 * DAY, 'y');
+  const e1 = await sysJson(LAKS_ENDED, 'x'), e2 = await sysJson(LAKS_ENDED + 4 * DAY, 'y'), z1 = await sysJson(AFTER_ALL, 'x'), z2 = await sysJson(AFTER_ALL + 60 * DAY, 'y');
+  check('caching: it changes only at the documented cutovers (3, 9, 21 and 28 Nov IST), and is stable between them',
+    d1 === d2 && n1 === n2 && e1 === e2 && z1 === z2 && new Set([a1, d1, n1, e1, z1]).size === 5);
+  check('caching: 1 ms before and at the 21 Nov and 28 Nov cutovers differ',
+    (await sysJson(Date.parse('2026-11-21T00:00:00+05:30') - 1, 'x')) === n1 && (await sysJson(Date.parse('2026-11-21T00:00:00+05:30'), 'x')) === e1
+    && (await sysJson(Date.parse('2026-11-28T00:00:00+05:30') - 1, 'x')) === e1 && (await sysJson(Date.parse('2026-11-28T00:00:00+05:30'), 'x')) === z1);
   check('caching: 1 ms before and at the 3 Nov cutover differ', (await sysJson(Date.parse('2026-11-03T00:00:00+05:30') - 1, 'x')) === a1 && (await sysJson(Date.parse('2026-11-03T00:00:00+05:30'), 'x')) === d1);
 }
 
@@ -177,7 +186,7 @@ check('the Diwali offer price as diwali-bali.html writes it', SYS.includes(`from
 {
   // anthropic-9: the Bali package page's hotel options carry their own published prices.
   const optionPrices = Object.values(packagePages).flatMap((p) => (p.hotelOptions || []).map((o) => o.price));
-  const siteFigures = new Set([...allPackages.map((p) => p.price), ...destinations.map((d) => d.fromPrice), ...optionPrices, diwaliPrice, '₹15,000' /* owner, 2026-09-30 */]);
+  const siteFigures = new Set([...allPackages.map((p) => p.price), ...destinations.map((d) => d.fromPrice), ...optionPrices, diwaliPrice, ...laksPrices, '₹15,000' /* owner, 2026-09-30 */]);
   const baliLine = lineStarting('- Bali 7 Nights with Flights, 7N / 8D') || '';
   check('anthropic-9: the Bali line carries every hotel-option price of the package page', optionPrices.length === 3 && optionPrices.every((x) => baliLine.includes(x)), baliLine);
   check('anthropic-9: each Bali hotel option is listed with its own price and hotels', (packagePages.bali.hotelOptions || []).every((o, i) =>
@@ -200,9 +209,11 @@ check('the "broad ranges" instruction is gone', !/broad indicative/.test(SYS));
 check('earlier rules kept', ['never ask for card, bank, Aadhaar or passport details', 'Budget is OPTIONAL', 'no payments on this website', 'Reply in the same language', 'guarantee visa approval'].every((s) => SYS.toLowerCase().includes(s.toLowerCase())));
 check('the Diwali in Bali offer is in the prompt before departure', SYS.includes('CURRENT FESTIVE OFFER - "Diwali in Bali"'));
 {
-  const departed = await systemAt(DEPARTED), after = await systemAt(AFTER_OFFER);
+  const departed = await systemAt(DEPARTED), after = await systemAt(AFTER_OFFER), ended = await systemAt(LAKS_ENDED), none = await systemAt(AFTER_ALL);
   check('after departure: "it has left", no offer price', departed.includes('has already left') && !departed.includes(diwaliPrice) && departed.includes('PUBLISHED STARTING PRICES'));
-  check('after 9 Nov: no Diwali text at all, price list still there', !/Diwali/.test(after) && after.includes('PUBLISHED STARTING PRICES') && after.trimEnd().endsWith('hard limit 110 words and at most two questions.'));
+  check('anthropic-10: after 9 Nov no Bali offer text, and the Lakshadweep Escape is still offered', !/Diwali in Bali/.test(after) && after.includes('SECOND FESTIVE OFFER - "Lakshadweep Escape"') && laksPrices.every((x) => after.includes(x)));
+  check('anthropic-10: from 21 Nov the Lakshadweep Escape "has ended", with no price', ended.includes('"Lakshadweep Escape" Diwali Special (travel 5-20 November 2026) has ended') && !laksPrices.some((x) => ended.includes(x)) && !/Diwali in Bali/.test(ended));
+  check('after 28 Nov: no Diwali text at all, price list and Lakshadweep (no price) still there', !/Diwali/.test(none) && none.includes('PUBLISHED STARTING PRICES') && none.includes('Lakshadweep: Agatti, Bangaram, Lagoons & reefs') && !laksPrices.some((x) => none.includes(x)) && none.trimEnd().endsWith('hard limit 110 words and at most two questions.'));
 }
 
 // ---- 4. post-processing and backstops ---------------------------------------------------------------------------
@@ -977,6 +988,91 @@ async function chatSeq(userText, answers) {
   const rMany = (await chat('hi', many)).reply;
   const ms = performance.now() - t0;
   check(`T2: one ${many.length}-character Hindi sentence with 840 names and figures is judged in under 100 ms (${ms.toFixed(1)} ms)`, many.length > 16000 && ms < 100 && !replaced(rMany), rMany.slice(-60));
+}
+
+// ---- 11. anthropic-10: the Lakshadweep Escape (diwali-lakshadweep.html, 2026-10-06), one block per item --------------
+{
+  const L = 'Lakshadweep price?';
+  const page = site('diwali-lakshadweep.html');
+  const sysL = await systemAt(BEFORE_DEPARTURE);
+  // The offer's facts, read from the page: the two prices with their group sizes, the travel window, the two stays, the
+  // flight exclusion, the permit sentence and the page link.
+  const stays = [...page.matchAll(/<h3>([^<]+)<\/h3>/g)].map((m) => m[1].replace(/&nbsp;/g, ' ').split(' – ')[0].trim()).filter((x) => /Resort/.test(x));
+  check('L1: both prices with their group sizes, each on its own line (no published range)',
+    sysL.includes(`- Lakshadweep Escape for a minimum of 2 travellers: from ${laksPrices[0]} per person.`)
+    && sysL.includes(`- Lakshadweep Escape for a minimum of 4 travellers: from ${laksPrices[1]} per person.`)
+    && /per person – minimum 2 travellers/.test(page) && /per person – minimum 4 travellers/.test(page) && laksPrices.length === 2, laksPrices.join());
+  check('L1: the travel window, 3N/4D and the islands as the page gives them', /5 – 20 November 2026/.test(page) && sysL.includes('3N/4D on Agatti Island and Bangaram Island, for travel between 5 and 20 November 2026'));
+  check(`L1: the two stays as the page names them, nothing about the brand (${stays.join(' / ')})`, stays.length === 2
+    && sysL.includes(`2 nights on Agatti Island at ${stays[0]}, then 1 night on Bangaram Island at ${stays[1]}`) && !/Taj Resort|IHCL|SeleQtions/.test(sysL), stays.join(' | '));
+  check('L1: flights excluded, the permit sentence, the page link', /Flight tickets are not included\./.test(page) && sysL.includes('do NOT include flight tickets')
+    && sysL.includes('needs an entry permit from the Lakshadweep Administration') && sysL.includes('https://skylinetravelplanner.com/diwali-lakshadweep.html'));
+
+  // L2: right Lakshadweep replies pass untouched (the Bali discount check no longer reads "Diwali" as Bali).
+  const right = [
+    'The Lakshadweep Escape (3N/4D) is from ₹54,000 per person for a minimum of 2 travellers, or ₹47,000 per person for a minimum of 4. Flight tickets are extra.',
+    'Our Lakshadweep Diwali Special is from ₹54,000 per person (minimum 2 travellers); flights are extra.',
+    'Lakshadweep Escape, Diwali Special:\n- Minimum 2 travellers: ₹54,000 per person\n- Minimum 4 travellers: ₹47,000 per person\nFlight tickets are extra.',
+    'Diwali in Bali is from ₹1,15,000 per person, and the Lakshadweep Escape, 3N/4D, is from ₹54,000 per person (minimum 2 travellers).',
+    'We have two Diwali offers. Diwali in Bali, 7N/8D, is from ₹1,15,000 per person. The Lakshadweep Escape, 3N/4D, is from ₹54,000 per person for 2 or more travellers, or ₹47,000 for groups of 4 or more.',
+    'The Lakshadweep Escape is our Diwali Special. It is from ₹54,000 per person for a minimum of 2 travellers.',
+    'Agatti and Bangaram: the Lakshadweep Escape is from ₹54,000 per person (minimum 2 travellers), travel 5–20 November.',
+    'Only ₹54,000 per person (minimum 2 travellers) for the Diwali Special in Lakshadweep!',
+  ];
+  const flagged = [];
+  for (const t of right) { const r = (await chat(L, t)).reply; if (r !== t.replace(/^- /gm, '• ') + NOTE_LINE) flagged.push(t + ' => ' + r.slice(0, 90)); }
+  const rightIndic = [['लक्षद्वीप की सैर (3N/4D) ₹54,000 प्रति व्यक्ति से, कम से कम 2 यात्री; कम से कम 4 यात्री हों तो ₹47,000। फ़्लाइट टिकट अलग से।', NOTE_LINE_HI],
+    ['લક્ષદ્વીપની સફર ₹54,000 વ્યક્તિ દીઠ, ઓછામાં ઓછા 2 મુસાફરો; ઓછામાં ઓછા 4 મુસાફરો માટે ₹47,000.', NOTE_LINE_GU]];
+  for (const [t, note] of rightIndic) { const r = (await chat(L, t)).reply; if (r !== t + note) flagged.push(t + ' => ' + r.slice(0, 90)); }
+  check(`L2: ${right.length + rightIndic.length} right Lakshadweep replies pass untouched (with "Diwali" in them, beside the Bali offer, as bullets, in Hindi and Gujarati)`, flagged.length === 0, flagged.join(' | '));
+
+  // L3: a lower figure tied to the Bali offer is still the Bali offer's discount, however another place stands nearer.
+  const tied = ['Diwali in Bali, like the Lakshadweep Escape, is from ₹47,000.', 'Bali and Lakshadweep Diwali offers start at ₹47,000.',
+    'Diwali in Bali? Same as Lakshadweep: ₹47,000 per person.', 'The Lakshadweep Escape is ₹47,000 for 4 or more, and Diwali in Bali costs the same.',
+    'Diwali in Bali, like Goa Getaway, is ₹9,999.', 'Only ₹47,000 for Diwali in Bali!', 'दिवाली इन बाली, लक्षद्वीप की तरह, ₹47,000 से।',
+    'Diwali in Bali is lovely. It is the same as the Lakshadweep Escape, ₹54,000 per person.', 'The Lakshadweep Escape is ₹54,000 (minimum 2), and Bali is too.'];
+  const slipped = [];
+  for (const t of tied) { const r = (await chat('Diwali?', t)).reply; if (r !== HONEST + ' ' + DIWALI_PRICE + '.' + NOTE_LINE) slipped.push(t + ' => ' + r.slice(0, 90)); }
+  check(`L3: ${tied.length} replies that tie a lower figure to the Bali offer get the Bali offer's real price`, slipped.length === 0, slipped.join(' | '));
+
+  // L4: a wrong figure for Lakshadweep or one of its islands is replaced (with the offer's own prices while it runs).
+  const LAKS_QUOTE = `Lakshadweep Escape (Diwali Special), 3N / 4D, is from ${laksPrices[0]} per person for a minimum of 2 travellers, or ${laksPrices[1]} per person for a minimum of 4 travellers; flight tickets are extra.`;
+  const wrong = ['The Lakshadweep Escape is from ₹27,800 per person.', 'Agatti trips start from ₹9,999.', 'लक्षद्वीप ₹20,900 से शुरू है।',
+    'Lakshadweep, 7 nights, from ₹54,000 per person.', 'Lakshadweep is ₹30,000 per person.', 'બંગારમ ₹12,900 થી.', 'The Lakshadweep Escape is from ₹47,000-54,000 per person.'];
+  const missed = [];
+  for (const t of wrong) { const r = (await chat(L, t)).reply; if (r !== HONEST + ' ' + LAKS_QUOTE + NOTE_LINE) missed.push(t + ' => ' + r.slice(0, 90)); }
+  check(`L4: ${wrong.length} wrong Lakshadweep figures are replaced with the offer's own two prices (another trip's figure, an island, Hindi, Gujarati, the wrong length, an invented figure, an invented range)`, missed.length === 0, missed.join(' | '));
+  check('L4: the owner\'s spelling "Lakshdeep" in the question gets the same answer', (await chat('Lakshdeep Diwali offer cost?', 'Lakshadweep is ₹30,000.')).reply === HONEST + ' ' + LAKS_QUOTE + NOTE_LINE);
+  const endedReply = (await chat(L, 'The Lakshadweep Escape is from ₹54,000 per person (minimum 2 travellers).', { at: LAKS_ENDED })).reply;
+  check('L4: after 20 Nov the offer\'s prices are no longer published: replaced, and no offer price is given', endedReply === HONEST, endedReply);
+
+  // L5: the minimum-4 price - never for fewer than 4 (replaced), and with its condition (a note otherwise).
+  const small = ['For a couple, the Lakshadweep Escape is ₹47,000 per person.', 'For 2 travellers it is ₹47,000 per person in Lakshadweep.',
+    'Lakshadweep Escape: ₹47,000 per person (minimum 2 travellers).', 'दो लोगों के लिए लक्षद्वीप की सैर ₹47,000 प्रति व्यक्ति।', 'Lakshadweep for three people: ₹47,000 each.'];
+  const notReplaced = [];
+  for (const t of small) { const r = (await chat(L, t)).reply; if (r !== HONEST + ' ' + LAKS_QUOTE + NOTE_LINE) notReplaced.push(t + ' => ' + r.slice(0, 90)); }
+  check(`L5: ${small.length} replies giving the minimum-4 price to 1-3 travellers are replaced with both prices`, notReplaced.length === 0, notReplaced.join(' | '));
+  const PAX_NOTE = `(To be clear: the Lakshadweep Escape is from ${laksPrices[0]} per person for a minimum of 2 travellers; ${laksPrices[1]} per person applies only to a minimum of 4 travellers. Flight tickets are extra.)`;
+  const bare = (await chat(L, 'The Lakshadweep Escape is from ₹47,000 per person.')).reply;
+  check('L5: the minimum-4 price without its condition keeps the reply and adds the note', bare === 'The Lakshadweep Escape is from ₹47,000 per person.' + NOTE_LINE + '\n\n' + PAX_NOTE, bare);
+  const withCond = ['The Lakshadweep Escape is ₹47,000 per person for a minimum of 4 travellers.', 'Lakshadweep: ₹47,000 per person for 4+ travellers.', 'For a group of four or more, the Lakshadweep Escape is ₹47,000 per person.'];
+  const noted = [];
+  for (const t of withCond) { const r = (await chat(L, t)).reply; if (r !== t + NOTE_LINE) noted.push(t + ' => ' + r.slice(0, 90)); }
+  check(`L5: ${withCond.length} minimum-4 prices quoted with their condition pass untouched`, noted.length === 0, noted.join(' | '));
+
+  // L6: inclusions the page does not list get the Lakshadweep note (never the Bali one), and honest lines get none.
+  const LAKS_INCL = 'Flight tickets are not included, and every visitor needs an entry permit.';
+  const claims = ['The Lakshadweep Escape includes return flights from Kochi.', 'Lakshadweep Diwali Special: lunch and dinner are included.',
+    'The Lakshadweep package includes the entry permit.', 'लक्षद्वीप की सैर में फ़्लाइट शामिल है।', 'The Lakshadweep Escape comes with scuba diving and snorkelling.'];
+  const noNote = [];
+  for (const t of claims) { const r = (await chat('Included?', t)).reply; if (!(r.startsWith(t) && r.includes(LAKS_INCL) && !r.includes(DIWALI_INCLUDED))) noNote.push(t + ' => ' + r.slice(0, 90)); }
+  check(`L6: ${claims.length} unlisted Lakshadweep inclusions get the Lakshadweep note, not the Bali one`, noNote.length === 0, noNote.join(' | '));
+  const honest = ['The Lakshadweep Escape includes breakfast and Agatti sightseeing; flight tickets are not included.', 'Diwali in Bali includes return flights from Ahmedabad.',
+    'Lunch is not listed for the Lakshadweep Escape; our team will confirm.'];
+  const wrongNote = [];
+  for (const t of honest) { const r = (await chat('Included?', t)).reply; if (r !== t) wrongNote.push(t + ' => ' + r.slice(0, 90)); }
+  check(`L6: ${honest.length} honest inclusion lines (Lakshadweep's own, Bali's flights) get no note`, wrongNote.length === 0, wrongNote.join(' | '));
+  check('L6: after 20 Nov the Lakshadweep inclusion note is off', (await chat('Included?', claims[0], { at: LAKS_ENDED })).reply === claims[0]);
 }
 
 check('every fetch went to the fake Anthropic API only', calls.every((c) => c.url === ANTHROPIC), [...new Set(calls.map((c) => c.url))].join(' '));

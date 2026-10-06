@@ -146,18 +146,19 @@ html[lang=hi] .brand span,html[lang=gu] .brand span{font-family:"JetBrains Mono"
 </main>
 
 <footer class="wrap foot">
-  <p class="fine" data-en="Offers are listed until they depart or their travel window ends. Pictures marked &quot;Illustrative&quot; are AI-generated to show the experience; they are not photos of the actual hotels." data-hi="हर ऑफ़र अपनी रवानगी की तारीख़ तक, या उसकी यात्रा-अवधि ख़त्म होने तक, यहाँ दिखाया जाता है। जिन चित्रों पर &quot;AI से बना चित्र&quot; लिखा है, वे अनुभव की झलक देने के लिए AI से बनाए गए हैं; वे असली होटलों की फ़ोटो नहीं हैं।" data-gu="દરેક ઓફર તેની પ્રસ્થાન તારીખ સુધી, અથવા તેની પ્રવાસ-અવધિ પૂરી થાય ત્યાં સુધી, અહીં બતાવવામાં આવે છે. જે ચિત્રો પર &quot;AI ચિત્ર&quot; લખેલું છે, તે અનુભવનો ખ્યાલ આપવા માટે AI વડે બનાવેલાં છે; તે અસલ હોટેલોના ફોટા નથી.">Offers are listed until they depart or their travel window ends. Pictures marked "Illustrative" are AI-generated to show the experience; they are not photos of the actual hotels.</p>
+  <p class="fine" data-en="Offers are listed until they depart or their travel window ends. Pictures marked &quot;Illustrative · AI-generated&quot; are made with AI, and those marked &quot;Illustrative · stock photo&quot; are stock photos: both show the kind of experience and may not show the hotels or islands on the trip." data-hi="हर ऑफ़र अपनी रवानगी की तारीख़ तक, या उसकी यात्रा-अवधि ख़त्म होने तक, यहाँ दिखाया जाता है। &quot;AI से बना चित्र&quot; वाले चित्र AI से बनाए गए हैं और &quot;सांकेतिक चित्र&quot; वाले स्टॉक फ़ोटो हैं: दोनों अनुभव की झलक देते हैं और ज़रूरी नहीं कि यात्रा के होटल या द्वीप ही दिखाएँ।" data-gu="દરેક ઓફર તેની પ્રસ્થાન તારીખ સુધી, અથવા તેની પ્રવાસ-અવધિ પૂરી થાય ત્યાં સુધી, અહીં બતાવવામાં આવે છે. &quot;AI ચિત્ર&quot; વાળાં ચિત્રો AI વડે બનાવેલાં છે અને &quot;પ્રતીકાત્મક ચિત્ર&quot; વાળા સ્ટોક ફોટા છે: બંને અનુભવનો ખ્યાલ આપે છે અને જરૂરી નથી કે પ્રવાસની હોટેલો કે ટાપુઓ જ બતાવે.">Offers are listed until they depart or their travel window ends. Pictures marked "Illustrative · AI-generated" are made with AI, and those marked "Illustrative · stock photo" are stock photos: both show the kind of experience and may not show the hotels or islands on the trip.</p>
   <p class="fine">© <span id="yr">2026</span> <span data-en="Skyline Travel Planner ·" data-hi="Skyline Travel Planner ·" data-gu="Skyline Travel Planner ·">Skyline Travel Planner ·</span> <a href="index.html" data-en="Home" data-hi="होम" data-gu="હોમ">Home</a> · <a href="Privacy.dc.html" data-en="Privacy" data-hi="प्राइवेसी" data-gu="ગોપનીયતા">Privacy</a> · <a href="photo-credits.html" data-en="Photo credits" data-hi="फ़ोटो क्रेडिट" data-gu="ફોટો ક્રેડિટ">Photo credits</a></p>
   <p class="fine"><span data-en="Built &amp; maintained by" data-hi="निर्माण और रखरखाव:" data-gu="નિર્માણ અને જાળવણી:">Built &amp; maintained by</span> <a href="https://buildwise-digital.com" target="_blank" rel="noopener">BuildWise Digital</a></p>
 </footer>
 
+<script src="offers-data.js"></script>
 <script>
 (function(){
 "use strict";
 /* ---------- language: EN / हिं / ગુ on the site's skyline_lang key (LANG-FIX-SPEC.md). Static copy is swapped from each
-   element's data-en/data-hi/data-gu; the festival cards read the _hi/_gu fields in FESTIVALS; I18N holds the rest. ---------- */
+   element's data-en/data-hi/data-gu; the festival cards read the _hi/_gu fields in offers-data.js; I18N holds the rest. ---------- */
 var LANGS=['en','hi','gu'];
-var I18N={"hi":{"Illustrative":"AI से बना चित्र","See the trip →":"यात्रा देखें →","Hi Skyline, I'd like to plan a trip around a festival.":"नमस्ते Skyline, मुझे किसी त्योहार के समय एक यात्रा प्लान करनी है।"},"gu":{"Illustrative":"AI ચિત્ર","See the trip →":"યાત્રા જુઓ →","Hi Skyline, I'd like to plan a trip around a festival.":"નમસ્તે Skyline, મારે કોઈ તહેવારના સમયે યાત્રા પ્લાન કરવી છે."}};
+var I18N={"en":{"Illustrative":"Illustrative · AI-generated","Illustrative photo":"Illustrative · stock photo"},"hi":{"Illustrative":"AI से बना चित्र","Illustrative photo":"सांकेतिक चित्र","See the trip →":"यात्रा देखें →","Hi Skyline, I'd like to plan a trip around a festival.":"नमस्ते Skyline, मुझे किसी त्योहार के समय एक यात्रा प्लान करनी है।"},"gu":{"Illustrative":"AI ચિત્ર","Illustrative photo":"પ્રતીકાત્મક ચિત્ર","See the trip →":"યાત્રા જુઓ →","Hi Skyline, I'd like to plan a trip around a festival.":"નમસ્તે Skyline, મારે કોઈ તહેવારના સમયે યાત્રા પ્લાન કરવી છે."}};
 var lang=(function(){ var q=(location.search.match(/[?&]lang=(en|hi|gu)(?:&|$)/)||[])[1];
   if(q){ try{ localStorage.setItem('skyline_lang',q); }catch(e){} return q; }
   try{ var v=localStorage.getItem('skyline_lang'); return LANGS.indexOf(v)>=0?v:'en'; }catch(e){ return 'en'; } })();
@@ -177,30 +178,16 @@ function setLang(l){ if(LANGS.indexOf(l)<0||l===lang) return; lang=l;
   try{ var u=new URL(location.href); if(u.searchParams.has('lang')){ u.searchParams.delete('lang'); history.replaceState(null,'',u.pathname+u.search+u.hash); } }catch(e){}
   applyLang(); }
 document.querySelectorAll('.lang button').forEach(function(b){ b.addEventListener('click',function(){ setLang(b.getAttribute('data-lang')); }); });
-/* Festive offers: everything below comes from FESTIVALS. To add a festival, add an entry with its offers; an offer
-   disappears by itself once it departs ("until"), a festival with no live offers gets no tab, and with none left the
-   page says new offers are on the way. Keep the _hi/_gu fields in step (LANG-FIX-SPEC.md). No prices here: the
-   price lives on each offer's own page. */
-var FESTIVALS=[
-  {id:'diwali', name:'Diwali',name_hi:"दिवाली",name_gu:"દિવાળી", when:'Sun 8 Nov 2026',when_hi:"रविवार, 8 नवंबर 2026",when_gu:"રવિવાર, 8 નવેમ્બર 2026", accent:'#FFA630', offers:[
-    {title:'Diwali in Bali',title_hi:"बाली में दिवाली",title_gu:"બાલીમાં દિવાળી", href:'diwali-bali.html', img:'images/diwali-bali/hero-diwali.jpg', illustrative:true,
-     tag:'7N/8D',tag_hi:"7 रातें / 8 दिन",tag_gu:"7 રાત / 8 દિવસ", meta:'Departs Tue 3 Nov 2026 · Singapore Airlines from Ahmedabad',meta_hi:"रवानगी मंगलवार, 3 नवंबर 2026 · अहमदाबाद से Singapore Airlines",meta_gu:"પ્રસ્થાન: મંગળવાર, 3 નવેમ્બર 2026 · અમદાવાદથી Singapore Airlinesની ફ્લાઇટ",
-     blurb:'Kuta, Ubud and a private pool villa in Jimbaran, with Diwali on day 6.',blurb_hi:"कुटा और उबुद के बाद जिम्बारन में एक प्राइवेट पूल विला। यात्रा के छठे दिन दिवाली है।",blurb_gu:"કુટા અને ઉબુદ ઉપરાંત જિમ્બારનમાં એક પ્રાઇવેટ પૂલ વિલા, અને યાત્રાના છઠ્ઠા દિવસે દિવાળી.",
-     alt:'A resort path lined with lanterns and pools on Diwali evening (illustrative)',alt_hi:"दिवाली की शाम रिज़ॉर्ट का एक रास्ता, जिसके किनारे-किनारे कंदील और पूल हैं (AI से बना चित्र)",alt_gu:"દિવાળીની સાંજે રિસોર્ટનો રસ્તો, જેની બંને બાજુ ફાનસ અને પૂલ છે (AI ચિત્ર)",
-     until:'2026-11-03T00:00:00+05:30'},
-    {title:'Lakshadweep Escape',title_hi:"लक्षद्वीप की सैर",title_gu:"લક્ષદ્વીપની સફર", href:'diwali-lakshadweep.html', img:'images/diwali-lakshadweep/hero-m.jpg', illustrative:false,
-     tag:'3N/4D',tag_hi:"3 रातें / 4 दिन",tag_gu:"3 રાત / 4 દિવસ", meta:'Travel 5 – 20 Nov 2026 · Flight tickets extra',meta_hi:"यात्रा 5 – 20 नवंबर 2026 · फ़्लाइट टिकट अलग से",meta_gu:"પ્રવાસ 5 – 20 નવેમ્બર 2026 · ફ્લાઇટ ટિકિટ અલગથી",
-     blurb:'Two nights on Agatti and one on Bangaram: turquoise lagoons, white sand and a Kalpitti Island tour by glass-bottom boat.',blurb_hi:"अगत्ती पर दो रातें और बंगारम पर एक रात: फ़िरोज़ी लैगून, सफ़ेद रेत और ग्लास-बॉटम बोट से कल्पित्ती द्वीप की सैर।",blurb_gu:"અગત્તી પર બે રાત અને બંગારમ પર એક રાત: પીરોજી લગૂન, સફેદ રેતી અને ગ્લાસ-બોટમ બોટથી કલ્પિત્તી ટાપુની સફર.",
-     alt:'Palms and turquoise water on Agatti Island, Lakshadweep',alt_hi:"लक्षद्वीप के अगत्ती द्वीप पर नारियल के पेड़ और फ़िरोज़ी पानी",alt_gu:"લક્ષદ્વીપના અગત્તી ટાપુ પર નાળિયેરીનાં વૃક્ષો અને પીરોજી પાણી",
-     until:'2026-11-21T00:00:00+05:30'}
-  ]}
-];
+/* Festive offers: everything below comes from offers-data.js (window.SkyOffers), the one list the menu link and the
+   floating card read too. To add a destination or a festival, edit that file only. An offer disappears by itself at
+   its "until", a festival with no live offers gets no tab, and with none left the page says new offers are on the way.
+   No prices here: the price lives on each offer's own page. */
+var SO=window.SkyOffers;
 var WA='918866050291';
 
 function esc(s){ return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]}); }
 var now=new Date();
-var live=FESTIVALS.map(function(f){ return {f:f, offers:f.offers.filter(function(o){ return !o.until || new Date(o.until)>now; })}; })
-  .filter(function(x){ return x.offers.length; });
+var live=SO?SO.live(now):[];
 var tabs=document.getElementById('tabs'), panels=document.getElementById('panels');
 var want=(location.search.match(/[?&]festival=([a-z0-9-]+)/)||[])[1];
 var sel=Math.max(0,live.findIndex(function(x){ return x.f.id===want; }));
@@ -220,7 +207,7 @@ function render(){
     var p=document.createElement('div'); p.className='panel'; p.id='panel-'+x.f.id; p.setAttribute('role','tabpanel'); p.setAttribute('aria-labelledby',t.id); p.hidden=i!==sel;
     x.offers.forEach(function(o){
       p.insertAdjacentHTML('beforeend','<a class="card" href="'+esc(o.href)+'" style="--acc:'+esc(x.f.accent)+'">'
-        +'<div class="ph"><img src="'+esc(o.img)+'" alt="'+esc(tr(o,'alt'))+'" loading="lazy">'+(o.illustrative?'<span class="chip">'+esc(i18n('Illustrative'))+'</span>':'')+'</div>'
+        +'<div class="ph"><img src="'+esc(o.img)+'" alt="'+esc(tr(o,'alt'))+'" loading="lazy">'+(o.illustrative?'<span class="chip">'+esc(i18n('Illustrative'))+'</span>':o.stock?'<span class="chip">'+esc(i18n('Illustrative photo'))+'</span>':'')+'</div>'
         +'<div class="txt"><span class="mono accent">'+esc(tr(o,'tag'))+'</span><h3>'+esc(tr(o,'title'))+'</h3><p class="muted">'+esc(tr(o,'meta'))+'</p><p>'+esc(tr(o,'blurb'))+'</p>'
         +'<span class="btn btn-accent go">'+esc(i18n('See the trip →'))+'</span></div></a>');
     });

@@ -1,17 +1,22 @@
-/* Diwali offers promo: a small floating card. While Diwali in Bali (departs Tue 3 Nov 2026, IST) and the Lakshadweep
-   Escape (travel 5-20 Nov 2026) are both live it names both and opens /offers; once Bali has left it shows only
-   Lakshadweep and opens its page; after 20 Nov it is gone. It never advertises a trip that has left, and can be dismissed.
+/* Festive offers promo: a small floating card. Everything it says comes from offers-data.js (window.SkyOffers), the
+   one list /offers and the menu link read too, so adding an offer there is all it takes. While a festival has more than
+   one live offer the card names them all and opens /offers on that festival's tab; with one left it names that trip and
+   opens its page; with none it is gone. It never advertises a trip that has left, never shows a price, and can be
+   dismissed (for the browser session). It stays off /offers and every offer's own page.
    Sits centred above the AI-assistant and WhatsApp buttons, under the cookie banner.
+   Needs <script src="offers-data.js"> earlier on the page; without it the card simply doesn't appear.
    To remove early, delete the <script src="diwali-promo.js"> tag from the page.
    Speaks the visitor's language (the site's skyline_lang key: en / hi / gu) and follows it when they switch. */
 (function () {
   if (window.__skyDiwaliPromo) return;   // one card even if a page loads this script twice
   window.__skyDiwaliPromo = true;
-  var BALI_END = new Date('2026-11-03T00:00:00+05:30'), LAKS_END = new Date('2026-11-21T00:00:00+05:30');
-  var now = new Date(), both = now < BALI_END;
-  if (now >= LAKS_END) return;
-  try { if (sessionStorage.getItem('sky_diwali_promo') === 'closed') return; } catch (e) {}
-  if (/(^|\/)(diwali-bali|diwali-lakshadweep|offers)(\.html)?\/?$/.test(location.pathname)) return;
+  var SO = window.SkyOffers;
+  if (!SO) return;
+  var cur = SO.live(new Date())[0];
+  if (!cur) return;
+  var KEY = 'sky_offers_promo_' + cur.f.id;
+  try { if (sessionStorage.getItem(KEY) === 'closed') return; } catch (e) {}
+  if (SO.isOfferPage(location.pathname)) return;
 
   var css = document.createElement('style');
   css.textContent =
@@ -31,20 +36,25 @@
     '@media (prefers-reduced-motion:reduce){.skd{transition:none}.skd .fl{animation:none}}';
   document.head.appendChild(css);
 
-  var TXT = both ? {
-    en: { t: 'Diwali offers', s: 'Bali 7N/8D · Lakshadweep 3N/4D', go: 'See offers →', aria: 'Diwali offers: Bali, 7 nights, and Lakshadweep, 3 nights. See the offers.', x: 'Hide Diwali offers' },
-    hi: { t: 'दिवाली ऑफ़र', s: 'बाली 7 रातें · लक्षद्वीप 3 रातें', go: 'ऑफ़र देखें →', aria: 'दिवाली ऑफ़र: बाली, 7 रातें, और लक्षद्वीप, 3 रातें। ऑफ़र देखें।', x: 'दिवाली ऑफ़र छिपाएं' },
-    gu: { t: 'દિવાળી ઓફર', s: 'બાલી 7 રાત · લક્ષદ્વીપ 3 રાત', go: 'ઓફર જુઓ →', aria: 'દિવાળી ઓફર: બાલી, 7 રાત, અને લક્ષદ્વીપ, 3 રાત. ઓફર જુઓ.', x: 'દિવાળી ઓફર છુપાવો' }
-  } : {
-    en: { t: 'Lakshadweep Escape', s: 'Diwali Special · travel 5–20\u00a0Nov', go: 'View trip →', aria: 'Lakshadweep Escape, Diwali Special: travel 5 to 20 November. View the trip.', x: 'Hide Diwali offer' },
-    hi: { t: 'लक्षद्वीप की सैर', s: 'दिवाली स्पेशल · यात्रा 5–20\u00a0नवंबर', go: 'यात्रा देखें →', aria: 'लक्षद्वीप की सैर, दिवाली स्पेशल: यात्रा 5 से 20 नवंबर। यात्रा देखें।', x: 'दिवाली ऑफ़र छिपाएं' },
-    gu: { t: 'લક્ષદ્વીપની સફર', s: 'દિવાળી સ્પેશિયલ · પ્રવાસ 5–20\u00a0નવેમ્બર', go: 'યાત્રા જુઓ →', aria: 'લક્ષદ્વીપની સફર, દિવાળી સ્પેશિયલ: પ્રવાસ 5 થી 20 નવેમ્બર. યાત્રા જુઓ.', x: 'દિવાળી ઓફર છુપાવો' }
-  };
+  var many = cur.offers.length > 1, one = cur.offers[0], tr = SO.tr;
+  var GO = many ? { en: 'See offers →', hi: 'ऑफ़र देखें →', gu: 'ઓફર જુઓ →' } : { en: 'View trip →', hi: 'यात्रा देखें →', gu: 'યાત્રા જુઓ →' };
+  var GO_SAY = many ? { en: 'See the offers.', hi: 'ऑफ़र देखें।', gu: 'ઓફર જુઓ.' } : { en: 'View the trip.', hi: 'यात्रा देखें।', gu: 'યાત્રા જુઓ.' };
+  var AND = { en: ', and ', hi: ', और ', gu: ', અને ' };
+  function hide(label, l) { return l === 'hi' ? label + ' छिपाएं' : l === 'gu' ? label + ' છુપાવો' : 'Hide ' + label; }
+  function build(l) {
+    var label = tr(cur.f, 'label', l);
+    if (!many) return { t: tr(one, 'title', l), s: tr(one, 'solo', l), go: GO[l], aria: tr(one, 'solo_say', l) + ' ' + GO_SAY[l], x: hide(label, l) };
+    var says = cur.offers.map(function (o) { return tr(o, 'short_say', l); });
+    var said = says.length > 1 ? says.slice(0, -1).join(', ') + AND[l] + says[says.length - 1] : says[0];
+    return { t: label, s: cur.offers.map(function (o) { return tr(o, 'short', l); }).join(' · '), go: GO[l],
+             aria: label + ': ' + said + (l === 'hi' ? '। ' : '. ') + GO_SAY[l], x: hide(label, l) };
+  }
+  var TXT = { en: build('en'), hi: build('hi'), gu: build('gu') };
   function lang() { try { var v = localStorage.getItem('skyline_lang'); return TXT[v] ? v : 'en'; } catch (e) { return 'en'; } }
 
   var a = document.createElement('a');
   a.className = 'skd';
-  a.href = both ? 'offers.html?festival=diwali' : 'diwali-lakshadweep.html';
+  a.href = many ? 'offers.html?festival=' + encodeURIComponent(cur.f.id) : one.href;
   a.innerHTML =
     '<svg viewBox="0 0 40 40" aria-hidden="true"><path class="fl" d="M20 2 C24 9 25 13 20 18 C15 13 16 9 20 2Z" fill="#FFC24A"/>' +
     '<path d="M4 21 C9 34 31 34 36 21 Z" fill="#9C3E12"/><ellipse cx="20" cy="21" rx="16" ry="3.2" fill="#D96A2B"/></svg>' +
@@ -63,7 +73,7 @@
   a.querySelector('.x').addEventListener('click', function (e) {
     e.preventDefault(); e.stopPropagation();
     a.classList.remove('on');
-    try { sessionStorage.setItem('sky_diwali_promo', 'closed'); } catch (err) {}
+    try { sessionStorage.setItem(KEY, 'closed'); } catch (err) {}
     setTimeout(function () { a.remove(); }, 500);
   });
 

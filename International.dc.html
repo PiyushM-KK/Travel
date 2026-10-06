@@ -16,6 +16,7 @@
 <link rel="preconnect" href="https://unpkg.com" crossorigin>
 <link rel="dns-prefetch" href="https://unpkg.com">
 <link rel="icon" type="image/png" href="images/favicon.png">
+<script src="offers-data.js"></script>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -33,6 +34,14 @@
   body{margin:0;background:linear-gradient(180deg, #e9f2fb 0%, #f5efe6 45%, #f3ede3 100%);background-attachment:fixed;color:#0B2440;font-family:'Plus Jakarta Sans',sans-serif;-webkit-font-smoothing:antialiased}
   a{text-decoration:none;color:inherit}
   .navlink:hover{color:#0A84D6 !important}
+  /* Festive offers link (offers-data.js decides what it says and where it goes) */
+  .sky-offer-link{display:inline-flex;align-items:center;gap:7px;white-space:nowrap;font-weight:700;color:#9a4a00 !important;background:#fff4e5;border:1px solid #ffc98a;padding:5px 11px;border-radius:999px;transition:background .2s,border-color .2s}
+  .sky-offer-link:hover{background:#ffe7c7;border-color:#ffa630}
+  .sky-offer-link::before{content:'';width:7px;height:7px;border-radius:50%;background:#ff8a00;box-shadow:0 0 0 3px rgba(255,138,0,.18)}
+  /* Phones: this page has no menu below 860px, so while an offer is live the festive offers pill gets a row of its own
+     under the header (the other menu links stay hidden there, as before). */
+  @media (max-width: 859px){ header nav.intl-nav{display:flex;order:3;flex:1 0 100%;margin-left:0 !important} header nav.intl-nav .navlink{display:none}
+    header nav.intl-nav:not(:has(.sky-offer-link)){display:none} .skh-wrap{flex-wrap:wrap !important;row-gap:10px !important} }
   .tcard:hover{transform:translateY(-6px);box-shadow:0 26px 50px -26px rgba(7,59,102,.45) !important}
   .tcard{transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s}
   .cbtn:hover{transform:translateY(-2px)}
@@ -66,6 +75,12 @@
         <img class="skh-logo" src="images/logo.png" alt="Skyline Travel Planner" style="height:48px;width:auto;display:block" />
       </a>
       <nav class="intl-nav">
+        <sc-if value="{{ offersLive }}" hint-placeholder-val="{{ false }}">
+          <a class="sky-offer-link" href="{{ offersHref }}">{{ offersLabel }}</a>
+        </sc-if>
+        <sc-if value="{{ offersPlain }}" hint-placeholder-val="{{ false }}">
+          <a class="navlink" href="{{ offersHref }}">{{ offersLabel }}</a>
+        </sc-if>
         <a class="navlink" href="Domestic.dc.html" data-en="Domestic Tours" data-hi="भारत यात्रा" data-gu="ભારત યાત્રા">Domestic Tours</a>
         <a class="navlink" href="International.dc.html" style="color:#0A84D6" data-en="International" data-hi="विदेश यात्रा" data-gu="વિદેશ યાત્રા">International</a>
         <a class="navlink" href="Customize.dc.html" data-en="Customized" data-hi="अनुकूलित" data-gu="કસ્ટમાઇઝ્ડ">Customized</a>
@@ -183,8 +198,15 @@ class Component extends DCLogic {
       { id: 't-mald', slug: 'maldives', name: 'Maldives Escape', name_hi: 'मालदीव एस्केप', name_gu: 'માલદીવ્સ એસ્કેપ', route: 'Beach or overwater villa · Male atolls', route_hi: 'समुद्र तट या वॉटर विला · माले एटोल', route_gu: 'દરિયાકિનારો કે વોટર વિલા · માલે એટોલ', duration: '4N / 5D', tag: 'Luxury', tag_hi: 'लक्ज़री', tag_gu: 'લક્ઝરી', price: '₹58,000', img: 'images/dest-maldives.webp' },
     ].map((p) => ({ ...p, href: p.href || 'Customize.dc.html', toPackage: !!p.href, toQuote: !p.href, bg: bg(p.img), name: this.tr(p, 'name'), route: this.tr(p, 'route'), tag: this.tr(p, 'tag'), price4: p.price4 || '', price5: p.price5 || '', hasTiers: !!(p.price4 || p.price5), hasPrice4: !!p.price4, hasPrice5: !!p.price5, hasBoth: !!(p.price4 && p.price5) }));
 
+    // The festive offers menu link (offers-data.js): "<Festival> Offers" while one has a live offer, plain "Offers" otherwise.
+    const offersMenu = window.SkyOffers ? window.SkyOffers.menu(this.state.lang) : null;
+
     return {
       root: this.setRoot,
+      offersLive: !!(offersMenu && offersMenu.festival),
+      offersPlain: !!(offersMenu && !offersMenu.festival),
+      offersHref: offersMenu ? offersMenu.href : 'offers.html',
+      offersLabel: offersMenu ? offersMenu.label : '',
       langLabel: (this.LANGS().find((l) => l.code === this.state.lang) || {}).mark || 'EN',
       langOptions: this.LANGS().map((l) => ({
         name: l.name, mark: l.mark,

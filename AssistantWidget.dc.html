@@ -17,14 +17,29 @@
   @keyframes sk-blink{0%,80%,100%{opacity:.3}40%{opacity:1}}
   .sk-q:hover{background:#EAF5FD !important;border-color:#0A84D6 !important}
   .sk-send:hover{transform:scale(1.05)}
+  /* Festive themes (fest.js sets <html data-fest>). Only colours, icons and a greeting ribbon change: the launcher keeps
+     its place and size, and the AI's greeting message is not touched (the ribbon is screen-only, never sent). */
+  .sk-ic,.sk-fr,.sk-fr-ic{display:none}
+  .sk-ic-base{display:block}
+  html[data-fest] .sk-ic-base{display:none}
+  html[data-fest="navratri"] .sk-ic-nav,html[data-fest="diwali"] .sk-ic-diw{display:block}
+  html[data-fest="navratri"] .sk-launch{background:linear-gradient(135deg,#8E1538,#C2185B) !important;box-shadow:0 16px 34px -10px rgba(194,24,91,.6) !important}
+  html[data-fest="diwali"] .sk-launch{background:linear-gradient(135deg,#2A160C,#5A2A10) !important;box-shadow:inset 0 0 0 1px rgba(255,169,40,.65),0 16px 34px -10px rgba(255,140,40,.45) !important}
+  html[data-fest="navratri"] .sk-head{background:linear-gradient(135deg,#7A1230,#B0164F 60%,#C2185B) !important}
+  html[data-fest="diwali"] .sk-head{background:linear-gradient(135deg,#1F120B,#3D1E0E 55%,#6B2F0F) !important;box-shadow:inset 0 -2px 0 #FFA928}
+  html[data-fest] .sk-fr{display:flex;align-items:center;gap:8px;flex-shrink:0;min-height:30px;padding:6px 16px 8px;font-size:12px;font-weight:700;line-height:1.3}
+  .sk-fr span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  html[data-fest="navratri"] .sk-fr-nav,html[data-fest="diwali"] .sk-fr-diw{display:block;width:16px;height:16px;flex:0 0 16px}
+  html[data-fest="navratri"] .sk-fr{color:#7A1230;background:linear-gradient(90deg,#C2185B 0 11.1%,#E53935 0 22.2%,#FF6A13 0 33.3%,#FFB627 0 44.4%,#2E7D32 0 55.5%,#00897B 0 66.6%,#0A5FD7 0 77.7%,#6A1B9A 0 88.8%,#ECEFF1 0) bottom/100% 3px no-repeat,#FFF0F4}
+  html[data-fest="diwali"] .sk-fr{color:#6B3A00;background:#FFF4DC;border-bottom:1px solid #F5D9A0}
 </style>
 </helmet>
 
 <div class="sk-as" ref="{{ root }}">
   <!-- Launcher -->
-  <button onClick="{{ toggle }}" style="position:fixed;left:22px;bottom:22px;z-index:8000;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#0A84D6,#34C3F0);color:#fff;border:0;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:14px;padding:13px 18px 13px 14px;border-radius:999px;box-shadow:0 16px 34px -10px rgba(10,132,214,.7)">
+  <button class="sk-launch" onClick="{{ toggle }}" style="position:fixed;left:22px;bottom:22px;z-index:8000;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#0A84D6,#34C3F0);color:#fff;border:0;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:14px;padding:13px 18px 13px 14px;border-radius:999px;box-shadow:0 16px 34px -10px rgba(10,132,214,.7)">
     <span style="width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3z"/><circle cx="18.5" cy="17.5" r="1.6"/><circle cx="5.5" cy="16.5" r="1.2"/></svg>
+      <svg class="sk-ic sk-ic-base" width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3z"/><circle cx="18.5" cy="17.5" r="1.6"/><circle cx="5.5" cy="16.5" r="1.2"/></svg><svg class="sk-ic sk-ic-nav" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.6C14 4 14.2 5.6 12 7.2 9.8 5.6 10 4 12 1.6Z" fill="#FFD27A"/><path fill="#fff" fill-rule="evenodd" d="M9.6 8h4.8v2.1c2.7.9 4.5 3.2 4.5 6.1 0 3.6-3 6.3-6.9 6.3s-6.9-2.7-6.9-6.3c0-2.9 1.8-5.2 4.5-6.1V8zM8.5 15a0.9 0.9 0 1 0 1.8 0a0.9 0.9 0 1 0 -1.8 0zM11.1 13.7a0.9 0.9 0 1 0 1.8 0a0.9 0.9 0 1 0 -1.8 0zM13.7 15a0.9 0.9 0 1 0 1.8 0a0.9 0.9 0 1 0 -1.8 0zM8.5 18.1a0.9 0.9 0 1 0 1.8 0a0.9 0.9 0 1 0 -1.8 0zM11.1 19.4a0.9 0.9 0 1 0 1.8 0a0.9 0.9 0 1 0 -1.8 0zM13.7 18.1a0.9 0.9 0 1 0 1.8 0a0.9 0.9 0 1 0 -1.8 0z"/></svg><svg class="sk-ic sk-ic-diw" width="17" height="17" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 2 C24 9 25 13 20 18 C15 13 16 9 20 2Z" fill="#FFC24A"/><path d="M4 21 C9 34 31 34 36 21 Z" fill="#D96A2B"/><ellipse cx="20" cy="21" rx="16" ry="3.2" fill="#FFB627"/><path d="M34 21 L39 18 L36 23 Z" fill="#D96A2B"/></svg>
     </span>
     {{ launcherLabel }}
     <sc-if value="{{ hasUnread }}" hint-placeholder-val="{{ false }}">
@@ -35,9 +50,9 @@
   <!-- Panel -->
   <div ref="{{ panelEl }}" style="display:none;position:fixed;left:min(22px, 3vw);bottom:min(22px, 3vw);z-index:8500;width:min(440px, calc(100vw - 2 * min(22px, 3vw)));height:min(680px, calc(100vh - 2 * min(22px, 3vw)));max-height:calc(100dvh - 2 * min(22px, 3vw));background:#fff;border-radius:22px;box-shadow:0 40px 80px -24px rgba(7,59,102,.55);overflow:hidden;flex-direction:column;font-family:'Plus Jakarta Sans',sans-serif;animation:sk-pop .22s ease">
     <!-- header -->
-    <div style="background:linear-gradient(135deg,#0A84D6,#34C3F0);color:#fff;padding:16px 18px;display:flex;align-items:center;gap:10px;flex-shrink:0">
+    <div class="sk-head" style="background:linear-gradient(135deg,#0A84D6,#34C3F0);color:#fff;padding:16px 18px;display:flex;align-items:center;gap:10px;flex-shrink:0">
       <span style="width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3z"/><circle cx="18.5" cy="17.5" r="1.6"/><circle cx="5.5" cy="16.5" r="1.2"/></svg>
+        <svg class="sk-ic sk-ic-base" width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3z"/><circle cx="18.5" cy="17.5" r="1.6"/><circle cx="5.5" cy="16.5" r="1.2"/></svg><svg class="sk-ic sk-ic-nav" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.6C14 4 14.2 5.6 12 7.2 9.8 5.6 10 4 12 1.6Z" fill="#FFD27A"/><path fill="#fff" fill-rule="evenodd" d="M9.6 8h4.8v2.1c2.7.9 4.5 3.2 4.5 6.1 0 3.6-3 6.3-6.9 6.3s-6.9-2.7-6.9-6.3c0-2.9 1.8-5.2 4.5-6.1V8zM8.5 15a0.9 0.9 0 1 0 1.8 0a0.9 0.9 0 1 0 -1.8 0zM11.1 13.7a0.9 0.9 0 1 0 1.8 0a0.9 0.9 0 1 0 -1.8 0zM13.7 15a0.9 0.9 0 1 0 1.8 0a0.9 0.9 0 1 0 -1.8 0zM8.5 18.1a0.9 0.9 0 1 0 1.8 0a0.9 0.9 0 1 0 -1.8 0zM11.1 19.4a0.9 0.9 0 1 0 1.8 0a0.9 0.9 0 1 0 -1.8 0zM13.7 18.1a0.9 0.9 0 1 0 1.8 0a0.9 0.9 0 1 0 -1.8 0z"/></svg><svg class="sk-ic sk-ic-diw" width="21" height="21" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 2 C24 9 25 13 20 18 C15 13 16 9 20 2Z" fill="#FFC24A"/><path d="M4 21 C9 34 31 34 36 21 Z" fill="#D96A2B"/><ellipse cx="20" cy="21" rx="16" ry="3.2" fill="#FFB627"/><path d="M34 21 L39 18 L36 23 Z" fill="#D96A2B"/></svg>
       </span>
       <div style="flex:1;min-width:0">
         <div style="font-weight:800;font-size:15px;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ title }}</div>
@@ -52,6 +67,9 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg>
       </button>
     </div>
+
+    <!-- festive greeting ribbon (fest.js; screen-only, never sent to the AI) -->
+    <div class="sk-fr" lang="{{ festLang }}"><svg class="sk-fr-ic sk-fr-nav" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.6C14 4 14.2 5.6 12 7.2 9.8 5.6 10 4 12 1.6Z" fill="#FFB627"/><rect x="9.4" y="7.6" width="5.2" height="2.6" rx=".8" fill="#8A3A1C"/><path d="M12 9.6c3.9 0 6.9 2.8 6.9 6.5S15.9 22.5 12 22.5 5.1 19.8 5.1 16.1 8.1 9.6 12 9.6z" fill="#B5532A"/><circle cx="9.4" cy="15" r="1" fill="#FFD27A"/><circle cx="12" cy="13.7" r="1" fill="#FFD27A"/><circle cx="14.6" cy="15" r="1" fill="#FFD27A"/><circle cx="9.4" cy="18.1" r="1" fill="#FFD27A"/><circle cx="12" cy="19.4" r="1" fill="#FFD27A"/><circle cx="14.6" cy="18.1" r="1" fill="#FFD27A"/></svg><svg class="sk-fr-ic sk-fr-diw" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 2 C24 9 25 13 20 18 C15 13 16 9 20 2Z" fill="#FFC24A"/><path d="M4 21 C9 34 31 34 36 21 Z" fill="#9C3E12"/><ellipse cx="20" cy="21" rx="16" ry="3.2" fill="#D96A2B"/><path d="M34 21 L39 18 L36 23 Z" fill="#9C3E12"/></svg><span>{{ festMain }}</span></div>
 
     <!-- messages -->
     <div ref="{{ scrollEl }}" style="flex:1;overflow-y:auto;padding:18px;background:#F6FAFD;display:flex;flex-direction:column;gap:12px">
@@ -268,7 +286,12 @@ class Component extends DCLogic {
   };
 
   renderVals() {
+    // festive theme (fest.js): the greeting ribbon and the active language mark's colour
+    const fest = window.SkyFest && window.SkyFest.id ? window.SkyFest : null;
+    const act = fest && fest.id === 'navratri' ? '#7A1230' : fest && fest.id === 'diwali' ? '#7A3A00' : '#0A84D6';
     return {
+      festMain: fest ? fest.main(this.state.lang) : '',
+      festLang: this.state.lang,
       waHref: 'https://wa.me/918866050291?text=' + encodeURIComponent('Hi Skyline Travel Planner, I would like help planning a trip.'),
       root: this.setRoot,
       panelEl: this.setPanel,
@@ -286,7 +309,7 @@ class Component extends DCLogic {
       langOptions: this.LANGS().map((l) => ({
         name: l.name, mark: l.mark,
         pick: () => { try { localStorage.setItem('skyline_lang', l.code); } catch (e) {} this.setState({ lang: l.code }); },
-        style: 'background:' + (l.code === this.state.lang ? '#fff' : 'transparent') + ';color:' + (l.code === this.state.lang ? '#0A84D6' : '#fff'),
+        style: 'background:' + (l.code === this.state.lang ? '#fff' : 'transparent') + ';color:' + (l.code === this.state.lang ? act : '#fff'),
       })),
       hasUnread: this.state.unread > 0,
       unread: this.state.unread > 9 ? '9+' : String(this.state.unread),

@@ -71,6 +71,12 @@ const VERSION = 'anthropic-10'; // reported by the GET health check
 // "same as ..." in the next sentence, "... and Bali costs the same") are judged as the Bali offer. The ₹47,000 price needs its
 // "minimum 4 travellers" beside it (a note is added) and is never a couple's or a group of three's (the reply is replaced);
 // a Lakshadweep inclusion nobody listed (flights, meals, insurance, the permit, water sports) gets its own note.
+// Review round 1, same version (AI Security x2, Bug Hunter): only words of equivalence tie a lower figure to Bali ("unlike",
+// "cheaper", "too" and a month name are honest answers); a "Diwali" tied to neither offer reads the visitor's words, else
+// the replacement gives both offers' prices; ₹47,000 without its condition, or for 1-3 travellers named by the reply or
+// the visitor, is replaced; flights "part of" / "a package with" count as claims; a Lakshadweep price with no word on
+// flights gets the flights line; permit promises get the owner's rule; "40 thousand rupees", "rupaye", percentage
+// discounts and seat claims are caught.
 const SYSTEM_PROMPT = `You are the Skyline AI Travel Assistant for "Skyline Travel Planner", an India-based travel planning website (WhatsApp +91 8866050291, info@skylinetravelplanner.com). Help with: destination selection, trip duration, preliminary itineraries, hotel-category comparison (3/4/5-star), packing lists, transport recommendations, family/honeymoon/religious/group planning, budget planning, travel-season guidance, and FAQs. The destinations we cover are listed under DESTINATIONS WE COVER below. Reply in the same language the customer writes in (English, Hindi or Gujarati). In Hindi or Gujarati replies, write package names in English (Latin script) exactly as listed. Never say which languages our WhatsApp team speaks; only you, the assistant, answer in English, Hindi and Gujarati. Prices are in Indian Rupees and ALWAYS "starting from" estimates, never guaranteed. Budget is OPTIONAL — never insist on it and never make the traveller feel they must share money or budget details. If the traveller has not mentioned a budget, still give a genuinely helpful answer using the published starting-from prices listed below (never a made-up range); do NOT repeatedly ask about budget or money. Ask about budget at most once, and only if it would clearly improve your recommendation — otherwise proceed happily without it and simply invite them to the "Customize My Trip" form or WhatsApp for an exact quote. Whenever your reply mentions any prices, budget figures or cost estimates, end that reply with a short one-line note on its own line, such as: "Note: Prices are indicative starting-from estimates and can change with season, hotel availability and current rates." Write the note once, in the language of your reply. Add this note only when you actually mention prices. Keep replies warm, concise and practical (see the LENGTH limit at the end). After understanding the trip, encourage the user to request a customized package (the website "Customize My Trip" form) or chat on WhatsApp (+91 8866050291) for a quote. NEVER claim to confirm tickets, process payments, guarantee hotel availability, guarantee prices, guarantee visa approval, or give official immigration advice — politely defer those to the team or official provider. Never state flight durations, flying times or travel times between places, not even as an estimate (trip lengths in nights and days are fine). NEVER ask for card, bank, Aadhaar or passport details. Do not invent specific hotel bookings. Never describe services, facilities or website features that our website does not list, such as wheelchair assistance or sights that are "drive-up"; for mobility or health needs, ask the traveller to mention them on the "Customize My Trip" form or WhatsApp so our team can plan around them. Keep the "no payments on this website" disclosure when relevant. SAMPLE TOUR PACKAGES you can recommend (all fully customizable; prices are indicative "starting from" and shared on request via the "Customize My Trip" form or WhatsApp — never quote a fixed figure for these EXCEPT where a "from" price is stated below): (1) Nainital · Mussoorie · Jim Corbett — 6N/7D, Uttarakhand: Mussoorie sightseeing (Kempty Falls, Gun Hill), Nainital lake tour (Bhimtal, Sattal, Naukuchiatal), Jim Corbett jeep safari. (2) Ooty · Coorg · Mysore — 5N/6D, South India: Mysore Palace & Brindavan Gardens, Coorg (Abbey Falls, Talacauvery), Ooty & Coonoor. (3) Sikkim · Darjeeling — 5N/6D: Gangtok, Tsomgo Lake & New Baba Mandir, Darjeeling Tiger Hill sunrise. (4) Shimla · Manali — 5N/6D, from ₹10,999 per person (indicative starting-from), Himachal: Shimla–Kufri, Kullu valley, Solang Valley, Manali (Hadimba Temple, Vashisht). (5) Untouched Spiti Valley — 8N/9D, Himachal: Narkanda, Sangla–Chitkul, Nako–Tabo, Kaza (Key Monastery, Hikkim highest post office), Kalpa. When a traveller asks about any of these regions, mention the matching package and its nights, then invite them to the Domestic tours page or the "Customize My Trip" form / WhatsApp for a tailored quote.`;
 
 // PUBLISHED PRICES, DESTINATIONS and BEST SEASONS: copied by script (not typed) from the site files on 2026-09-30.
@@ -189,7 +195,7 @@ function offerState(now) {
 const LAKSHADWEEP_OFFER = `SECOND FESTIVE OFFER - "Lakshadweep Escape", our Lakshadweep Diwali Special 2026: 3N/4D on Agatti Island and Bangaram Island, for travel between 5 and 20 November 2026 (exact dates are given when the traveller enquires). It is a separate trip from every other offer and package: never give one trip's price, dates, flights or inclusions for another. Its prices are per person and indicative starting-from, depend on the group size, and do NOT include flight tickets:
 - Lakshadweep Escape for a minimum of 2 travellers: from ₹54,000 per person.
 - Lakshadweep Escape for a minimum of 4 travellers: from ₹47,000 per person.
-Quote the minimum-4 price only together with the words "minimum 4 travellers", and never for 1, 2 or 3 travellers: for 2 or 3 travellers the minimum-2 price applies. For one traveller, say the offer is for a minimum of 2 and our team can advise. Whenever you quote a price, say that flight tickets are extra. Stays: 2 nights on Agatti Island at Sand Bank Beach Resort, then 1 night on Bangaram Island at Coral Pearl Beach Resort, confirmed at booking by the provider; no room type is published, so never describe the rooms, their facilities or the resort's brand. Highlights: Agatti Island sightseeing, the Sand Bank Beach experience, the Kalpitti Island tour, a glass-bottom boat experience, beach leisure and relaxation, and island sunsets. No day-by-day itinerary is published. Included: 3 nights / 4 days accommodation; Agatti airport pickup and drop; Agatti local sightseeing; the Kalpitti Island tour with a glass-bottom boat; island transfers; breakfast; assistance throughout the tour. Not included: flight tickets. Nothing else is listed - if asked about anything else (lunch or dinner, other meals, scuba diving, snorkelling, water sports, travel insurance, the entry permit), say it is not listed and our team will confirm on WhatsApp. Entry permit: every visitor to Lakshadweep, Indian citizens included, needs an entry permit from the Lakshadweep Administration; ask the traveller to check the current rules with our team, and never promise that we arrange it, how long it takes or what it costs. When a traveller asks about Lakshadweep, islands, beaches, Diwali or festive trips, mention this offer, share https://skylinetravelplanner.com/diwali-lakshadweep.html, and invite them to enquire there or on WhatsApp (+91 8866050291) for availability and the exact price.`;
+Quote the minimum-4 price only together with the words "minimum 4 travellers", and never for 1, 2 or 3 travellers: for 2 or 3 travellers the minimum-2 price applies. For one traveller, say the offer is for a minimum of 2 and our team can advise. Whenever you quote a price, say that flight tickets are extra. Stays: 2 nights on Agatti Island at Sand Bank Beach Resort, then 1 night on Bangaram Island at Coral Pearl, Lakshadweep – IHCL SeleQtions, confirmed at booking by the provider; no room type or star rating is published, so never describe the rooms, their facilities or a star rating. Highlights: Agatti Island sightseeing, the Sand Bank Beach experience, the Kalpitti Island tour, a glass-bottom boat experience, beach leisure and relaxation, and island sunsets. No day-by-day itinerary is published. Included: 3 nights / 4 days accommodation; Agatti airport pickup and drop; Agatti local sightseeing; the Kalpitti Island tour with a glass-bottom boat; island transfers; breakfast; assistance throughout the tour. Not included: flight tickets. Nothing else is listed - if asked about anything else (lunch or dinner, other meals, scuba diving, snorkelling, water sports, travel insurance, the entry permit), say it is not listed and our team will confirm on WhatsApp. Entry permit: every visitor to Lakshadweep, Indian citizens included, needs an entry permit from the Lakshadweep Administration; ask the traveller to check the current rules with our team, and never promise that we arrange it, how long it takes or what it costs. When a traveller asks about Lakshadweep, islands, beaches, Diwali or festive trips, mention this offer, share https://skylinetravelplanner.com/diwali-lakshadweep.html, and invite them to enquire there or on WhatsApp (+91 8866050291) for availability and the exact price.`;
 const LAKSHADWEEP_ENDED = `The "Lakshadweep Escape" Diwali Special (travel 5-20 November 2026) has ended. If a traveller asks about it, say so kindly, do not quote its price, and offer to plan a custom Lakshadweep trip through the "Customize My Trip" form or WhatsApp.`;
 // Offered until the end of 20 Nov (the page and diwali-promo.js switch off at 21 Nov 00:00 IST), then "it has ended" for a
 // week, then not mentioned at all. Nothing to remove afterwards - the dates retire it.
@@ -239,7 +245,9 @@ const OFFER_ITEMS = /\b(lunch(es)?|dinners?|meals?|visas?|insurance)\b|लंच
 const VISA_ITEM = /^(?:visas?|वीज़ा|वीजा|વિઝા)$/i;
 // An inclusion CLAIM must be assertive: "includes", "including", "comes with", "is/are/comes ... included/covered/free",
 // "Included:". A bare "free" (the Q8 misfire: "visa on arrival is free for ...") is no longer enough.
-const INCLUDED_CLAIM = /\b(?:includes|including|(?:does|do|will)\s+include|comes?\s+with)\b|(?:\b(?:is|are|comes?)|'s|’s)\s+(?:[a-z]+\s+){0,3}?(?:included|covered|free)\b|\bincluded\s*:|शामिल|सम्मिलित|इनक्लूड|સામેલ|શામેલ|સમાવેશ|ઇન્ક્લુડ/i;
+// anthropic-10 (AI Security x2): also "covers", "part of", "a package with", "all-inclusive", "full board", "you get", "is
+// provided" and romanised Hindi / Gujarati ("included hai", "shamil").
+const INCLUDED_CLAIM = /\b(?:includes|including|(?:does|do|will)\s+include|comes?\s+with|covers|part\s+of|package\s+with|all[-\s]inclusive|full[-\s]board|(?:you|guests|travell?ers|everyone)\s+(?:will\s+)?(?:also\s+)?get|(?:is|are)\s+provided|included\s+(?:hai|hain|he|che|chhe)|shamil)\b|(?:\b(?:is|are|comes?)|'s|’s)\s+(?:[a-z]+\s+){0,3}?(?:included|covered|free)\b|\bincluded\s*:|शामिल|सम्मिलित|इनक्लूड|સામેલ|શામેલ|સમાવેશ|ઇન્ક્લુડ/i;
 // Visa-on-arrival / visa-free ADVICE is about the country, not the package: its visa mention is never an inclusion.
 const VISA_ADVICE = /\barrival\b|\bvisa[-\s]?free\b|अराइवल|आगमन|वीज़ा[-\s]?फ्री|અરાઇવલ|આગમન|વિઝા[-\s]?ફ્રી/i;
 const QUESTION_END = /\?["'”’)\]]*\s*$/;
@@ -293,10 +301,12 @@ function sentences(text) {
 // "1.5 lakh", "92k"); and both ends of a range ("₹9,999-14,999", "₹9,999 to 12,500", "12-15k"). Devanagari and
 // Gujarati digits are read as ASCII first; each is one UTF-16 unit, so every index still points into the original.
 const asciiDigits = (s) => s.replace(/[\u0966-\u096F\u0AE6-\u0AEF]/g, (c) => String(c.charCodeAt(0) - (c < '\u0A00' ? 0x0966 : 0x0AE6)));
-const NUMBER = /(\d[\d,]*(?:\.\d+)?)(?:\s*(k|lakhs?|lacs?|लाख|લાખ)(?![a-z\u0900-\u097F\u0A80-\u0AFF]))?/gi;
+const NUMBER = /(\d[\d,]*(?:\.\d+)?)(?:\s*(k|lakhs?|lacs?|लाख|લાખ|thousand|hazaa?r|ह(?:ज\u093C?|\u095B)ार|હજાર)(?![a-z\u0900-\u097F\u0A80-\u0AFF]))?/gi;
+// anthropic-10: "thousand" multiplies like "k", but counts as money only with a currency beside it ("5 thousand years" is not).
+const THOUSAND = /^(?:thousand|hazaa?r|ह(?:ज\u093C?|\u095B)ार|હજાર)$/i;
 const CURRENCY_BEFORE = /(?:₹|\$|(?:^|[^a-z])(?:rs\.?|inr|usd)|(?:रु|रू|રૂ)\.?)\s*$/i;
 // A unit AFTER a number - unless another number follows it, which makes it that number's prefix ("Day 2 ₹500").
-const CURRENCY_AFTER = /^\s*(?:rupees?\b|\/-|रुपये|रुपए|रुपया|रुपयों|રૂપિયા|(?:rs\b|inr\b|usd\b|(?:रु|रू)(?![\u0900-\u097F])|રૂ(?![\u0A80-\u0AFF])|₹)(?!\.?\s*\d))/i;
+const CURRENCY_AFTER = /^\s*(?:rupees?\b|ruppees?\b|rupa(?:i)?ye\b|rupaiya\b|rupaya\b|rupiye\b|\/-|रुपये|रुपए|रुपया|रुपयों|રૂપિયા|(?:rs\b|inr\b|usd\b|(?:रु|रू)(?![\u0900-\u097F])|રૂ(?![\u0A80-\u0AFF])|₹)(?!\.?\s*\d))/i;
 const RANGE_JOIN = /^\s*(?:-|–|—|to|से|થી)\s*(?:₹|\$|rs\.?|inr|usd|(?:रु|रू|રૂ)\.?)?\s*$/i;
 const HEADCOUNT_AFTER = /^\s*(?:people|persons|devotees|visitors|pilgrims|tourists|travell?ers|लोग|श्रद्धालु|લોકો|ભક્તો|યાત્રાળુ)/i;
 
@@ -309,12 +319,12 @@ function moneyFigures(raw) {
     const num = Number(m[1].replace(/,/g, ''));
     if (!Number.isFinite(num)) continue;
     const unit = (m[2] || '').toLowerCase();
-    const mult = unit === 'k' ? 1000 : unit ? 100000 : 1;
+    const thousand = THOUSAND.test(unit), mult = unit === 'k' || thousand ? 1000 : unit ? 100000 : 1;
     const at = m.index, end = m.index + m[0].length, after = text.slice(end, end + 16);
     const marked = CURRENCY_BEFORE.test(text.slice(Math.max(0, at - 10), at)) || CURRENCY_AFTER.test(after);
     // Paise are dropped, never rounded up ("₹1,15,000.50" is ₹1,15,000, not ₹1,15,001); "1.15 lakh" is rounded only to
     // undo floating-point error (1.15 * 100000 = 114999.99...).
-    toks.push({ at, end, num, mult, n: mult === 1 ? Math.floor(num) : Math.round(num * mult), money: marked || (mult > 1 && !HEADCOUNT_AFTER.test(after)) });
+    toks.push({ at, end, num, mult, n: mult === 1 ? Math.floor(num) : Math.round(num * mult), money: marked || (mult > 1 && !thousand && !HEADCOUNT_AFTER.test(after)) });
   }
   // Both ends of a range are money when either end is. "12-15k" is 12,000-15,000; "Option 1 - ₹9,999" is no range.
   for (let i = 0; i + 1 < toks.length; i++) {
@@ -347,9 +357,10 @@ function firstIn(arr, at, end) { // the smallest index in [at, end), or -1
 }
 // anthropic-10: which place a spot is about - 'bali', 'laks' (Lakshadweep and its islands), 'other', or null when the
 // reply names none. A Diwali word stands for the offer named last before IT, else the first named after it in its
-// sentence, else Bali (the older reading, which fails safe: an unattached "Diwali offer ₹70,000" is still judged as Bali).
+// sentence, else the offer the visitor's own words name (`hint`, offerHint), else 'diwali': it could be either offer.
+// (Review round 1: "For the islands, our Diwali Special is from ₹54,000" was read as Bali's.)
 const ANCHOR_KINDS = ['bali', 'diwali', 'laks', 'other'];
-function anchorAt(places, at, sentenceEnd) {
+function anchorAt(places, at, sentenceEnd, hint = null) {
   let kind = null, pos = -1;
   for (const k of ANCHOR_KINDS) { const i = lastBefore(places[k], at); if (i > pos) { pos = i; kind = k; } }
   if (!kind) {
@@ -361,9 +372,22 @@ function anchorAt(places, at, sentenceEnd) {
   const b = lastBefore(places.bali, pos), l = lastBefore(places.laks, pos);
   if (b >= 0 || l >= 0) return l > b ? 'laks' : 'bali';
   const b2 = firstIn(places.bali, pos, sentenceEnd), l2 = firstIn(places.laks, pos, sentenceEnd);
-  return l2 >= 0 && (b2 < 0 || l2 < b2) ? 'laks' : 'bali';
+  if (b2 >= 0 || l2 >= 0) return l2 >= 0 && (b2 < 0 || l2 < b2) ? 'laks' : 'bali';
+  return hint === 'laks' || hint === 'bali' ? hint : 'diwali';
 }
-const aboutTheOffer = (places, at, sentenceEnd) => anchorAt(places, at, sentenceEnd) === 'bali';
+// The Bali offer's inclusion check: about Bali, or a Diwali word that could be either offer (it fails safe, as before).
+const aboutTheOffer = (places, at, sentenceEnd, hint) => { const a = anchorAt(places, at, sentenceEnd, hint); return a === 'bali' || a === 'diwali'; };
+// The offer the visitor's own words name: the latest message that names Bali or Lakshadweep (not both), or another place.
+function offerHint(convo) {
+  for (let i = convo.length - 1; i >= 0; i--) {
+    if (convo[i].role !== 'user') continue;
+    const t = convo[i].content, has = (re) => [...t.matchAll(re)].length > 0;
+    const l = has(LAKS_WORDS), b = has(BALI_WORDS);
+    if (l || b) return l && b ? null : l ? 'laks' : 'bali';
+    if (has(OTHER_PLACES)) return 'other';
+  }
+  return null;
+}
 const INDIC_BOOKING_CLAIM = /(बुकिंग|सीट|टिकट|બુકિંગ|સીટ|ટિકિટ)[^.।!?\n]{0,40}(कन्फर्म|पक्की|पक्का|रिज़र्व|रिजर्व|होल्ड|કન્ફર્મ|પાકી|પાકું|રિઝર્વ|હોલ્ડ)|(कन्फर्म|रिज़र्व|रिजर्व|होल्ड)\s*(कर\s*(दी|दिया|दिए)|हो\s*(गई|गया))|(કન્ફર્મ|રિઝર્વ|હોલ્ડ)\s*(કરી|થઈ)/;
 
 // Bali's own published figures (the Bali 7 Nights with Flights package and the Bali destination page), read from the
@@ -393,41 +417,89 @@ const isBaliPackageFigure = (n, s, at) => {
     && REGULAR_BALI_NAME.test(s.slice(offerAt, at));
 };
 // anthropic-10: with Lakshadweep's ₹54,000 / ₹47,000 under the Bali offer's price, a lower figure that another place stands
-// nearer to is still judged as the Bali offer when the reply ties it to Bali (the "nearer name" class of anthropic-9):
-// (a) a Diwali sentence that names Bali before the figure: only the honest comparison clears it - a Bali figure (the offer's
-//     or the regular package's) after the last Bali word, then the other trip, and no tying word from that figure on
-//     ("Diwali in Bali, like the Lakshadweep Escape, is ₹47,000" is the offer; "Diwali in Bali is from ₹1,15,000, and the
-//     Lakshadweep Escape from ₹54,000" is not);
-// (b) a sentence with a tying word before the figure, after a reply that last named Bali ("Diwali in Bali? Same as
+// nearer to is still judged as the Bali offer when the reply ties it to Bali (the "nearer name" class of anthropic-9).
+// Review round 1 narrowed the ties: a contrast or a cheaper alternative is an honest answer ("Unlike Diwali in Bali, the
+// Lakshadweep Escape is from ₹54,000"; "If you want something cheaper, Goa Getaway ... ₹9,999"; "Bali is a great option
+// too"), so only words that make Bali the subject of the other trip's price count:
+// (a) in the figure's sentence, after the last Bali word (or after Bali's own price, when it is given first): "like",
+//     "same", "equivalent", "matches"... ("Diwali in Bali, like the Lakshadweep Escape, is ₹47,000"), or Bali joined to
+//     the other trip ("Bali and Lakshadweep Diwali offers start at ₹47,000");
+// (b) a sentence after one that last named Bali, with a word of equivalence before the figure ("Diwali in Bali? Same as
 //     Lakshadweep: ₹47,000.");
-// (c) Bali named after the figure in its own sentence, with "the same" / "too" and no figure of its own ("Lakshadweep is
-//     ₹47,000, and Diwali in Bali costs the same").
-const TIE_WORDS = /\b(?:it|its|it's|it’s|same|like|as|similar|equivalent|instead|cheaper|discount(?:ed)?)\b|वही|यही|इसी|जैसा|जैसे|जैसी|सस्त|એ\s*જ|આ\s*જ|જેવ|સસ્ત/i;
-const SAME_WORDS = /\b(?:same|equal|identical|similar|as\s+much|too|as\s+well|so\s+(?:is|does|do))\b|वही|उतना|उतनी|उतने|भी|એ\s*જ|એટલ|સરખ|પણ/i;
+// (c) Bali named after the figure as costing the same ("Lakshadweep is ₹47,000, and Diwali in Bali costs the same");
+// (d) in diwaliChecks: a figure-free Bali sentence that matches an earlier lower figure ("... Diwali in Bali matches that.").
+const TIE_AFTER_BALI = /\b(?:like|same|equivalent|identical|match(?:es|ed|ing)?|as\s+much\s+as|that\s+price)\b|जैसा|जैसे|जैसी|तरह|वही|यही|इसी|એ\s*જ|આ\s*જ|જેવ|જેમ|સરખ/i;
+const TIE_STRONG = /\b(?:same|equivalent|identical|match(?:es|ed|ing)?|just\s+like|as\s+much\s+as|that\s+price)\b|वही|यही|एक\s*जैसा|उतना|उतनी|उतने|એ\s*જ|આ\s*જ|સરખ|એટલ/i;
+const BALI_JOINED = /^(?:bali\b|बाली|બાલી)\s*,?\s*(?:and|&|or|plus|और|या|तथा|અને|કે|તથા)\s/i;
+const SAME_AFTER_BALI = /^(?:bali\b|बाली|બાલી)[^.!?।\n]{0,30}?\b(?:is|are|costs?|priced|comes?\s+to)\s+(?:also\s+)?(?:at\s+)?(?:the\s+same(?:\s+price)?|too|as\s+well|equal|that\s+much)\b|^(?:bali\b|बाली|બાલી)[^.!?।\n]{0,30}?(?:वही|उतना|उतनी|उतने|एक\s*जैसा|એ\s*જ|એટલ|સરખ)/i;
 function tiedToBali(reply, places, start, end, at, sFigs) {
   const rel = at - start, s = reply.slice(start, end);
   const b = lastBefore(places.bali, at);
   if (b >= start) {
-    if (!DIWALI_WORDS.test(s)) return false;
     const g = sFigs.find((x) => x.at > b && x.at < at && (x.n === DIWALI_FROM_INR || BALI_PUBLISHED_INR.has(x.n)));
-    return !g || TIE_WORDS.test(reply.slice(g.at, at));
+    return TIE_AFTER_BALI.test(reply.slice(g ? g.at : b, at)) || (!g && BALI_JOINED.test(reply.slice(b, at)));
   }
   const lb = lastBefore(places.bali, start);
-  if (lb >= 0 && lb > lastBefore(places.laks, start) && lb > lastBefore(places.other, start) && TIE_WORDS.test(s.slice(0, rel))) return true;
+  if (lb >= 0 && lb > lastBefore(places.laks, start) && lb > lastBefore(places.other, start) && TIE_STRONG.test(s.slice(0, rel))) return true;
   const ba = firstIn(places.bali, at + 1, end);
-  return ba >= 0 && !sFigs.some((x) => x.at > ba) && SAME_WORDS.test(s.slice(rel));
+  return ba >= 0 && !sFigs.some((x) => x.at > ba) && SAME_AFTER_BALI.test(reply.slice(ba, end));
 }
+// The sentence as the Bali package rule reads it: a festival or month word that belongs to Lakshadweep (the last offer
+// named before it is Lakshadweep) is blanked, so "The Lakshadweep Escape is a Diwali Special, from ₹54,000, whereas Bali
+// starts at ₹70,200" is no Diwali sentence for Bali's regular figure (review round 1). Lengths are kept.
+const DIWALI_WORDS_G = new RegExp(DIWALI_WORDS.source, 'gi');
+const baliDiwaliText = (reply, places, start, end) => reply.slice(start, end)
+  .replace(DIWALI_WORDS_G, (w, i) => (lastBefore(places.laks, start + i + 1) > lastBefore(places.bali, start + i + 1) ? ' '.repeat(w.length) : w));
 
 // ---- the Lakshadweep Escape's own checks (anthropic-10) ----------------------------------------------------------------
-// The minimum-4 price is never a couple's or a group of three's (the reply is replaced), and is quoted with its condition
-// in the same sentence (otherwise a note states it). A sentence that gives both prices may name "2 travellers" for the other.
+// The minimum-4 price is quoted only with its condition in the same sentence, and never to 1-3 travellers - named in that
+// sentence or in the visitor's own latest message about their group; otherwise the reply is replaced with both prices and
+// their conditions (review round 1: a note after the wrong price still showed it). A sentence that gives both prices may
+// name "2 travellers" for the other one, but needs the "4" of this one.
 const LAKS_MIN2_INR = 54000, LAKS_MIN4_INR = 47000;
 const MIN_FOUR = /\bmin(?:imum)?\.?\s*(?:of\s+)?(?:4|four)\b|\b(?:4|four)\s*(?:\+|or\s+more\b|and\s+(?:above|more)\b)|\bat\s+least\s+(?:4|four)\b|\bgroups?\s+of\s+(?:4|four)\b|न्यूनतम\s*4|कम\s*से\s*कम\s*4|4\s*या\s*(?:अधिक|ज़्यादा|ज्यादा)|4\s*\+|ઓછામાં\s*ઓછા\s*4|ન્યૂનતમ\s*4|4\s*કે\s*(?:વધુ|તેથી\s*વધુ)/i;
-const SMALL_GROUP = /\b(?:couples?|honeymoon\w*|solo|alone|(?:the\s+)?two\s+of\s+(?:you|us)|(?:1|2|3|one|two|three)\s+(?:people|persons?|pax|adults?|travell?ers|guests)|for\s+(?:1|2|3|one|two|three)\b(?!\s*-?\s*(?:days?|nights?|N\b|D\b)))|(?:दो|तीन|[123])\s*(?:लोग|लोगों|यात्री|यात्रियों|व्यक्ति)|कपल|जोड़े|जोड़ा|हनीमून|(?:બે|ત્રણ|[123])\s*(?:લોકો|મુસાફર|વ્યક્તિ)|કપલ|યુગલ|હનીમૂન/i;
+const SMALL_GROUP = /\b(?:couples?|honeymoon\w*|solo|alone|you\s+two|both\s+of\s+you|husband\s+and\s+wife|(?:the\s+)?(?:two|three)\s+of\s+(?:you|us)|(?:1|2|3)\s+of\s+(?:you|us)|your\s+(?:wife|husband|partner|spouse)|(?:family|party|group)\s+of\s+(?:1|2|3|one|two|three)\b|we\s+(?:are|r)\s+(?:1|2|3|one|two|three)\b|(?:1|2|3|one|two|three)\s+(?:people|persons?|pax|adults?|travell?ers|guests)|for\s+(?:1|2|3|one|two|three)\b(?!\s*-?\s*(?:days?|nights?|N\b|D\b)))|(?:दो|तीन|[123])\s*(?:लोग|लोगों|यात्री|यात्रियों|व्यक्ति)|हम\s*(?:दो|तीन|[123])|पत्नी|पति|पार्टनर|कपल|जोड़े|जोड़ा|हनीमून|(?:બે|ત્રણ|[123])\s*(?:લોકો|મુસાફર|વ્યક્તિ)|અમે\s*(?:બે|ત્રણ|[123])|દંપતી|પત્ની|પતિ|કપલ|યુગલ|હનીમૂન/i;
+const LARGE_GROUP = /\b(?:we\s+(?:are|r)|group\s+of|family\s+of|party\s+of)\s+(?:[4-9]|\d{2}|four|five|six|seven|eight|nine|ten)\b|\b(?:[4-9]|\d{2}|four|five|six|seven|eight|nine|ten)\s+(?:people|persons?|pax|adults?|travell?ers|guests|of\s+us)\b|(?:चार|पांच|पाँच|[4-9])\s*(?:लोग|लोगों|यात्री|व्यक्ति)|हम\s*(?:चार|पांच|पाँच|[4-9])|(?:ચાર|પાંચ|[4-9])\s*(?:લોકો|મુસાફર|વ્યક્તિ)|અમે\s*(?:ચાર|પાંચ|[4-9])/i;
+// The visitor's own group size: the latest of their last few messages that states one.
+function smallGroupAsked(convo) {
+  for (let i = convo.length - 1, seen = 0; i >= 0 && seen < 3; i--) {
+    if (convo[i].role !== 'user') continue;
+    seen++;
+    const t = asciiDigits(convo[i].content);
+    if (LARGE_GROUP.test(t)) return false;
+    if (SMALL_GROUP.test(t)) return true;
+  }
+  return false;
+}
 // What the page does not list as included (flights are the page's own exclusion).
-const LAKS_ITEMS = /\b(?:flights?|air\s*fares?|airfares?|air\s+tickets?|flight\s+tickets?|plane\s+tickets?|lunch(?:es)?|dinners?|meals?|insurance|permits?|scuba(?:\s+diving)?|snorkell?ing|water\s+sports?)\b|फ\u093C?्लाइट|\u095E्लाइट|हवाई\s*टिकट|हवाई\s*किराया|लंच|डिनर|खाना|भोजन|बीमा|परमिट|ફ્લાઇટ|ફ્લાઈટ|હવાઈ\s*ટિકિટ|લંચ|ડિનર|ભોજન|જમવાનું|વીમો|પરમિટ/gi;
+const LAKS_ITEMS = /\b(?:flights?|air\s*fares?|airfares?|air\s+tickets?|flight\s+tickets?|plane\s+tickets?|lunch(?:es)?|dinners?|meals?|insurance|permits?|scuba(?:\s+diving)?|snorkell?ing|water\s+sports?)\b|फ\u093C?्लाइट|\u095E्लाइट|हवाई\s*टिकट|हवाई\s*किराया|लंच|डिनर|खाना|भोजन|बीमा|परमिट|वॉटर\s*स्पोर्ट्स|वाटर\s*स्पोर्ट्स|स्कूबा|स्नॉर्कलिंग|स्नोर्कलिंग|ફ્લાઇટ|ફ્લાઈટ|હવાઈ\s*ટિકિટ|લંચ|ડિનર|ભોજન|જમવાનું|વીમો|પરમિટ|વોટર\s*સ્પોર્ટ્સ|સ્કૂબા|સ્નોર્કલિંગ/gi;
+// Flights in a Lakshadweep sentence are an inclusion claim unless the sentence says they are extra or separate (review
+// round 1: "Return flights are part of the Lakshadweep Escape package", "a package with flights" had no claim verb).
+const FLIGHT_WORDS = /\b(?:flights?|air\s*fares?|airfares?|air\s+tickets?|plane\s+tickets?)\b|फ\u093C?्लाइट|\u095E्लाइट|हवाई\s*(?:टिकट|किराया|यात्रा)|उ(?:ड\u093C?|\u095C)ान|ફ્લાઇટ|ફ્લાઈટ|હવાઈ\s*(?:ટિકિટ|ભાડું)/gi;
+const FLIGHT_OK = /\b(?:not|no|never|exclud\w*|extra|separate(?:ly)?|additional|except|own|book\w*|buy|purchase|lands?|landing|arriv\w*)\b|n't|n’t|अलग|अतिरिक्त|नहीं|અલગ|નથી|વધારાન/i;
 const LAKS_INCLUDED_NOTE = '\n\n(To be clear: the Lakshadweep Escape includes 3 nights\' accommodation, Agatti airport pickup and drop, Agatti sightseeing, the Kalpitti Island tour with a glass-bottom boat, island transfers, breakfast, and assistance throughout. Flight tickets are not included, and every visitor needs an entry permit. Anything else is confirmed by our team on WhatsApp at +91 88660 50291.)';
-const LAKS_PAX_NOTE = '\n\n(To be clear: the Lakshadweep Escape is from ₹54,000 per person for a minimum of 2 travellers; ₹47,000 per person applies only to a minimum of 4 travellers. Flight tickets are extra.)';
+// A Lakshadweep price in a reply that says nothing about flights gets this line (second opinion: "flights extra" was a
+// prompt rule only).
+const LAKS_FLIGHTS_NOTE = '\n\n(Flight tickets are not included in the Lakshadweep Escape.)';
+// The entry permit: the owner's rule is "mention it, no promise" (2026-10-05). A Lakshadweep sentence that says we arrange
+// it, how long it takes, that it is free / online / included, or that someone does not need one gets the rule stated.
+const PERMIT_CLAIM = /\b(?:arrange|get|obtain|process|handle|issue|apply\s+for|sort\s+out)\w*\s+(?:(?:your|the|an|all|any)\s+)?(?:entry\s+)?permits?\b|\bpermits?\b[^.!?\n]{0,60}?\b(?:arranged|included|free|issued|guaranteed|easy|quick|takes?|within|online|website|portal|on\s+arrival|\d+\s*(?:working\s+)?(?:days?|hours?))\b|\b(?:no|not|don'?t|do\s+not|doesn'?t|does\s+not|won'?t)\s+(?:need|require)\w*\s+(?:a\s+|an\s+|any\s+)?(?:entry\s+)?permits?\b|\bpermits?\s+(?:is|are)\s+not\s+(?:needed|required)\b|परमिट[^।!?\n]{0,40}?(?:दिन|घंटे|मिल\s*जा|बनवा|करवा|शामिल|मुफ़्त|मुफ्त|ऑनलाइन)|પરમિટ[^.!?\n]{0,40}?(?:દિવસ|કલાક|મળી\s*જ|કરાવ|સામેલ|શામેલ|મફત|ઓનલાઇન)/i;
+const PERMIT_WORD = /permits?|परमिट|પરમિટ/i;
+const LAKS_PERMIT_NOTE = '\n\n(To be clear: every visitor to Lakshadweep, Indian citizens included, needs an entry permit from the Lakshadweep Administration. Our team shares the current rules on WhatsApp at +91 88660 50291; we cannot promise how the permit is obtained, how long it takes or what it costs.)';
+// A percentage discount nobody published (second opinion: "with 20% off for early booking" got only the price note): the
+// reply is replaced like an unpublished figure. Read after asciiDigits.
+const DISCOUNT = /\b\d{1,2}(?:\.\d)?\s*(?:%|per\s*cent|percent)\s*(?:off|discount|cash\s*back|savings?|less|rebate)\b|\b(?:discount|savings?|rebate|cash\s*back)\s+(?:of\s+)?(?:up\s+to\s+)?\d{1,2}(?:\.\d)?\s*(?:%|per\s*cent|percent)|\d{1,2}\s*(?:%|प्रतिशत|ટકા)\s*(?:की\s*)?(?:छूट|डिस्काउंट|ડિસ્કાઉન્ટ|છૂટ)|(?:छूट|डिस्काउंट|ડિસ્કાઉન્ટ|છૂટ)\s*\d{1,2}\s*(?:%|प्रतिशत|ટકા)/i;
+// Seats: confirmed, available or "only 3 left" - nobody can say so (second opinion); the booking note is added, as for PROMISE.
+const SEAT_CLAIM = /(?<!\b(?:whether|if|check|ask|confirm)\s+(?:the\s+|your\s+)?)\b(?:your\s+)?(?:seats?|spots?)\s+(?:is|are|has\s+been|have\s+been)\s+(?:now\s+|still\s+)?(?:confirmed|available|open|guaranteed)\b(?!\s+(?:by|only|after|once|when|at|on\s+request|subject)\b)|\b(?:only\s+)?\d+\s+(?:seats?|spots?)\s+(?:left|remaining|available)\b|\b(?:seats?|spots?)\s+(?:are\s+)?(?:filling|selling)\s+(?:up\s+)?fast\b/i;
+function permitClaimed(text, hint) {
+  const places = placeIndex(text);
+  return sentences(text).some(({ start, end }) => {
+    const s = text.slice(start, end);
+    if (QUESTION_END.test(s) || !PERMIT_CLAIM.test(s)) return false;
+    const a = anchorAt(places, start + s.search(PERMIT_WORD), end, hint);
+    return a === 'laks' || a === 'diwali' || (a === null && hint === 'laks');
+  });
+}
 
 function clausesOf(s) {
   const out = [];
@@ -485,38 +557,62 @@ function claimedExtraAt(s, items = OFFER_ITEMS) {
   return -1;
 }
 
-// lowPrice / extra: the Bali offer's (until a week after it departs). laksExtra / laksPax: the Lakshadweep Escape's (while
-// it is offered); laksPax is null, 'note' (₹47,000 without its condition) or 'replace' (₹47,000 for fewer than 4).
-function diwaliChecks(reply, figures, now) {
-  const found = { lowPrice: false, extra: false, laksExtra: false, laksPax: null };
+// The two offers' checks on one reply (as written, and again as shown). `hint` is the offer the visitor's own words name
+// (offerHint); `smallAsked` whether they said they are 1-3 travellers (smallGroupAsked).
+// replace + about: a wrong offer price - 'bali' (a discount on Diwali in Bali), 'laks' (₹47,000 for fewer than 4 or without
+// its condition), 'both' (a "Diwali" price tied to neither offer) or null (an offer price for no named trip: the question
+// decides the replacement). extra / laksExtra: an inclusion the offer does not list. laksFlights: a Lakshadweep price in a
+// reply that says nothing about flights.
+function diwaliChecks(reply, figures, now, hint = null, smallAsked = false) {
+  const found = { replace: false, about: null, extra: false, laksExtra: false, laksFlights: false };
   const bali = offerState(now) !== 'none', laks = laksState(now) === 'live';
   if (!bali && !laks) return found;
   const places = placeIndex(reply);
-  let f = 0;
+  const flag = (about) => { if (!found.replace) { found.replace = true; found.about = about; } };
+  let f = 0, lowSeen = false, laksFigure = false;
   for (const { start, end } of sentences(reply)) {
     const s = reply.slice(start, end);
     const sFigs = [];
     for (; f < figures.length && figures[f].at < end; f++) if (figures[f].at >= start) sFigs.push(figures[f]);
-    if (bali && !found.lowPrice) {
+    if (bali && !found.replace) {
+      const sb = baliDiwaliText(reply, places, start, end);
       for (const { at, n } of sFigs) {
-        if (!(n > 0 && n < DIWALI_FROM_INR) || isBaliPackageFigure(n, s, at - start)) continue;
-        const about = anchorAt(places, at, end);
-        if (about === 'bali' || (about && tiedToBali(reply, places, start, end, at, sFigs))) { found.lowPrice = true; break; }
+        if (!(n > 0 && n < DIWALI_FROM_INR) || isBaliPackageFigure(n, sb, at - start)) continue;
+        const about = anchorAt(places, at, end, hint);
+        if (about === 'bali') { flag('bali'); break; }
+        if (about === 'diwali') { flag('both'); break; }
+        if (about && tiedToBali(reply, places, start, end, at, sFigs)) { flag('bali'); break; }
+      }
+      if (!found.replace && lowSeen && !sFigs.length && firstIn(places.bali, start, end) >= 0 && TIE_STRONG.test(s)) flag('bali');
+    }
+    if (sFigs.some((x) => x.n > 0 && x.n < DIWALI_FROM_INR && !BALI_PUBLISHED_INR.has(x.n))) lowSeen = true;
+    if (laks) {
+      for (const { at, n } of sFigs) {
+        if (n !== LAKS_MIN2_INR && n !== LAKS_MIN4_INR) continue;
+        laksFigure = true;
+        // An offer price in a reply that names no place at all is the Lakshadweep Escape's only if the visitor asked about it
+        // (AI Security: "It starts from ₹47,000 per person" to "how much is Goa?" was kept).
+        if (hint !== 'laks' && anchorAt(places, at, end, hint) === null) flag(hint === 'bali' ? 'bali' : null);
+      }
+      if (sFigs.some((x) => x.n === LAKS_MIN4_INR)) {
+        const t = asciiDigits(s), both = sFigs.some((x) => x.n === LAKS_MIN2_INR);
+        if (both ? !MIN_FOUR.test(t) && !/\b(?:4|four)\b/i.test(t) : (!MIN_FOUR.test(t) || SMALL_GROUP.test(t) || smallAsked)) flag('laks');
       }
     }
     if (bali && !found.extra) {
       const item = claimedExtraAt(s);
-      if (item >= 0 && aboutTheOffer(places, start + item, end)) found.extra = true;
+      if (item >= 0 && aboutTheOffer(places, start + item, end, hint)) found.extra = true;
     }
     if (laks && !found.laksExtra) {
       const item = claimedExtraAt(s, LAKS_ITEMS);
-      if (item >= 0 && anchorAt(places, start + item, end) === 'laks') found.laksExtra = true;
-    }
-    if (laks && found.laksPax !== 'replace' && sFigs.some((x) => x.n === LAKS_MIN4_INR)) {
-      const t = asciiDigits(s);
-      if (!MIN_FOUR.test(t)) found.laksPax = !sFigs.some((x) => x.n === LAKS_MIN2_INR) && SMALL_GROUP.test(t) ? 'replace' : 'note';
+      const a = item >= 0 ? anchorAt(places, start + item, end, hint) : null;
+      if (a === 'laks' || a === 'diwali') found.laksExtra = true;
+      else if (!QUESTION_END.test(s) && !FLIGHT_OK.test(s)) {
+        for (const m of s.matchAll(FLIGHT_WORDS)) if (anchorAt(places, start + m.index, end, hint) === 'laks') { found.laksExtra = true; break; }
+      }
     }
   }
+  if (laks && laksFigure && ![...reply.matchAll(FLIGHT_WORDS)].length) found.laksFlights = true;
   return found;
 }
 
@@ -546,7 +642,7 @@ function publishedFigures(system) {
 }
 // Amounts the traveller typed: money as above, or a bare 4-7 digit number in a sentence that talks money ("we have
 // around 30,000 per person"). Day counts (under 1,000) and phone digits (digit groups side by side) are not amounts.
-const MONEY_TALK = /\b(?:budget|per person|per head|pp|spend|afford|total|around|approx(?:imately)?|about|max(?:imum)?|under|below|up\s?to|within|have|rupees?|rs|inr)\b|बजट|खर्च|रुपये|रुपए|બજેટ|ખર્ચ|રૂપિયા/i;
+const MONEY_TALK = /\b(?:budget|per person|per head|pp|spend|afford|total|around|approx(?:imately)?|about|max(?:imum)?|under|below|up\s?to|within|have|rupees?|rupa(?:i)?ye|rupiye|rs|inr)\b|बजट|खर्च|रुपये|रुपए|બજેટ|ખર્ચ|રૂપિયા/i;
 const BARE_AMOUNT = /(?<![\d+.,][\s-]?)(\d[\d,]*)(?!,?\d|\.\d|[\s-]\d)/g;
 // A hyphenated pair is a budget range only when it reads like one ("20,000-30,000", "20000-30000"), not like a phone
 // number split in two ("98250-12345": high end below the low end, or no comma and no trailing 000).
@@ -644,12 +740,15 @@ const LAKS_PACKAGE = LAKS_PRICES.every(Boolean) ? { name: 'Lakshadweep Escape (D
 // A question about star ratings, luxury, hotels, nights or a group size gets no package figure: a 3-star per-person
 // starting price is not its answer ("Goa 5-star price?", "Goa for 6 people?", "per night?").
 const NO_FIGURE_QUESTION = /\bstars?\b|★|\bluxur(?:y|ious)\b|\bpremium\b|\bdeluxe\b|\bhotels?\b|\bresorts?\b|\bnights?\b|\bnightly\b|\bgroups?\b|\b(?:\d{1,3}|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|dozen)\s+(?:people|persons?|pax|adults?|travell?ers|guests|members|friends|couples|families|kids|children|of\s+us)\b|\bfamily\s+of\s+(?:\d{1,2}|two|three|four|five|six|seven|eight|nine|ten)\b|\bwe\s+are\s+(?:\d{1,2}|two|three|four|five|six|seven|eight|nine|ten)\b|\bfor\s+(?:\d{1,2}|two|three|four|five|six|seven|eight|nine|ten)\b(?!\s*(?:days?|nights?|weeks?|months?|years?)\b)|होटल|स्टार|लक्ज़री|लक्जरी|लग्ज़री|लग्जरी|प्रति\s+रात|रातों|रातें|\d+\s*रात|ग्रुप|समूह|\d+\s*(?:लोग|लोगों|व्यक्ति)|હોટેલ|હોટલ|સ્ટાર|લક્ઝરી|રાત્રિ|રાત\s*દીઠ|પ્રતિ\s+રાત|\d+\s*રાત|ગ્રુપ|જૂથ|\d+\s*(?:લોકો|વ્યક્તિ)/i;
-// anthropic-10: a reply replaced for a wrong price of one offer (`about` 'bali' or 'laks') gets that offer's own price
-// while it is offered, whatever the question named ("Diwali?" now names two offers).
+// anthropic-10: a reply replaced for a wrong price of an offer (`about` 'bali', 'laks' or 'both') gets that offer's own
+// price while it is offered, whatever the question named ("Diwali?" now names two offers) - also for a group-size question
+// (review round 1: "We are 3, Lakshadweep price?" lost the ₹54,000): the offer prices are per person, with their conditions.
 function honestPriceReply(question, now, about) {
+  const own = [];
+  if ((about === 'bali' || about === 'both') && offerState(now) === 'diwali-bali' && DIWALI_PACKAGE) own.push(DIWALI_PACKAGE);
+  if ((about === 'laks' || about === 'both') && laksState(now) === 'live' && LAKS_PACKAGE) own.push(LAKS_PACKAGE);
+  if (own.length) return [HONEST_PRICE_LINE, ...own.map((p) => `${p.name}, ${p.nights}, is ${p.quote}`)].join(' ');
   if (NO_FIGURE_QUESTION.test(asciiDigits(question))) return HONEST_PRICE_LINE;
-  const own = about === 'bali' && offerState(now) === 'diwali-bali' ? DIWALI_PACKAGE : about === 'laks' && laksState(now) === 'live' ? LAKS_PACKAGE : null;
-  if (own) return `${HONEST_PRICE_LINE} ${own.name}, ${own.nights}, is ${own.quote}`;
   const asked = keysOf(question);
   const packages = [...PRICED_PACKAGES, ...(offerState(now) === 'diwali-bali' && DIWALI_PACKAGE ? [DIWALI_PACKAGE] : []),
     ...(laksState(now) === 'live' && LAKS_PACKAGE ? [LAKS_PACKAGE] : [])];
@@ -1187,17 +1286,19 @@ export default {
       // Money is read in the text as the model wrote it, BEFORE the strip (review round 2: the strip made the "-" line
       // of "₹9,999\n-\n₹12,500" a bullet, so the range read as two published figures), and again as shown, where a
       // bold "**₹9,999**-**12,500**" first reads as one range.
-      let replaced = false, extra = false, laksExtra = false, laksPaxNote = false, about = null;
+      let replaced = false, extra = false, laksExtra = false, laksFlights = false, about = null;
+      const hint = offerHint(convo), smallAsked = smallGroupAsked(convo);
       for (const text of written === reply ? [reply] : [written, reply]) {
         const figures = moneyFigures(text);
-        const offer = diwaliChecks(text, figures, now);
+        const offer = diwaliChecks(text, figures, now, hint, smallAsked);
         extra = extra || offer.extra;
         laksExtra = laksExtra || offer.laksExtra;
-        laksPaxNote = laksPaxNote || offer.laksPax === 'note';
-        about = about || (offer.lowPrice ? 'bali' : offer.laksPax === 'replace' ? 'laks' : null);
-        replaced = replaced || offer.lowPrice || offer.laksPax === 'replace' || quotesUnpublishedFigure(text, figures, system, convo)
+        laksFlights = laksFlights || offer.laksFlights;
+        if (offer.replace && !about) about = offer.about;
+        replaced = replaced || offer.replace || DISCOUNT.test(asciiDigits(text)) || quotesUnpublishedFigure(text, figures, system, convo)
           || tripFigureMismatch(text, figures, publishedFigures(system), convo);
       }
+      const permit = permitClaimed(written, hint);
       if (replaced) reply = honestPriceReply(convo[convo.length - 1].content, now, about);
 
       // Guarantee the price disclaimer whenever the reply quotes any prices (₹ / Rs / INR / rupees / 5k / ...),
@@ -1210,12 +1311,13 @@ export default {
       // Deterministic safety backstop (do not rely on the prompt alone): if the model
       // ever asserts a CONFIRMED booking, a GUARANTEED/locked price, or a visa outcome,
       // append a correction. These claims are real business/legal liability.
-      if (PROMISE.test(reply) || claimsIndicBooking(reply)) {
+      if (PROMISE.test(reply) || SEAT_CLAIM.test(reply) || claimsIndicBooking(reply)) {
         reply += '\n\n(To be clear: I can\'t confirm bookings, hold seats, guarantee prices, or guarantee visa outcomes — our team or the official provider confirms those. Please message us on WhatsApp at +91 88660 50291 for an exact quote.)';
       }
       if (extra && !replaced) reply += DIWALI_INCLUDED_NOTE;
       if (laksExtra && !replaced) reply += LAKS_INCLUDED_NOTE;
-      if (laksPaxNote && !replaced) reply += LAKS_PAX_NOTE;
+      else if (laksFlights && !replaced) reply += LAKS_FLIGHTS_NOTE;
+      if (permit && !replaced && !laksExtra) reply += LAKS_PERMIT_NOTE;
 
       return new Response(
         JSON.stringify({ reply }),

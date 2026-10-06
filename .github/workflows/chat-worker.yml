@@ -10,6 +10,8 @@ name: Chat worker (test, then deploy)
 # the whole account - accepted by the owner) and CLOUDFLARE_ACCOUNT_ID. Both are copied from social-automation/.env by
 # social-automation/sync-gh-secrets.sh. The Worker's own ANTHROPIC_API_KEY secret stays in Cloudflare.
 # Actions are pinned to full commit SHAs (a tag can be moved, a SHA cannot); the release is in the comment.
+# Review round 1 (2026-10-06): main only (a manual run on another branch deploys nothing), never an older worker than
+# the live one (a re-run of an old commit), and the health check also needs the key and the model.
 
 on:
   push:
@@ -29,8 +31,12 @@ concurrency:
   group: skyline-chat-worker
   cancel-in-progress: false
 
+env:
+  WORKER_URL: https://hello-world.skyline-dev.workers.dev
+
 jobs:
   test-and-deploy:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -42,6 +48,13 @@ jobs:
           node-version: '22'
       - name: Offline test (no network; compares the worker with the site's pages)
         run: node server/test-chat-worker.mjs
+      - name: Refuse to replace a newer live worker (a re-run of an old commit)
+        run: |
+          want=$(grep -oE "^const VERSION = 'anthropic-[0-9]+'" server/anthropic-chat-worker.js | grep -oE '[0-9]+' | tail -1)
+          live=$(curl -s --max-time 10 "$WORKER_URL" | python3 -c "import sys, json; print(json.load(sys.stdin).get('version', ''))" 2>/dev/null | grep -oE '[0-9]+$' || true)
+          echo "this commit: anthropic-$want; live: anthropic-${live:-unknown}"
+          if [ -z "$want" ]; then echo "no VERSION in the worker file"; exit 1; fi
+          if [ -n "$live" ] && [ "$want" -lt "$live" ]; then echo "the live worker is newer - not deploying"; exit 1; fi
       - name: Deploy the worker
         uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
         with:
@@ -50,14 +63,16 @@ jobs:
           workingDirectory: server
           wranglerVersion: '4.147.0'
           command: deploy
-      - name: Health check (the live worker reports the version in the file)
+      - name: Health check (the live worker reports this version, the model, and its key)
         run: |
-          want=$(grep -oE "^const VERSION = '[^']+'" server/anthropic-chat-worker.js | cut -d"'" -f2)
-          got=''
+          export WANT=$(grep -oE "^const VERSION = '[^']+'" server/anthropic-chat-worker.js | cut -d"'" -f2)
+          export MODEL=$(grep -oE "^const MODEL = '[^']+'" server/anthropic-chat-worker.js | cut -d"'" -f2)
           for i in 1 2 3 4 5 6; do
-            got=$(curl -s --max-time 10 https://hello-world.skyline-dev.workers.dev | python3 -c "import sys, json; print(json.load(sys.stdin).get('version', ''))" 2>/dev/null || true)
-            if [ "$got" = "$want" ]; then echo "live: $got"; exit 0; fi
+            if curl -s --max-time 10 "$WORKER_URL" | python3 -c "import os, sys, json; d = json.load(sys.stdin); sys.exit(0 if d.get('ok') is True and d.get('hasKey') is True and d.get('version') == os.environ['WANT'] and d.get('model') == os.environ['MODEL'] else 1)" 2>/dev/null; then
+              echo "live: $WANT on $MODEL, key present"; exit 0
+            fi
             sleep 10
           done
-          echo "the live worker reports '$got', expected '$want'"
+          echo "the live worker does not report $WANT on $MODEL with its key:"
+          curl -s --max-time 10 "$WORKER_URL"; echo
           exit 1

@@ -5,12 +5,11 @@ Scope: **only the `social-automation/` folder.** The rest of the Skyline project
 structure + provenance. **NOTE: this session also changed the WEBSITE (language fix) and started the
 client CHATBOT (`../pricing-portal/`) — see the checkpoint below; those live OUTSIDE this folder.**
 
-**WEBSITE + CHAT CHECKPOINT 2026-10-06 (outside this folder; fullfirm-d2):** Bali regular rates are LIVE (`53cf0e3`). The
-Lakshadweep Diwali page, chat worker anthropic-10 and its GitHub Actions auto-deploy (`.github/workflows/chat-worker.yml`,
-`server/wrangler.toml`; secrets CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID, added to `sync-gh-secrets.sh` KEYS) are built
-and reviewed on branch `chat-worker-anthropic-10-fix`, NOT published - the owner's "publish" pushes it to main. State,
-owner questions and the push rule: `../HANDOVER-PROMPT.md` (CURRENT STATE / PENDING). After that push, rebase this
-local main onto origin/main: it then holds only the Redis commits below and doc commits.
+**WEBSITE + CHAT CHECKPOINT 2026-10-06 (outside this folder; fullfirm-d2):** PUBLISHED on the owner's "publish" (`4783783`):
+the Lakshadweep Diwali page + destination, the Bali regular rates in the chat, and chat worker anthropic-10, now deployed by
+GitHub Actions (`.github/workflows/chat-worker.yml`: test, deploy, health - first run green; secrets CLOUDFLARE_API_TOKEN +
+CLOUDFLARE_ACCOUNT_ID, in `sync-gh-secrets.sh` KEYS). No more pasting the worker. State and open items:
+`../HANDOVER-PROMPT.md`. This local main now holds only the Redis commits below and doc commits.
 
 **WEBSITE CHECKPOINT 2026-09-27 (outside this folder):** the Diwali in Bali page in EN / HI / GU, a new `/offers`
 page and a promo card in the visitor's language are LIVE (`89c2980`). Current state, the held-commits push rule

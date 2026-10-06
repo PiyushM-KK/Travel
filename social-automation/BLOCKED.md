@@ -6,7 +6,7 @@ the real values live in the local `.env` (gitignored) and the Vercel project env
 
 ---
 
-## B-LAKSHADWEEP-PUBLISH - 2026-10-06 - the Lakshadweep Diwali page + chat anthropic-10 wait for the owner's "publish"
+## B-LAKSHADWEEP-PUBLISH - ✅ DONE 2026-10-06 (`4783783`, owner's "publish") - the Lakshadweep page + chat anthropic-10 are LIVE
 
 Website + chat, not social automation, listed here so it is not missed (time-limited: travel 5-20 Nov 2026). One push of
 branch `chat-worker-anthropic-10-fix` to main ships the page and the worker together; GitHub Actions tests and deploys

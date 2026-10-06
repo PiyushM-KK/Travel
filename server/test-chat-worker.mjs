@@ -1140,6 +1140,7 @@ async function chatSeq(userText, answers) {
   // L10: flights claimed for the Lakshadweep Escape without "includes", and the flights line when nothing says so.
   const flightClaims = ['Return flights are part of the Lakshadweep Escape package.', 'Your Lakshadweep Escape price covers the airfare to Agatti.',
     'The Lakshadweep Escape is a package with flights, hotels and meals.', 'The Lakshadweep Escape is a full-board package with all meals covered.',
+    'The Lakshadweep Escape: breakfast, lunch and dinner are all provided.',
     'With the Lakshadweep Escape you also get all meals.', 'लक्षद्वीप की सैर में वॉटर स्पोर्ट्स शामिल हैं।', 'The Lakshadweep Escape: flights from Kochi and hotel stays.'];
   const flightMissed = [];
   for (const t of flightClaims) { const r = (await chat('Included?', t)).reply; if (!(r.startsWith(t) && r.includes(LAKS_INCL))) flightMissed.push(t + ' => ' + r.slice(0, 90)); }

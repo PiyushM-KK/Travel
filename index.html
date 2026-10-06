@@ -471,7 +471,7 @@
         </div>
       </div>
     </sc-if>
-    <div class="sky-fest-foot" lang="{{ festLang }}"><p class="sky-fest-credit">{{ festCredit }}</p><button type="button" class="sky-live-ctl" aria-pressed="{{ livePressed }}" onClick="{{ toggleLive }}"><svg class="ic-p" viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="1.5" width="2.8" height="9" rx=".8"/><rect x="7.2" y="1.5" width="2.8" height="9" rx=".8"/></svg><svg class="ic-g" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.6v8.8L10.2 6z"/></svg><span>{{ liveCtl }}</span></button></div>
+    <div class="sky-fest-foot" lang="{{ festLang }}"><p class="sky-fest-credit">{{ festCredit }}</p><button type="button" class="sky-live-ctl" onClick="{{ toggleLive }}"><svg class="ic-p" viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="1.5" width="2.8" height="9" rx=".8"/><rect x="7.2" y="1.5" width="2.8" height="9" rx=".8"/></svg><svg class="ic-g" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.6v8.8L10.2 6z"/></svg><span>{{ liveCtl }}</span></button></div>
   </div>
 </section>
 
@@ -1011,7 +1011,6 @@ class Component extends DCLogic {
       fcStops: festCard ? festCard.stops.map((st, k) => ({ cls: 'sky-st ' + st.state + (st.sel ? ' sel' : ''), pressed: st.sel ? 'true' : 'false', aria: st.aria,
         label: st.label, name: st.name || '', dot: st.swatch ? 'background:' + st.swatch : '', pick: () => this.setState({ festSel: k }) })) : [],
       festLang: lang,
-      livePressed: this.state.livePaused ? 'true' : 'false',
       liveCtl: ({ en: ['Pause animation', 'Play animation'], hi: ['एनिमेशन रोकें', 'एनिमेशन चलाएँ'], gu: ['એનિમેશન રોકો', 'એનિમેશન ચલાવો'] }[lang] || ['Pause animation', 'Play animation'])[this.state.livePaused ? 1 : 0],
       toggleLive: () => { const p = !this.state.livePaused; try { localStorage.setItem('skyline_fest_paused', p ? '1' : ''); } catch (e) {}
         document.documentElement.classList.toggle('sky-paused', p); this.setState({ livePaused: p }); },

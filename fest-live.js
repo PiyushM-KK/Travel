@@ -334,7 +334,9 @@
   }
   function relayout() { dirty = true; if (reduce || paused()) still(); }
   var soonT = 0; function soon() { clearTimeout(soonT); soonT = setTimeout(function () { relayout(); start(); }, 150); }
-  try { new MutationObserver(function () { dirty = true; start(); }).observe(html, { attributes: true, attributeFilter: ['class', 'data-fest'] }); } catch (e) {}
+  var lastKey = '';                                                                  // the below-hero fx-* toggles are not ours: ignore them
+  function key() { return (html.getAttribute('data-fest') || '') + '|' + html.className.replace(/\bfx-\w+\b/g, '').replace(/\s+/g, ' ').trim(); }
+  try { new MutationObserver(function () { var k = key(); if (k === lastKey) return; lastKey = k; dirty = true; start(); }).observe(html, { attributes: true, attributeFilter: ['class', 'data-fest'] }); } catch (e) {}
   document.addEventListener('visibilitychange', start);
   window.addEventListener('resize', soon);
   try { document.fonts && document.fonts.ready.then(soon); } catch (e) {}

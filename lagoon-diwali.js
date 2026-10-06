@@ -34,7 +34,8 @@
     var sky = { x: 0, y: H * (phone ? 0.1 : 0.14), w: W, h: HZ - H * (phone ? 0.1 : 0.14) - 2 };
     if (hits(sky, g)) { var x0 = g.x + g.w; sky = { x: x0, y: sky.y, w: Math.max(0, W - x0), h: sky.h }; }
     var refl = { x: 0, y: HZ + 2, w: W, h: (phone ? H * 0.6 : H * 0.86) - HZ - 2 };
-    if (hits(refl, g)) { var x1 = g.x + g.w + 8; refl = { x: x1, y: refl.y, w: Math.max(0, W - x1), h: refl.h }; }
+    if (hits(refl, g)) { var hy = g.y - refl.y;                                   // the words sit below: stop the reflections above them
+      if (hy >= 40) refl.h = hy; else { var x1 = g.x + g.w + 8; refl = { x: x1, y: refl.y, w: Math.max(0, W - x1), h: refl.h }; } }
     var beach = { x: 0, y: H * 0.86, w: W, h: H * 0.14 };
     S = { sky: sky, refl: refl, beach: beach, ground: [] };
     if (!phone) [['anar', 0.62], ['chakri', 0.88]].forEach(function (p) {
@@ -65,14 +66,14 @@
     rockets.push({ x0: x, y0: HZ, tx: x + rnd(-30, 30), ty: ty, t0: now, dur: rnd(700, 950), c: rand() < 0.15 ? EMERALD : PAL[Math.floor(rand() * PAL.length)], dbl: tier() === 3 && (++shots % 5 === 0) });
   }
   function burst(x, y, c, k) {
-    var n = phone ? 22 : 44, r = Math.min(phone ? 60 : 110, S.sky.w * 0.2, S.sky.h * 0.42), v0 = r / 900 * 1.9 * (k || 1), w = phone ? 1.9 : 2.4;
+    var n = phone ? 26 : 44, r = Math.min(phone ? 78 : 110, S.sky.w * 0.2, S.sky.h * 0.42), v0 = r / 900 * 1.9 * (k || 1), w = phone ? 1.9 : 2.4;
     for (var i = 0; i < n; i++) { var a = (i / n) * Math.PI * 2 + rnd(-0.07, 0.07), v = v0 * rnd(0.55, 1);
       add({ sky: true, x: x, y: y, px: x, py: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 0, max: rnd(900, 1300), c: c[0], hc: c[1], w: w, j: rnd(0, 6.28) }); }
     add({ sky: true, flash: true, x: x, y: y, life: 0, max: 160, r: r * 0.5 });
     add({ sky: true, halo: c[0], x: x, y: y, life: 0, max: 700, r: r * 1.1 });
   }
   function step(dt, now) {
-    var tr = tier(), gap = (tr === 3 ? rnd(650, 1050) : tr === 2 ? rnd(1200, 1800) : rnd(2200, 3000)) * (phone ? 1.3 : 1);
+    var tr = tier(), gap = (tr === 3 ? rnd(650, 1050) : tr === 2 ? rnd(1200, 1800) : rnd(2200, 3000));
     if (now >= nextShot) { shoot(now); if (tr === 3 && rand() < 0.35) shoot(now); nextShot = now + gap; }
     for (var i = rockets.length - 1; i >= 0; i--) {
       var k = rockets[i], q = Math.min(1, (now - k.t0) / k.dur), e = 1 - Math.pow(1 - q, 2.2), x = k.x0 + (k.tx - k.x0) * e, y = k.y0 + (k.ty - k.y0) * e;
@@ -127,15 +128,16 @@
   }
 
   // ---------- loop ----------
-  function running() { return inView && !document.hidden && !reduce; }
+  function off() { return document.documentElement.classList.contains('motion-off'); }       // the page's Pause animation control
+  function running() { return inView && !document.hidden && !reduce && !off(); }
   function frame(now) {
     raf = 0; if (!running()) { last = 0; return; }
-    if (dirty && !measure()) return;
+    if (dirty && !measure()) { setTimeout(start, 300); return; }                // not laid out yet: try again shortly
     var dt = last ? Math.min(now - last, 100) : 0; last = now; acc += dt;
     if (acc >= FRAME - 2) { clock += acc; step(Math.min(acc, 60), clock); paint(clock); acc = 0; }
     raf = requestAnimationFrame(frame);
   }
-  function start() { if (reduce) { still(); return; } if (!raf && running()) { last = 0; raf = requestAnimationFrame(frame); } }
+  function start() { if (reduce || off()) { if (raf) cancelAnimationFrame(raf); raf = 0; if (inView || reduce) still(); return; } if (!raf && running()) { last = 0; raf = requestAnimationFrame(frame); } }
   function still() {                                                               // reduced motion: three bursts and their reflections, lit ground
     if (!measure()) return;
     rand = seeded(11);
@@ -150,7 +152,9 @@
   if ('IntersectionObserver' in window) new IntersectionObserver(function (es) { inView = es[0].isIntersecting; start(); }, { rootMargin: '80px' }).observe(pin);
   else { inView = true; }
   document.addEventListener('visibilitychange', start);
-  var rt = 0; addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { dirty = true; if (reduce) still(); }, 150); });
+  var rt = 0; addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { dirty = true; if (reduce) still(); else start(); }, 150); });
+  try { new MutationObserver(function () { dirty = true; if (reduce) still(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] }); } catch (e) {}   // a language switch re-wraps the words
+  var wasOff = off(); try { new MutationObserver(function () { var o = off(); if (o === wasOff) return; wasOff = o; start(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] }); } catch (e) {}
   try { document.fonts && document.fonts.ready.then(function () { dirty = true; if (reduce) still(); }); } catch (e) {}
   if (reduce) still(); else start();
   window.LagoonDiwali = { debug: function () { return { S: S, W: W, H: H, parts: parts.length, prog: prog, running: running(), clock: clock }; } };

@@ -23,7 +23,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=JetBrains+Mono:wght@400;600&family=Manrope:wght@400;500;700&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&family=Noto+Sans+Gujarati:wght@400;500;600;700;800&family=Tiro+Devanagari+Hindi&display=swap">
 <style>
-/* Same design system as diwali-bali.html (type scale, nav, glass, sections, form). Diwali look (2026-10-06, owner):
+/* Same design system as diwali-bali.html (type scale, nav, glass, sections, form). Diwali look:
    "Diwali's doorway opens onto the lagoon" - marigold is the light (actions, accents), turquoise is the sea (index
    numbers, "Lakshadweep?"), saffron only for "Flight tickets extra". Text on every fill is checked for WCAG AA:
    #1A0B00 on marigold 10.0:1, on saffron 6.7:1; marigold text on --bg 10.0:1; ink 16.7:1. */
@@ -284,7 +284,7 @@ html[lang=hi] .brand span,html[lang=gu] .brand span{font-family:"JetBrains Mono"
 @media (max-width:520px){.nav{gap:10px;padding-left:14px}.brand{flex-direction:column;align-items:flex-start;gap:3px}.brand span{font-size:8.5px}.lang button{min-width:30px;padding:7px 7px}}
 #whyH .sp-in{display:none}html[lang=hi] #whyH .br-en,html[lang=gu] #whyH .br-en{display:none}html[lang=hi] #whyH .sp-in,html[lang=gu] #whyH .sp-in{display:inline}
 
-/* ================= Diwali look + the owner's photos (2026-10-06) ================= */
+/* ================= Diwali look + the stock photos ================= */
 body{background:radial-gradient(120% 60% at 50% 110%,rgba(255,106,19,.10),transparent 60%) fixed,var(--bg)}
 body.grain::after{animation:none}                       /* still grain: the live photos carry the motion */
 .pricing{background:linear-gradient(115deg,rgba(255,169,40,.14),rgba(14,154,167,.08) 55%,rgba(6,17,19,0))}
@@ -352,18 +352,18 @@ footer .greet{color:var(--accent)}
   .why figure img{object-position:45% 50%}
 }
 @media (prefers-reduced-motion:reduce){.toran .drop,.rangoli,.cur .fl{animation:none}}
-/* ================= v4 (owner, 2026-10-07): the Bali pattern - live photos, a pinned island story, AI films, a drawn
+/* ================= festive update: live photos, a pinned island story, AI films, a drawn
    Diwali lagoon. The lagoon palette stays (no Bali black); overlays are --bg based. ================= */
 .live{position:absolute;inset:0;width:100%;height:100%;display:block;opacity:0;transition:opacity 1.4s ease;filter:saturate(1.06) contrast(1.04)}
 .live.ready{opacity:1}
 .hero .live{z-index:0}
 @media (max-width:700px){.hero .live{bottom:auto;height:var(--hh)}}
 /* kandils hang from the top corners (outside the words); they sway, and stop when their section is off screen */
-.kandil{position:absolute;top:0;width:64px;height:130px;background:center top/contain no-repeat;transform-origin:50% 0;pointer-events:none;z-index:2;animation:sway 5.5s ease-in-out infinite}
+.kandil{position:absolute;top:calc(env(safe-area-inset-top,0px) + 66px);width:64px;height:130px;background:center top/contain no-repeat;transform-origin:50% 0;pointer-events:none;z-index:2;animation:sway 5.5s ease-in-out infinite}
 .kandil.k1{left:3%;background-image:url(images/fest/kandil-star.svg)}
 .kandil.k2{right:3%;width:44px;height:120px;background-image:url(images/fest/kandil-hex.svg);animation-delay:-2.1s}
 .hero.still .kandil,.dwl.still .kandil{animation-play-state:paused}
-@media (max-width:700px){.kandil{width:30px;height:61px}.kandil.k2{width:22px;height:60px}}
+@media (max-width:700px){.kandil{top:calc(env(safe-area-inset-top,0px) + 76px);width:30px;height:61px}.kandil.k2{width:22px;height:60px}}
 /* the price band carries three lit diyas on its top edge */
 .pricing{position:relative}
 .pricing::before{content:"";position:absolute;left:50%;top:-20px;width:96px;height:40px;margin-left:-48px;background:url(images/fest/diya-trio.svg) center/96px 40px no-repeat;pointer-events:none}
@@ -380,12 +380,12 @@ footer .greet{color:var(--accent)}
 .days li{display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:baseline}
 .days li b{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);font-weight:600}
 .days li span{color:#E6E1D6}
-.story-rail{position:absolute;z-index:3;right:var(--gut);top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:12px}
-.story-rail button{all:unset;cursor:pointer;display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--ink-2);justify-content:flex-end}
+.story-rail{position:absolute;z-index:3;right:var(--gut);top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:12px;padding:12px 10px;border-radius:14px;background:rgba(6,17,19,.62)}
+.story-rail button{all:unset;cursor:pointer;display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:rgba(243,239,230,.86);justify-content:flex-end}
 .story-rail button::after{content:"";width:22px;height:2px;background:currentColor;transition:width .3s}
 .story-rail button.on{color:var(--accent)}
 .story-rail button.on::after{width:44px}
-.story-rail button:focus-visible{outline:2px solid var(--accent-2);outline-offset:4px}
+.story-rail button:focus-visible{outline:2px solid #FFD27A;outline-offset:4px}
 .photo-tag{position:absolute;z-index:3;right:var(--gut);bottom:22px;padding:5px 10px;border-radius:999px;background:rgba(6,17,19,.7);font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink)}
 @media (max-width:760px){.story-rail{display:none}.story-pin::after{background:linear-gradient(0deg,rgba(6,17,19,.94) 0%,rgba(6,17,19,.58) 55%,rgba(6,17,19,.2) 100%)}.chapters{align-items:flex-end;padding-bottom:64px}.photo-tag{top:84px;bottom:auto}}
 /* the highlights list is compact now (its photos moved into the story) */
@@ -432,9 +432,19 @@ footer .greet{color:var(--accent)}
   .dw-glints{top:50%;height:12%}
   .dw-isle{left:46%;width:50%;bottom:50%}
   .dw-diyas{display:none}
-  .dw-copy{top:62%;bottom:auto;right:var(--gut)}
+  .dw-copy{top:auto;bottom:calc(4vh + 54px);bottom:calc(4svh + 54px);right:var(--gut)}   /* clear of the Pause animation button */
 }
-@media (prefers-reduced-motion:reduce){.kandil{animation:none}.dwl{height:auto}.dw-pin{position:relative}}
+@media (prefers-reduced-motion:reduce){.kandil{animation:none}.dwl{height:auto}.dw-pin{position:relative}.chapter{transition:none}}
+/* a visitor can stop every moving thing on the page (kept with the homepage's choice, skyline_fest_paused) */
+.motion-ctl{position:fixed;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);z-index:65;display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border-radius:999px;border:1px solid var(--glass-line);background:rgba(6,17,19,.82);color:var(--ink);font:600 12px/1.2 var(--body);cursor:pointer}
+.motion-ctl:hover{border-color:var(--accent)}
+.motion-ctl:focus-visible{outline:2px solid #FFD27A;outline-offset:2px}
+.motion-ctl svg{width:11px;height:11px;fill:currentColor}
+.motion-ctl .ic-g,.motion-ctl .lg,html.motion-off .motion-ctl .ic-p,html.motion-off .motion-ctl .lp{display:none}
+html.motion-off .motion-ctl .ic-g,html.motion-off .motion-ctl .lg{display:inline}
+html.motion-off .kandil,html.motion-off .toran .drop,html.motion-off .rangoli,html.motion-off .marquee-track,html.motion-off .cur .fl{animation-play-state:paused}
+@media (prefers-reduced-motion:reduce){.motion-ctl{display:none}}
+footer{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
 </style>
 
 <div class="progress" id="progress" aria-hidden="true"></div>
@@ -511,7 +521,7 @@ footer .greet{color:var(--accent)}
 </div>
 
 <!-- ISLAND DAYS: a pinned story; the photos move as you scroll (and with the mouse in the hero) -->
-<section class="story" id="island-days" aria-label="Your island days" data-en-aria="Your island days" data-hi-aria="आपके द्वीप वाले दिन" data-gu-aria="તમારા ટાપુના દિવસો">
+<section class="story" id="island-days" aria-label="Your island days" data-en-aria="Your island days" data-hi-aria="द्वीप पर आपके दिन" data-gu-aria="તમારા ટાપુના દિવસો">
   <div class="story-pin">
     <canvas class="live" id="storyCanvas" aria-hidden="true"></canvas>
     <div class="chapters">
@@ -530,7 +540,7 @@ footer .greet{color:var(--accent)}
       <article class="chapter" data-ch="2">
         <span class="num">03</span>
         <span class="mono accent" data-en="Kalpitti Island" data-hi="कल्पित्ती द्वीप" data-gu="કલ્પિત્તી ટાપુ">Kalpitti Island</span>
-        <h3 data-en="Look down through the glass" data-hi="काँच के तले से नीचे झाँकिए" data-gu="કાચના તળિયેથી નીચે જુઓ">Look down through the glass</h3>
+        <h3 data-en="Look down through the glass" data-hi="काँच के तल से नीचे झाँकिए" data-gu="કાચના તળિયેથી નીચે જુઓ">Look down through the glass</h3>
         <ul class="days"><li><b data-en="Included" data-hi="शामिल" data-gu="સામેલ">Included</b><span data-en="Kalpitti Island tour with glass-bottom boat" data-hi="ग्लास-बॉटम बोट के साथ कल्पित्ती द्वीप का टूर" data-gu="ગ્લાસ-બોટમ બોટ સાથે કલ્પિત્તી ટાપુની ટૂર">Kalpitti Island tour with glass-bottom boat</span></li><li><b data-en="Highlight" data-hi="आकर्षण" data-gu="આકર્ષણ">Highlight</b><span data-en="Glass-bottom boat experience" data-hi="ग्लास-बॉटम बोट का अनुभव" data-gu="ગ્લાસ-બોટમ બોટનો અનુભવ">Glass-bottom boat experience</span></li></ul>
       </article>
       <article class="chapter" data-ch="3">
@@ -552,8 +562,8 @@ footer .greet{color:var(--accent)}
         <ul class="days"><li><b data-en="Included" data-hi="शामिल" data-gu="સામેલ">Included</b><span data-en="Agatti airport pickup &amp; drop" data-hi="अगत्ती एयरपोर्ट पिकअप और ड्रॉप" data-gu="અગત્તી એરપોર્ટ પિકઅપ અને ડ્રોપ">Agatti airport pickup &amp; drop</span></li><li><b data-en="Note" data-hi="ध्यान दें" data-gu="નોંધ">Note</b><span data-en="Flight tickets are not included." data-hi="फ़्लाइट टिकट इसमें शामिल नहीं हैं।" data-gu="ફ્લાઇટ ટિકિટ સામેલ નથી.">Flight tickets are not included.</span></li></ul>
       </article>
     </div>
-    <div class="story-rail" id="rail" aria-label="Jump to chapter" data-en-aria="Jump to chapter" data-hi-aria="सीधे किसी हिस्से पर जाएं" data-gu-aria="પ્રકરણ પર જાઓ">
-      <button type="button" data-go="0" class="on">01</button><button type="button" data-go="1">02</button><button type="button" data-go="2">03</button><button type="button" data-go="3">04</button><button type="button" data-go="4">05</button><button type="button" data-go="5">06</button>
+    <div class="story-rail" id="rail" role="group" aria-label="Jump to chapter" data-en-aria="Jump to chapter" data-hi-aria="सीधे किसी हिस्से पर जाएँ" data-gu-aria="પ્રકરણ પર જાઓ">
+      <button type="button" data-go="0" class="on" aria-current="step" aria-label="Chapter 1" data-en-aria="Chapter 1" data-hi-aria="अध्याय 1" data-gu-aria="પ્રકરણ 1">01</button><button type="button" data-go="1" aria-label="Chapter 2" data-en-aria="Chapter 2" data-hi-aria="अध्याय 2" data-gu-aria="પ્રકરણ 2">02</button><button type="button" data-go="2" aria-label="Chapter 3" data-en-aria="Chapter 3" data-hi-aria="अध्याय 3" data-gu-aria="પ્રકરણ 3">03</button><button type="button" data-go="3" aria-label="Chapter 4" data-en-aria="Chapter 4" data-hi-aria="अध्याय 4" data-gu-aria="પ્રકરણ 4">04</button><button type="button" data-go="4" aria-label="Chapter 5" data-en-aria="Chapter 5" data-hi-aria="अध्याय 5" data-gu-aria="પ્રકરણ 5">05</button><button type="button" data-go="5" aria-label="Chapter 6" data-en-aria="Chapter 6" data-hi-aria="अध्याय 6" data-gu-aria="પ્રકરણ 6">06</button>
     </div>
     <div class="photo-tag" id="photoTag" data-en="Illustrative · stock photo" data-hi="सांकेतिक चित्र" data-gu="પ્રતીકાત્મક ચિત્ર">Illustrative · stock photo</div>
   </div>
@@ -609,7 +619,7 @@ footer .greet{color:var(--accent)}
 
 <!-- AI FILMS: short loops made by AI from the stock photos - never footage of the islands, the resorts or the boats -->
 <section class="sec wrap" id="films" style="padding-top:0" aria-labelledby="filmH">
-  <div class="sec-head"><h2 class="rv" id="filmH"><span data-en="Lagoon" data-hi="लैगून की" data-gu="લગૂનની">Lagoon</span><br><span data-en="in motion" data-hi="झलकियाँ" data-gu="ઝલક">in motion</span></h2><p data-en="Short clips made by AI from stock photos – not footage of the islands, the resorts or the boats." data-hi="स्टॉक फ़ोटो से AI द्वारा बनाई गई छोटी क्लिप – ये द्वीपों, रिज़ॉर्ट या नावों की असली फ़ुटेज नहीं हैं।" data-gu="સ્ટોક ફોટામાંથી AI વડે બનાવેલી નાની ક્લિપ – આ ટાપુઓ, રિસોર્ટ કે હોડીઓનું અસલ ફૂટેજ નથી.">Short clips made by AI from stock photos – not footage of the islands, the resorts or the boats.</p></div>
+  <div class="sec-head"><h2 class="rv" id="filmH"><span data-en="Lagoon" data-hi="लैगून की" data-gu="લગૂનની">Lagoon</span><br><span data-en="in motion" data-hi="झलकियाँ" data-gu="ઝલક">in motion</span></h2><p data-en="Short clips made by AI from stock photos – not footage of the islands, the resorts or the boats." data-hi="स्टॉक फ़ोटो से AI द्वारा बनाई गई छोटी क्लिपें – ये द्वीपों, रिज़ॉर्ट या नावों के असली वीडियो नहीं हैं।" data-gu="સ્ટોક ફોટામાંથી AI વડે બનાવેલી નાની ક્લિપ – આ ટાપુઓ, રિસોર્ટ કે હોડીઓનું અસલ ફૂટેજ નથી.">Short clips made by AI from stock photos – not footage of the islands, the resorts or the boats.</p></div>
   <div class="films">
     <figure class="film tall">
       <video muted loop playsinline preload="none" poster="images/diwali-lakshadweep/film-sand.jpg" aria-label="Palm trees swaying over a white beach and clear water, animated (AI video made from a stock photo)" data-en-aria="Palm trees swaying over a white beach and clear water, animated (AI video made from a stock photo)" data-hi-aria="सफ़ेद तट और साफ़ पानी पर झूमते नारियल के पेड़, एनिमेशन (स्टॉक फ़ोटो से AI द्वारा बना वीडियो)" data-gu-aria="સફેદ કિનારા અને ચોખ્ખા પાણી પર ઝૂલતાં નાળિયેરીનાં વૃક્ષો, એનિમેશન (સ્ટોક ફોટામાંથી AI વડે બનેલો વીડિયો)">
@@ -645,11 +655,11 @@ footer .greet{color:var(--accent)}
     <i class="kandil k1" aria-hidden="true"></i><i class="kandil k2" aria-hidden="true"></i>
     <div class="dw-diyas" aria-hidden="true"></div>
     <div class="dw-copy">
-      <div class="chips"><span class="chip warm" data-en="Festive artwork" data-hi="त्योहार की सजावट" data-gu="તહેવારની સજાવટ">Festive artwork</span><span class="chip hindi" data-en="शुभ दीपावली" data-hi="शुभ दीपावली" data-gu="શુભ દીપાવલી">शुभ दीपावली</span></div>
+      <div class="chips"><span class="chip warm" data-en="Festive artwork" data-hi="त्योहार का चित्रांकन" data-gu="તહેવારનું ચિત્રાંકન">Festive artwork</span><span class="chip hindi" data-en="शुभ दीपावली" data-hi="शुभ दीपावली" data-gu="શુભ દીપાવલી">शुभ दीपावली</span></div>
       <h2 id="dwH" data-en="Happy Diwali" data-hi="दीपावली की शुभकामनाएँ" data-gu="દિવાળીની શુભેચ્છાઓ">Happy Diwali</h2>
       <p class="mono dw-date" data-en="Deepavali · Sun 8 Nov 2026" data-hi="दीपावली · रविवार, 8 नवंबर 2026" data-gu="દીપાવલી · રવિવાર, 8 નવેમ્બર 2026">Deepavali · Sun 8 Nov 2026</p>
       <a class="btn btn-accent" href="#enquire" data-offer data-en="Plan my trip →" data-hi="मेरी यात्रा प्लान करें →" data-gu="મારી યાત્રા પ્લાન કરો →">Plan my trip →</a>
-      <p class="dw-fine" data-en="Festive firecracker artwork: Illustrative · AI-generated" data-hi="पटाखों की सजावट: सांकेतिक · AI से बनी" data-gu="ફટાકડાની સજાવટ: પ્રતીકાત્મક · AI થી બનેલી">Festive firecracker artwork: Illustrative · AI-generated</p>
+      <p class="dw-fine" data-en="Festive firecracker artwork: Illustrative · AI-generated" data-hi="पटाखों के चित्र: सांकेतिक · AI से बने" data-gu="ફટાકડાનાં ચિત્રો: પ્રતીકાત્મક · AI થી બનેલાં">Festive firecracker artwork: Illustrative · AI-generated</p>
     </div>
   </div>
 </section>
@@ -740,6 +750,7 @@ footer .greet{color:var(--accent)}
   <div class="big"><span data-en="All festive offers" data-hi="त्योहारों के सभी ऑफ़र" data-gu="તહેવારોની બધી ઓફર્સ">All festive offers</span> <span class="arrow">→</span></div>
 </a>
 </main>
+<button type="button" class="motion-ctl" id="motionCtl"><svg class="ic-p" viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="1.5" width="2.8" height="9" rx=".8"/><rect x="7.2" y="1.5" width="2.8" height="9" rx=".8"/></svg><svg class="ic-g" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.6v8.8L10.2 6z"/></svg><span class="lp" data-en="Pause animation" data-hi="एनिमेशन रोकें" data-gu="એનિમેશન રોકો">Pause animation</span><span class="lg" data-en="Play animation" data-hi="एनिमेशन चलाएँ" data-gu="એનિમેશન ચલાવો">Play animation</span></button>
 <div class="cur" id="cur" aria-hidden="true"><svg viewBox="0 0 40 40"><defs><linearGradient id="cfl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFF6D0"/><stop offset=".55" stop-color="#FFC24A"/><stop offset="1" stop-color="#FF6A13"/></linearGradient></defs><path class="fl" d="M20 2 C24 9 25 13 20 18 C15 13 16 9 20 2Z" fill="url(#cfl)" stroke="#5A1E05" stroke-width=".8"/><path d="M4 21 C9 34 31 34 36 21 Z" fill="#9C3E12"/><ellipse cx="20" cy="21" rx="16" ry="3.2" fill="#D96A2B"/><path d="M34 21 L39 18 L36 23 Z" fill="#9C3E12"/></svg></div>
 
 <footer>
@@ -927,7 +938,10 @@ document.addEventListener('visibilitychange',heroMedia);
 /* ---------- live photos: the hero, the pinned island story and the stay tiles. The engine is diwali-bali.html's
    LiveScene WITHOUT the effects that copy the canvas onto itself (ripple strips, lens drops: they held slow laptops at
    20-30 fps) and WITHOUT fireworks, diyas or embers on the island photos - Diwali stays in the drawn #diwali scene. ---------- */
-var coarse=matchMedia('(pointer: coarse)').matches, prefs={motion:!reduce};
+var coarse=matchMedia('(pointer: coarse)').matches, motionOff=false;
+try{ motionOff=localStorage.getItem('skyline_fest_paused')==='1'; }catch(e){}
+var prefs={motion:!reduce && !motionOff};
+document.documentElement.classList.toggle('motion-off',motionOff);
 var cache={};
 function loadImg(src){ if(!cache[src]) cache[src]=new Promise(function(res){ var i=new Image(); i.decoding='async'; i.onload=function(){res(i)}; i.onerror=function(){res(null)}; i.src=src; }); return cache[src]; }
 function rand(a,b){return a+Math.random()*(b-a)}
@@ -957,8 +971,8 @@ LiveScene.prototype.seed=function(){
   this.glints=[]; for(var i=0;i<90;i++) this.glints.push({x:Math.random(),y:Math.random(),l:rand(8,40),p:rand(0,6.28),s:rand(1,3)});
   this.blobs=[]; for(var j=0;j<7;j++) this.blobs.push({x:Math.random(),y:Math.random(),r:rand(.18,.34),v:rand(.004,.012),p:rand(0,6.28)});
 };
-LiveScene.prototype.setScene=function(i){ if(i===this.cur) return; this.prev=this.cur; this.cur=i; this.fade=0; this.fadeAt=performance.now(); this.kick(); if(!this.running) this.frame(0); };
-LiveScene.prototype.should=function(){ return this.visible && !document.hidden && !!this.imgs[0] && prefs.motion; };
+LiveScene.prototype.setScene=function(i){ if(i===this.cur) return; this.prev=this.cur; this.cur=i; this.fade=0; this.fadeAt=performance.now(); this.kick(); if(!this.running && this.visible) this.frame(0); };
+LiveScene.prototype.should=function(){ return this.visible && !document.hidden && !!this.imgs[0] && this.imgs[0]!=='missing' && prefs.motion; };
 LiveScene.prototype.kick=function(){
   var self=this;
   if (this.should() && !this.running){ this.running=true; var last=performance.now();
@@ -1047,7 +1061,7 @@ var heroScene=new LiveScene(document.getElementById('heroCanvas'),[HERO],{pointe
 var STORY=[
   {src:PH+'ch-arrive.jpg',srcm:PH+'ch-arrive-m.jpg',focus:[.5,.5],water:.85,glint:'255,240,210',mist:{y:.3,h:.3,a:.06,dx:1},grade:WARM,pan:.04},
   {src:PH+'ch-sand.jpg',srcm:PH+'ch-sand-m.jpg',focus:[.5,.5],water:.71,waterEnd:.84,swell:[.74,.86],grade:WARM,pan:.03},
-  {src:PH+'ch-boat.jpg',srcm:PH+'ch-boat-m.jpg',focus:[.72,.6],water:.64,waterEnd:.84,swell:[.7,.84],grade:WARM,pan:.03},
+  {src:PH+'ch-boat.jpg',srcm:PH+'ch-boat-m.jpg',focus:[.72,.6],water:.64,waterEnd:.82,grade:WARM,pan:.03},
   {src:PH+'ch-bangaram.jpg',srcm:PH+'ch-bangaram-m.jpg',focus:[.5,.5],water:.8,waterEnd:.91,swell:[.84,.92],grade:WARM,pan:.04},
   {src:PH+'ch-sunset.jpg',srcm:PH+'ch-sunset-m.jpg',focus:[.5,.5],water:.44,waterEnd:.74,glint:'255,190,120',grade:['rgba(255,150,70,.18)','rgba(40,30,80,.18)'],pan:.03},
   {src:PH+'ch-chai.jpg',srcm:PH+'ch-chai-m.jpg',focus:[.5,.5],water:.44,waterEnd:.8,glint:'255,200,130',grade:['rgba(255,150,70,.18)','rgba(40,30,80,.18)'],pan:.02}
@@ -1074,8 +1088,8 @@ function onScroll(){
   var max=document.documentElement.scrollHeight-innerHeight; bar.style.transform='scaleX('+(max>0?scrollY/max:0)+')';
   var r=storyEl.getBoundingClientRect(), span=r.height-innerHeight, p=span>0?Math.min(1,Math.max(0,-r.top/span)):0;
   var n=STORY.length, ch=Math.min(n-1,Math.floor(p*n)); storyScene.scroll=Math.min(1,p*n-ch);
-  if (ch!==curCh){ curCh=ch; chapters.forEach(function(c,i){c.classList.toggle('on',i===ch)}); railBtns.forEach(function(b,i){b.classList.toggle('on',i===ch)}); storyScene.setScene(ch); }
-  if (!storyScene.running) storyScene.frame(0);
+  if (ch!==curCh){ curCh=ch; chapters.forEach(function(c,i){c.classList.toggle('on',i===ch)}); railBtns.forEach(function(b,i){ b.classList.toggle('on',i===ch); if(i===ch) b.setAttribute('aria-current','step'); else b.removeAttribute('aria-current'); }); storyScene.setScene(ch); }
+  if (storyScene.visible && !storyScene.running) storyScene.frame(0);           // off screen: no repaint on every scroll tick
   ticking=false;
 }
 addEventListener('scroll',function(){ if(!ticking){ ticking=true; requestAnimationFrame(onScroll); } },{passive:true});
@@ -1083,13 +1097,22 @@ railBtns.forEach(function(b){ b.addEventListener('click',function(){ var r=story
 onScroll();
 
 /* ---------- the AI clips play only while on screen (and not at all when motion is reduced: the poster stays) ---------- */
-var clips=[].slice.call(document.querySelectorAll('.film video, .why-vid'));
+var clips=[].slice.call(document.querySelectorAll('.film video, .why-vid')), inView=new Map();
+function playClips(){ clips.forEach(function(v){ if(inView.get(v) && !document.hidden && prefs.motion){ if(v.preload==='none') v.preload='auto'; var pr=v.play(); if(pr&&pr.catch) pr.catch(function(){}); } else if(!v.paused) v.pause(); }); }
 if (!reduce && !(navigator.connection&&navigator.connection.saveData) && 'IntersectionObserver' in window){
-  var vio=new IntersectionObserver(function(es){ es.forEach(function(e){ var v=e.target;
-    if (e.isIntersecting && !document.hidden){ if(v.preload==='none') v.preload='auto'; var pr=v.play(); if(pr&&pr.catch) pr.catch(function(){}); } else v.pause(); }); },{threshold:.3});
+  /* every clip on screen plays (like the Bali page); the clips are encoded small so three decoders stay smooth on
+     integrated graphics (measured at 1440 px on a UHD 630) */
+  var vio=new IntersectionObserver(function(es){ es.forEach(function(e){ inView.set(e.target,e.isIntersecting); }); playClips(); },{threshold:.3});
   clips.forEach(function(v){ vio.observe(v); });
-  document.addEventListener('visibilitychange',function(){ if(document.hidden) clips.forEach(function(v){ v.pause(); }); });
+  document.addEventListener('visibilitychange',playClips);
 }
+/* the Pause animation control: live photos hold a still frame, clips pause, the lagoon and the CSS loops stop */
+var motionCtl=document.getElementById('motionCtl');
+motionCtl.addEventListener('click',function(){ motionOff=!motionOff; prefs.motion=!reduce && !motionOff;
+  try{ localStorage.setItem('skyline_fest_paused',motionOff?'1':''); }catch(e){}
+  document.documentElement.classList.toggle('motion-off',motionOff);
+  [heroScene,storyScene].concat(stayScenes).forEach(function(sc){ sc.kick(); if(!sc.running) sc.frame(0); });
+  playClips(); });
 /* the kandils sway only while their section is on screen */
 if ('IntersectionObserver' in window) [document.getElementById('top'),document.getElementById('diwali')].forEach(function(el){ if(!el) return;
   new IntersectionObserver(function(es){ el.classList.toggle('still',!es[0].isIntersecting); }).observe(el); });

@@ -92,7 +92,8 @@
   function split(s, n) { var i = s.indexOf('|n|'); return i < 0 ? { pre: s, n: '', post: '' } : { pre: s.slice(0, i), n: String(n), post: s.slice(i + 3) }; }
 
   // ---------- which theme, and the strip / chat line for a day ----------
-  function themeOf(d) { return d < NAV_END ? 'navratri' : d < FEST_END ? 'diwali' : null; }
+  // the Navratri theme starts two weeks ahead (a device with a wrong clock must not show "Navratri in 2,000 days")
+  function themeOf(d) { return d < NAV1 - 14 ? null : d < NAV_END ? 'navratri' : d < FEST_END ? 'diwali' : null; }
   function line(d, lang) {
     var l = L(lang), main, sub = '';
     if (d < NAV1 - 1) { main = split(t(S.navIn, l), NAV1 - d); sub = date(NAV1, l); }
@@ -152,7 +153,7 @@
     if (!isNaN(atDay)) return atDay;
     var d = dayNo(Date.now());
     if (force === 'diwali' && themeOf(d) !== 'diwali') return d < VAGH ? NAV_END : FEST_END - 1;   // preview Diwali early/late
-    if (force === 'navratri' && themeOf(d) !== 'navratri') return NAV1 - 6;
+    if (force === 'navratri' && themeOf(d) !== 'navratri') return NAV1 - 6;                             // preview Navratri out of season
     return d;
   }
   var listeners = [], cur = null, timer = 0;
@@ -178,7 +179,8 @@
     main: function (lang) { return this.line(lang).text; },
     sub: function (lang) { return this.line(lang).sub; },
     card: function (lang, sel) { return cur == null ? null : card(cur, lang, sel); },
-    onChange: function (f) { if (typeof f === 'function') listeners.push(f); },
+    onChange: function (f) { if (typeof f !== 'function') return function () {}; listeners.push(f);
+      return function () { var i = listeners.indexOf(f); if (i >= 0) listeners.splice(i, 1); }; },          // returns an unsubscribe
     // for tests: everything for a given India day number
     at: function (d, lang, sel) { return { theme: themeOf(d), line: themeOf(d) ? line(d, lang) : null, card: themeOf(d) ? card(d, lang, sel) : null }; },
     dayNo: dayNo, NIGHTS: NIGHTS, DAYS: DAYS

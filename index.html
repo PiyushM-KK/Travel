@@ -102,8 +102,6 @@
     html[data-fest="diwali"] .sky-fr{background:#1F120B;color:#FFE7B8}
     html[data-fest="diwali"] .sky-fr::after{background:linear-gradient(90deg,transparent,#FFA928 20%,#FFD27A 50%,#FFA928 80%,transparent)}
     html[data-fest="diwali"] .sky-fr-go{color:#FFB627}
-    .sky-fr-flame{}
-    @keyframes skyFlame{to{transform:scale(.9,1.12)}}
     html[data-fest] .sky-fest-tint{display:block;position:absolute;inset:0;z-index:1;pointer-events:none}
     html[data-fest="navratri"] .sky-fest-tint{background:radial-gradient(110% 60% at 50% 0%,rgba(122,18,48,.30),rgba(122,18,48,0) 65%)}
     html[data-fest="diwali"] .sky-fest-tint{background:linear-gradient(180deg,rgba(31,18,11,.30),rgba(31,18,11,0) 35%),radial-gradient(120% 70% at 50% 105%,rgba(255,106,19,.30),rgba(255,106,19,0) 60%)}
@@ -646,8 +644,9 @@ class Component extends DCLogic {
 
   componentDidMount() {
     // festive themes: re-render at midnight in India (fest.js), and pause the hanging lamps while the hero is off screen
-    if (window.SkyFest && !this._festSub) { this._festSub = true; window.SkyFest.onChange(() => this.setState({ festTick: Date.now() })); }
+    if (window.SkyFest && !this._festOff) this._festOff = window.SkyFest.onChange(() => this.setState({ festTick: Date.now(), festSel: null }));
     if ('IntersectionObserver' in window) {
+      if (this._festIO) this._festIO.disconnect();
       this._festIO = new IntersectionObserver((es) => { document.documentElement.classList.toggle('sky-still', !es[0].isIntersecting); });
       const hero = document.querySelector('.sky-hero'); if (hero) this._festIO.observe(hero);
     }
@@ -703,6 +702,8 @@ class Component extends DCLogic {
 
   componentWillUnmount() {
     if (this._festIO) this._festIO.disconnect();
+    document.documentElement.classList.remove('sky-still');
+    if (this._festOff) { this._festOff(); this._festOff = null; }
     if (this._heroTimer) clearInterval(this._heroTimer);
     if (window.__skyHeroTimer) { clearInterval(window.__skyHeroTimer); window.__skyHeroTimer = null; }
     if (this._cycTimer) clearInterval(this._cycTimer);

@@ -6,6 +6,13 @@ the real values live in the local `.env` (gitignored) and the Vercel project env
 
 ---
 
+## B-LAKSHADWEEP-PUBLISH - 2026-10-06 - the Lakshadweep Diwali page + chat anthropic-10 wait for the owner's "publish"
+
+Website + chat, not social automation, listed here so it is not missed (time-limited: travel 5-20 Nov 2026). One push of
+branch `chat-worker-anthropic-10-fix` to main ships the page and the worker together; GitHub Actions tests and deploys
+the worker. Owner questions first (start/end dates, the Bangaram resort's brand, meals, prices for 1/3/children, the
+permit): `../HANDOVER-PROMPT.md` PENDING - OWNER. Agent steps after the push: same file, PENDING - AGENT.
+
 ## B-AIRTABLE-QUOTA - 2026-09-17 - the queue is LEAVING Airtable; one owner step left (export a CSV)
 
 **What happened.** Airtable answered every call with `429 PUBLIC_API_BILLING_LIMIT_EXCEEDED` - the

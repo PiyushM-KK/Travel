@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/png" href="images/favicon.png">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rozha+One&family=Mukta:wght@400;500;600;700;800&family=Mukta+Vaani:wght@400;500;600;700;800&family=Rasa:wght@500;600;700&family=Marcellus&family=Karla:wght@400;500;600;700;800&family=Eczar:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Skyline festive homepage (index.html renders it while fest.js has a festival on: Navratri until 21 Oct, Diwali until
+   12 Nov 2026). One layout, two themes: .fh--navratri (plum, magenta, marigold; Rozha One + Mukta) and .fh--diwali
+   (night indigo, vermilion, gold; Marcellus + Karla). Hindi/Gujarati glyphs fall through to Rasa/Eczar and Mukta/Mukta
+   Vaani. Built from the New_Design handover (2026-10-06) with the site's own destinations, offers and copy. */
+html[data-fh="navratri"] body{background:#FFF4E2}
+html[data-fh="diwali"] body{background:#FFF6E6}
+.fh{--bg:#2A0620;--bg-rgb:42,6,32;--bg2:#1C0416;--pri:#D4146E;--pri-h:#B00F5B;--pri-t:#B00F5B;--deep:#8E0C4A;--acc:#FFB319;--acc-h:#FFC547;--acc2:#FF8A00;--sec:#12A39B;--sec-t:#0B7A73;
+  --page:#FFF4E2;--ink:#2B0A1E;--muted:#6B3A55;--lt:#F6D9E6;--lt2:#FFE2A8;--num:#9A6F86;--line:rgba(42,6,32,.12);
+  --disp:'Rozha One','Rasa',Georgia,serif;--body:'Mukta','Mukta Vaani',system-ui,sans-serif;
+  --shim:linear-gradient(90deg,#FFB319,#FF5FA2,#3EE0D0,#FFB319);--prog:linear-gradient(90deg,#FFB319,#D4146E,#12A39B);
+  background:var(--page);color:var(--ink);font-family:var(--body);-webkit-font-smoothing:antialiased;overflow-x:clip;position:relative}
+.fh--diwali{--bg:#140A22;--bg-rgb:20,10,34;--bg2:#0E0618;--pri:#B8321E;--pri-h:#9A2716;--pri-t:#9A2716;--deep:#7A1B12;--acc:#E8B04B;--acc-h:#F2C46E;--acc2:#D9962E;--sec:#3B2A6B;--sec-t:#3B2A6B;
+  --page:#FFF6E6;--ink:#1E0F14;--muted:#6E4A3A;--lt:#EBDCC8;--lt2:#F7DFAE;--num:#9A7A66;--line:rgba(30,15,20,.12);
+  --disp:'Marcellus','Eczar','Rasa',Georgia,serif;--body:'Karla','Mukta','Mukta Vaani',system-ui,sans-serif;
+  --shim:linear-gradient(90deg,#E8B04B,#FF8A3D,#FFE3A3,#E8B04B);--prog:linear-gradient(90deg,#E8B04B,#B8321E,#3B2A6B)}
+.fh *{box-sizing:border-box}
+.fh a{color:inherit;text-decoration:none}
+.fh .fh-card,.fh .fh-icard{color:#fff}
+/* Devanagari and Gujarati: no letter-spacing (it breaks the headline stroke) */
+.fh[lang=hi] .fh-eyebrow-l,.fh[lang=gu] .fh-eyebrow-l,.fh[lang=hi] .fh-eye,.fh[lang=gu] .fh-eye,.fh[lang=hi] .fh-field span,.fh[lang=gu] .fh-field span,.fh[lang=hi] .fh-tag,.fh[lang=gu] .fh-tag,.fh[lang=hi] .fh-chip-k,.fh[lang=gu] .fh-chip-k,.fh[lang=hi] .fh-cta-eye,.fh[lang=gu] .fh-cta-eye,.fh[lang=hi] .fh-pvl-eye,.fh[lang=gu] .fh-pvl-eye,.fh[lang=hi] .fh-icard-meta,.fh[lang=gu] .fh-icard-meta,.fh[lang=hi] .fh-days-eye,.fh[lang=gu] .fh-days-eye,.fh[lang=hi] .fh-chip-u,.fh[lang=gu] .fh-chip-u{letter-spacing:0}
+.fh ::selection{background:var(--acc);color:var(--ink)}
+.fh :focus-visible{outline:3px solid var(--acc);outline-offset:3px;border-radius:8px}
+.fh [id]{scroll-margin-top:96px}
+.fh-wrap{max-width:1240px;margin:0 auto;padding-left:24px;padding-right:24px}
+.fh-prog{position:fixed;top:0;left:0;right:0;height:3px;z-index:1100;background:var(--prog);transform-origin:0 50%;transform:scaleX(0)}
+.fh-disp{font-family:var(--disp);font-weight:400}
+/* ---- nav ---- */
+.fh-nav{position:fixed;top:14px;left:50%;transform:translateX(-50%);width:min(1240px,calc(100% - 24px));z-index:1000;border-radius:28px;
+  background:rgba(var(--bg-rgb),.66);-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);border:1px solid rgba(255,244,226,.14);box-shadow:0 10px 40px rgba(0,0,0,.25);color:var(--page)}
+.fh-nav-row{display:flex;align-items:center;gap:10px;padding:8px 8px 8px 10px}
+.fh-logo{display:flex;flex:none;background:#fff;border-radius:999px;padding:3px 12px}
+.fh-logo img{height:36px;width:auto;display:block;mix-blend-mode:multiply}
+.fh-links{display:none;gap:2px;flex:1;min-width:0;font-size:15px;font-weight:500}
+.fh-lk{padding:8px 13px;border-radius:999px;white-space:nowrap;color:var(--page);transition:background .2s}
+.fh-lk:hover{background:rgba(255,244,226,.1)}
+.fh-lk--fest{color:var(--acc) !important;font-weight:700}
+.fh-lk--offer{display:inline-flex;align-items:center;gap:7px;font-weight:600}
+.fh-lk--offer::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--acc);box-shadow:0 0 8px var(--acc)}
+.fh-sp{flex:1}
+.fh-cd{display:none;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;background:rgba(255,179,25,.14);color:var(--lt2);font-size:13px;font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+.fh-cd i{width:7px;height:7px;border-radius:50%;background:var(--acc);box-shadow:0 0 10px var(--acc);flex:none}
+.fh-cd b{color:#fff;font-weight:700}
+.fh-langwrap{position:relative;flex:none}
+.fh-langbtn{display:flex;align-items:center;gap:6px;border:1px solid rgba(255,244,226,.28);background:transparent;color:var(--page);font:600 13px var(--body);padding:8px 12px;border-radius:999px;cursor:pointer}
+.fh-langbtn:hover{background:rgba(255,244,226,.1)}
+.fh-langmenu{position:absolute;top:calc(100% + 8px);right:0;min-width:160px;background:#fff;color:#1a2332;border-radius:14px;box-shadow:0 18px 40px -12px rgba(0,0,0,.45);padding:6px;opacity:0;visibility:hidden;transform:translateY(-6px);transition:opacity .18s ease .2s,transform .18s ease .2s,visibility 0s linear .38s;z-index:5}
+.fh-langmenu::before{content:'';position:absolute;top:-12px;left:-8px;right:-8px;height:12px}
+.fh-langwrap:hover .fh-langmenu,.fh-langwrap:focus-within .fh-langmenu{opacity:1;visibility:visible;transform:none;transition:opacity .2s,transform .2s}
+.fh-langitem{display:flex;justify-content:space-between;gap:10px;width:100%;border:0;background:transparent;font:600 14px var(--body);color:#1a2332;padding:9px 12px;border-radius:9px;cursor:pointer;text-align:left}
+.fh-langitem:hover,.fh-langitem.on{background:#f4eef2;color:var(--pri-t)}
+.fh-plan{display:none;flex:none;padding:11px 20px;border-radius:999px;background:var(--acc);color:var(--ink) !important;font-weight:700;font-size:14px;white-space:nowrap;transition:transform .2s,background .2s}
+.fh-plan:hover{transform:translateY(-1px);background:var(--acc-h)}
+.fh-burger{display:flex;align-items:center;justify-content:center;flex:none;width:44px;height:42px;border-radius:999px;border:1px solid rgba(255,244,226,.28);background:transparent;color:var(--page);cursor:pointer}
+.fh-menu{display:flex;flex-direction:column;gap:2px;padding:6px 14px 14px;border-top:1px solid rgba(255,244,226,.12)}
+.fh-menu a{padding:12px 8px;border-bottom:1px solid rgba(255,244,226,.08);font-weight:600;font-size:15px}
+.fh-menu .fh-lk--fest{border-radius:0}
+.fh-menu-cta{display:flex;gap:10px;margin-top:10px}
+.fh-menu-cta a{flex:1;text-align:center;border-radius:999px;border:0;font-weight:700}
+.fh-menu-cta .wa{background:#25d366;color:#fff}
+.fh-menu-cta .pl{background:var(--acc);color:var(--ink)}
+@media (min-width:640px){.fh-cd{display:flex}.fh-plan{display:block}}
+@media (min-width:1280px){.fh-links{display:flex}.fh-sp{display:none}.fh-burger{display:none}}
+@media (max-width:420px){.fh-logo{padding:3px 8px}.fh-logo img{height:30px}.fh-langbtn{padding:8px 10px}}
+/* ---- hero ---- */
+.fh-hero{position:relative;min-height:100vh;overflow:hidden;background:var(--bg);color:var(--page);display:flex;flex-direction:column}
+.fh-hero-bg,.fh-hero-bg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.fh--navratri .fh-hero-bg img{object-position:62% 40%}
+.fh--diwali .fh-hero-bg img{object-position:50% 60%}
+.fh-scrim{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(var(--bg-rgb),.9) 0%,rgba(var(--bg-rgb),.6) 45%,rgba(var(--bg-rgb),.25) 100%),linear-gradient(180deg,rgba(var(--bg-rgb),.55) 0%,rgba(var(--bg-rgb),0) 25%,rgba(var(--bg-rgb),0) 60%,rgba(var(--bg-rgb),.95) 100%)}
+.fh-hero-cv{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
+.fh-hero-in{position:relative;flex:1;width:100%;max-width:1240px;margin:0 auto;padding:140px 24px 36px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:48px;align-items:center}
+.fh-hero-txt{display:flex;flex-direction:column;gap:26px;min-width:0}
+.fh-eyebrow-l{display:flex;align-items:center;gap:12px;font-size:13px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--acc)}
+.fh-eyebrow-l::before{content:'';width:28px;height:1.5px;background:var(--acc);flex:none}
+.fh-h1{font-family:var(--disp);font-weight:400;font-size:clamp(48px,8.4vw,124px);line-height:.95;margin:0;letter-spacing:-.01em;overflow-wrap:anywhere}
+.fh-h1 span{display:block}
+.fh-shim{background:var(--shim);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent}
+.fh-lead{font-size:clamp(17px,1.5vw,20px);line-height:1.6;margin:0;max-width:540px;color:var(--lt);text-wrap:pretty}
+.fh-ctas{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.fh-btn{display:inline-flex;align-items:center;gap:10px;padding:17px 28px;border-radius:999px;font-weight:800;font-size:16px;transition:transform .25s,box-shadow .25s,background .2s;cursor:pointer}
+.fh-btn--glow{background:linear-gradient(135deg,var(--acc),var(--acc2));color:var(--ink) !important;box-shadow:0 12px 40px rgba(255,179,25,.35)}
+.fh-btn--glow:hover{transform:translateY(-3px);box-shadow:0 18px 50px rgba(255,179,25,.5)}
+.fh-btn--line{padding:17px 24px;font-weight:600;color:var(--page) !important;border:1px solid rgba(255,244,226,.32);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.fh-btn--line:hover{background:rgba(255,244,226,.08)}
+.fh-tap{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--lt);letter-spacing:.04em}
+.fh-tap::before{content:'';width:8px;height:8px;border-radius:50%;background:#FFD27A;box-shadow:0 0 12px #FFD27A}
+.fh-archwrap{position:relative;justify-self:center;width:min(100%,440px);aspect-ratio:4/5}
+.fh-ring1,.fh-ring2{position:absolute;border-radius:50%;pointer-events:none}
+.fh-ring1{inset:-9%;background:repeating-conic-gradient(var(--acc) 0 3deg,transparent 3deg 10deg);-webkit-mask:radial-gradient(closest-side,transparent 86%,#000 87%,#000 92%,transparent 93%);mask:radial-gradient(closest-side,transparent 86%,#000 87%,#000 92%,transparent 93%);opacity:.9}
+.fh-ring2{inset:-3%;background:repeating-conic-gradient(var(--sec) 0 8deg,var(--pri) 8deg 16deg);-webkit-mask:radial-gradient(closest-side,transparent 95%,#000 96%);mask:radial-gradient(closest-side,transparent 95%,#000 96%);opacity:.8}
+.fh-arch{position:absolute;inset:6%;border-radius:999px 999px 28px 28px;overflow:hidden;background:var(--deep);box-shadow:0 30px 80px rgba(0,0,0,.45),inset 0 0 0 1px rgba(255,244,226,.2)}
+.fh-arch img{width:100%;height:100%;object-fit:cover;display:block}
+.fh-arch::after{content:'';position:absolute;left:0;right:0;bottom:0;height:40%;background:linear-gradient(transparent,rgba(var(--bg-rgb),.75))}
+.fh-chip{position:absolute;z-index:2}
+.fh-chip--cd{left:-6%;bottom:14%;padding:14px 18px;border-radius:18px;background:rgba(255,244,226,.12);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border:1px solid rgba(255,244,226,.25);display:flex;flex-direction:column;gap:2px;min-width:170px;max-width:260px}
+.fh-chip-k{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--lt2);font-weight:700}
+.fh-chip-v{font-family:var(--disp);font-size:28px;line-height:1.1;font-variant-numeric:tabular-nums;color:#fff}
+.fh-chip-u{font-size:11px;color:var(--lt);letter-spacing:.06em;display:flex;align-items:center;gap:6px}
+.fh-chip-u i{width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(255,255,255,.7);flex:none}
+.fh-chip--badge{right:-4%;top:12%;padding:10px 16px;border-radius:999px;background:var(--acc);color:var(--ink);font-weight:800;font-size:14px;box-shadow:0 12px 30px rgba(0,0,0,.3);max-width:70%}
+.fh-hero-foot{position:relative;width:100%;max-width:1240px;margin:0 auto;padding:0 24px 12px;display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px}
+.fh-credit{margin:0;padding:4px 10px;border-radius:999px;background:rgba(10,4,10,.55);font-size:12px;line-height:1.3;color:#fff}
+.fh-pause{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border:1px solid rgba(255,255,255,.45);border-radius:999px;background:rgba(10,4,10,.55);color:#fff;font:600 12px/1.2 var(--body);cursor:pointer}
+.fh-pause svg{width:11px;height:11px;fill:currentColor}
+.fh-pause .ic-g,html.sky-paused .fh-pause .ic-p{display:none}
+html.sky-paused .fh-pause .ic-g{display:block}
+.fh-plan-box{position:relative;width:100%;max-width:1240px;margin:0 auto;padding:0 24px 40px}
+.fh-qb{border-radius:28px;background:rgba(255,244,226,.1);-webkit-backdrop-filter:blur(22px) saturate(1.3);backdrop-filter:blur(22px) saturate(1.3);border:1px solid rgba(255,244,226,.2);padding:10px;box-shadow:0 30px 80px rgba(0,0,0,.35)}
+.fh-tabs{display:flex;gap:4px;flex-wrap:wrap;padding:4px 4px 10px}
+.fh-tab{font:600 14px var(--body);padding:9px 16px;border-radius:999px;border:0;cursor:pointer;background:transparent;color:var(--page);transition:background .2s}
+.fh-tab:hover{background:rgba(255,244,226,.1)}
+.fh-tab.on{background:var(--page);color:var(--ink)}
+.fh-fields{background:var(--page);border-radius:20px;padding:10px;display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;color:var(--ink)}
+.fh-field{display:flex;flex-direction:column;gap:2px;padding:10px 14px;border-radius:14px;background:#fff;min-width:0}
+.fh-field span{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--pri-t)}
+.fh-field input,.fh-field select{border:0;outline:0;font:600 17px var(--body);background:transparent;color:var(--ink);padding:2px 0;width:100%;min-width:0}
+.fh-field:focus-within{box-shadow:0 0 0 2px var(--acc)}
+.fh-wa{display:flex;align-items:center;justify-content:center;gap:10px;padding:16px 20px;border-radius:14px;background:var(--pri);color:#fff !important;font-weight:800;font-size:16px;text-align:center;transition:background .2s}
+.fh-wa:hover{background:var(--pri-h)}
+/* ---- marquee ---- */
+.fh-marquee{background:var(--acc);overflow:hidden;padding:18px 0;transform:rotate(-1.5deg);margin:-14px -20px 0;position:relative;z-index:3;box-shadow:0 10px 30px rgba(var(--bg-rgb),.2)}
+.fh-mq{display:flex;width:max-content;gap:36px;align-items:center;font-family:var(--disp);font-size:30px;color:var(--ink);white-space:nowrap}
+.fh-mq span{display:flex;align-items:center;gap:36px}
+.fh-mq span::after{content:'';width:12px;height:12px;background:var(--pri);transform:rotate(45deg)}
+/* ---- shared section bits ---- */
+.fh-sec{padding:110px 0 50px}
+.fh-head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:40px}
+.fh-head--c{justify-content:center;text-align:center}
+.fh-eye{color:var(--pri-t);font-weight:800;letter-spacing:.18em;text-transform:uppercase;font-size:13px;margin-bottom:10px}
+.fh-eye--sec{color:var(--sec-t)}
+.fh-h2{font-family:var(--disp);font-weight:400;font-size:clamp(38px,5.4vw,76px);margin:0;line-height:1;max-width:780px;text-wrap:balance}
+.fh-side{max-width:400px;margin:0;font-size:17px;line-height:1.6;color:var(--muted)}
+.fh-small{font-size:11px;color:var(--muted);line-height:1.7;margin:18px 0 0}
+.fh-small a{text-decoration:underline;text-underline-offset:2px}
+/* ---- the nine nights / Diwali days strip ---- */
+.fh-days{margin:72px auto 0;max-width:1240px;padding:0 24px}
+.fh-days-in{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px 28px;align-items:center;border-radius:24px;padding:20px 24px;background:var(--bg);color:var(--page)}
+.fh-days-eye{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--lt2)}
+.fh-days-title{font-family:var(--disp);font-size:28px;line-height:1.15;margin:4px 0}
+.fh-days-line{font-size:15px;line-height:1.5;color:var(--lt)}
+.fh-days-chip{display:inline-flex;align-items:center;gap:8px;margin-top:8px;padding:3px 12px 3px 4px;border-radius:999px;background:rgba(255,255,255,.1);font-size:13px;font-weight:600}
+.fh-days-chip i{width:18px;height:18px;border-radius:50%;border:1.5px solid rgba(255,255,255,.75)}
+.fh-days-note{display:block;font-size:13px;color:var(--lt2);margin-top:6px}
+.fh-track{display:flex;gap:6px;align-items:flex-end;flex-wrap:wrap}
+.fh-st{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;min-width:40px;min-height:52px;padding:5px 3px;border:0;border-radius:12px;background:none;color:var(--page);cursor:pointer;font:600 11px/1.1 var(--body)}
+.fh-st:hover{background:rgba(255,255,255,.08)}
+.fh-st i{display:block;width:22px;height:22px;border-radius:50%;border:1.5px solid rgba(255,255,255,.55)}
+.fh-st.past{opacity:.5}
+.fh-st.today i{width:30px;height:30px;box-shadow:0 0 0 2px var(--acc),0 0 14px 4px rgba(255,210,122,.45)}
+.fh-st.sel{background:rgba(255,255,255,.14)}
+.fh-st em{font-style:normal;font-size:10px;opacity:.85;white-space:nowrap}
+.fh--diwali .fh-st i{background:radial-gradient(circle at 50% 35%,#FFE3A3 0 18%,#FF8A3D 40%,#7A1B12 75%) !important;border-color:rgba(255,227,163,.6)}
+.fh--diwali .fh-st.future i{background:#3B2A6B !important}
+/* ---- festive cards ---- */
+.fh-spec{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:22px}
+.fh-cardw{min-width:0}
+.fh-cardw--feat{grid-column:1/-1}
+.fh-card{position:relative;display:block;height:440px;border-radius:28px;overflow:hidden;color:#fff;background:var(--deep);transition:transform .35s cubic-bezier(.2,.7,.2,1);will-change:transform}
+.fh-cardw--feat .fh-card{height:520px}
+.fh-card-img,.fh-card-cv{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.fh-card-shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(var(--bg-rgb),.1) 30%,rgba(var(--bg-rgb),.92));pointer-events:none}
+.fh-card--live .fh-card-shade{background:linear-gradient(180deg,rgba(var(--bg-rgb),0) 50%,rgba(var(--bg-rgb),.85))}
+.fh-glare{position:absolute;inset:0;background:radial-gradient(500px circle at var(--mx,50%) var(--my,50%),rgba(255,244,226,.18),transparent 45%);pointer-events:none;opacity:0;transition:opacity .3s}
+.fh-card:hover .fh-glare,.fh-icard:hover .fh-glare{opacity:1}
+.fh-card-top{position:absolute;top:18px;left:18px;right:18px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;pointer-events:none}
+.fh-tag{padding:6px 14px;border-radius:999px;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;background:var(--pri);color:#fff}
+.fh-tag--b{background:#E08A00;color:#2B0A1E}.fh-tag--c{background:#0B7A73}.fh-tag--d{background:#4A7018}
+.fh--diwali .fh-tag--b{background:#3B2A6B;color:#fff}.fh--diwali .fh-tag--c{background:#E8B04B;color:#1E0F14}.fh--diwali .fh-tag--d{background:#7A1B12}
+.fh-label{font-size:11px;color:#fff;text-align:right;max-width:55%;padding:3px 9px;border-radius:999px;background:rgba(10,4,10,.55)}
+.fh-card-foot{position:absolute;left:0;right:0;bottom:0;padding:26px;display:flex;justify-content:space-between;align-items:flex-end;gap:16px;pointer-events:none}
+.fh-card-body{display:flex;flex-direction:column;gap:6px;max-width:560px;min-width:0}
+.fh-card-meta{font-size:14px;font-weight:600;color:var(--lt2);letter-spacing:.02em}
+.fh-card-title{font-family:var(--disp);font-size:34px;line-height:1.05;text-wrap:balance}
+.fh-cardw--feat .fh-card-title{font-size:clamp(36px,5vw,64px)}
+.fh-card-desc{font-size:15px;line-height:1.5;color:var(--lt)}
+.fh-go{flex:none;width:52px;height:52px;border-radius:50%;background:var(--acc);color:var(--ink);display:grid;place-items:center;font-size:22px;font-weight:800}
+/* ---- destinations: list + preview ---- */
+.fh-pills{display:flex;gap:4px;flex-wrap:wrap;padding:5px;border-radius:24px;background:#fff;box-shadow:0 2px 0 var(--line)}
+.fh-pill{font:600 14px var(--body);padding:9px 16px;border-radius:999px;cursor:pointer;border:0;background:transparent;color:var(--ink);transition:background .25s}
+.fh-pill:hover{background:rgba(0,0,0,.05)}
+.fh-pill.on{background:var(--ink);color:var(--page)}
+.fh-dgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:32px;align-items:start}
+.fh-list{display:flex;flex-direction:column}
+.fh-row{display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:16px;padding:16px 18px;border-top:1px solid var(--line);border-radius:16px;transition:background .3s}
+.fh-row.on{background:#fff}
+.fh-row-th{display:none;width:56px;height:56px;border-radius:14px;object-fit:cover}
+.fh-row-n{font-size:13px;font-weight:700;color:var(--num);font-variant-numeric:tabular-nums}
+.fh-row.on .fh-row-n,.fh-row.on .fh-row-name{color:var(--pri-t)}
+.fh-row-txt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.fh-row-name{font-family:var(--disp);font-size:clamp(26px,2.6vw,36px);line-height:1.05;transition:color .3s}
+.fh-row-sub{font-size:14px;color:var(--muted)}
+.fh-row-meta{display:flex;align-items:center;gap:12px;font-size:14px;font-weight:600;color:var(--muted);white-space:nowrap}
+.fh-arrow{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:rgba(0,0,0,.06);color:var(--ink);transition:all .3s}
+.fh-row.on .fh-arrow{background:var(--pri);color:#fff}
+.fh-pv{position:sticky;top:100px;height:min(600px,72vh);min-height:400px;border-radius:32px;overflow:hidden;background:var(--bg)}
+.fh-pvl{position:absolute;inset:0;opacity:0;transition:opacity .5s ease}
+.fh-pvl.on{opacity:1}
+.fh-pvl img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.fh-pvl-txt{position:absolute;left:0;right:0;bottom:0;padding:32px;background:linear-gradient(transparent,rgba(var(--bg-rgb),.88));color:#fff}
+.fh-pvl-eye{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--lt2);font-weight:700}
+.fh-pvl-name{font-family:var(--disp);font-size:clamp(44px,5vw,72px);line-height:1}
+@media (max-width:899px){.fh-dgrid{grid-template-columns:1fr}.fh-pv{display:none}.fh-row{grid-template-columns:56px minmax(0,1fr) auto;padding:12px 8px}.fh-row-n{display:none}.fh-row-th{display:block}.fh-row-meta .fh-arrow{display:none}}
+/* ---- beyond India ---- */
+.fh-intl{background:var(--bg);color:var(--page);margin-top:60px;overflow:hidden;position:relative}
+.fh-dots{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,179,25,.14) 1.4px,transparent 2px);background-size:24px 24px;pointer-events:none}
+.fh-intl .fh-eye{color:var(--acc)}
+.fh-intl-head{position:relative;padding-top:110px}
+.fh-arrows{display:flex;gap:10px}
+.fh-arrows button{width:56px;height:56px;border-radius:50%;border:1px solid rgba(255,244,226,.3);background:transparent;color:var(--page);font-size:22px;cursor:pointer}
+.fh-arrows button:hover{background:var(--acc);color:var(--ink);border-color:var(--acc)}
+.fh-track-x{position:relative;display:flex;gap:22px;overflow-x:auto;scroll-snap-type:x mandatory;padding:10px max(24px,calc((100vw - 1192px)/2)) 110px;scrollbar-width:none}
+.fh-track-x::-webkit-scrollbar{display:none}
+.fh-icard{position:relative;flex:none;width:min(380px,80vw);height:480px;border-radius:28px;overflow:hidden;scroll-snap-align:start;color:#fff;background:var(--deep);transition:transform .35s cubic-bezier(.2,.7,.2,1)}
+.fh-icard img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.fh-icard-wm{position:absolute;right:-26px;top:24px;font-family:var(--disp);font-size:150px;line-height:1;color:rgba(255,255,255,.16);writing-mode:vertical-rl;pointer-events:none;white-space:nowrap}
+.fh-icard-txt{position:absolute;left:0;right:0;bottom:0;padding:26px;background:linear-gradient(transparent,rgba(var(--bg-rgb),.85));pointer-events:none}
+.fh-icard-meta{font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--lt2)}
+.fh-icard-name{font-family:var(--disp);font-size:46px;line-height:1.05}
+/* ---- travel styles ---- */
+.fh-styles{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px}
+.fh-style{position:relative;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;gap:34px;padding:22px;min-height:180px;border-radius:24px;background:#fff;color:var(--ink);overflow:hidden;transition:transform .35s cubic-bezier(.2,.7,.2,1),box-shadow .35s}
+.fh-style:hover{box-shadow:0 24px 50px rgba(var(--bg-rgb),.14)}
+.fh-mandala{position:relative;width:62px;height:62px;border-radius:50%;display:grid;place-items:center}
+.fh-mandala span{font-size:24px;line-height:1;position:relative}
+.fh-style-name{font-family:var(--disp);font-size:24px;line-height:1.1}
+/* ---- process ---- */
+.fh-proc{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:48px;align-items:start}
+.fh-proc-l{position:sticky;top:120px}
+.fh-proc-l p{margin:20px 0 28px;font-size:17px;line-height:1.6;color:var(--muted);max-width:440px}
+.fh-btn--wa{background:var(--sec-t);color:#fff !important;padding:15px 24px;font-weight:700}
+.fh-btn--wa:hover{filter:brightness(1.1)}
+.fh-steps{display:flex;flex-direction:column;gap:20px;padding-bottom:40px}
+.fh-step{position:sticky;min-height:220px;border-radius:28px;padding:32px;box-shadow:0 -10px 40px rgba(var(--bg-rgb),.12);display:flex;flex-direction:column;justify-content:space-between;gap:28px;background:#fff;color:var(--ink)}
+.fh-step:nth-child(1){top:110px}.fh-step:nth-child(2){top:138px;background:var(--acc)}.fh-step:nth-child(3){top:166px;background:var(--pri);color:#fff}.fh-step:nth-child(4){top:194px;background:var(--bg);color:var(--page)}
+.fh-step-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.fh-step-n{font-family:var(--disp);font-size:84px;line-height:.8;opacity:.9}
+.fh-step-top i{width:16px;height:16px;transform:rotate(45deg);background:currentColor;opacity:.5}
+.fh-step-t{font-family:var(--disp);font-size:32px;line-height:1.1;margin-bottom:8px}
+.fh-step-d{font-size:16px;line-height:1.55;opacity:.92;max-width:460px}
+/* ---- why ---- */
+.fh-why{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1px;background:var(--line);border-radius:28px;overflow:hidden;border:1px solid var(--line)}
+.fh-why > div{background:var(--page);padding:34px 26px;display:flex;flex-direction:column;gap:14px;transition:background .3s}
+.fh-why > div:hover{background:#fff}
+.fh-why-ic{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:22px;background:var(--pri)}
+.fh-why > div:nth-child(2) .fh-why-ic{background:var(--sec)}.fh-why > div:nth-child(3) .fh-why-ic{background:#E08A00}.fh-why > div:nth-child(4) .fh-why-ic{background:#5C8A1F}.fh-why > div:nth-child(5) .fh-why-ic{background:#FF5FA2}
+.fh--diwali .fh-why > div:nth-child(3) .fh-why-ic{background:#D9962E}.fh--diwali .fh-why > div:nth-child(4) .fh-why-ic{background:#D9622B}.fh--diwali .fh-why > div:nth-child(5) .fh-why-ic{background:#E8B04B}
+.fh-why-t{font-family:var(--disp);font-size:25px;line-height:1.1}
+.fh-why-d{font-size:15px;line-height:1.55;color:var(--muted)}
+/* ---- CTA ---- */
+.fh-cta{position:relative;overflow:hidden;border-radius:36px;min-height:460px;background:var(--bg);color:#fff;display:flex;align-items:center}
+.fh-cta > img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.fh--navratri .fh-cta > img{object-position:70% 60%}
+.fh-cta-shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(var(--bg-rgb),.95) 30%,rgba(var(--bg-rgb),.4));pointer-events:none}
+.fh-cta-ring{position:absolute;right:-140px;top:50%;margin-top:-260px;width:520px;height:520px;border-radius:50%;background:repeating-conic-gradient(var(--acc) 0 4deg,transparent 4deg 12deg);-webkit-mask:radial-gradient(closest-side,transparent 55%,#000 56%,#000 62%,transparent 63%,transparent 75%,#000 76%,#000 79%,transparent 80%);mask:radial-gradient(closest-side,transparent 55%,#000 56%,#000 62%,transparent 63%,transparent 75%,#000 76%,#000 79%,transparent 80%);opacity:.6;pointer-events:none}
+.fh-cta-in{position:relative;padding:64px clamp(24px,5vw,80px);max-width:700px;display:flex;flex-direction:column;gap:22px}
+.fh-cta-eye{font-size:13px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--acc)}
+.fh-cta-in p{margin:0;font-size:18px;line-height:1.55;color:var(--lt)}
+.fh-cta-in .fh-credit{align-self:flex-start}
+.fh-btn--acc{background:var(--acc);color:var(--ink) !important}
+.fh-btn--acc:hover{background:var(--acc-h)}
+/* ---- footer ---- */
+.fh-foot{background:var(--bg2);color:#E9CFDC;overflow:hidden}
+.fh--diwali .fh-foot{color:#E5D6C6}
+.fh-foot-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:36px;font-size:15px;padding-top:80px;padding-bottom:20px}
+.fh-foot-cols > div{display:flex;flex-direction:column;gap:10px}
+.fh-foot-h{color:var(--acc);font-weight:700;margin-bottom:4px}
+.fh-foot a:hover{color:var(--acc)}
+.fh-foot-logo{height:56px;width:auto;align-self:flex-start;border-radius:10px;background:#fff;padding:4px 10px}
+.fh-foot-tag{line-height:1.6;opacity:.85}
+.fh-word{font-family:var(--disp);font-size:clamp(80px,19vw,280px);line-height:.9;text-align:center;color:transparent;-webkit-text-stroke:1.5px rgba(255,179,25,.35);letter-spacing:-.02em;padding:30px 0 0;user-select:none}
+.fh-legal{display:flex;justify-content:space-between;gap:12px 24px;flex-wrap:wrap;font-size:13px;opacity:.8;border-top:1px solid rgba(233,207,220,.14);padding-top:20px;padding-bottom:32px}
+.fh-legal a{text-decoration:underline;text-underline-offset:2px}
+/* ---- reveal ---- */
+.fh [data-reveal]{transition:opacity 1s cubic-bezier(.2,.7,.2,1),transform 1s cubic-bezier(.2,.7,.2,1),filter 1s cubic-bezier(.2,.7,.2,1)}
+.fh .fh-rv{opacity:0;transform:translateY(40px);filter:blur(8px)}
+@media (max-width:600px){
+  .fh-hero-in{padding-top:118px;gap:36px}
+  .fh-sec{padding-top:80px}
+  .fh-card{height:460px}.fh-cardw--feat .fh-card{height:520px}
+  .fh-card-foot{padding:20px}
+  .fh-days-in{grid-template-columns:1fr;padding:18px}
+  .fh-track{justify-content:space-between;gap:0}
+  .fh-st{min-width:34px}.fh-st em{display:none}
+  .fh-chip--badge{right:-2%}
+  .fh-cta-ring{opacity:.3}
+}
+@media (prefers-reduced-motion:reduce){.fh [data-reveal]{transition:none}.fh .fh-rv{opacity:1;transform:none;filter:none}.fh-pause{display:none !important}}
+</style>
+</helmet>
+
+<div class="{{ rootClass }}" lang="{{ lang }}">
+<div class="fh-prog" aria-hidden="true"></div>
+
+<!-- ===== NAV ===== -->
+<header class="fh-nav">
+  <div class="fh-nav-row">
+    <a class="fh-logo" href="index.html"><img src="images/logo.jpeg" alt="Skyline Travel Planner"></a>
+    <nav class="fh-links" aria-label="{{ s.menuLabel }}">
+      <a class="fh-lk fh-lk--fest" href="#festive">{{ s.specials }}</a>
+      <sc-if value="{{ offersOn }}" hint-placeholder-val="{{ false }}"><a class="fh-lk fh-lk--offer" href="{{ offersHref }}">{{ offersLabel }}</a></sc-if>
+      <a class="fh-lk" href="Domestic.dc.html">{{ tDomestic }}</a>
+      <a class="fh-lk" href="International.dc.html">{{ tInternational }}</a>
+    </nav>
+    <span class="fh-sp"></span>
+    <div class="fh-cd"><i></i><span data-cd="chip">{{ chipText }}</span></div>
+    <div class="fh-langwrap">
+      <button type="button" class="fh-langbtn" aria-haspopup="true">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.7 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.7-3.8-9S9.5 5.6 12 3z" stroke="currentColor" stroke-width="1.8"/></svg>
+        {{ langLabel }}
+      </button>
+      <div class="fh-langmenu" role="menu">
+        <sc-for list="{{ langs }}" as="lo" hint-placeholder-count="3">
+          <button type="button" class="{{ lo.cls }}" role="menuitem" onClick="{{ lo.pick }}"><span>{{ lo.name }}</span><span>{{ lo.mark }}</span></button>
+        </sc-for>
+      </div>
+    </div>
+    <a class="fh-plan" href="Customize.dc.html">{{ s.plan }}</a>
+    <button type="button" class="fh-burger" onClick="{{ toggleMenu }}" aria-expanded="{{ menuAria }}" aria-label="{{ s.menu }}">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
+    <div class="fh-menu">
+      <a class="fh-lk--fest" href="#festive" onClick="{{ closeMenu }}">{{ s.specials }}</a>
+      <sc-if value="{{ offersOn }}" hint-placeholder-val="{{ false }}"><a href="{{ offersHref }}">{{ offersLabel }}</a></sc-if>
+      <a href="Domestic.dc.html">{{ tDomestic }}</a>
+      <a href="International.dc.html">{{ tInternational }}</a>
+      <a href="Customize.dc.html">{{ tCustomize }}</a>
+      <div class="fh-menu-cta"><a class="wa" href="{{ waHello }}" target="_blank" rel="noopener">{{ tChat }}</a><a class="pl" href="Customize.dc.html">{{ s.plan }}</a></div>
+    </div>
+  </sc-if>
+</header>
+
+<!-- ===== HERO ===== -->
+<section class="fh-hero">
+  <picture class="fh-hero-bg"><source media="(max-aspect-ratio: 3/4)" srcSet="{{ heroM }}"><img src="{{ heroImg }}" alt="" fetchPriority="high"></picture>
+  <div class="fh-scrim"></div>
+  <canvas class="fh-hero-cv" aria-hidden="true"></canvas>
+  <div class="fh-hero-in">
+    <div class="fh-hero-txt">
+      <div class="fh-eyebrow-l" data-reveal="1">{{ s.eyebrow }}</div>
+      <h1 class="fh-h1"><span data-reveal="1" data-delay="100">{{ h1a }}</span><span class="fh-shim" data-reveal="1" data-delay="220" data-shimmer="1">{{ h1b }}</span><span data-reveal="1" data-delay="340">{{ h1c }}</span></h1>
+      <p class="fh-lead" data-reveal="1" data-delay="460">{{ s.lead }}</p>
+      <div class="fh-ctas" data-reveal="1" data-delay="560">
+        <a class="fh-btn fh-btn--glow" href="#plan">{{ s.cta1 }} <span aria-hidden="true">→</span></a>
+        <a class="fh-btn fh-btn--line" href="#festive">{{ s.cta2 }}</a>
+      </div>
+      <sc-if value="{{ isDiwali }}" hint-placeholder-val="{{ false }}"><div class="fh-tap" data-reveal="1" data-delay="700">{{ s.tap }}</div></sc-if>
+    </div>
+    <div class="fh-archwrap" data-reveal="1" data-delay="300">
+      <div class="fh-ring1" data-spin="70000"></div>
+      <div class="fh-ring2" data-spin="110000" data-rev="1"></div>
+      <div class="fh-arch"><img src="{{ archImg }}" alt="{{ s.archAlt }}"></div>
+      <div class="fh-chip fh-chip--cd" data-float="3600">
+        <span class="fh-chip-k">{{ chipK }}</span>
+        <sc-if value="{{ counting }}" hint-placeholder-val="{{ true }}">
+          <span class="fh-chip-v"><span data-cd="d">{{ cd.d }}</span>:<span data-cd="h">{{ cd.h }}</span>:<span data-cd="m">{{ cd.m }}</span>:<span data-cd="s">{{ cd.s }}</span></span>
+          <span class="fh-chip-u">{{ s.units }}</span>
+        </sc-if>
+        <sc-if value="{{ notCounting }}" hint-placeholder-val="{{ false }}">
+          <span class="fh-chip-v">{{ chipBig }}</span>
+          <sc-if value="{{ chipSmallOn }}" hint-placeholder-val="{{ false }}"><span class="fh-chip-u"><i style="{{ chipSwatch }}"></i>{{ chipSmall }}</span></sc-if>
+        </sc-if>
+      </div>
+      <div class="fh-chip fh-chip--badge" data-float="4200">{{ s.badge }}</div>
+    </div>
+  </div>
+  <div class="fh-hero-foot"><p class="fh-credit">{{ s.aiPhoto }}</p><button type="button" class="fh-pause" onClick="{{ togglePause }}"><svg class="ic-p" viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="1.5" width="2.8" height="9" rx=".8"/><rect x="7.2" y="1.5" width="2.8" height="9" rx=".8"/></svg><svg class="ic-g" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.6v8.8L10.2 6z"/></svg><span>{{ pauseText }}</span></button></div>
+  <div id="plan" class="fh-plan-box" data-reveal="1" data-delay="650">
+    <div class="fh-qb">
+      <div class="fh-tabs" role="group" aria-label="{{ s.qbLabel }}">
+        <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="6">
+          <button type="button" class="{{ tb.cls }}" aria-pressed="{{ tb.pressed }}" onClick="{{ tb.pick }}">{{ tb.label }}</button>
+        </sc-for>
+      </div>
+      <div class="fh-fields">
+        <label class="fh-field"><span>{{ fromLabel }}</span><input value="{{ q.from }}" onChange="{{ setFrom }}" placeholder="{{ s.phFrom }}" maxLength="60" autoComplete="off"></label>
+        <label class="fh-field"><span>{{ toLabel }}</span><input value="{{ q.to }}" onChange="{{ setTo }}" placeholder="{{ phTo }}" maxLength="60" autoComplete="off"></label>
+        <label class="fh-field"><span>{{ s.date }}</span><input type="date" value="{{ q.date }}" onChange="{{ setDate }}" min="{{ today }}"></label>
+        <label class="fh-field"><span>{{ s.pax }}</span><select value="{{ q.pax }}" onChange="{{ setPax }}"><sc-for list="{{ paxOpts }}" as="po" hint-placeholder-count="5"><option value="{{ po.v }}">{{ po.label }}</option></sc-for></select></label>
+        <a class="fh-wa" href="{{ waHref }}" target="_blank" rel="noopener">{{ s.qbGo }}</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="fh-marquee" aria-hidden="true"><div class="fh-mq" data-marquee="38000"><sc-for list="{{ marquee }}" as="w" hint-placeholder-count="16"><span>{{ w }}</span></sc-for></div></div>
+
+<!-- ===== THE NINE NIGHTS / THE DIWALI DAYS (fest.js; from night 1 / Vagh Baras) ===== -->
+<sc-if value="{{ daysOn }}" hint-placeholder-val="{{ false }}">
+  <div class="fh-days" lang="{{ lang }}">
+    <div class="fh-days-in">
+      <div aria-live="polite">
+        <div class="fh-days-eye">{{ dEye }}</div>
+        <div class="fh-days-title">{{ dTitle }}</div>
+        <div class="fh-days-line">{{ dLine }}</div>
+        <sc-if value="{{ dChipOn }}" hint-placeholder-val="{{ false }}"><span class="fh-days-chip"><i style="{{ dSwatch }}"></i>{{ dChip }}</span></sc-if>
+        <sc-if value="{{ dNoteOn }}" hint-placeholder-val="{{ false }}"><span class="fh-days-note">{{ dNote }}</span></sc-if>
+      </div>
+      <div class="fh-track" role="group" aria-label="{{ dTrack }}">
+        <sc-for list="{{ dStops }}" as="st" hint-placeholder-count="9">
+          <button type="button" class="{{ st.cls }}" aria-pressed="{{ st.pressed }}" aria-label="{{ st.aria }}" onClick="{{ st.pick }}"><i style="{{ st.dot }}"></i><small>{{ st.label }}</small><em>{{ st.name }}</em></button>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<!-- ===== 01 FESTIVE SPECIALS ===== -->
+<section id="festive" class="fh-sec">
+  <div class="fh-wrap">
+    <div class="fh-head">
+      <div data-reveal="1"><div class="fh-eye">{{ s.specEye }}</div><h2 class="fh-h2">{{ s.specH }}</h2></div>
+      <p class="fh-side" data-reveal="1" data-delay="120">{{ s.specP }}</p>
+    </div>
+    <div class="fh-spec">
+      <sc-for list="{{ cards }}" as="c" hint-placeholder-count="4">
+        <div class="{{ c.wcls }}" data-reveal="1" data-delay="{{ c.delay }}">
+          <a class="{{ c.cls }}" href="{{ c.href }}" onMouseMove="{{ tilt }}" onMouseLeave="{{ untilt }}">
+            <sc-if value="{{ c.hasImg }}" hint-placeholder-val="{{ true }}"><img class="fh-card-img" src="{{ c.img }}" alt="" loading="lazy" style="{{ c.imgStyle }}"></sc-if>
+            <sc-if value="{{ c.live }}" hint-placeholder-val="{{ false }}"><canvas class="fh-card-cv fh-garba-cv" aria-hidden="true"></canvas></sc-if>
+            <div class="fh-card-shade"></div><div class="fh-glare"></div>
+            <div class="fh-card-top"><span class="{{ c.tagCls }}">{{ c.tag }}</span><sc-if value="{{ c.hasLabel }}" hint-placeholder-val="{{ false }}"><span class="fh-label">{{ c.label }}</span></sc-if></div>
+            <div class="fh-card-foot"><div class="fh-card-body"><span class="fh-card-meta">{{ c.meta }}</span><span class="fh-card-title">{{ c.title }}</span><span class="fh-card-desc">{{ c.desc }}</span></div><span class="fh-go" aria-hidden="true">↗</span></div>
+          </a>
+        </div>
+      </sc-for>
+    </div>
+    <p class="fh-small">{{ cardCredits }}</p>
+  </div>
+</section>
+
+<!-- ===== 02 POPULAR DESTINATIONS ===== -->
+<section id="destinations" class="fh-sec" style="padding-top:60px">
+  <div class="fh-wrap">
+    <div class="fh-head">
+      <div data-reveal="1"><div class="fh-eye fh-eye--sec">{{ s.destEye }}</div><h2 class="fh-h2">{{ tPopular }}</h2></div>
+      <div class="fh-pills" role="group" aria-label="{{ tPopular }}" data-reveal="1" data-delay="120">
+        <sc-for list="{{ filters }}" as="fl" hint-placeholder-count="6">
+          <button type="button" class="{{ fl.cls }}" aria-pressed="{{ fl.pressed }}" onClick="{{ fl.pick }}">{{ fl.label }}</button>
+        </sc-for>
+      </div>
+    </div>
+    <div class="fh-dgrid">
+      <div class="fh-list">
+        <sc-for list="{{ dests }}" as="d" hint-placeholder-count="17">
+          <a class="{{ d.cls }}" href="{{ d.href }}" onMouseEnter="{{ d.pick }}" onFocus="{{ d.pick }}">
+            <img class="fh-row-th" src="{{ d.img }}" alt="" loading="lazy">
+            <span class="fh-row-n">{{ d.num }}</span>
+            <span class="fh-row-txt"><span class="fh-row-name">{{ d.name }}</span><span class="fh-row-sub">{{ d.sub }}</span></span>
+            <span class="fh-row-meta">{{ d.meta }}<span class="fh-arrow" aria-hidden="true">→</span></span>
+          </a>
+        </sc-for>
+      </div>
+      <div class="fh-pv" aria-hidden="true">
+        <sc-for list="{{ dests }}" as="d" hint-placeholder-count="1">
+          <div class="{{ d.pvCls }}">
+            <sc-if value="{{ d.seen }}" hint-placeholder-val="{{ false }}"><img src="{{ d.big }}" alt="" loading="lazy"></sc-if>
+            <div class="fh-pvl-txt"><div class="fh-pvl-eye">{{ d.sub }} · {{ d.meta }}</div><div class="fh-pvl-name">{{ d.name }}</div></div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    <p class="fh-small">{{ destCredits }}</p>
+  </div>
+</section>
+
+<!-- ===== 03 BEYOND INDIA ===== -->
+<section id="international" class="fh-intl">
+  <div class="fh-dots"></div>
+  <div class="fh-wrap fh-head fh-intl-head" style="margin-bottom:24px">
+    <div data-reveal="1"><div class="fh-eye">{{ s.intlEye }}</div><h2 class="fh-h2">{{ s.intlH }}</h2></div>
+    <div class="fh-arrows"><button type="button" onClick="{{ intlPrev }}" aria-label="{{ s.prev }}">←</button><button type="button" onClick="{{ intlNext }}" aria-label="{{ s.next }}">→</button></div>
+  </div>
+  <div class="fh-track-x">
+    <sc-for list="{{ intl }}" as="i" hint-placeholder-count="3">
+      <a class="fh-icard" href="{{ i.href }}" onMouseMove="{{ tilt }}" onMouseLeave="{{ untilt }}">
+        <img src="{{ i.img }}" alt="" loading="lazy">
+        <span class="fh-icard-wm" aria-hidden="true">{{ i.wm }}</span>
+        <div class="fh-glare"></div>
+        <div class="fh-icard-txt"><div class="fh-icard-meta">{{ i.meta }}</div><div class="fh-icard-name">{{ i.name }}</div></div>
+      </a>
+    </sc-for>
+  </div>
+</section>
+
+<!-- ===== 04 TRAVEL STYLES ===== -->
+<section class="fh-sec">
+  <div class="fh-wrap">
+    <div class="fh-head fh-head--c" data-reveal="1"><div><div class="fh-eye">{{ s.styleEye }}</div><h2 class="fh-h2">{{ s.styleH }}</h2></div></div>
+    <div class="fh-styles">
+      <sc-for list="{{ styles }}" as="st" hint-placeholder-count="11">
+        <a class="fh-style" href="Customize.dc.html" data-reveal="1" data-delay="{{ st.delay }}" onMouseMove="{{ tilt }}" onMouseLeave="{{ untilt }}">
+          <span class="fh-mandala" style="{{ st.ring }}"><span aria-hidden="true">{{ st.icon }}</span></span>
+          <span class="fh-style-name">{{ st.name }}</span>
+        </a>
+      </sc-for>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 05 PROCESS ===== -->
+<section class="fh-sec" style="padding-top:60px">
+  <div class="fh-wrap fh-proc">
+    <div class="fh-proc-l" data-reveal="1">
+      <div class="fh-eye fh-eye--sec">{{ s.procEye }}</div>
+      <h2 class="fh-h2">{{ s.procH }}</h2>
+      <p>{{ s.procP }}</p>
+      <a class="fh-btn fh-btn--wa" href="{{ waHello }}" target="_blank" rel="noopener">{{ s.waStart }} <span aria-hidden="true">→</span></a>
+    </div>
+    <div class="fh-steps">
+      <sc-for list="{{ steps }}" as="st" hint-placeholder-count="4">
+        <div class="fh-step">
+          <div class="fh-step-top"><span class="fh-step-n">{{ st.num }}</span><i aria-hidden="true"></i></div>
+          <div><div class="fh-step-t">{{ st.title }}</div><div class="fh-step-d">{{ st.desc }}</div></div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 06 WHY US ===== -->
+<section class="fh-sec" style="padding-top:60px">
+  <div class="fh-wrap">
+    <div class="fh-head fh-head--c" data-reveal="1"><div><div class="fh-eye">{{ s.whyEye }}</div><h2 class="fh-h2">{{ tWhyChoose }}</h2></div></div>
+    <div class="fh-why">
+      <sc-for list="{{ reasons }}" as="r" hint-placeholder-count="5">
+        <div data-reveal="1" data-delay="{{ r.delay }}"><span class="fh-why-ic" aria-hidden="true">{{ r.icon }}</span><div class="fh-why-t">{{ r.title }}</div><div class="fh-why-d">{{ r.desc }}</div></div>
+      </sc-for>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CTA ===== -->
+<section class="fh-sec" style="padding-top:40px;padding-bottom:110px">
+  <div class="fh-wrap">
+    <div class="fh-cta" data-reveal="1">
+      <img src="{{ ctaImg }}" alt="" loading="lazy">
+      <div class="fh-cta-shade"></div>
+      <div class="fh-cta-ring" data-spin="60000" aria-hidden="true"></div>
+      <div class="fh-cta-in">
+        <div class="fh-cta-eye"><span data-cd="cta">{{ ctaEye }}</span></div>
+        <h2 class="fh-h2" style="font-size:clamp(38px,5vw,72px)">{{ s.ctaH }}</h2>
+        <p>{{ s.ctaP }}</p>
+        <div class="fh-ctas">
+          <a class="fh-btn fh-btn--acc" href="Customize.dc.html">{{ s.ctaGo }}</a>
+          <a class="fh-btn fh-btn--line" href="tel:+918866050291">+91 88660 50291</a>
+        </div>
+        <p class="fh-credit">{{ s.aiPhoto }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="fh-foot">
+  <div class="fh-wrap fh-foot-cols">
+    <div><img class="fh-foot-logo" src="images/logo.jpeg" alt="Skyline Travel Planner"><span class="fh-foot-tag">{{ s.footTag }} {{ tNoPay }}</span></div>
+    <div><div class="fh-foot-h">{{ tExplore }}</div><a href="Domestic.dc.html">{{ tDomestic }}</a><a href="International.dc.html">{{ tInternational }}</a><a href="Customize.dc.html">{{ tCustomize }}</a><a href="offers.html">{{ s.offers }}</a></div>
+    <div><div class="fh-foot-h">{{ tServices }}</div><a href="Flights.dc.html">{{ tFlights }}</a><a href="Trains.dc.html">{{ tTrains }}</a><a href="Buses.dc.html">{{ tBuses }}</a><a href="Cabs.dc.html">{{ tCabs }}</a><a href="Hotels.dc.html">{{ tHotels }}</a></div>
+    <div><div class="fh-foot-h">{{ tContact }}</div><a href="mailto:info@skylinetravelplanner.com">info@skylinetravelplanner.com</a><a href="tel:+918866050291">+91 88660 50291</a></div>
+  </div>
+  <div class="fh-word" aria-hidden="true">Skyline</div>
+  <div class="fh-wrap fh-legal">
+    <span>© {{ year }} Skyline Travel Planner · <a href="Privacy.dc.html">Privacy Policy</a> · <a href="Privacy.dc.html#cookies">Cookie Policy</a> · <a href="photo-credits.html">{{ s.credits }}</a> · {{ tAffiliate }}</span>
+    <span>Built &amp; maintained by <a href="https://buildwise-digital.com" target="_blank" rel="noopener">BuildWise Digital</a></span>
+  </div>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { tab: 0, from: '', to: '', date: '', pax: '2', filter: 'all', active: null, seen: {}, menuOpen: false, daySel: null,
+            paused: (function () { try { return localStorage.getItem('skyline_fest_paused') === '1'; } catch (e) { return false; } })() };
+
+  // ---------- words (EN / HI / GU); the festival's own and the shared ----------
+  static STR = {
+    en: {
+      menu: 'Menu', menuLabel: 'Main menu', plan: 'Plan my trip', cta1: 'Plan my festive trip', cta2: 'See the specials',
+      badge: 'Free itinerary & quote', units: 'days · hrs · min · sec', aiPhoto: 'Photo: illustrative · AI-generated',
+      pause: ['Pause animation', 'Play animation'], qbLabel: 'What to plan', date: 'Travel date', pax: 'Travellers', phFrom: 'e.g. Ahmedabad',
+      qbGo: 'Get free quote on WhatsApp', tabs: ['Holiday package', 'Flights', 'Hotels', 'Trains', 'Buses', 'Cabs'],
+      fromTo: [['Starting from', 'Destination'], ['From', 'To'], ['City', 'Area or hotel'], ['From', 'To'], ['From', 'To'], ['From', 'To']],
+      paxOpts: ['1 traveller', '2 travellers', '3–4 travellers', '5–8 travellers', 'Group (9+)'],
+      destEye: '02 — Within India', intlEye: '03 — Beyond India', prev: 'Previous', next: 'Next',
+      styleEye: '04 — Travel styles', styleH: 'Pick your kind of trip', procEye: '05 — How it works',
+      procP: 'No payments are taken on this website. Just tell us what you would like to experience.', waStart: 'Start on WhatsApp',
+      whyEye: '06 — Why us', ctaP: 'Share your dates and budget, and we will send you a customized itinerary and quote.', ctaGo: 'Request a free quote',
+      daysTo: ['Only 1 day to go', 'Only {n} days to go'], footTag: 'Customized tours across India & beyond.', offers: 'Offers', credits: 'Photo credits',
+      popular: 'Popular', offerTag: 'Diwali offer', aiChip: 'Illustrative · AI-generated', stockChip: 'Illustrative · stock photo', dur: 'days',
+      navratri: { specials: 'Navratri Specials', eyebrow: 'Shubh Navratri · 11 – 19 Oct 2026', h1: ['Nine nights.', 'Endless', 'journeys.'],
+        lead: 'Garba and dandiya nights, Durga Puja and Mysuru’s Dasara: we plan customized trips across India around the festival.',
+        archAlt: 'A dancer in a mirror-work chaniya choli twirls with dandiya sticks under festive lights (illustrative, AI-generated)',
+        cdK: 'Navratri begins in', chipIn: 'Navratri in', phTo: 'e.g. Mysuru',
+        specEye: '01 — Navratri specials', specH: 'Where the festival comes alive', specP: 'Trips for the nine nights and for Dussehra on Tue 20 Oct, each one customized to you.',
+        garba: { tag: 'Garba', meta: 'Nine nights · 11 – 19 Oct 2026', title: 'Plan your Navratri trip', desc: 'Tell us where you would like to spend the nine nights, and we will build a customized trip around them.' },
+        tags: { raj: 'Dandiya', asm: 'Durga Puja', mys: 'Dasara' }, intlH: 'Escapes for the Dussehra break', procH: 'From a message to the garba ground',
+        ctaH: 'Celebrate this Navratri somewhere new', here: 'Navratri is here', night: 'Night {n} of 9', duss: 'Today · Dussehra', dussBig: 'Vijayadashami',
+        marquee: ['Garba', 'Dandiya Raas', 'Durga Puja', 'Mysuru Dasara', 'Vijayadashami', 'Navratri 2026', 'Customized itineraries', 'Free quote on WhatsApp'] },
+      diwali: { specials: 'Diwali Specials', eyebrow: 'Shubh Deepavali · Sunday, 8 Nov 2026', h1: ['Follow', 'the lights', 'this Diwali.'],
+        lead: 'Diwali away from home, or a holiday over the break: we plan customized trips across India and abroad around the festival.',
+        archAlt: 'Hands lighting a row of clay diyas beside a colourful rangoli (illustrative, AI-generated)',
+        cdK: 'Diwali in', chipIn: 'Diwali in', phTo: 'e.g. Lakshadweep', tap: 'Tap anywhere in the sky to launch a firework',
+        specEye: '01 — Diwali specials', specH: 'Light up your Diwali break', specP: 'Our Diwali offers and two holiday favourites, every trip customized to you.',
+        intlH: 'Diwali holidays abroad', procH: 'From a message to the festival lights', ctaH: 'Make this Diwali one to remember', here: 'Diwali is here', today: 'Today',
+        marquee: ['Vagh Baras', 'Dhanteras', 'Lakshmi Puja', 'Govardhan Puja', 'Saal Mubarak', 'Bhai Dooj', 'Diwali 2026', 'Customized itineraries', 'Free quote on WhatsApp'] }
+    },
+    hi: {
+      menu: 'मेनू', menuLabel: 'मुख्य मेनू', plan: 'मेरी यात्रा प्लान करें', cta1: 'मेरी त्योहार यात्रा प्लान करें', cta2: 'स्पेशल देखें',
+      badge: 'मुफ़्त यात्रा योजना और कोटेशन', units: 'दिन · घंटे · मिनट · सेकंड', aiPhoto: 'फ़ोटो: प्रतीकात्मक · AI से बनाया गया',
+      pause: ['एनिमेशन रोकें', 'एनिमेशन चलाएँ'], qbLabel: 'क्या प्लान करना है', date: 'यात्रा की तारीख', pax: 'यात्री', phFrom: 'जैसे अहमदाबाद',
+      qbGo: 'WhatsApp पर मुफ़्त कोटेशन पाएँ', tabs: ['हॉलिडे पैकेज', 'फ़्लाइट', 'होटल', 'ट्रेन', 'बस', 'कैब'],
+      fromTo: [['कहाँ से शुरू', 'गंतव्य'], ['कहाँ से', 'कहाँ तक'], ['शहर', 'इलाका या होटल'], ['कहाँ से', 'कहाँ तक'], ['कहाँ से', 'कहाँ तक'], ['कहाँ से', 'कहाँ तक']],
+      paxOpts: ['1 यात्री', '2 यात्री', '3–4 यात्री', '5–8 यात्री', 'ग्रुप (9+)'],
+      destEye: '02 — भारत में', intlEye: '03 — भारत से बाहर', prev: 'पिछला', next: 'अगला',
+      styleEye: '04 — यात्रा शैली', styleH: 'अपनी तरह की यात्रा चुनें', procEye: '05 — यह कैसे काम करता है',
+      procP: 'इस वेबसाइट पर कोई भुगतान नहीं लिया जाता। बस बताइए कि आप क्या अनुभव करना चाहते हैं।', waStart: 'WhatsApp पर शुरू करें',
+      whyEye: '06 — हमें क्यों चुनें', ctaP: 'अपनी तारीखें और बजट बताइए, हम आपको कस्टमाइज्ड यात्रा योजना और कोटेशन भेजेंगे।', ctaGo: 'मुफ़्त कोटेशन माँगें',
+      daysTo: ['बस 1 दिन बाकी', 'बस {n} दिन बाकी'], footTag: 'भारत और विदेश में कस्टमाइज्ड टूर।', offers: 'ऑफ़र', credits: 'फ़ोटो क्रेडिट',
+      popular: 'लोकप्रिय', offerTag: 'दिवाली ऑफ़र', aiChip: 'AI से बना चित्र', stockChip: 'सांकेतिक चित्र', dur: 'दिन',
+      navratri: { specials: 'नवरात्रि स्पेशल', eyebrow: 'शुभ नवरात्रि · 11 – 19 अक्टूबर 2026', h1: ['नौ रातें,', 'अनगिनत', 'सफ़र।'],
+        lead: 'गरबा और डांडिया की रातें, दुर्गा पूजा और मैसूर का दशहरा: हम त्योहार के हिसाब से पूरे भारत में कस्टमाइज्ड यात्राएँ प्लान करते हैं।',
+        archAlt: 'त्योहार की रोशनी में डांडिया के साथ घूमती, शीशे के काम वाली चनिया चोली पहने एक नर्तकी (प्रतीकात्मक, AI से बनाया गया)',
+        cdK: 'नवरात्रि शुरू होने में', chipIn: 'नवरात्रि में', phTo: 'जैसे मैसूर',
+        specEye: '01 — नवरात्रि स्पेशल', specH: 'जहाँ त्योहार जीवंत हो उठता है', specP: 'नौ रातों और मंगलवार, 20 अक्टूबर के दशहरे के लिए यात्राएँ, हर यात्रा आपके हिसाब से कस्टमाइज्ड।',
+        garba: { tag: 'गरबा', meta: 'नौ रातें · 11 – 19 अक्टूबर 2026', title: 'अपनी नवरात्रि यात्रा प्लान करें', desc: 'बताइए कि आप नौ रातें कहाँ बिताना चाहते हैं, हम उन्हीं के इर्द-गिर्द आपकी कस्टमाइज्ड यात्रा बनाएँगे।' },
+        tags: { raj: 'डांडिया', asm: 'दुर्गा पूजा', mys: 'दशहरा' }, intlH: 'दशहरे की छुट्टियों में सैर', procH: 'एक मैसेज से गरबा के मैदान तक',
+        ctaH: 'इस नवरात्रि कहीं नई जगह जश्न मनाएँ', here: 'नवरात्रि आ गई', night: 'नवरात्रि · दिन {n}/9', duss: 'आज · दशहरा', dussBig: 'विजयादशमी',
+        marquee: ['गरबा', 'डांडिया रास', 'दुर्गा पूजा', 'मैसूर दशहरा', 'विजयादशमी', 'नवरात्रि 2026', 'कस्टमाइज्ड यात्रा योजना', 'WhatsApp पर मुफ़्त कोटेशन'] },
+      diwali: { specials: 'दिवाली स्पेशल', eyebrow: 'शुभ दीपावली · रविवार, 8 नवंबर 2026', h1: ['इस दिवाली,', 'रोशनी की', 'राह चलें।'],
+        lead: 'घर से दूर दिवाली, या छुट्टियों में एक सफ़र: हम त्योहार के हिसाब से भारत और विदेश में कस्टमाइज्ड यात्राएँ प्लान करते हैं।',
+        archAlt: 'रंगोली के पास मिट्टी के दीयों की कतार जलाते हाथ (प्रतीकात्मक, AI से बनाया गया)',
+        cdK: 'दिवाली आने में', chipIn: 'दिवाली में', phTo: 'जैसे लक्षद्वीप', tap: 'आसमान में कहीं भी टैप करें और आतिशबाज़ी छोड़ें',
+        specEye: '01 — दिवाली स्पेशल', specH: 'अपनी दिवाली की छुट्टियाँ रोशन करें', specP: 'हमारे दिवाली ऑफ़र और छुट्टियों की दो पसंदीदा जगहें, हर यात्रा आपके हिसाब से कस्टमाइज्ड।',
+        intlH: 'विदेश में दिवाली की छुट्टियाँ', procH: 'एक मैसेज से त्योहार की रोशनी तक', ctaH: 'इस दिवाली को यादगार बनाएँ', here: 'दिवाली आ गई', today: 'आज',
+        marquee: ['वाघ बारस', 'धनतेरस', 'लक्ष्मी पूजा', 'गोवर्धन पूजा', 'साल मुबारक', 'भाई दूज', 'दिवाली 2026', 'कस्टमाइज्ड यात्रा योजना', 'WhatsApp पर मुफ़्त कोटेशन'] }
+    },
+    gu: {
+      menu: 'મેનૂ', menuLabel: 'મુખ્ય મેનૂ', plan: 'મારી ટ્રીપ પ્લાન કરો', cta1: 'મારી તહેવારની ટ્રીપ પ્લાન કરો', cta2: 'સ્પેશિયલ જુઓ',
+      badge: 'મફત પ્રવાસ યોજના અને ક્વોટ', units: 'દિવસ · કલાક · મિનિટ · સેકન્ડ', aiPhoto: 'ફોટો: પ્રતીકાત્મક · AI થી બનાવેલ',
+      pause: ['એનિમેશન રોકો', 'એનિમેશન ચલાવો'], qbLabel: 'શું પ્લાન કરવું છે', date: 'પ્રવાસની તારીખ', pax: 'પ્રવાસીઓ', phFrom: 'જેમ કે અમદાવાદ',
+      qbGo: 'WhatsApp પર મફત ક્વોટ મેળવો', tabs: ['હોલિડે પેકેજ', 'ફ્લાઇટ', 'હોટેલ', 'ટ્રેન', 'બસ', 'કેબ'],
+      fromTo: [['ક્યાંથી શરૂ', 'સ્થળ'], ['ક્યાંથી', 'ક્યાં સુધી'], ['શહેર', 'વિસ્તાર કે હોટેલ'], ['ક્યાંથી', 'ક્યાં સુધી'], ['ક્યાંથી', 'ક્યાં સુધી'], ['ક્યાંથી', 'ક્યાં સુધી']],
+      paxOpts: ['1 પ્રવાસી', '2 પ્રવાસીઓ', '3–4 પ્રવાસીઓ', '5–8 પ્રવાસીઓ', 'ગ્રુપ (9+)'],
+      destEye: '02 — ભારતમાં', intlEye: '03 — ભારતની બહાર', prev: 'પાછળ', next: 'આગળ',
+      styleEye: '04 — ટ્રાવેલ સ્ટાઇલ', styleH: 'તમારા પ્રકારનો પ્રવાસ પસંદ કરો', procEye: '05 — તે કેવી રીતે કામ કરે છે',
+      procP: 'આ વેબસાઇટ પર કોઈ ચુકવણી લેવામાં આવતી નથી. બસ કહો કે તમે શું અનુભવવા માંગો છો.', waStart: 'WhatsApp પર શરૂ કરો',
+      whyEye: '06 — અમને શા માટે પસંદ કરો', ctaP: 'તમારી તારીખો અને બજેટ જણાવો, અમે તમને કસ્ટમાઇઝ્ડ પ્રવાસ યોજના અને ક્વોટ મોકલીશું.', ctaGo: 'મફત ક્વોટ માંગો',
+      daysTo: ['બસ 1 દિવસ બાકી', 'બસ {n} દિવસ બાકી'], footTag: 'ભારત અને વિદેશમાં કસ્ટમાઇઝ્ડ ટૂર.', offers: 'ઓફર', credits: 'ફોટો ક્રેડિટ',
+      popular: 'લોકપ્રિય', offerTag: 'દિવાળી ઓફર', aiChip: 'AI ચિત્ર', stockChip: 'પ્રતીકાત્મક ચિત્ર', dur: 'દિવસ',
+      navratri: { specials: 'નવરાત્રી સ્પેશિયલ', eyebrow: 'શુભ નવરાત્રી · 11 – 19 ઓક્ટોબર 2026', h1: ['નવ રાત,', 'અનંત', 'સફર.'],
+        lead: 'ગરબા અને દાંડિયાની રાતો, દુર્ગા પૂજા અને મૈસૂરનો દશેરા: અમે તહેવારને ધ્યાનમાં રાખીને આખા ભારતમાં કસ્ટમાઇઝ્ડ પ્રવાસ પ્લાન કરીએ છીએ.',
+        archAlt: 'તહેવારની રોશનીમાં દાંડિયા સાથે ઘૂમતી, આભલા ભરતકામવાળી ચણિયા ચોળી પહેરેલી નૃત્યાંગના (પ્રતીકાત્મક, AI થી બનાવેલ)',
+        cdK: 'નવરાત્રી શરૂ થવામાં', chipIn: 'નવરાત્રીમાં', phTo: 'જેમ કે મૈસૂર',
+        specEye: '01 — નવરાત્રી સ્પેશિયલ', specH: 'જ્યાં તહેવાર જીવંત બને છે', specP: 'નવ રાત અને મંગળવાર, 20 ઓક્ટોબરના દશેરા માટેના પ્રવાસ, દરેક પ્રવાસ તમારા પ્રમાણે કસ્ટમાઇઝ્ડ.',
+        garba: { tag: 'ગરબા', meta: 'નવ રાત · 11 – 19 ઓક્ટોબર 2026', title: 'તમારી નવરાત્રીની ટ્રીપ પ્લાન કરો', desc: 'નવ રાત ક્યાં વિતાવવી છે તે કહો, અમે તેની આસપાસ તમારો કસ્ટમાઇઝ્ડ પ્રવાસ બનાવીશું.' },
+        tags: { raj: 'દાંડિયા', asm: 'દુર્ગા પૂજા', mys: 'દશેરા' }, intlH: 'દશેરાની રજાઓમાં સફર', procH: 'એક મેસેજથી ગરબાના મેદાન સુધી',
+        ctaH: 'આ નવરાત્રી ક્યાંક નવી જગ્યાએ ઉજવો', here: 'નવરાત્રી આવી ગઈ', night: 'નોરતું {n}/9', duss: 'આજે · દશેરા', dussBig: 'વિજયાદશમી',
+        marquee: ['ગરબા', 'દાંડિયા રાસ', 'દુર્ગા પૂજા', 'મૈસૂર દશેરા', 'વિજયાદશમી', 'નવરાત્રી 2026', 'કસ્ટમાઇઝ્ડ પ્રવાસ યોજના', 'WhatsApp પર મફત ક્વોટ'] },
+      diwali: { specials: 'દિવાળી સ્પેશિયલ', eyebrow: 'શુભ દીપાવલી · રવિવાર, 8 નવેમ્બર 2026', h1: ['આ દિવાળીએ,', 'રોશનીના', 'રસ્તે ચાલો.'],
+        lead: 'ઘરથી દૂર દિવાળી, કે રજાઓમાં એક સફર: અમે તહેવારને ધ્યાનમાં રાખીને ભારત અને વિદેશમાં કસ્ટમાઇઝ્ડ પ્રવાસ પ્લાન કરીએ છીએ.',
+        archAlt: 'રંગોળી પાસે માટીના દીવાની હાર પ્રગટાવતા હાથ (પ્રતીકાત્મક, AI થી બનાવેલ)',
+        cdK: 'દિવાળી આવવામાં', chipIn: 'દિવાળીમાં', phTo: 'જેમ કે લક્ષદ્વીપ', tap: 'આકાશમાં ગમે ત્યાં ટેપ કરો અને આતશબાજી છોડો',
+        specEye: '01 — દિવાળી સ્પેશિયલ', specH: 'તમારી દિવાળીની રજાઓ રોશન કરો', specP: 'અમારી દિવાળી ઓફર અને રજાઓનાં બે મનપસંદ સ્થળો, દરેક પ્રવાસ તમારા પ્રમાણે કસ્ટમાઇઝ્ડ.',
+        intlH: 'વિદેશમાં દિવાળીની રજાઓ', procH: 'એક મેસેજથી તહેવારની રોશની સુધી', ctaH: 'આ દિવાળીને યાદગાર બનાવો', here: 'દિવાળી આવી ગઈ', today: 'આજે',
+        marquee: ['વાઘ બારસ', 'ધનતેરસ', 'લક્ષ્મી પૂજન', 'ગોવર્ધન પૂજા', 'સાલ મુબારક', 'ભાઈબીજ', 'દિવાળી 2026', 'કસ્ટમાઇઝ્ડ પ્રવાસ યોજના', 'WhatsApp પર મફત ક્વોટ'] }
+    }
+  };
+  // a sharper, credited picture for the two destinations whose card photo is small (both on photo-credits.html)
+  static BIG = { rajasthan: 'images/places/rajasthan-udaipur.jpg', mysuru: 'images/places/mysuru-mysore-palace.jpg' };
+  static START = { navratri: Date.parse('2026-10-11T00:00:00+05:30'), diwali: Date.parse('2026-11-08T00:00:00+05:30') };
+
+  theme() { return this.props.theme === 'diwali' ? 'diwali' : 'navratri'; }
+  // fest.js's day (it honours the ?festat= preview date; in normal use it is today in India)
+  now() { const F = window.SkyFest; try { if (F && F.day && F.dayNo) return Date.now() + (F.day() - F.dayNo(Date.now())) * 864e5; } catch (e) {} return Date.now(); }
+  cd() { const t = Math.max(0, Component.START[this.theme()] - this.now()), p = (n) => String(n).padStart(2, '0');
+    return { d: p(Math.floor(t / 864e5)), h: p(Math.floor(t / 36e5) % 24), m: p(Math.floor(t / 6e4) % 60), s: p(Math.floor(t / 1e3) % 60), left: t, days: Math.ceil(t / 864e5) }; }
+
+  componentDidMount() { this._fx = this._fx || {}; this._sync(); }
+  componentDidUpdate() { this._sync(); }
+  componentWillUnmount() {
+    const html = document.documentElement; html.classList.remove('fh-on'); html.removeAttribute('data-fh');
+    clearInterval(this._tick); window.removeEventListener('scroll', this._onScroll);
+    if (this._io) this._io.disconnect();
+    Object.keys(this._fx || {}).forEach((k) => { try { this._fx[k].h.destroy(); } catch (e) {} }); this._fx = {};
+    (this._anims || []).forEach((a) => { try { a.cancel(); } catch (e) {} }); this._anims = [];
+  }
+
+  // everything that touches the page outside React: idempotent, runs after every render
+  _sync() {
+    const root = document.querySelector('.fh'); if (!root) return;
+    const html = document.documentElement, th = this.theme();
+    html.classList.add('fh-on'); if (html.getAttribute('data-fh') !== th) html.setAttribute('data-fh', th);
+    html.classList.toggle('sky-paused', !!this.state.paused);
+    this._reduce = (() => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } })();
+    if (!this._tick) this._tick = setInterval(() => this._everySecond(), 1000);
+    if (!this._onScroll) { this._onScroll = () => { const h = document.documentElement, p = h.scrollTop / Math.max(1, h.scrollHeight - h.clientHeight), b = document.querySelector('.fh-prog');
+      if (b) b.style.transform = 'scaleX(' + Math.min(1, Math.max(0, p)).toFixed(4) + ')'; }; window.addEventListener('scroll', this._onScroll, { passive: true }); this._onScroll(); }
+    this._loops(root); this._reveal(root); this._engines(root, th);
+  }
+  _everySecond() {
+    const c = this.cd(); if (c.left <= 0 && !this._wasZero) { this._wasZero = true; this.setState({ zeroTick: Date.now() }); return; }
+    document.querySelectorAll('.fh [data-cd]').forEach((el) => { const k = el.getAttribute('data-cd');
+      if (k === 'chip') { if (c.left > 0) el.textContent = this._chip(c); } else if (k === 'cta') { if (c.left > 0) el.textContent = this._ctaEye(c); }
+      else if (c[k] != null) el.textContent = c[k]; });
+  }
+  _S() { const L = Component.STR[this.props.lang] ? this.props.lang : 'en', b = Component.STR[L]; return Object.assign({}, b, b[this.theme()]); }
+  _chip(c) { const s = this._S(), u = { en: ['d', 'h'], hi: [' दिन', ' घंटे'], gu: [' દિવસ', ' કલાક'] }[this.props.lang] || ['d', 'h'];
+    return s.chipIn + ' ' + c.d + u[0] + ' ' + c.h + u[1]; }
+  _ctaEye(c) { const s = this._S(); return c.days <= 1 ? s.daysTo[0] : s.daysTo[1].replace('{n}', c.days); }
+
+  // looping ornaments (Web Animations): paused with the page's Pause button, none with reduced motion
+  _loops(root) {
+    this._anims = (this._anims || []).filter((a) => a.effect && a.effect.target && a.effect.target.isConnected);
+    if (!this._reduce) root.querySelectorAll('[data-spin],[data-marquee],[data-float],[data-shimmer]').forEach((el) => {
+      if (el.__fhAnim) return; let a;
+      if (el.dataset.spin) a = el.animate([{ transform: 'rotate(0)' }, { transform: 'rotate(360deg)' }], { duration: +el.dataset.spin, iterations: Infinity, direction: el.dataset.rev ? 'reverse' : 'normal' });
+      else if (el.dataset.marquee) a = el.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-50%)' }], { duration: +el.dataset.marquee, iterations: Infinity });
+      else if (el.dataset.float) a = el.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-14px)' }], { duration: +el.dataset.float, iterations: Infinity, direction: 'alternate', easing: 'ease-in-out' });
+      else a = el.animate([{ backgroundPosition: '0% 50%' }, { backgroundPosition: '200% 50%' }], { duration: 6000, iterations: Infinity });
+      el.__fhAnim = a; this._anims.push(a); });
+    this._anims.forEach((a) => { if (this.state.paused) { if (a.playState === 'running') a.pause(); } else if (a.playState === 'paused') a.play(); });
+  }
+  _reveal(root) {
+    if (this._reduce) return;
+    if (!this._io) this._io = new IntersectionObserver((es) => es.forEach((e) => { if (!e.isIntersecting) return; this._io.unobserve(e.target);
+      e.target.style.transitionDelay = (+(e.target.dataset.delay || 0)) + 'ms'; e.target.classList.remove('fh-rv');
+      setTimeout(() => { e.target.style.transitionDelay = ''; }, 1200 + (+(e.target.dataset.delay || 0))); }), { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    root.querySelectorAll('[data-reveal]').forEach((el) => { if (el.__fhRv) return; el.__fhRv = 1;
+      const top = el.getBoundingClientRect().top;
+      if (top < innerHeight && !this._booted) { el.classList.add('fh-rv'); requestAnimationFrame(() => requestAnimationFrame(() => { el.style.transitionDelay = (+(el.dataset.delay || 0)) + 'ms'; el.classList.remove('fh-rv'); })); }
+      else if (top >= innerHeight) { el.classList.add('fh-rv'); this._io.observe(el); } });
+    this._booted = true;
+  }
+  // the three canvases (fest-home.js): the hero's lights or fireworks, and the live Garba card
+  _engines(root, th) {
+    const H = window.SkyHome; if (!H) { if ((this._wait = (this._wait || 0) + 1) < 40) setTimeout(() => this._sync(), 250); return; }
+    const want = (key, el, make) => { const f = this._fx[key]; if (f && f.el === el && f.th === th) return;
+      if (f) { try { f.h.destroy(); } catch (e) {} delete this._fx[key]; }
+      if (el) { try { this._fx[key] = { el, th, h: make(el) }; } catch (e) { console.error(e); } } };
+    const hero = root.querySelector('.fh-hero'), cv = root.querySelector('.fh-hero-cv');
+    want('hero', cv, (el) => th === 'diwali' ? H.fireworks(el, hero) : H.orbit(el, hero, root.querySelector('.fh-archwrap')));
+    const g = root.querySelector('.fh-garba-cv'); want('garba', g, (el) => H.garba(el, el.closest('.fh-card')));
+  }
+
+  tilt = (e) => { if (this._reduce) return; const el = e.currentTarget, r = el.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+    el.style.transform = 'perspective(1100px) rotateX(' + ((0.5 - y) * 7).toFixed(2) + 'deg) rotateY(' + ((x - 0.5) * 9).toFixed(2) + 'deg) scale(1.015)';
+    el.style.setProperty('--mx', (x * 100).toFixed(1) + '%'); el.style.setProperty('--my', (y * 100).toFixed(1) + '%'); };
+  untilt = (e) => { e.currentTarget.style.transform = ''; };
+
+  renderVals() {
+    const P = this.props || {}, S = this.state, th = this.theme(), lang = Component.STR[P.lang] ? P.lang : 'en', s = this._S(), t = P.t || {};
+    const tr = (o, k) => (o && (o[k + '_' + lang] || o[k])) || '';
+    const dur = (d) => lang === 'en' ? d : String(d || '').replace('days', s.dur);
+    const tagName = { mountains: t.t_f_mountains, beaches: t.t_f_beaches, heritage: t.t_f_heritage, wildlife: t.t_f_wildlife, northeast: t.t_f_northeast };
+    const sub = (d) => (d.tags || []).map((k) => tagName[k]).filter(Boolean).join(' · ');
+    const dest = (P.destinations || []), bySlug = {}; dest.forEach((d) => { bySlug[d.slug] = d; });
+    const href = (slug) => 'Destination.dc.html?dest=' + encodeURIComponent(slug);
+    const c = this.cd(), counting = c.left > 0;
+
+    // ---- the hero chip once the festival has begun: tonight's night (Navratri) or the Diwali day ----
+    let chipK = s.cdK, chipBig = '', chipSmall = '', chipSwatch = '', chipText = counting ? this._chip(c) : s.here;
+    const F = window.SkyFest;
+    if (!counting && F && F.day) {
+      const day = F.day(), NAV1 = F.dayNo(Date.parse('2026-10-11T12:00:00+05:30')), VAGH = F.dayNo(Date.parse('2026-11-05T12:00:00+05:30'));
+      if (th === 'navratri') { const k = day - NAV1;
+        if (k >= 0 && k < 9) { const n = F.NIGHTS[k]; chipK = s.night.replace('{n}', k + 1); chipBig = tr(n, 'form'); chipSmall = tr(n, 'colour'); chipSwatch = 'background:' + n.sw; chipText = chipK; }
+        else { chipK = s.duss; chipBig = s.dussBig; chipText = s.duss; } }
+      else { const j = day - VAGH; chipK = s.today; chipBig = j >= 0 && j < 7 ? tr(F.DAYS[j], 'short') || tr(F.DAYS[j], 'name') : s.here; chipText = chipBig; }
+    }
+    if (!counting && !chipBig) chipBig = s.here;
+
+    // ---- the nine nights / the Diwali days (fest.js card; from night 1 / Vagh Baras) ----
+    const card = F && F.id && F.card ? F.card(lang, S.daySel) : null;
+
+    // ---- festive cards ----
+    const lab = (o) => o.illustrative ? s.aiChip : o.stock ? s.stockChip : '';
+    let cards = [];
+    const destCard = (slug, tag, tagCls) => { const d = bySlug[slug]; if (!d) return null;
+      return { href: href(slug), img: Component.BIG[slug] || d.img, tag, tagCls: 'fh-tag ' + tagCls, label: '', meta: dur(d.duration), title: tr(d, 'name'), desc: sub(d) }; };
+    if (th === 'navratri') {
+      cards.push({ feat: true, live: true, href: 'Customize.dc.html', img: '', tag: s.garba.tag, tagCls: 'fh-tag', label: s.aiChip, meta: s.garba.meta, title: s.garba.title, desc: s.garba.desc });
+      cards.push(destCard('rajasthan', s.tags.raj, 'fh-tag--b'), destCard('assam', s.tags.asm, 'fh-tag--c'), destCard('mysuru', s.tags.mys, 'fh-tag--d'));
+    } else {
+      const live = window.SkyOffers ? window.SkyOffers.live(new Date(this.now())) : [], dw = live.filter((x) => x.f.id === 'diwali')[0], offers = dw ? dw.offers : [], O = window.SkyOffers;
+      offers.slice(0, 2).forEach((o, i) => cards.push({ feat: i === 0, href: o.href, img: o.img, tag: s.offerTag, tagCls: 'fh-tag' + (i ? ' fh-tag--b' : ''),
+        label: lab(o), meta: O.tr(o, 'tag', lang) + ' · ' + O.tr(o, 'meta', lang), title: O.tr(o, 'title', lang), desc: O.tr(o, 'blurb', lang) }));
+      ['rajasthan', 'agra', 'goa', 'kerala'].forEach((slug) => { if (cards.length < 4) cards.push(destCard(slug, s.popular, cards.length % 2 ? 'fh-tag--c' : 'fh-tag--d')); });
+      if (cards[0] && !cards[0].feat) cards[0].feat = true;
+    }
+    cards = cards.filter(Boolean).map((k, i) => ({ ...k, live: !!k.live, hasImg: !!k.img, hasLabel: !!k.label, delay: k.feat ? 0 : (i - 1) * 120,
+      wcls: 'fh-cardw' + (k.feat ? ' fh-cardw--feat' : ''), cls: 'fh-card' + (k.live ? ' fh-card--live' : ''), imgStyle: {} }));
+
+    // ---- destinations: every card the homepage has, filtered by its own tags ----
+    const shown = dest.filter((d) => S.filter === 'all' || (d.tags || []).includes(S.filter));
+    const active = shown.some((d) => d.slug === S.active) ? S.active : (shown[0] || {}).slug;
+    const seen = Object.assign({}, S.seen); if (active) seen[active] = true;
+    const dests = shown.map((d, i) => { const on = d.slug === active; return { name: tr(d, 'name'), href: href(d.slug), img: d.img, big: Component.BIG[d.slug] || d.img,
+      sub: sub(d), meta: dur(d.duration), num: String(i + 1).padStart(2, '0'), seen: !!seen[d.slug], cls: 'fh-row' + (on ? ' on' : ''), pvCls: 'fh-pvl' + (on ? ' on' : ''),
+      pick: () => { if (this.state.active !== d.slug) this.setState({ active: d.slug, seen: Object.assign({}, this.state.seen, { [d.slug]: true }) }); } }; });
+
+    // ---- WhatsApp: the quote builder writes the message in English for the team ----
+    const EN = Component.STR.en, ti = Math.min(5, Math.max(0, S.tab | 0)), ft = s.fromTo[ti], fe = EN.fromTo[ti], fest = th === 'diwali' ? 'Diwali' : 'Navratri';
+    const paxV = ['1', '2', '3-4', '5-8', 'Group (9+)'], paxI = Math.max(0, paxV.indexOf(S.pax));
+    const clip = (v) => String(v || '').replace(/\s+/g, ' ').trim().slice(0, 60);
+    const msg = 'Hi Skyline Travel Planner! ' + fest + ' enquiry — ' + EN.tabs[ti] + '. ' + fe[0] + ': ' + (clip(S.from) || '-') + ', ' + fe[1] + ': ' + (clip(S.to) || '-') +
+      ', Date: ' + (/^\d{4}-\d{2}-\d{2}$/.test(S.date) ? S.date : 'flexible') + ', Travellers: ' + EN.paxOpts[paxI] + '.';
+    const today = new Date(Date.now() + 5.5 * 36e5).toISOString().slice(0, 10);
+    const intlEl = () => document.querySelector('.fh-track-x');
+
+    const ring = [['#D4146E', '#FFB319'], ['#12A39B', '#FFB319'], ['#E08A00', '#D4146E'], ['#5C8A1F', '#12A39B'], ['#5A0A3C', '#FFB319'], ['#12A39B', '#D4146E']];
+    const ringD = [['#B8321E', '#E8B04B'], ['#3B2A6B', '#E8B04B'], ['#D9622B', '#FFE3A3'], ['#7A1B12', '#E8B04B'], ['#3B2A6B', '#FF8A3D'], ['#B8321E', '#FFE3A3']];
+    const om = window.SkyOffers ? window.SkyOffers.menu(lang) : null;
+    const waHello = 'https://wa.me/918866050291?text=' + encodeURIComponent('Hi Skyline Travel Planner, I would like help planning a ' + fest + ' trip.');
+    const CREDIT_NE = 'North-East photo credits (via Wikimedia Commons): Nohkalikai Falls © Vikramjit Kakati · Kaziranga © Diganta Talukdar · Nuranang Falls © Sdasamdabad · Dzükou Valley © Dhrubazaanphotography · Loktak Lake © Sudiptorana, all CC BY-SA 4.0; Vantawng Falls © Lpachuau, CC BY 3.0.';
+    const CREDIT_BIG = 'Lake Pichola, Udaipur © UnpetitproleX · Mysore Palace © Pavanaja, both CC BY-SA 4.0 via Wikimedia Commons.';
+
+    return {
+      rootClass: 'fh fh--' + th, lang, s, year: new Date().getFullYear(), isDiwali: th === 'diwali',
+      tDomestic: t.t_domestic, tInternational: t.t_international, tCustomize: t.t_customize, tChat: t.t_chat, tPopular: t.t_popular_destinations,
+      tWhyChoose: t.t_why_choose, tNoPay: t.t_no_payments, tExplore: t.t_explore, tServices: t.t_services, tContact: t.t_contact_us,
+      tFlights: t.t_flights, tTrains: t.t_trains, tBuses: t.t_buses, tCabs: t.t_cabs, tHotels: t.t_hotels, tAffiliate: t.t_affiliate_disclosure,
+      offersOn: !!(om && om.festival), offersHref: om ? om.href : 'offers.html', offersLabel: om ? om.label : '',
+      langLabel: lang === 'en' ? 'EN' : lang === 'hi' ? 'हिन्दी' : 'ગુજરાતી',
+      langs: [['en', 'English'], ['hi', 'हिन्दी'], ['gu', 'ગુજરાતી']].map(([code, name]) => ({ name, mark: code === lang ? '✓' : '', cls: 'fh-langitem' + (code === lang ? ' on' : ''),
+        pick: () => { try { document.activeElement && document.activeElement.blur(); } catch (e) {} if (P.setLang) P.setLang(code); } })),
+      menuOpen: S.menuOpen, menuAria: S.menuOpen ? 'true' : 'false', toggleMenu: () => this.setState({ menuOpen: !this.state.menuOpen }), closeMenu: () => this.setState({ menuOpen: false }),
+      waHello, chipText,
+      heroImg: 'images/fest/home-' + (th === 'diwali' ? 'diw' : 'nav') + '.jpg', heroM: 'images/fest/home-' + (th === 'diwali' ? 'diw' : 'nav') + '-m.jpg',
+      archImg: 'images/fest/home-' + (th === 'diwali' ? 'diw' : 'nav') + '-arch.jpg', ctaImg: 'images/fest/home-' + (th === 'diwali' ? 'diw' : 'nav') + '.jpg',
+      h1a: s.h1[0], h1b: s.h1[1], h1c: s.h1[2],
+      cd: c, counting, notCounting: !counting, chipK, chipBig, chipSmall, chipSmallOn: !!chipSmall, chipSwatch,
+      pauseText: s.pause[S.paused ? 1 : 0],
+      togglePause: () => { const p = !this.state.paused; try { localStorage.setItem('skyline_fest_paused', p ? '1' : ''); } catch (e) {} this.setState({ paused: p }); },
+      tabs: s.tabs.map((label, i) => ({ label, cls: 'fh-tab' + (i === ti ? ' on' : ''), pressed: i === ti ? 'true' : 'false', pick: () => this.setState({ tab: i }) })),
+      fromLabel: ft[0], toLabel: ft[1], phTo: s.phTo, q: S, today,
+      setFrom: (e) => this.setState({ from: e.target.value.slice(0, 60) }), setTo: (e) => this.setState({ to: e.target.value.slice(0, 60) }),
+      setDate: (e) => this.setState({ date: e.target.value }), setPax: (e) => this.setState({ pax: e.target.value }),
+      paxOpts: paxV.map((v, i) => ({ v, label: s.paxOpts[i] })),
+      waHref: 'https://wa.me/918866050291?text=' + encodeURIComponent(msg),
+      marquee: [].concat(s.marquee, s.marquee),
+      daysOn: !!card, dEye: card ? card.eye : '', dTitle: card ? card.title : '', dLine: card ? card.line : '', dChipOn: !!(card && card.chip), dChip: card ? card.chip : '',
+      dSwatch: card && card.swatch ? 'background:' + card.swatch : '', dNoteOn: !!(card && card.note), dNote: card ? card.note : '', dTrack: card ? card.track : '',
+      dStops: card ? card.stops.map((st, k) => ({ cls: 'fh-st ' + st.state + (st.sel ? ' sel' : ''), pressed: st.sel ? 'true' : 'false', aria: st.aria, label: st.label, name: st.name || '',
+        dot: st.swatch ? 'background:' + st.swatch : '', pick: () => this.setState({ daySel: k }) })) : [],
+      cards, cardCredits: th === 'navratri' ? CREDIT_BIG + ' Kaziranga © Diganta Talukdar, CC BY-SA 4.0. Dancers, dhol and garbo: illustrative, AI-generated (Canva).' : 'Lake Pichola, Udaipur © UnpetitproleX, CC BY-SA 4.0 via Wikimedia Commons. Offer pictures are marked on each card.',
+      tilt: this.tilt, untilt: this.untilt,
+      filters: [['all', t.t_f_all], ['mountains', t.t_f_mountains], ['beaches', t.t_f_beaches], ['heritage', t.t_f_heritage], ['wildlife', t.t_f_wildlife], ['northeast', t.t_f_northeast]]
+        .map(([k, label]) => ({ label, cls: 'fh-pill' + (S.filter === k ? ' on' : ''), pressed: S.filter === k ? 'true' : 'false', pick: () => this.setState({ filter: k, active: null }) })),
+      dests, destCredits: CREDIT_NE + ' ' + CREDIT_BIG,
+      intl: (P.international || []).map((i) => ({ name: tr(i, 'name'), wm: i.name, href: href(i.slug), img: i.img, meta: dur(i.duration) })),
+      intlPrev: () => { const el = intlEl(); if (el) el.scrollBy({ left: -400, behavior: this._reduce ? 'auto' : 'smooth' }); },
+      intlNext: () => { const el = intlEl(); if (el) el.scrollBy({ left: 400, behavior: this._reduce ? 'auto' : 'smooth' }); },
+      styles: (P.styles || []).map((x, i) => { const r = (th === 'diwali' ? ringD : ring)[i % 6];
+        return { name: tr(x, 'name'), icon: x.icon, delay: (i % 6) * 70, ring: { background: 'repeating-conic-gradient(' + r[0] + ' 0 15deg,' + r[1] + ' 15deg 30deg)', boxShadow: 'inset 0 0 0 11px #fff,inset 0 0 0 13px ' + r[0] } }; }),
+      steps: (P.steps || []).map((x, i) => ({ num: String(i + 1).padStart(2, '0'), title: tr(x, 'title'), desc: tr(x, 'desc') })),
+      reasons: (P.reasons || []).map((x, i) => ({ icon: x.icon, title: tr(x, 'title'), desc: tr(x, 'desc'), delay: i * 90 })),
+      ctaEye: counting ? this._ctaEye(c) : s.here
+    };
+  }
+}
+</script>
+</body>
+</html>

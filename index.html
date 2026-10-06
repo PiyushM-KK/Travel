@@ -19,6 +19,7 @@
 <script src="offers-data.js"></script>
 <script src="fest.js"></script>
 <script src="fest-live.js" defer></script>
+<script src="fest-home.js" defer></script>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -322,6 +323,11 @@
   </svg>
 </template>
 
+<!-- ===== FESTIVE HOMEPAGE (FestiveHome.dc.html): while fest.js has a festival on; ?home=classic shows the regular page ===== -->
+<sc-if value="{{ festHome }}" hint-placeholder-val="{{ false }}">
+  <dc-import name="FestiveHome" dc-props="{{ fhProps }}" hint-size="0,0"></dc-import>
+</sc-if>
+<sc-if value="{{ classicHome }}" hint-placeholder-val="{{ true }}">
 <!-- ===== HEADER ===== -->
 <header style="position: sticky; top: 0; z-index: 1000; background-image: linear-gradient(rgba(255,255,255,.80), rgba(255,255,255,.88)), url('images/header-banner.jpg'); background-size: cover; background-position: center; backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,.6); box-shadow: 0 2px 12px rgba(10,95,215,.12)">
   <div class="skh-row" style="max-width: 1280px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 32px">
@@ -655,6 +661,7 @@
     <p style="margin-top: 10px">Built &amp; maintained by <a href="https://buildwise-digital.com" target="_blank" rel="noopener" style="color: #5fc2f0; font-weight: 600" style-hover="text-decoration: underline">BuildWise Digital</a></p>
   </div>
 </footer>
+</sc-if>
 
 <!-- ===== COOKIE CONSENT BANNER ===== -->
 <sc-if value="{{ showCookies }}" hint-placeholder-val="{{ true }}">
@@ -783,8 +790,8 @@ class Component extends DCLogic {
       const c = localStorage.getItem('skyline_cookie_consent');
       if (c) this.setState({ cookieChoice: c });
     } catch (e) {}
-    // Preload hero images, then start the crossfade slideshow
-    this.state.heroImages.forEach((src) => { const im = new Image(); im.src = src; });
+    // Preload hero images, then start the crossfade slideshow (not under the festive homepage, which has its own hero)
+    if (!this._festHomeOn()) this.state.heroImages.forEach((src) => { const im = new Image(); im.src = src; });
     const N = this.state.heroImages.length;
     const PERIOD = 5000;
     this._hi = Math.floor(Date.now() / PERIOD) % N;
@@ -828,6 +835,10 @@ class Component extends DCLogic {
     if (window.__skyCycTimer) clearInterval(window.__skyCycTimer);
     window.__skyCycTimer = this._cycTimer = setInterval(cycApply, 500);
   }
+
+  // the festive homepage (FestiveHome.dc.html) replaces this page's layout while a festival is on
+  _festHomeOn() { let classic = false; try { classic = /[?&]home=classic(?:&|$)/.test(location.search); } catch (e) {}
+    return !!(window.SkyFest && window.SkyFest.id) && !classic; }
 
   componentWillUnmount() {
     if (this._festIO) this._festIO.disconnect();
@@ -990,8 +1001,13 @@ class Component extends DCLogic {
     const festLine = fest ? fest.line(lang) : null;
     const festCard = fest ? fest.card(lang, this.state.festSel == null ? null : this.state.festSel) : null;
 
+    const festHome = this._festHomeOn();
+    const pickLang = (code) => { try { localStorage.setItem('skyline_lang', code); } catch (e) {} this.setState({ lang: code }); };
     return {
       year: new Date().getFullYear(),
+      festHome, classicHome: !festHome,
+      fhProps: festHome ? { theme: fest.id, lang, setLang: pickLang, t, destinations: this.state.destinations, international: this.state.international,
+        styles: this.state.styles, steps: this.state.steps, reasons: this.state.reasons } : {},
       offersLive: !!(offersMenu && offersMenu.festival),
       festPre: festLine ? festLine.pre : '',
       festN: festLine ? festLine.n : '',

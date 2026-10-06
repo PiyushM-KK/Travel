@@ -198,7 +198,7 @@
     @media (prefers-reduced-motion:reduce){.sky-hangs,.sky-hangs>i{animation:none !important}}
     /* ===== Festive themes v3: the live layer (fest-live.js draws the garba rings and the Diwali fireworks on this canvas,
        only inside areas clear of the headline, the tiles and the card), the toran's mirror twinkle, room for the band ===== */
-    .sky-live,.sky-twinkle,.sky-fest-credit{display:none}
+    .sky-live,.sky-twinkle,.sky-fest-foot{display:none}
     html[data-fest] .sky-live{display:block;position:absolute;left:0;top:0;width:100%;height:100%;z-index:3;pointer-events:none}
     html[data-fest="navratri"] .sky-twinkle{display:block;position:absolute;left:0;right:0;top:0;height:56px;z-index:3;pointer-events:none;animation:skyDrop .7s cubic-bezier(.2,.7,.1,1) .25s both}
     .sky-twinkle::before,.sky-twinkle::after{content:'';position:absolute;inset:0;background:center top/auto 100% repeat-x;opacity:0}
@@ -207,14 +207,22 @@
     @keyframes skyTwA{0%{opacity:1}20%,49.9%{opacity:0}50%{opacity:1}70%,100%{opacity:0}}
     @keyframes skyTwB{0%,24.9%{opacity:0}25%{opacity:1}45%,74.9%{opacity:0}75%{opacity:1}95%,100%{opacity:0}}
     html.sky-still .sky-twinkle::before,html.sky-still .sky-twinkle::after{animation-play-state:paused}
-    html[data-fest] .sky-fest-credit{display:block;margin:12px auto 0;max-width:1000px;text-align:right;font-size:11px;line-height:1.3;color:rgba(255,255,255,.72);text-shadow:0 1px 6px rgba(0,0,0,.5)}
+    html[data-fest] .sky-fest-foot{display:flex;justify-content:flex-end;align-items:center;flex-wrap:wrap;gap:8px;margin:12px auto 0;max-width:1000px}
+    .sky-fest-credit{margin:0;padding:4px 10px;border-radius:999px;background:rgba(20,8,12,.55);font-size:12px;line-height:1.3;color:#fff}
+    .sky-live-ctl{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border:1px solid rgba(255,255,255,.45);border-radius:999px;background:rgba(20,8,12,.55);color:#fff;font:600 12px/1.2 'Plus Jakarta Sans',sans-serif;cursor:pointer}
+    .sky-live-ctl:hover{background:rgba(20,8,12,.75)}
+    .sky-live-ctl:focus-visible{outline:2px solid #FFD27A;outline-offset:2px}
+    .sky-live-ctl svg{width:11px;height:11px;fill:currentColor}
+    .sky-live-ctl .ic-g,html.sky-paused .sky-live-ctl .ic-p{display:none}
+    html.sky-paused .sky-live-ctl .ic-g{display:block}
+    html.sky-paused .sky-hangs>i,html.sky-paused .sky-twinkle::before,html.sky-paused .sky-twinkle::after{animation-play-state:paused}
     @media (min-width:601px) and (max-width:1199px){html[data-fest] .sky-hero{padding-top:176px !important}}
     @media (max-width:600px){
       html[data-fest] .sky-hero{padding-top:136px !important}
       html[data-fest="navratri"] .sky-twinkle{height:40px}
-      html[data-fest] .sky-fest-credit{text-align:center}
+      html[data-fest] .sky-fest-foot{justify-content:center}
     }
-    @media (prefers-reduced-motion:reduce){.sky-twinkle,.sky-twinkle::before,.sky-twinkle::after{animation:none !important}.sky-twinkle::before{opacity:.8}}
+    @media (prefers-reduced-motion:reduce){.sky-twinkle,.sky-twinkle::before,.sky-twinkle::after{animation:none !important}.sky-twinkle::before{opacity:.8}.sky-live-ctl{display:none !important}}
 </style>
   <meta name="ext-resource-dependency" content="images/dest-rajasthan.jpg">
   <meta name="ext-resource-dependency" content="images/dest-himachal.avif">
@@ -394,7 +402,7 @@
         </div>
       </div>
     </sc-if>
-    <p class="sky-fest-credit" lang="{{ festLang }}">{{ festCredit }}</p>
+    <div class="sky-fest-foot" lang="{{ festLang }}"><p class="sky-fest-credit">{{ festCredit }}</p><button type="button" class="sky-live-ctl" aria-pressed="{{ livePressed }}" onClick="{{ toggleLive }}"><svg class="ic-p" viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="1.5" width="2.8" height="9" rx=".8"/><rect x="7.2" y="1.5" width="2.8" height="9" rx=".8"/></svg><svg class="ic-g" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.6v8.8L10.2 6z"/></svg><span>{{ liveCtl }}</span></button></div>
   </div>
 </section>
 
@@ -598,6 +606,7 @@
 class Component extends DCLogic {
   state = {
     lang: (function(){ try { return localStorage.getItem('skyline_lang') || 'en'; } catch (e) { return 'en'; } })(),
+    livePaused: (function(){ try { return localStorage.getItem('skyline_fest_paused') === '1'; } catch (e) { return false; } })(),
     cookieChoice: null,
     mobileOpen: false,
     heroImages: [
@@ -665,7 +674,9 @@ class Component extends DCLogic {
   };
 
   componentDidMount() {
-    // festive themes: re-render at midnight in India (fest.js), and pause the hanging lamps while the hero is off screen
+    // festive themes: a visitor who paused the animation keeps it paused (html.sky-paused stops fest-live.js and the CSS loops)
+    document.documentElement.classList.toggle('sky-paused', !!this.state.livePaused);
+    // re-render at midnight in India (fest.js), and pause the hanging lamps while the hero is off screen
     if (window.SkyFest && !this._festOff) this._festOff = window.SkyFest.onChange(() => this.setState({ festTick: Date.now(), festSel: null }));
     if ('IntersectionObserver' in window) {
       if (this._festIO) this._festIO.disconnect();
@@ -724,7 +735,7 @@ class Component extends DCLogic {
 
   componentWillUnmount() {
     if (this._festIO) this._festIO.disconnect();
-    document.documentElement.classList.remove('sky-still');
+    document.documentElement.classList.remove('sky-still', 'sky-paused');
     if (this._festOff) { this._festOff(); this._festOff = null; }
     if (this._heroTimer) clearInterval(this._heroTimer);
     if (window.__skyHeroTimer) { clearInterval(window.__skyHeroTimer); window.__skyHeroTimer = null; }
@@ -903,8 +914,12 @@ class Component extends DCLogic {
       fcStops: festCard ? festCard.stops.map((st, k) => ({ cls: 'sky-st ' + st.state + (st.sel ? ' sel' : ''), pressed: st.sel ? 'true' : 'false', aria: st.aria,
         label: st.label, name: st.name || '', dot: st.swatch ? 'background:' + st.swatch : '', pick: () => this.setState({ festSel: k }) })) : [],
       festLang: lang,
+      livePressed: this.state.livePaused ? 'true' : 'false',
+      liveCtl: ({ en: ['Pause animation', 'Play animation'], hi: ['एनिमेशन रोकें', 'एनिमेशन चलाएँ'], gu: ['એનિમેશન રોકો', 'એનિમેશન ચલાવો'] }[lang] || ['Pause animation', 'Play animation'])[this.state.livePaused ? 1 : 0],
+      toggleLive: () => { const p = !this.state.livePaused; try { localStorage.setItem('skyline_fest_paused', p ? '1' : ''); } catch (e) {}
+        document.documentElement.classList.toggle('sky-paused', p); this.setState({ livePaused: p }); },
       // the dancers, dhol and crackers drawn by fest-live.js are Canva AI artwork: say so (the photo-credits page names it too)
-      festCredit: fest ? ({ en: 'Festive art: illustrative · AI-generated', hi: 'उत्सव के चित्र: सांकेतिक · AI से बने', gu: 'ઉત્સવનાં ચિત્રો: પ્રતીકાત્મક · AI થી બનેલાં' })[lang] || '' : '',
+      festCredit: fest ? ({ en: 'Festive art: illustrative · AI-generated', hi: 'त्योहार के चित्र: प्रतीकात्मक · AI से बनाए गए', gu: 'ઉત્સવનાં ચિત્રો: પ્રતીકાત્મક · AI થી બનેલાં' })[lang] || '' : '',
       festLink: !!(fest && offersMenu && offersMenu.festival),
       festHref: offersMenu ? offersMenu.href : 'offers.html',
       festGo: offersMenu && offersMenu.festival ? offersMenu.label + ' →' : '',

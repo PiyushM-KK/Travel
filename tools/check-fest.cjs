@@ -50,7 +50,7 @@ for (const [iso, theme, main, sub] of cases) {
   const c = S.card('en'); ok(c.title === 'Maa Chandraghanta' && c.eye === 'Night 3 of 9 · Tue 13 Oct' && c.swatch === '#D32F2F' && /Red · popular colour/.test(c.chip) && c.stops.filter(s => s.state === 'past').length === 2 && c.stops[2].state === 'today' && c.stops[2].sel, 'card night 3: ' + c.eye + ' | ' + c.title + ' | ' + c.chip);
   const c9 = S.card('gu', 8); ok(c9.note === '2026માં આઠમ અને નોમ બંને આ જ દિવસે છે.' && c9.title === 'મા સિદ્ધિદાત્રી', 'card tap night 9 GU: ' + c9.title + ' | ' + c9.note);
   ok(S.line('en').swatch === '#D32F2F', 'chat swatch for tonight'); }
-// the card starts on night 1 (owner, 2026-10-07): none before 11 Oct, even 1 ms before; the strip keeps the countdown
+// the card starts on night 1: none before 11 Oct, even 1 ms before; the strip keeps the countdown
 for (const iso of ['2026-10-06T12:00:00+05:30', '2026-10-10T23:59:59.999+05:30']) { const { S } = load('', at(iso), []); ok(S.card('en') === null && S.card('gu', 3) === null && S.line('en').text !== '', 'no card before night 1: ' + iso); }
 { const { S } = load('', at('2026-10-11T00:00:00+05:30'), []); const c = S.card('en'); ok(c && c.eye === 'Night 1 of 9 · Sun 11 Oct' && c.title === 'Maa Shailputri' && c.stops[0].state === 'today', 'card from night 1 at 00:00 IST: ' + (c && c.eye)); }
 { const { S } = load('', at('2026-10-20T12:00:00+05:30'), []); const c = S.card('hi'); ok(c.title === 'शुभ विजयादशमी' && c.stops.every(s => s.state === 'past' && !s.sel), 'card Dussehra HI: ' + c.title); }

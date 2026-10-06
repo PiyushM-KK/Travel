@@ -33,22 +33,22 @@
       out.mode = 'side';
       var floor = m.tiles.y - 20, lowest = m.toranB + 8; (m.hangs || []).forEach(function (r) { lowest = Math.max(lowest, r.y + r.h + 10); });
       // the rings: a 280 x 132 box at s=1, scaled to the side zone AND to the height between the lamps and the tiles
-      var s = Math.min(1.25, zoneW / 280, (floor - lowest) / 132), bw = 280 * s, bh = 132 * s;
+      var s = Math.min(1.25, zoneW / 280, (floor - lowest) / 150), bw = 280 * s, bh = 150 * s;
       var L = { x: 24 + (textL - 56 - bw) / 2, y: floor - bh, w: bw, h: bh }, R = { x: m.W - L.x - bw, y: floor - bh, w: bw, h: bh };
       if (m.fest === 'navratri' && s >= 0.7) [L, R].forEach(function (z, k) {
         if (!clear(z)) return;
         out.stages.push(z);
-        out.rings.push({ x: z.x + z.w / 2, y: z.y + z.h * 0.62, rx: z.w * 0.4, ry: 16 * s, s: s, n: k ? 4 : 5, centre: k ? 'dhol' : 'garbo', h: 72 * s });
+        out.rings.push({ x: z.x + z.w / 2, y: z.y + z.h * 0.7, rx: z.w * 0.4, ry: 24 * s, s: s, n: k ? 4 : 5, centre: k ? 'dhol' : 'garbo', h: 86 * s });
       });
       if (m.fest === 'diwali') {
         var gutter = Math.max(0, m.tiles.x - 16);
         [0, 1].forEach(function (k) {
           var zx = k ? m.W - 24 - zoneW : 24, sky = { x: zx, y: m.toranB + 10, w: zoneW, h: m.tiles.y - 20 - m.toranB - 10 };
           var g = { x: k ? m.W - gutter : 0, y: m.tiles.y - 20, w: gutter, h: m.H - (m.tiles.y - 20) };
-          if (!clear(sky, true)) return;
+          if (sky.h < 60 || sky.w < 60 || !clear(sky, true)) return;
           var st = { x: sky.x, y: sky.y, w: sky.w, h: sky.h, also: g.w >= 60 && clear(g, true) ? g : null };
           out.stages.push(st);
-          out.sky.push({ stage: st, x0: sky.x + 20, x1: sky.x + sky.w - 20, y0: sky.y + 20, y1: Math.min(sky.y + sky.h - 40, sky.y + 160), r: Math.min(56, sky.w / 2 - 16),
+          out.sky.push({ stage: st, x0: sky.x + 20, x1: sky.x + sky.w - 20, y0: sky.y + 20, y1: Math.min(sky.y + sky.h - 40, sky.y + 160), r: Math.min(80, sky.w / 2 - 16, sky.h / 2 - 10),
                          launchX: st.also ? (k ? m.W - Math.min(56, g.w / 2) : Math.min(56, g.w / 2)) : sky.x + sky.w / 2, launchY: st.also ? m.H : sky.y + sky.h,
                          gx0: st.also ? Math.max(sky.x + 20, g.x + 16) : null, gx1: st.also ? Math.min(sky.x + sky.w - 20, g.x + g.w - 16) : null });
           if (st.also) out.ground.push({ stage: st, kind: k ? 'chakri' : 'anar', x: k ? m.W - g.w / 2 : g.w / 2, y: m.H - 26, s: Math.min(1, g.w / 140), hmax: 150 });
@@ -77,7 +77,9 @@
 
   // ---------- browser ----------
   var html = document.documentElement, reduce = false, dbg = false;
-  try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  try { var mq = window.matchMedia('(prefers-reduced-motion: reduce)'); reduce = mq.matches;
+        var onRm = function (e) { reduce = e.matches; halt(); dirty = true; start(); };
+        if (mq.addEventListener) mq.addEventListener('change', onRm); else if (mq.addListener) mq.addListener(onRm); } catch (e) {}
   try { dbg = /[?&]festdebug=1(?:&|$)/.test(location.search); } catch (e) {}
   var img = {}, cv = null, ctx = null, hero = null, P = null, W = 0, H = 0, R = 1, raf = 0, last = 0, clock = 0, acc = 0, dirty = true;
   var parts = [], rockets = [], nextShot = 0, groundOn = [], spr = {}, cap = 160;
@@ -86,7 +88,8 @@
   function ready(k) { return img[k] && img[k].complete && img[k].naturalWidth > 0; }
   function fest() { return html.getAttribute('data-fest'); }
   function day() { try { return window.SkyFest && window.SkyFest.day ? window.SkyFest.day() : null; } catch (e) { return null; } }
-  function running() { return !!fest() && !html.classList.contains('sky-still') && !document.hidden && !(W <= 600 && html.classList.contains('sk-open')); }
+  function paused() { return html.classList.contains('sky-paused'); }                // the visitor's pause button (index.html)
+  function running() { return !!fest() && !paused() && !html.classList.contains('sky-still') && !document.hidden && !(W <= 600 && html.classList.contains('sk-open')); }
   function rel(el) {                                              // an element's box (or its text's box) in hero coordinates
     if (!el) return null;
     var r = el.getBoundingClientRect();
@@ -116,11 +119,19 @@
       w = i.naturalWidth * h / sh, c = document.createElement('canvas');
       c.width = Math.max(1, Math.round(w * R)); c.height = Math.max(1, Math.round(h * R)); var g = c.getContext('2d'); g.imageSmoothingQuality = 'high';
       g.drawImage(i, 0, sy, i.naturalWidth, sh, 0, 0, c.width, c.height); return { c: c, w: w, h: h }; }
-    P.rings.forEach(function (rg) { spr['f' + rg.h] = mk('f', rg.h); spr['m' + rg.h] = mk('m', rg.h); spr['dhol' + rg.h] = mk('dhol', rg.h * 0.62); spr['garbo' + rg.h] = mk('garbo', rg.h * 0.5, 0.44); });
+    P.rings.forEach(function (rg) { spr['f' + rg.h] = outline(mk('f', rg.h)); spr['m' + rg.h] = outline(mk('m', rg.h)); spr['dhol' + rg.h] = mk('dhol', rg.h * 0.62); spr['garbo' + rg.h] = mk('garbo', rg.h * 0.5, 0.44); });
     P.ground.forEach(function (gp) { spr[gp.kind + gp.s] = mk(gp.kind, (gp.kind === 'anar' ? 56 : 34) * gp.s);
       if (gp.kind === 'chakri' && spr['chakri' + gp.s]) spr['face' + gp.s] = mk('chakriFace', spr['chakri' + gp.s].w * FACE.rx * 2); });
     var glow = document.createElement('canvas'); glow.width = glow.height = 64; var g = glow.getContext('2d'), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
     gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.35, 'rgba(255,255,255,.45)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); spr.glow = glow;
+  }
+  function outline(sp) {                                                             // a 1.5px cream edge round a sprite, drawn once
+    if (!sp) return sp; var d = Math.max(1, Math.round(1.5 * R)), c = document.createElement('canvas'); c.width = sp.c.width + 2 * d; c.height = sp.c.height + 2 * d;
+    var g = c.getContext('2d'), k;
+    for (k = 0; k < 8; k++) g.drawImage(sp.c, d + Math.round(Math.cos(k * Math.PI / 4) * d), d + Math.round(Math.sin(k * Math.PI / 4) * d));
+    g.globalCompositeOperation = 'source-in'; g.fillStyle = '#FFF4DC'; g.fillRect(0, 0, c.width, c.height);
+    g.globalCompositeOperation = 'source-over'; g.drawImage(sp.c, d, d);
+    return { c: c, w: sp.w + 2 * d / R, h: sp.h + 2 * d / R };
   }
   function clip(st) { ctx.beginPath(); ctx.rect(st.x, st.y, st.w, st.h); if (st.also) ctx.rect(st.also.x, st.also.y, st.also.w, st.also.h); ctx.clip(); }
   var rand = Math.random;                                                            // still() swaps in a seeded one: the same frame every time
@@ -135,6 +146,7 @@
     var b = Math.floor(t / BEAT), p = (t % BEAT) / BEAT, step = Math.min(1, p / 0.45), N = rg.n;
     var base = (b + ease(step)) * (Math.PI / 8) * DIR;                              // 22.5 degrees a beat, a step not a glide
     var col = tonight() || '#FFB627';
+    ctx.globalAlpha = 0.42; ctx.drawImage(tint('#14060A'), rg.x - rg.rx * 1.35, rg.y - rg.h * 0.95, rg.rx * 2.7, rg.h * 1.25);   // a soft dark pool behind the ring
     ctx.globalAlpha = 0.34; ctx.drawImage(tint(col), rg.x - rg.rx * 1.3, rg.y - rg.ry * 2.6, rg.rx * 2.6, rg.ry * 5.2);   // the light pool, in tonight's colour
     ctx.globalAlpha = 1;
     var items = [];
@@ -216,13 +228,13 @@
     rockets.push({ sk: sk, x0: x, y0: sk.launchY, tx: tx, ty: ty, t0: now, dur: dur, c: rand() < 0.15 ? EMERALD : PAL[Math.floor(rand() * PAL.length)], dbl: tier() === 3 && rand() < 0.2 });
   }
   function burst(sk, x, y, c, k) {
-    var n = cap >= 160 ? 40 : cap >= 90 ? 26 : 20, v0 = sk.r / 900 * 1.9 * (k || 1), w = cap >= 160 ? 2.2 : 1.8;
+    var n = cap >= 160 ? 44 : cap >= 90 ? 28 : 22, v0 = sk.r / 900 * 1.9 * (k || 1), w = cap >= 160 ? 2.4 : 1.9;
     for (var i = 0; i < n; i++) { var a = (i / n) * Math.PI * 2 + rnd(-0.07, 0.07), v = v0 * rnd(0.55, 1);
       add({ st: sk.stage, x: x, y: y, px: x, py: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 0, max: rnd(900, 1300), c: c[0], hc: c[1], w: w }); }
     add({ st: sk.stage, flash: true, x: x, y: y, life: 0, max: 150, r: sk.r * 0.5 });
   }
   function stepDiwali(dt, now, force) {
-    var tr = tier(force), gap = (tr === 3 ? rnd(1100, 2100) : tr === 2 ? rnd(2000, 3600) : 6000) * (W <= 600 ? 1.3 : 1);
+    var tr = tier(force), gap = (tr === 3 ? rnd(700, 1300) : tr === 2 ? rnd(1300, 2200) : rnd(2200, 3400)) * (W <= 600 ? 1.2 : 1);
     if (now >= nextShot && P.sky.length) { var sk = P.sky[Math.floor(now / 997) % P.sky.length]; shoot(sk, now); nextShot = now + gap; }
     for (var i = rockets.length - 1; i >= 0; i--) {
       var k = rockets[i], q = Math.min(1, (now - k.t0) / k.dur), e = 1 - Math.pow(1 - q, 2.2), x = k.x0 + (k.tx - k.x0) * e, y = k.y0 + (k.ty - k.y0) * e;
@@ -230,8 +242,9 @@
       if (q >= 1) { burst(k.sk, x, y, k.c); if (k.dbl) burst(k.sk, x, y, PAL[0], 0.55); rockets.splice(i, 1); }
     }
     groundOn = P.ground.map(function (gp, j) {                                  // tier 2: the anar burns 6 s then rests 4 s, the chakri 5/5, offset
-      if (tr === 1) return false; if (tr === 3) return true;
-      return j === 0 ? (now % 10000) < 6000 : ((now + 5000) % 10000) < 5000;
+      if (tr === 3) return true;                                                       // Diwali day: both burn all the time
+      var on = tr === 2 ? 6000 : 4000;                                                 // the countdown: one at a time, with rests
+      return j === 0 ? (now % 10000) < on : ((now + 5000) % 10000) < on;
     });
     P.ground.forEach(function (gp, j) {
       if (!groundOn[j]) return; var s = gp.s;
@@ -282,7 +295,7 @@
   function frame(now) {
     raf = 0;
     if (!running()) { halt(); return; }
-    if (dirty && !measure()) { raf = requestAnimationFrame(frame); return; }
+    if (dirty && !measure()) return;                                                  // not ready: soon() starts it again
     if (!P || P.mode === 'off') { if (ctx) { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height); } return; }
     var dt = last ? Math.min(now - last, 100) : 0; last = now; acc += dt;
     if (acc >= FRAME - 2) {                                                          // about 30 frames a second
@@ -295,6 +308,7 @@
   function still() {                                                                 // reduced motion: one frame, no loop
     if (!measure() || !P || P.mode === 'off') return;
     rand = seeded(7);
+    try {
     if (fest() === 'diwali') {
       parts.length = 0; rockets.length = 0;
       P.sky.forEach(function (sk) { burst(sk, (sk.x0 + sk.x1) / 2, (sk.y0 + sk.y1) / 2, PAL[0]); });
@@ -302,21 +316,23 @@
       for (var t = 0; t < 900; t += 30) stepDiwali(30, 10 + t, 3);
       P.ground = keep; parts = parts.filter(function (o) { return !o.flash; }); rockets.length = 0; nextShot = 0;
     }
-    paint(0, 0); rand = Math.random;
+    paint(0, 0);
+    } finally { rand = Math.random; }
   }
   function halt() { if (raf) cancelAnimationFrame(raf); raf = 0; last = 0; acc = 0; }
   function start() {
     if (!fest()) { halt(); if (ctx && cv) { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height); } return; }
-    if (reduce) { still(); return; }
+    if (reduce || paused()) { halt(); still(); return; }                              // a still frame, no loop
     if (!raf && running()) { last = 0; raf = requestAnimationFrame(frame); }
   }
   var twEl = null;
   function syncTwinkle() {                                                           // keep the toran's CSS twinkle on the canvas's beat
     var el = document.querySelector('.sky-twinkle'); if (!el || !el.getAnimations) return;
     if (el !== twEl) { twEl = el; } var as = el.getAnimations({ subtree: true });
-    for (var i = 0; i < as.length; i++) { var want = clock % 2000; if (Math.abs(((as[i].currentTime || 0) % 2000) - want) > 60) as[i].currentTime = want; }
+    for (var i = 0; i < as.length; i++) { if (!/^skyTw[AB]$/.test(as[i].animationName || '')) continue;
+      var want = clock % 2000; if (Math.abs(((as[i].currentTime || 0) % 2000) - want) > 60) as[i].currentTime = want; }
   }
-  function relayout() { dirty = true; if (reduce) still(); }
+  function relayout() { dirty = true; if (reduce || paused()) still(); }
   var soonT = 0; function soon() { clearTimeout(soonT); soonT = setTimeout(function () { relayout(); start(); }, 150); }
   try { new MutationObserver(function () { dirty = true; start(); }).observe(html, { attributes: true, attributeFilter: ['class', 'data-fest'] }); } catch (e) {}
   document.addEventListener('visibilitychange', start);

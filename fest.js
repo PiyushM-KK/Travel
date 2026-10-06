@@ -53,7 +53,7 @@
   var DAYS = [
     { name: 'Vagh Baras', name_hi: 'वाघ बारस', name_gu: 'વાઘ બારસ' },
     { name: 'Dhanteras', name_hi: 'धनतेरस', name_gu: 'ધનતેરસ' },
-    { name: 'Kali Chaudas · Choti Diwali', name_hi: 'काली चौदस · छोटी दिवाली', name_gu: 'કાળી ચૌદસ', short: 'Kali Chaudas', short_hi: 'काली चौदस' },
+    { name: 'Kali Chaudas · Choti Diwali', name_hi: 'काली चौदस · छोटी दिवाली', name_gu: 'કાળી ચૌદસ', short: 'Kali Chaudas', short_hi: 'काली चौदस', short_gu: 'કાળી ચૌદસ' },
     { name: 'Diwali · Lakshmi Puja', name_hi: 'दिवाली · लक्ष्मी पूजा', name_gu: 'દિવાળી · લક્ષ્મી પૂજન', short: 'Diwali', short_hi: 'दिवाली', short_gu: 'દિવાળી' },
     { name: 'Govardhan Puja', name_hi: 'गोवर्धन पूजा', name_gu: 'ગોવર્ધન પૂજા' },
     { name: 'Gujarati New Year · Saal Mubarak', name_hi: 'गुजराती नववर्ष · साल मुबारक', name_gu: 'બેસતું વર્ષ · સાલ મુબારક', short: 'New Year', short_hi: 'नववर्ष', short_gu: 'બેસતું વર્ષ' },
@@ -81,8 +81,8 @@
     tenth: T('The tenth day, after the nine nights.', 'नौ रातों के बाद का दसवाँ दिन।', 'નવ રાત પછીનો દસમો દિવસ.'),
     diwDays: T('The Diwali days · {a} – {b}', 'दिवाली के दिन · {a} – {b}', 'દિવાળીના દિવસો · {a} – {b}'),
     today: T('Today · {d}', 'आज · {d}', 'આજે · {d}'),
-    next: T('Next: {x} · {d}', 'आगे: {x} · {d}', 'આગળ: {x} · {d}'),
-    last: T('The last of the Diwali days.', 'दिवाली के दिनों में आख़िरी।', 'દિવાળીના દિવસોમાં છેલ્લો.'),
+    next: T('Next: {x} · {d}', 'इसके बाद: {x} · {d}', 'હવે પછી: {x} · {d}'),
+    last: T('The last of the Diwali days.', 'दिवाली के दिनों का आख़िरी दिन।', 'દિવાળીના દિવસોનો છેલ્લો દિવસ.'),
     navTrack: T('The nine nights of Navratri', 'नवरात्रि की नौ रातें', 'નવરાત્રીની નવ રાત'),
     diwTrack: T('The Diwali days', 'दिवाली के दिन', 'દિવાળીના દિવસો'),
     nightN: T('Night {n}', 'दिन {n}', 'નોરતું {n}')
@@ -114,7 +114,7 @@
   function card(d, lang, sel) {
     var l = L(lang), th = themeOf(d), out;
     if (th === 'navratri') {
-      if (d < NAV1) return null;                         // the card shows only on a festival day: from night 1 (owner, 2026-10-07)
+      if (d < NAV1) return null;                         // the card shows only on a festival day: from night 1
       var cur = d - NAV1, dussOn = d === DUSS;
       var i = sel != null && sel >= 0 && sel < 9 ? sel : (cur >= 0 && cur < 9 ? cur : 0);
       var stops = NIGHTS.map(function (x, k) {

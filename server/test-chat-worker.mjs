@@ -1100,8 +1100,13 @@ async function chatSeq(userText, answers) {
 
   // L8: a "Diwali" price tied to neither offer, when the visitor named neither, is replaced with BOTH offers' prices.
   const BOTH = HONEST + ' ' + DIWALI_PRICE + '. ' + LAKS_QUOTE + NOTE_LINE;
-  const neither = (await chat('Any festive deals?', 'Our Diwali Special is from ₹54,000 per person (minimum 2 travellers); flights extra.')).reply;
-  check('L8: a Diwali price tied to neither offer, the visitor naming neither: both offers\' prices', neither === BOTH, neither);
+  const laksPrice = 'Our Diwali Special is from ₹54,000 per person (minimum 2 travellers); flights extra.';
+  const neitherOk = (await chat('Any festive deals?', laksPrice)).reply;
+  check('L8: a "Diwali Special" tied to no place may carry the Lakshadweep price (round 2)', neitherOk === laksPrice + NOTE_LINE, neitherOk);
+  const neither = (await chat('Any festive deals?', 'Our Diwali Special is from ₹70,200 per person.')).reply;
+  check('L8: any other figure on a "Diwali" tied to no place gets both offers\' prices', neither === BOTH, neither);
+  const toBali = (await chat('Bali Diwali price?', laksPrice)).reply;
+  check('L8: ...and the Lakshadweep price on it, to a visitor who asked about Bali, too', toBali === BOTH, toBali);
   const toGoa = (await chat('How much is Goa?', 'It starts from ₹47,000 per person.')).reply;
   check('L8: an offer price in a reply naming no trip, to a question about another trip: replaced', replaced(toGoa) && !toGoa.includes('It starts from'), toGoa);
   const toLaks = (await chat('Lakshadweep for 2?', 'It is ₹54,000 per person (minimum 2 travellers), flights extra.')).reply;
@@ -1113,8 +1118,6 @@ async function chatSeq(userText, answers) {
     ['Lakshadweep price?', 'For a family of 3, the Lakshadweep Escape is ₹47,000 per person.'],
     ['Lakshadweep price?', 'For you and your wife, the Lakshadweep Escape is ₹47,000 per person.'],
     ['Lakshadweep price?', 'Great choice for the two of you! The Lakshadweep Escape is ₹47,000 per person.'],
-    ['We are 2, Lakshadweep?', 'The Lakshadweep Escape is ₹47,000 per person for a minimum of 4 travellers.'],
-    ['हम दो लोग हैं, लक्षद्वीप?', 'लक्षद्वीप की सैर ₹47,000 प्रति व्यक्ति, कम से कम 4 यात्री।'],
     ['Lakshadweep price?', 'The Lakshadweep Escape is ₹47,000 per person for a minimum of 4 travellers, and the same applies to your 2 travellers.'],
     ['Lakshadweep price?', 'Lakshadweep Escape: ₹47,000 per person for a minimum of 4 travellers; we can give couples that price too.'],
     ['Lakshadweep price?', 'The Lakshadweep Escape is ₹54,000 or ₹47,000 per person.'],
@@ -1122,6 +1125,13 @@ async function chatSeq(userText, answers) {
   const groupKept = [];
   for (const [q, t] of groups) { const r = (await chat(q, t)).reply; if (r !== HONEST + ' ' + LAKS_QUOTE + NOTE_LINE) groupKept.push(t + ' => ' + r.slice(0, 90)); }
   check(`L9: ${groups.length} minimum-4 prices given to 1-3 travellers (in the reply's words or the visitor's), or without both conditions, are replaced with both prices`, groupKept.length === 0, groupKept.join(' | '));
+  const PAX = '\n\n(To be clear: for 2 or 3 travellers the Lakshadweep Escape is from ₹54,000 per person; ₹47,000 per person applies only to a minimum of 4 travellers. Flight tickets are extra.)';
+  const paxNoted = [['We are 2, Lakshadweep?', 'The Lakshadweep Escape is ₹47,000 per person for a minimum of 4 travellers; flights extra.', NOTE_LINE],
+    ['हम दो लोग हैं, लक्षद्वीप?', 'लक्षद्वीप की सैर ₹47,000 प्रति व्यक्ति, कम से कम 4 यात्री, फ़्लाइट अलग से।', NOTE_LINE_HI],
+    ['My wife and I want Lakshadweep', 'The Lakshadweep Escape is ₹47,000 per person for a minimum of 4 travellers; flights extra.', NOTE_LINE]];
+  const paxMissed = [];
+  for (const [q, t, note] of paxNoted) { const r = (await chat(q, t)).reply; if (r !== t + note + PAX) paxMissed.push(t + ' => ' + r.slice(0, 90)); }
+  check(`L9: ${paxNoted.length} minimum-4 prices stated WITH the condition to a visitor of 1-3 stay, with the note giving them the minimum-2 price`, paxMissed.length === 0, paxMissed.join(' | '));
   const big = (await chat('We are 6 people, Lakshadweep?', 'For your group of 6, the Lakshadweep Escape is ₹47,000 per person (minimum 4 travellers); flights extra.')).reply;
   check('L9: a group of 6 at the minimum-4 price passes', big === 'For your group of 6, the Lakshadweep Escape is ₹47,000 per person (minimum 4 travellers); flights extra.' + NOTE_LINE, big);
   const grpQ = (await chat('We are 3 people, Lakshadweep price?', 'For 3 people it is ₹47,000 each.')).reply;
@@ -1176,6 +1186,86 @@ async function chatSeq(userText, answers) {
   const tiedMissed = [];
   for (const t of stillTied) { const r = (await chat('Diwali?', t)).reply; if (r !== HONEST + ' ' + DIWALI_PRICE + '.' + NOTE_LINE) tiedMissed.push(t + ' => ' + r.slice(0, 90)); }
   check(`L13: ${stillTied.length} ties to Bali still get the Bali offer's real price`, tiedMissed.length === 0, tiedMissed.join(' | '));
+
+  // ---- review round 2 (AI Security, Bug Hunter, the second opinion): more honest answers, and the gaps ---------------
+  // L14: a Diwali word belongs to a place only in its own clause; the visitor's words never excuse another figure.
+  const twoOffer = [
+    ['What Diwali offers do you have?', 'Diwali in Bali is from ₹1,15,000 per person. For a shorter trip, our Diwali Special to the islands is from ₹54,000 per person (minimum 2 travellers), flights extra.', NOTE_LINE],
+    ['Lakshadweep?', 'Like Bali, it has a Diwali Special: from ₹54,000 per person (minimum 2 travellers), flights extra.', NOTE_LINE],
+    ['लक्षद्वीप?', 'बाली की तरह, यहाँ भी दिवाली स्पेशल है: ₹54,000 प्रति व्यक्ति से (कम से कम 2 यात्री), फ़्लाइट का खर्च अलग है।', NOTE_LINE_HI],
+    ['Lakshadweep?', 'For Bali, see our Diwali offer. For the islands, our Diwali Special is from ₹54,000 per person (minimum 2 travellers), flights extra.', NOTE_LINE],
+    ['Lakshadweep?', 'Diwali Special in Lakshadweep is from ₹54,000 (minimum 2 travellers), flights extra, whereas the Bali regular package starts at ₹70,200.', NOTE_LINE],
+    ['Diwali?', 'Our Diwali Special, the Lakshadweep Escape, is from ₹54,000 (minimum 2 travellers), flights extra, whereas the Bali 7 Nights with Flights starts at ₹70,200.', NOTE_LINE],
+    ['Diwali?', 'Diwali in Bali is from ₹1,15,000 per person. The booking steps are the same for the Lakshadweep Escape, from ₹54,000 (minimum 2 travellers), flights extra.', NOTE_LINE],
+    ['Diwali?', 'Diwali in Bali is from ₹1,15,000 and is not the same as the Lakshadweep Escape, which is from ₹54,000 (minimum 2 travellers), flights extra.', NOTE_LINE],
+    ['Diwali?', 'The Lakshadweep Escape is from ₹54,000 (minimum 2 travellers), flights extra. Diwali in Bali has the same booking process.', NOTE_LINE],
+    ['Goa?', 'Goa Getaway is from ₹9,999 (3-star). Diwali in Bali offers the same beach feel.', NOTE_LINE],
+    ['We are a couple, Lakshadweep?', 'For the two of you it is from ₹54,000 per person; a group of 4 or more gets ₹47,000 per person. Flights are extra.', NOTE_LINE],
+    ['Lakshadweep?', '₹47,000 per person applies only to groups of 4 or more, not to couples; flights extra.', NOTE_LINE],
+    ['We are 4 couples, Lakshadweep?', 'For your 4 couples, the Lakshadweep Escape is ₹47,000 per person (minimum 4 travellers); flights extra.', NOTE_LINE],
+  ];
+  const twoFlagged = [];
+  for (const [q, t, note] of twoOffer) { const r = (await chat(q, t)).reply; if (r !== t + note) twoFlagged.push(t + ' => ' + r.slice(0, 90)); }
+  check(`L14: ${twoOffer.length} honest answers pass untouched (a Diwali word in another clause, "same" without a price, a denied tie, a couple told both prices, 4 couples)`, twoFlagged.length === 0, twoFlagged.join(' | '));
+  const stale = (await chat('what is the diwali offer?', 'Our Diwali Special is from ₹70,200 per person.', { history: [{ role: 'user', content: 'Tell me about Lakshadweep' }, { role: 'assistant', content: 'Lakshadweep is lovely in November.' }] })).reply;
+  check('L14: a visitor who named Lakshadweep earlier does not excuse another figure on "our Diwali Special"', stale === BOTH, stale);
+  const laksAsked = (await chat('Lakshadweep?', 'Diwali in Bali is ₹47,000 per person.')).reply;
+  check('L14: a Bali discount to a visitor who asked about Lakshadweep is replaced with both offers', laksAsked === BOTH, laksAsked);
+  const newTies = ['The Lakshadweep Escape is from ₹54,000 per person. Diwali in Bali is on par with it.', 'Diwali in Bali as well as the Lakshadweep Escape start from ₹54,000.',
+    'Lakshadweep Escape: ₹54,000. Diwali in Bali equals that.', 'The Lakshadweep Escape is from ₹54,000 per person. Diwali in Bali is the same price.'];
+  const newTiesMissed = [];
+  for (const t of newTies) { const r = (await chat('Diwali?', t)).reply; if (r !== HONEST + ' ' + DIWALI_PRICE + '.' + NOTE_LINE) newTiesMissed.push(t + ' => ' + r.slice(0, 90)); }
+  check(`L14: ${newTies.length} ties ("on par", "as well as", "equals", "the same price") get the Bali offer's real price`, newTiesMissed.length === 0, newTiesMissed.join(' | '));
+
+  // L15: discounts - a refusal is not one; "save 5%" and "25% cheaper" are.
+  const refusals = [['Can I get 10% off?', "I'm sorry, we cannot offer a 10% discount; our team shares the exact quote on WhatsApp."],
+    ['Senior discount?', 'We do not have a 10 percent discount for seniors.'], ['छूट?', 'हम 10% छूट नहीं दे सकते।']];
+  const refused = [];
+  for (const [q, t] of refusals) { const r = (await chat(q, t)).reply; if (r !== t) refused.push(t + ' => ' + r.slice(0, 90)); }
+  check(`L15: ${refusals.length} refusals that name a percentage pass untouched`, refused.length === 0, refused.join(' | '));
+  const offers = ['You save 5% if you book today.', 'The Lakshadweep Escape is 25% cheaper than Diwali in Bali.'];
+  const offersKept = [];
+  for (const t of offers) { const r = (await chat('Deals?', t)).reply; if (!replaced(r)) offersKept.push(t + ' => ' + r.slice(0, 90)); }
+  check(`L15: ${offers.length} percentage offers are replaced`, offersKept.length === 0, offersKept.join(' | '));
+
+  // L16: "thousand" in a price phrase is money; flights, permits and seats.
+  const thousands = ['Diwali in Bali is about 90 thousand per person.', 'Goa is around 8 thousand per person.', 'The Lakshadweep Escape is from 44 thousand per person (minimum 4).'];
+  const thKept = [];
+  for (const t of thousands) { const r = (await chat('Price?', t)).reply; if (!replaced(r)) thKept.push(t + ' => ' + r.slice(0, 90)); }
+  check(`L16: ${thousands.length} "N thousand per person" figures are read as money and replaced`, thKept.length === 0, thKept.join(' | '));
+  const baliFlights = (await chat(L, 'Diwali in Bali includes return flights. The Lakshadweep Escape is from ₹54,000 per person (minimum 2 travellers).')).reply;
+  check('L16: Bali\'s "return flights" do not stand in for Lakshadweep\'s: the flights line is added', baliFlights.endsWith('(Flight tickets are not included in the Lakshadweep Escape.)'), baliFlights);
+  const logistics = ['Flights from Ahmedabad to Agatti take about 2 hours.', 'You reach Agatti by a flight from Kochi, and flights run only on some days.', 'Our team can help you look at flight options to Agatti.'];
+  const logNoted = [];
+  for (const t of logistics) { const r = (await chat('How do I get there?', t)).reply; if (r !== t) logNoted.push(t + ' => ' + r.slice(0, 90)); }
+  check(`L16: ${logistics.length} travel-logistics sentences about flights get no inclusion note`, logNoted.length === 0, logNoted.join(' | '));
+  const permits2 = ['For Lakshadweep we take care of the entry permit so you do not need to worry.', 'We will apply on your behalf for the Lakshadweep entry permit.',
+    'Our team will help you with the Lakshadweep entry permit paperwork.'];
+  const p2Missed = [];
+  for (const t of permits2) { const r = (await chat('Permit?', t)).reply; if (!(r.startsWith(t) && r.includes(PERMIT))) p2Missed.push(t + ' => ' + r.slice(0, 90)); }
+  check(`L16: ${permits2.length} more permit promises get the permit rule`, p2Missed.length === 0, p2Missed.join(' | '));
+  const both2 = (await chat('Permit?', 'We arrange the permit for you, and the Lakshadweep Escape includes lunch.')).reply;
+  check('L16: the permit rule is added beside the inclusions note', both2.includes(LAKS_INCL) && both2.includes(PERMIT), both2);
+  const reserve = (await chat('Seats?', 'Book today and we will reserve your seat.')).reply;
+  check('L16: "we will reserve your seat" gets the booking note', reserve.includes(BOOKING_NOTE), reserve);
+
+  // L17: the re-run of the round-2 probes on the fixed code.
+  // (Kept replaced on purpose: "Diwali in Bali ... cannot reduce it to the same ₹54,000 as ..." - the figure follows Bali, and
+  // reading a negation there would let "Diwali in Bali is not ₹1,15,000 but ₹54,000" through.)
+  const refuseMatch = ['The Lakshadweep Escape is from ₹54,000 per person for a minimum of 2 travellers; flights are extra. I cannot match that price for Diwali in Bali.'];
+  const rmFlagged = [];
+  for (const t of refuseMatch) { const r = (await chat('Can Bali match?', t)).reply; if (r !== t + NOTE_LINE) rmFlagged.push(t + ' => ' + r.slice(0, 90)); }
+  check(`L17: a refusal to match the Lakshadweep price passes untouched`, rmFlagged.length === 0, rmFlagged.join(' | '));
+  const besideBali = 'The Lakshadweep Escape, our Diwali Special, is from ₹54,000 per person, minimum 2, flights extra; Bali 7 Nights with Flights is from ₹70,200.';
+  const besideR = (await chat('Diwali?', besideBali)).reply;
+  check(`L17: the offer beside Bali's regular 7-night package passes (the length check reads only the offer's clause)`, besideR === besideBali + NOTE_LINE, besideR);
+  const lateTies = [['Diwali?', 'Along with the Lakshadweep Escape from ₹54,000 per person, Diwali in Bali is available at that rate for 2 travellers.', HONEST + ' ' + DIWALI_PRICE + '.' + NOTE_LINE],
+    ['Diwali?', 'The Lakshadweep Escape is from ₹54,000 per person, and Diwali in Bali is similarly priced.', HONEST + ' ' + DIWALI_PRICE + '.' + NOTE_LINE],
+    ['Diwali?', 'Both Diwali trips are from ₹54,000 per person. Lakshadweep is 3N/4D and Bali is 7N/8D.', BOTH],
+    ['Lakshadweep?', 'Our Diwali special: 7 nights, ₹54,000 per person for a minimum of 2 travellers. Flights are extra.', BOTH]];
+  const ltMissed = [];
+  for (const [q, t, want] of lateTies) { const r = (await chat(q, t)).reply; if (r !== want) ltMissed.push(t + ' => ' + r.slice(0, 90)); }
+  check(`L17: ${lateTies.length} late ties ("at that rate", "similarly priced"), "both trips" and another trip's length are replaced`, ltMissed.length === 0, ltMissed.join(' | '));
 }
 
 check('every fetch went to the fake Anthropic API only', calls.every((c) => c.url === ANTHROPIC), [...new Set(calls.map((c) => c.url))].join(' '));

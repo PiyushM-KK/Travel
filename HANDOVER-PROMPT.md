@@ -10,71 +10,71 @@ affiliate-referral and customized-tour enquiry website. NO payments, checkout, o
 issuance happen on the site; it refers users to official providers (Air India, IndiGo,
 IRCTC, redBus, Booking.com) and captures enquiries via a form + WhatsApp.
 
-CURRENT STATE - 2026-09-30 (newest; where it differs from anything below, this wins)
-- Live site: https://skylinetravelplanner.com (custom domain on GitHub Pages).
-- The owner's local `main` is AHEAD of origin ON PURPOSE: the 3 social-queue Redis commits (held until the owner's
-  Upstash/Vercel click) plus the chat-worker commits of 2026-09-30 (server/ only; the worker is deployed by paste,
-  so they are the source of what is LIVE). NEVER push `main` plainly - it would ship those. Ship website work from a
-  branch cut from origin/main: `git worktree add <dir> -b <branch> origin/main`, commit there,
-  `git push origin <branch>:main` (fast-forward only), then `git -C <checkout> rebase origin/main`.
-  Pushing main auto-deploys GitHub Pages and the Vercel projects.
-- Diwali in Bali offer (trip departs Tue 3 Nov 2026): `diwali-bali.html` in EN / हिं / ગુ, `offers.html` = /offers
-  (festival tabs from its FESTIVALS list, offers hide after departure, no prices), `diwali-promo.js` (card on
-  index.html + International.dc.html, follows the visitor's language, hides at departure). These two pages are
-  standalone, NOT .dc.html: normal CSS and @media work there. Their languages: LANG-FIX-SPEC.md section 7.
-  TRAP: those pages re-apply `data-en` on every load - change data-en / data-hi / data-gu together with the
-  words, or your edit is silently undone.
-- Every AI picture/video carries an "Illustrative" label (HI "AI से बना चित्र", GU "AI ચિત્ર"); the real
-  parasailing photo is credited (Christophe95, CC BY-SA 4.0). Keep the fine print true to what is shown.
-- Tests of any form must NEVER reach Formspree: start test Chrome with
-  --host-resolver-rules="MAP formspree.io 0.0.0.0, MAP *.formspree.io 0.0.0.0" and answer the requests yourself.
-- 2026-09-30 (session with the FullFirm agent):
-  - CHAT ASSISTANT LIVE = "anthropic-8" (GET the worker: version + model). Claude Sonnet 5.5 (`thinking:
-    between_tools`, NO temperature - Sonnet 5.5 returns a 400 for a non-default one, max_tokens 1000, prompt caching).
-    It quotes ONLY the site's published prices (extracted from the page data; the owner's Shimla & Manali "from
-    Rs 10,999, up to Rs 15,000+"; destination "from" prices set by the owner: Kashmir 12,900, Sikkim 20,900,
-    Uttarakhand 15,900, the six North-East states 20,500 - packages keep their own prices), names only site
-    destinations/seasons, knows the Diwali offer until departure, never states flight times or the WhatsApp team's
-    languages, and CODE backstops replace a wrong or unpublished figure (also a destination figure given for a
-    package, across sentences and in Hindi/Gujarati names), false inclusions and booking/visa promises, strip markdown,
-    add the price note in the reply's language, and retry once on garbled Indic text. Offline test:
-    `node server/test-chat-worker.mjs` (344 checks, reads the site files - it fails if a site price changes without the
-    worker). ANY price change on the site needs the worker updated + the owner's paste. Two live accuracy tests
-    passed (transcripts in the FullFirm session scratchpad, summarised in FullFirm HANDOVER).
-  - The chat window is bigger (AssistantWidget.dc.html, min() sizes, live a50c098); prices live cfaf2f3.
-  - Social automation now uses Claude Sonnet 5.5 for its reply model (live bd5bb59; engine/model-compat.js: auto +
-    strict tools instead of forced tool_choice, one retry, deadlines in the 60 s webhook, cleaned model text in owner
-    messages, visible "QA/SMM did not run", fail-closed foreign-brand check; no MODEL env var on Vercel skyline-social).
-  - The Cloudflare editor's Preview pane shows "Error 1031 Invalid Workers Preview configuration": the preview tool
-    only; the live worker is fine. Do not redeploy an old version to clear it.
+CURRENT STATE - 2026-10-06 (newest; where it differs from anything below, this wins)
+- Live site: https://skylinetravelplanner.com (custom domain on GitHub Pages). Pushing `main` deploys the site AND, since
+  2026-10-06, the AI chat worker (see AI CHAT BACKEND).
+- NEVER push the owner's local `main` plainly: it holds the 3 social-queue Redis commits, held until the owner's
+  Upstash/Vercel switch-over (social-automation/BLOCKED.md B-AIRTABLE-QUOTA). Ship from a branch cut from origin/main:
+  `git worktree add <dir> -b <branch> origin/main`, commit there, `git push origin <branch>:main` (fast-forward only),
+  then `git -C <checkout> rebase origin/main` (copies of commits already on main drop out).
+- WAITING FOR THE OWNER'S "publish" (built + reviewed 2026-10-06, NOT live): branch `chat-worker-anthropic-10-fix` =
+  origin/main + the Lakshadweep website (ea9845d, bbb173e) + the chat-worker history + anthropic-10 (6c128d8, 7f9ed54
+  and any later review commits). ONE push of it ships both together (the site must not go live without the worker, or
+  the chat contradicts the new page):
+  - The "Lakshadweep Escape", Diwali Special 2026 (the owner's flyer, 2026-10-05): diwali-lakshadweep.html in EN/HI/GU -
+    3N/4D, 2 nights Agatti + 1 night Bangaram, travel 5-20 Nov 2026, Rs 54,000 per person (minimum 2 travellers) or
+    Rs 47,000 (minimum 4), flight tickets extra; stays Sand Bank Beach Resort and "Coral Pearl, Lakshadweep – IHCL
+    SeleQtions" (the flyer said "IHCL Taj Resort"; IHCL's own press room and SeleQtions site name it SeleQtions, 50
+    glamping tents - owner to confirm); the entry-permit note ("mention it, no promise"); Formspree + WhatsApp enquiry;
+    price and form hidden from 21 Nov 00:00 IST. Also: a second Diwali card on /offers; diwali-promo.js names both offers
+    until 3 Nov, then Lakshadweep only, gone from 21 Nov (now on Domestic.dc.html too); a Lakshadweep destination page
+    (Destination.dc.html?dest=lakshadweep: no price, Oct-mid May, 3-4 days, the permit), a home card, a "Customize my
+    trip" option; 7 Wikimedia Commons photos credited on photo-credits.html, captioned by island, never as the resort.
+  - Chat worker anthropic-10: Bali's regular rates ("Bali 7 Nights with Flights", Rs 70,200 / 72,200 / 74,000 - on the
+    site since 53cf0e3 but NOT yet in the live chat), the Lakshadweep Escape (offered until 21 Nov IST, then "it has
+    ended" for a week), and code backstops that tell the two Diwali offers apart (a lower figure tied to Bali is a
+    discount; Rs 47,000 never for 1-3 travellers; flights, meals and the permit never claimed). 407 offline checks;
+    reviewed: AI Security (2 rounds + a second opinion from another session each round), Bug Hunter (2 rounds, its
+    probes re-run on the final code), App Security on the workflow. Verdicts: fit to deploy / safe to ship.
+- CHAT ASSISTANT LIVE = anthropic-8 (Cloudflare reports its last change 2026-09-30 19:08 UTC). anthropic-9 was never
+  pasted; anthropic-10 replaces it.
+- Diwali in Bali (departs Tue 3 Nov 2026): diwali-bali.html EN/HI/GU, /offers, the promo card - LIVE since 89c2980.
+  These standalone pages are NOT .dc.html: normal CSS and @media work there. Languages: LANG-FIX-SPEC.md section 7.
+  TRAP: they re-apply data-en on every load - change data-en / data-hi / data-gu together with the words.
+- Every AI picture/video carries an "Illustrative" label (HI "AI से बना चित्र", GU "AI ચિત્ર"); real photos are credited
+  on photo-credits.html. Keep the fine print true to what is shown.
+- Tests of any form must NEVER reach Formspree: test Chrome with its own --user-data-dir and
+  --host-resolver-rules="MAP formspree.io 0.0.0.0, MAP *.formspree.io 0.0.0.0", and answer the requests yourself.
+- Social automation runs on Claude Sonnet 5.5 (live bd5bb59); its queue is blocked on Airtable's quota until the Redis
+  switch-over (social-automation/HANDOVER.md).
 
-PENDING - OWNER (time-limited: the trip departs Tue 3 Nov 2026)
-1. DONE 2026-09-30 (anthropic-8 live). Still open: does the WhatsApp team reply in Gujarati/Hindi (then the assistant
-   may say so); a fluent read of the worker's Hindi/Gujarati transliterations of package names; the Cloudflare
-   Workers plan (Free = 10 ms CPU); "Sarthi" decisions (the plan: C:/Automation/clients/skyline-travel/sarthi/PLAN.md).
-2. A fluent Hindi reader and a fluent Gujarati reader skim diwali-bali.html?lang=hi / ?lang=gu and offers.html
-   once (AI-translated, then checked twice by independent AI native editors).
-3. The 4th video, "garland welcome on Diwali evening": retry in Higgsfield with the reworded prompt in MEMORY.md
-   (Diwali entry), or give the agent a free Hugging Face token (HF_TOKEN) to make it with Wan 2.1 image-to-video.
-4. Decide: add /offers to the site's main menu (the header is copied into 11 pages); keep the Day 7 jungle
-   picture (Jimbaran is on the coast); give the Diwali-nights plane Singapore Airlines colours; swap the soft
-   Uluwatu clifftop for a real 4K Commons photo (cloud.shepherd, CC BY 2.0); what diwali-bali.html shows after
-   departure (it still shows the price and the booking form).
-5. Rotate the leaked keys (HANDOVER.md, Pending), and decide whether MEMORY.md should keep the owner's personal
-   email (this repo is public).
+PENDING - OWNER
+1. Say "publish" for the branch above. Ideally answer first (the page and the chat follow the answers):
+   a. Start dates: may a 3N/4D trip START as late as 20 Nov (ending 23 Nov), or must it END by 20 Nov (the date picker
+      then stops at 17 Nov)?
+   b. Bangaram: keep IHCL's own name "Coral Pearl, Lakshadweep – IHCL SeleQtions" (the page says this now) or the flyer's
+      "IHCL Taj Resort"? Agatti: "Sand Bank Beach Resort" or "Sandbank Resort"? Room types?
+   c. Meals: the flyer says "Breakfast and other inclusions as per the package" - which meals on each island?
+   d. Prices for 1 traveller, for 3, for children; twin sharing; taxes.
+   e. Does the package arrange or pay for the Lakshadweep entry permit?
+2. GitHub secrets CLOUDFLARE_API_TOKEN (the account-wide token - owner's choice "Put it in GitHub anyway") and
+   CLOUDFLARE_ACCOUNT_ID are set. Optional hardening from the reviews: a token scoped to Account > Workers Scripts:Edit,
+   branch protection on main, and a hard monthly spend cap on the Anthropic key.
+3. From 2026-09-30: does the WhatsApp team reply in Gujarati/Hindi; a fluent read of the worker's Hindi/Gujarati
+   transliterations and of both Diwali pages; the 4th Bali video; /offers in the main menu; what diwali-bali.html shows
+   after departure; rotate the leaked keys (HANDOVER.md, Pending); the owner's personal email in MEMORY.md; Sarthi
+   decisions (C:/Automation/clients/skyline-travel/sarthi/PLAN.md); the Cloudflare Workers plan (Free = 10 ms CPU).
 
 PENDING - AGENT
-- index.html is wider than a 320px phone in Hindi/Gujarati (its language menu + burger) - fix when asked.
-- Add the next festival to offers.html FESTIVALS (with _hi/_gu fields) when the owner gives an offer.
-- After 2026-11-09 the two <script src="diwali-promo.js"> tags can go (the card already hides itself).
-- 2026-09-30: watch the social automation's first Sonnet 5.5 runs (400 invalid_request_error, a high "did not run"
-  rate); LOW open: the approval digest prints the vision photoDescription uncleaned (use cleanModelText).
-- Site data found broken: Package.dc.html opens Royal Rajasthan for Gujarat Darshan, the 3 Sikkim packages and South
-  Temple Trail; Gujarat Darshan and South Temple Trail show the wrong photos; season conflicts between Destination and
-  Package pages; the Privacy page never mentions the AI chat. Fix with the owner (Sarthi P0/P1).
-- "Sarthi" (the assistant's new name, owner 2026-09-30) v1: streaming with per-sentence checks, chips, package cards,
-  trip brief -> WhatsApp/Customize prefill, voice, page-aware greetings - plan in the private clients repo
-  (C:/Automation/clients/skyline-travel/sarthi/PLAN.md), phases P0-P5, owner decisions pending.
+- After the owner's publish: `git -C <checkout> rebase origin/main` (local main keeps only the Redis commits and doc
+  commits), watch the Action (test, deploy, health), GET the worker (anthropic-10), check the pages live (desktop and
+  390 px, EN/HI/GU, the promo card, /offers, the destination page), confirm Workers Logs and preview URLs are off; then
+  remove the worktrees skyline-bali, skyline-laks, skyline-w10, skyline-w10fix and their branches.
+- After 2026-11-21 the <script src="diwali-promo.js"> tags can go (the card already hides itself).
+- Older: index.html is wider than a 320 px phone in Hindi/Gujarati; Package.dc.html opens Royal Rajasthan for Gujarat
+  Darshan, the 3 Sikkim packages and South Temple Trail, and shows wrong photos for two; season conflicts between the
+  Destination and Package pages; the Privacy page never mentions the AI chat; Sarthi P0-P5; the social automation's open
+  LOW (the digest prints photoDescription uncleaned).
 
 FIRST, BEFORE ANY EDIT:
 1. Run `git pull`. This repo is edited from more than one place (Copilot / other agents),
@@ -114,26 +114,34 @@ AssistantWidget.dc.html (floating AI chat, imported on pages) · live.html (dev 
 Chatbot.dc.html and WhatsApp.dc.html are orphaned/unused.
 
 DEPLOYING SITE CHANGES
-Edit files → `git add -A && git commit -m "..." && git push` - BUT while local main holds unpushed commits,
-use the branch method in CURRENT STATE instead of a plain push.
+Commit your own files by path (never `git add -A`) on a branch cut from origin/main, then
+`git push origin <branch>:main` - see CURRENT STATE. Pushing main deploys the site, and the chat worker when its files
+or any root .html page change.
 Push auth: a GitHub token lives in the gitignored `.env` (GITHUB_TOKEN=). Pushes use a temporary
 tokenized remote, then reset the remote back to the clean URL.
 GitHub Pages rebuilds in ~1 min and caches files 10 min (max-age=600) — hard-refresh
 (Ctrl+Shift+R) or use a private window to verify.
 
-AI CHAT BACKEND — NOT DEPLOYED BY GIT
-The floating "Ask Skyline AI" widget (AssistantWidget.dc.html, `aiEndpoint`) POSTs {messages:[...]}
-to a Cloudflare Worker at https://hello-world.skyline-dev.workers.dev running
-`server/anthropic-chat-worker.js` (Claude model `claude-sonnet-5-5` since 2026-09-30; was `claude-haiku-4-5`) and receives {reply}.
-- ANTHROPIC_API_KEY is an encrypted Cloudflare Worker secret (never in the repo).
-- ⚠️ To change the AI model/prompt/logic you MUST paste the file into the Cloudflare dashboard →
-  the Worker → Edit code → Deploy. `git push` does NOT update the Worker.
-- Health check: open the Worker URL in a browser (GET) → {version, model, hasKey}.
-- Behavior already baked in: replies in the user's language (EN/HI/GU); budget is OPTIONAL (never
-  pushes for money); a price-disclaimer note is auto-appended whenever a reply quotes ₹/Rs/INR;
-  CORS locked to the site's origins.
-- Model (2026-09-30): Claude Sonnet 5.5 (`claude-sonnet-5-5`), with `thinking: { type: 'between_tools' }`, no
-  `temperature` (Sonnet 5.5 returns a 400 for a non-default one) and `max_tokens: 1000`. Change all three together.
+AI CHAT BACKEND — DEPLOYED BY GITHUB ACTIONS (since 2026-10-06; it was pasted into the dashboard before)
+The floating "Ask Skyline AI" widget (AssistantWidget.dc.html, `aiEndpoint`) POSTs {messages:[...]} to the Cloudflare
+Worker https://hello-world.skyline-dev.workers.dev running `server/anthropic-chat-worker.js` and receives {reply}.
+- A push to main that changes the worker, server/wrangler.toml, its test or any root .html page runs
+  .github/workflows/chat-worker.yml: `node server/test-chat-worker.mjs` (offline, a fake Anthropic API; it compares the
+  worker's price and offer blocks with the site's pages, so a site price change without the worker turns the run RED and
+  nothing deploys), then `wrangler deploy` (4.147.0, the file uploaded unbundled), then a health check (version, model,
+  key). Main only; it refuses a VERSION older than the live one.
+- ANY price or offer change on the site: update the worker's blocks (PUBLISHED_PRICES, BALI_PACKAGE, the offer blocks)
+  and its VERSION in the same push.
+- Secrets: ANTHROPIC_API_KEY is a Cloudflare Worker secret, kept by every deploy. CLOUDFLARE_API_TOKEN and
+  CLOUDFLARE_ACCOUNT_ID are GitHub repository secrets, copied from social-automation/.env by
+  social-automation/sync-gh-secrets.sh, which never prints them.
+- Fallback: paste the file into the Cloudflare dashboard → the Worker → Edit code → Deploy.
+- Health check: open the Worker URL in a browser (GET) → {ok, version, model, hasKey}.
+- Model: Claude Sonnet 5.5 (`claude-sonnet-5-5`), `thinking: { type: 'between_tools' }`, NO `temperature` (Sonnet 5.5
+  returns a 400 for a non-default one), `max_tokens: 1000`. Change all three together.
+- Behaviour: replies in the visitor's language (EN/HI/GU); budget optional; only the site's published prices; the price
+  note in the reply's language; CORS locked to the site's origins; code backstops replace wrong figures and add notes
+  for false inclusions and booking/visa/permit promises.
 
 LEAD CAPTURE
 Customize.dc.html submits to Formspree (endpoint in the file) → email, plus a prefilled WhatsApp

@@ -1,13 +1,17 @@
-/* Diwali in Bali promo: a small floating card linking to diwali-bali.html.
+/* Diwali offers promo: a small floating card. While Diwali in Bali (departs Tue 3 Nov 2026, IST) and the Lakshadweep
+   Escape (travel 5-20 Nov 2026) are both live it names both and opens /offers; once Bali has left it shows only
+   Lakshadweep and opens its page; after 20 Nov it is gone. It never advertises a trip that has left, and can be dismissed.
    Sits centred above the AI-assistant and WhatsApp buttons, under the cookie banner.
-   Shows only until the trip departs (Tue 3 Nov 2026, IST) - after that it would advertise a trip that has left - and can be dismissed.
    To remove early, delete the <script src="diwali-promo.js"> tag from the page.
    Speaks the visitor's language (the site's skyline_lang key: en / hi / gu) and follows it when they switch. */
 (function () {
-  var END = new Date('2026-11-03T00:00:00+05:30');
-  if (new Date() >= END) return;
+  if (window.__skyDiwaliPromo) return;   // one card even if a page loads this script twice
+  window.__skyDiwaliPromo = true;
+  var BALI_END = new Date('2026-11-03T00:00:00+05:30'), LAKS_END = new Date('2026-11-21T00:00:00+05:30');
+  var now = new Date(), both = now < BALI_END;
+  if (now >= LAKS_END) return;
   try { if (sessionStorage.getItem('sky_diwali_promo') === 'closed') return; } catch (e) {}
-  if (/diwali-bali\.html/.test(location.pathname)) return;
+  if (/(^|\/)(diwali-bali|diwali-lakshadweep|offers)(\.html)?\/?$/.test(location.pathname)) return;
 
   var css = document.createElement('style');
   css.textContent =
@@ -27,16 +31,20 @@
     '@media (prefers-reduced-motion:reduce){.skd{transition:none}.skd .fl{animation:none}}';
   document.head.appendChild(css);
 
-  var TXT = {
-    en: { t: 'Diwali in Bali', s: '7N/8D · departs 3\u00a0Nov\u00a02026', go: 'View trip →', aria: 'Diwali in Bali: 7 nights, 8 days, departing 3 November. View the trip.', x: 'Hide Diwali offer' },
-    hi: { t: 'बाली में दिवाली', s: '7 रातें / 8 दिन · 3\u00a0नवंबर से', go: 'यात्रा देखें →', aria: 'बाली में दिवाली: 7 रातें, 8 दिन, रवानगी 3 नवंबर। यात्रा देखें।', x: 'दिवाली ऑफ़र छिपाएं' },
-    gu: { t: 'બાલીમાં દિવાળી', s: '7 રાત / 8 દિવસ · 3\u00a0નવેમ્બરથી', go: 'યાત્રા જુઓ →', aria: 'બાલીમાં દિવાળી: 7 રાત, 8 દિવસ, પ્રસ્થાન 3 નવેમ્બર. યાત્રા જુઓ.', x: 'દિવાળી ઓફર છુપાવો' }
+  var TXT = both ? {
+    en: { t: 'Diwali offers', s: 'Bali 7N/8D · Lakshadweep 3N/4D', go: 'See offers →', aria: 'Diwali offers: Bali, 7 nights, and Lakshadweep, 3 nights. See the offers.', x: 'Hide Diwali offers' },
+    hi: { t: 'दिवाली ऑफ़र', s: 'बाली 7 रातें · लक्षद्वीप 3 रातें', go: 'ऑफ़र देखें →', aria: 'दिवाली ऑफ़र: बाली, 7 रातें, और लक्षद्वीप, 3 रातें। ऑफ़र देखें।', x: 'दिवाली ऑफ़र छिपाएं' },
+    gu: { t: 'દિવાળી ઓફર', s: 'બાલી 7 રાત · લક્ષદ્વીપ 3 રાત', go: 'ઓફર જુઓ →', aria: 'દિવાળી ઓફર: બાલી, 7 રાત, અને લક્ષદ્વીપ, 3 રાત. ઓફર જુઓ.', x: 'દિવાળી ઓફર છુપાવો' }
+  } : {
+    en: { t: 'Lakshadweep Escape', s: 'Diwali Special · travel 5–20\u00a0Nov', go: 'View trip →', aria: 'Lakshadweep Escape, Diwali Special: travel 5 to 20 November. View the trip.', x: 'Hide Diwali offer' },
+    hi: { t: 'लक्षद्वीप की सैर', s: 'दिवाली स्पेशल · यात्रा 5–20\u00a0नवंबर', go: 'यात्रा देखें →', aria: 'लक्षद्वीप की सैर, दिवाली स्पेशल: यात्रा 5 से 20 नवंबर। यात्रा देखें।', x: 'दिवाली ऑफ़र छिपाएं' },
+    gu: { t: 'લક્ષદ્વીપની સફર', s: 'દિવાળી સ્પેશિયલ · પ્રવાસ 5–20\u00a0નવેમ્બર', go: 'યાત્રા જુઓ →', aria: 'લક્ષદ્વીપની સફર, દિવાળી સ્પેશિયલ: પ્રવાસ 5 થી 20 નવેમ્બર. યાત્રા જુઓ.', x: 'દિવાળી ઓફર છુપાવો' }
   };
   function lang() { try { var v = localStorage.getItem('skyline_lang'); return TXT[v] ? v : 'en'; } catch (e) { return 'en'; } }
 
   var a = document.createElement('a');
   a.className = 'skd';
-  a.href = 'diwali-bali.html';
+  a.href = both ? 'offers.html?festival=diwali' : 'diwali-lakshadweep.html';
   a.innerHTML =
     '<svg viewBox="0 0 40 40" aria-hidden="true"><path class="fl" d="M20 2 C24 9 25 13 20 18 C15 13 16 9 20 2Z" fill="#FFC24A"/>' +
     '<path d="M4 21 C9 34 31 34 36 21 Z" fill="#9C3E12"/><ellipse cx="20" cy="21" rx="16" ry="3.2" fill="#D96A2B"/></svg>' +

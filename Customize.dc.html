@@ -423,6 +423,7 @@ class Component extends DCLogic {
       'Rajasthan': { hi: 'राजस्थान', gu: 'રાજસ્થાન' }, 'Himachal': { hi: 'हिमाचल', gu: 'હિમાચલ' },
       'Kashmir': { hi: 'कश्मीर', gu: 'કાશ્મીર' }, 'Kerala': { hi: 'केरल', gu: 'કેરળ' },
       'Goa': { hi: 'गोवा', gu: 'ગોવા' }, 'Sikkim': { hi: 'सिक्किम', gu: 'સિક્કિમ' },
+      'Lakshadweep': { hi: 'लक्षद्वीप', gu: 'લક્ષદ્વીપ' },
       'Mysuru & Coorg': { hi: 'मैसूर और कूर्ग', gu: 'મૈસૂર અને કૂર્ગ' }, 'Mathura & Agra': { hi: 'मथुरा और आगरा', gu: 'મથુરા અને આગરા' },
       'Gujarat': { hi: 'गुजरात', gu: 'ગુજરાત' }, 'Thailand': { hi: 'थाईलैंड', gu: 'થાઇલેન્ડ' },
       'Bali': { hi: 'बाली', gu: 'બાલી' }, 'Maldives': { hi: 'मालदीव', gu: 'માલદીવ' },
@@ -467,7 +468,7 @@ class Component extends DCLogic {
     const t = this.T();
     return [
       { key: 'journey', kind: 'single', title: t.j_t, subtitle: t.j_s, options: [['🗺️','Domestic'],['🌄','North-East'],['✈️','International'],['🛕','Religious'],['💑','Honeymoon'],['👨‍👩‍👧','Family'],['🚌','Group'],['💼','Corporate'],['✨','Other']] },
-      { key: 'dests', kind: 'multi', title: t.d_t, subtitle: t.d_s, options: [['🏰','Rajasthan'],['🏔️','Himachal'],['🏞️','Kashmir'],['🌴','Kerala'],['🏖️','Goa'],['⛰️','Sikkim'],['☕','Mysuru & Coorg'],['🕌','Mathura & Agra'],['🦁','Gujarat'],['🛕','Thailand'],['🏝️','Bali'],['🐠','Maldives'],['💧','Meghalaya'],['🦏','Assam'],['🏔️','Arunachal Pradesh'],['🏕️','Nagaland'],['🛶','Manipur'],['💦','Mizoram'],['🪔','Varanasi'],['🙏','Amritsar'],['🛕','Tirupati'],['🕉️','Char Dham'],['🛐','Shirdi']] },
+      { key: 'dests', kind: 'multi', title: t.d_t, subtitle: t.d_s, options: [['🏰','Rajasthan'],['🏔️','Himachal'],['🏞️','Kashmir'],['🌴','Kerala'],['🏖️','Goa'],['🐚','Lakshadweep'],['⛰️','Sikkim'],['☕','Mysuru & Coorg'],['🕌','Mathura & Agra'],['🦁','Gujarat'],['🛕','Thailand'],['🏝️','Bali'],['🐠','Maldives'],['💧','Meghalaya'],['🦏','Assam'],['🏔️','Arunachal Pradesh'],['🏕️','Nagaland'],['🛶','Manipur'],['💦','Mizoram'],['🪔','Varanasi'],['🙏','Amritsar'],['🛕','Tirupati'],['🕉️','Char Dham'],['🛐','Shirdi']] },
       { key: 'departure', kind: 'departure', title: t.dep_t, subtitle: t.dep_s },
       { key: 'travellers', kind: 'travellers', title: t.tr_t, subtitle: t.tr_s },
       { key: 'transport', kind: 'multi', title: t.trn_t, subtitle: t.trn_s, options: [['✈️','Flight'],['🚆','Train'],['🚌','Bus'],['🚕','Private cab'],['🚐','Shared transport'],['🚫','Not required'],['🤔','Need recommendation']] },
@@ -499,7 +500,7 @@ class Component extends DCLogic {
   destCats() {
     return {
       'Rajasthan': ['domestic'], 'Himachal': ['domestic'], 'Kashmir': ['domestic'],
-      'Kerala': ['domestic'], 'Goa': ['domestic'], 'Sikkim': ['domestic', 'northeast'],
+      'Kerala': ['domestic'], 'Goa': ['domestic'], 'Lakshadweep': ['domestic'], 'Sikkim': ['domestic', 'northeast'],
       'Mysuru & Coorg': ['domestic'], 'Mathura & Agra': ['domestic', 'religious'],
       'Gujarat': ['domestic', 'religious'],
       'Thailand': ['international'], 'Bali': ['international'], 'Maldives': ['international'],

@@ -153,7 +153,7 @@
   else { inView = true; }
   document.addEventListener('visibilitychange', start);
   var rt = 0; addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { dirty = true; if (reduce) still(); else start(); }, 150); });
-  try { new MutationObserver(function () { dirty = true; if (reduce) still(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] }); } catch (e) {}   // a language switch re-wraps the words
+  try { new MutationObserver(function () { dirty = true; if (reduce || off()) still(); else start(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] }); } catch (e) {}   // a language switch re-wraps the words
   var wasOff = off(); try { new MutationObserver(function () { var o = off(); if (o === wasOff) return; wasOff = o; start(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] }); } catch (e) {}
   try { document.fonts && document.fonts.ready.then(function () { dirty = true; if (reduce) still(); }); } catch (e) {}
   if (reduce) still(); else start();

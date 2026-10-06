@@ -50,12 +50,18 @@ for (const [iso, theme, main, sub] of cases) {
   const c = S.card('en'); ok(c.title === 'Maa Chandraghanta' && c.eye === 'Night 3 of 9 · Tue 13 Oct' && c.swatch === '#D32F2F' && /Red · popular colour/.test(c.chip) && c.stops.filter(s => s.state === 'past').length === 2 && c.stops[2].state === 'today' && c.stops[2].sel, 'card night 3: ' + c.eye + ' | ' + c.title + ' | ' + c.chip);
   const c9 = S.card('gu', 8); ok(c9.note === '2026માં આઠમ અને નોમ બંને આ જ દિવસે છે.' && c9.title === 'મા સિદ્ધિદાત્રી', 'card tap night 9 GU: ' + c9.title + ' | ' + c9.note);
   ok(S.line('en').swatch === '#D32F2F', 'chat swatch for tonight'); }
-{ const { S } = load('', at('2026-10-06T12:00:00+05:30'), []); const c = S.card('en'); ok(c.eye === 'Nine nights · Sun 11 Oct – Mon 19 Oct' && c.title === 'Maa Shailputri' && c.stops.every(s => s.state === 'future'), 'card before Navratri: ' + c.eye); }
+// the card starts on night 1 (owner, 2026-10-07): none before 11 Oct, even 1 ms before; the strip keeps the countdown
+for (const iso of ['2026-10-06T12:00:00+05:30', '2026-10-10T23:59:59.999+05:30']) { const { S } = load('', at(iso), []); ok(S.card('en') === null && S.card('gu', 3) === null && S.line('en').text !== '', 'no card before night 1: ' + iso); }
+{ const { S } = load('', at('2026-10-11T00:00:00+05:30'), []); const c = S.card('en'); ok(c && c.eye === 'Night 1 of 9 · Sun 11 Oct' && c.title === 'Maa Shailputri' && c.stops[0].state === 'today', 'card from night 1 at 00:00 IST: ' + (c && c.eye)); }
 { const { S } = load('', at('2026-10-20T12:00:00+05:30'), []); const c = S.card('hi'); ok(c.title === 'शुभ विजयादशमी' && c.stops.every(s => s.state === 'past' && !s.sel), 'card Dussehra HI: ' + c.title); }
 { const { S } = load('', at('2026-11-06T12:00:00+05:30'), []); const c = S.card('en');
   ok(c.eye === 'Today · Fri 6 Nov' && c.title === 'Dhanteras' && c.line === 'Next: Kali Chaudas · Choti Diwali · Sat 7 Nov' && c.stops[0].state === 'past' && c.stops[1].state === 'today', 'card Diwali day: ' + c.eye + ' | ' + c.line);
   const c7 = S.card('en', 6); ok(c7.title === 'Bhai Dooj' && c7.line === 'The last of the Diwali days.' && c7.eye === 'Wed 11 Nov', 'card tap Bhai Dooj: ' + c7.eye); }
-{ const { S } = load('', at('2026-10-28T12:00:00+05:30'), []); const c = S.card('en'); ok(c.eye === 'The Diwali days · Thu 5 Nov – Wed 11 Nov' && c.title === 'Vagh Baras', 'card before the Diwali days: ' + c.eye); }
+// ...and the Diwali card only from Vagh Baras: none in the countdown (21 Oct - 4 Nov), Vagh Baras at 00:00 IST on 5 Nov
+for (const iso of ['2026-10-21T00:00:00+05:30', '2026-10-28T12:00:00+05:30', '2026-11-04T23:59:59.999+05:30']) { const { S } = load('', at(iso), []); ok(S.card('en') === null && S.line('en').text !== '', 'no card in the Diwali countdown: ' + iso); }
+{ const { S } = load('', at('2026-11-05T00:00:00+05:30'), []); const c = S.card('en'); ok(c && c.title === 'Vagh Baras' && c.eye === 'Today · Thu 5 Nov', 'card from Vagh Baras at 00:00 IST: ' + (c && c.eye)); }
+{ const { S } = load('', at('2026-10-20T12:00:00+05:30'), []); ok(S.card('en').title === 'Shubh Vijayadashami', 'card on Dussehra'); ok(S.day() === S.dayNo(at('2026-10-20T12:00:00+05:30')), 'day() = the India day shown'); }
+{ const { S } = load('', at('2026-11-12T00:00:00+05:30'), []); ok(S.day() === null && S.card('en') === null, 'no theme, no day, no card after 12 Nov'); }
 // midnight switch: 23:59:30 IST on 20 Oct -> at 00:00 the theme turns to diwali and listeners fire
 { const timers = []; const { S, attrs, clock } = load('', at('2026-10-20T23:59:30+05:30'), timers);
   let fired = 0; S.onChange(() => fired++);
@@ -70,6 +76,6 @@ for (const [qs, theme, main] of [['?fest=off', undefined, ''], ['?fest=diwali', 
 // every string exists in all three languages for every day of both themes
 { const { S } = load('', at('2026-10-06T12:00:00+05:30'), []); let missing = 0;
   for (let d = S.dayNo(at('2026-10-06T12:00:00+05:30')); d < S.dayNo(at('2026-11-12T00:00:00+05:30')); d++) for (const l of ['en', 'hi', 'gu']) {
-    const r = S.at(d, l); if (!r.line.text || !r.line.sub || !r.card.title || !r.card.eye || !r.card.line || /\{[a-z]\}|\|n\|/.test(JSON.stringify(r))) { missing++; console.log('   missing', d, l, JSON.stringify(r).slice(0, 160)); } }
+    const r = S.at(d, l); if (!r.line.text || !r.line.sub || (r.card ? (!r.card.title || !r.card.eye || !r.card.line) : ((d >= S.dayNo(at('2026-10-11T00:00:00+05:30')) && d <= S.dayNo(at('2026-10-20T12:00:00+05:30'))) || d >= S.dayNo(at('2026-11-05T00:00:00+05:30')))) || /\{[a-z]\}|\|n\|/.test(JSON.stringify(r))) { missing++; console.log('   missing', d, l, JSON.stringify(r).slice(0, 160)); } }
   ok(missing === 0, 'all days x 3 languages have line, sub, card title/eye/line and no unfilled {x}'); }
 console.log(bad ? bad + ' FAILED' : 'all passed'); process.exit(bad ? 1 : 0);

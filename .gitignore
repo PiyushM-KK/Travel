@@ -40,3 +40,6 @@ social-automation/assets/*Ready Reckoner*
 social-automation/assets/*ratesheet*
 social-automation/assets/*rate-sheet*
 *.ratesheet.pdf
+
+# local headless-Chrome profiles made by tools/shoot.mjs and the QA scripts
+tools/chrome-profile-*/

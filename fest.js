@@ -114,6 +114,7 @@
   function card(d, lang, sel) {
     var l = L(lang), th = themeOf(d), out;
     if (th === 'navratri') {
+      if (d < NAV1) return null;                         // the card shows only on a festival day: from night 1 (owner, 2026-10-07)
       var cur = d - NAV1, dussOn = d === DUSS;
       var i = sel != null && sel >= 0 && sel < 9 ? sel : (cur >= 0 && cur < 9 ? cur : 0);
       var stops = NIGHTS.map(function (x, k) {
@@ -129,6 +130,7 @@
       return out;
     }
     if (th === 'diwali') {
+      if (d < VAGH) return null;                                                   // ...and from Vagh Baras, not in the countdown
       var c = d - VAGH, j = sel != null && sel >= 0 && sel < 7 ? sel : (c >= 0 && c < 7 ? c : 0);
       var dstops = DAYS.map(function (x, k) {
         var dd = VAGH + k;
@@ -179,6 +181,7 @@
     main: function (lang) { return this.line(lang).text; },
     sub: function (lang) { return this.line(lang).sub; },
     card: function (lang, sel) { return cur == null ? null : card(cur, lang, sel); },
+    day: function () { return cur; },                                                                     // the India day shown (null = no theme)
     onChange: function (f) { if (typeof f !== 'function') return function () {}; listeners.push(f);
       return function () { var i = listeners.indexOf(f); if (i >= 0) listeners.splice(i, 1); }; },          // returns an unsubscribe
     // for tests: everything for a given India day number

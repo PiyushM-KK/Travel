@@ -223,6 +223,75 @@
       html[data-fest] .sky-fest-foot{justify-content:center}
     }
     @media (prefers-reduced-motion:reduce){.sky-twinkle,.sky-twinkle::before,.sky-twinkle::after{animation:none !important}.sky-twinkle::before{opacity:.8}.sky-live-ctl{display:none !important}}
+    /* ===== Festive v4: below the hero - the festival's colours, heading font and objects (fest.js theme; the brand-blue
+       buttons, chips and the blue CTA band stay as they are). Fonts load only on festive days (index.html componentDidMount). */
+    .sky-sec-obj,.sky-sec-sep,.sky-steps-fx{display:none}
+    html[data-fest="navratri"] body{background:linear-gradient(180deg,#FFF4EA,#FCEEE6 45%,#F7ECE2);background-attachment:fixed}
+    html[data-fest="diwali"] body{background:linear-gradient(180deg,#FFF7EA,#FBEEDB 45%,#F6E6CF);background-attachment:fixed}
+    html[data-fest="navratri"] .sky-h2,html[data-fest="navratri"] .sky-num{font-family:'Baloo 2','Baloo Bhai 2','Bricolage Grotesque',sans-serif !important}
+    html[data-fest="diwali"] .sky-h2,html[data-fest="diwali"] .sky-num{font-family:'Eczar','Rasa','Bricolage Grotesque',sans-serif !important}
+    html[data-fest] .sky-h2{letter-spacing:0 !important;line-height:1.12}
+    html[data-fest="navratri"] .sky-eyebrow{color:#A3123F !important}
+    html[data-fest="diwali"] .sky-eyebrow{color:#8A3A00 !important}
+    html[data-fest="navratri"] .sky-sec:not(.sky-sec--steps):not(.sky-sec--cta) .sky-h2{color:#4A0B1D}
+    html[data-fest="diwali"] .sky-sec:not(.sky-sec--steps):not(.sky-sec--cta) .sky-h2{color:#3A1A08}
+    html[data-fest] .sky-sec:not(.sky-sec--steps):not(.sky-sec--cta) .sky-h2::after{content:'';display:block;width:120px;height:4px;margin-top:12px;border-radius:2px}
+    html[data-fest] .sky-sec--why .sky-h2::after{margin-left:auto;margin-right:auto}
+    html[data-fest="navratri"] .sky-sec .sky-h2::after{background:var(--sky-rib,linear-gradient(90deg,#F57C00 0 11.1%,#D9DEE4 0 22.2%,#D32F2F 0 33.3%,#1F3FA8 0 44.4%,#FBC02D 0 55.5%,#2E7D32 0 66.6%,#8E9196 0 77.7%,#6A1B9A 0 88.8%,#00897B 0))}
+    html[data-fest="diwali"] .sky-sec .sky-h2::after{height:8px;background:radial-gradient(circle,#FFB627 0 2.6px,transparent 3.2px) 0 50%/12px 8px repeat-x,radial-gradient(circle,#FF6A13 0 2.2px,transparent 2.8px) 6px 50%/12px 8px repeat-x,linear-gradient(#C46A1E,#C46A1E) 0 50%/100% 1px no-repeat}
+    html[data-fest] .sky-sec--steps{position:relative;overflow:hidden}
+    html[data-fest="navratri"] .sky-sec--steps{background:radial-gradient(circle,rgba(255,201,77,.10) 1.5px,transparent 2px) 0 0/18px 18px #4A0B1D !important}
+    html[data-fest="diwali"] .sky-sec--steps{background:#1F120B !important}
+    html[data-fest="diwali"] .sky-sec--steps::before,html[data-fest="diwali"] .sky-sec--steps::after{content:'';position:absolute;bottom:0;width:160px;height:160px;opacity:.18;pointer-events:none;background:url(images/fest/rangoli-corner.svg) 0 100%/160px 160px no-repeat}
+    html[data-fest="diwali"] .sky-sec--steps::before{left:0}
+    html[data-fest="diwali"] .sky-sec--steps::after{right:0;transform:scaleX(-1)}
+    html[data-fest="navratri"] .sky-sec--steps .sky-eyebrow,html[data-fest="navratri"] .sky-num{color:#FFC94D !important}
+    html[data-fest="diwali"] .sky-sec--steps .sky-eyebrow,html[data-fest="diwali"] .sky-num{color:#FFB627 !important}
+    html[data-fest="navratri"] .sky-num{background:rgba(255,201,77,.16) !important}
+    html[data-fest="diwali"] .sky-num{background:rgba(255,182,39,.16) !important}
+    html[data-fest="navratri"] .sky-step-d{color:rgba(255,255,255,.78) !important}
+    html[data-fest="diwali"] .sky-step-d{color:#E9D3B0 !important}
+    html[data-fest="navratri"] .sky-card:not(:hover){border-color:#F1D9CC !important}
+    html[data-fest="diwali"] .sky-card:not(:hover){border-color:#F2DFC4 !important}
+    html[data-fest] .sky-credit{color:#6B5A4A !important}
+    html[data-fest="navratri"] .sky-foot-h,html[data-fest="navratri"] footer a:hover{color:#FFC94D !important}
+    html[data-fest="diwali"] .sky-foot-h,html[data-fest="diwali"] footer a:hover{color:#FFB627 !important}
+    html[data-fest] .sky-sec--cta{position:relative}
+    html[data-fest] .sky-sec--cta::before{content:'';position:absolute;left:0;right:0;top:0;height:28px;pointer-events:none;background:url(images/fest/toran-navratri.svg) center top/auto 100% repeat-x}
+    html[data-fest="diwali"] .sky-sec--cta::before{height:32px;background-image:url(images/fest/toran-diwali.svg)}
+    /* objects: a hanging garbo (Navratri) or star lantern (Diwali) beside the first heading row */
+    html[data-fest] .sky-sec-head{position:relative;padding-right:64px}
+    html[data-fest] .sky-sec-obj{display:block;position:absolute;right:0;top:-64px;width:44px;height:96px;background:center top/contain no-repeat;transform-origin:50% 0;pointer-events:none;animation:skySway 7s ease-in-out infinite alternate;animation-play-state:paused}
+    html[data-fest="navratri"] .sky-sec-obj{background-image:url(images/fest/garbo-lamp.svg)}
+    html[data-fest="diwali"] .sky-sec-obj{height:90px;background-image:url(images/fest/kandil-star.svg)}
+    /* Diwali: a lit diya before each label (the flame flickers), a row of diyas between two sections */
+    html[data-fest="diwali"] .sky-eyebrow{position:relative;display:inline-block;padding-left:26px}
+    html[data-fest="diwali"] .sky-eyebrow::before{content:'';position:absolute;left:0;bottom:0;width:20px;height:12px;background:url(images/fest/diya-bowl.svg) 0 0/20px 12px no-repeat}
+    html[data-fest="diwali"] .sky-eyebrow::after{content:'';position:absolute;left:5px;bottom:9px;width:10px;height:14px;background:url(images/fest/diya-flame.svg) 0 0/10px 14px no-repeat;transform-origin:50% 100%;animation:skyFlick 1.8s ease-in-out infinite;animation-play-state:paused}
+    @keyframes skyFlick{0%,100%{transform:scale(1,1)}30%{transform:scale(.92,1.08)}55%{transform:scale(1.05,.94)}80%{transform:scale(.96,1.04)}}
+    html[data-fest="diwali"] .sky-sec-sep{display:block;height:44px;margin:4px auto 0;background:url(images/fest/diya-trio.svg) center/96px 40px no-repeat}
+    /* "How it works" corners (>=900px): crossed dandiya that clash (Navratri), two firework bursts (Diwali) */
+    @media (min-width:900px){
+      html[data-fest] .sky-steps-fx{display:block;position:absolute;top:28px;pointer-events:none;background:center/contain no-repeat;animation-play-state:paused}
+      .sky-steps-fx.l{left:4%}.sky-steps-fx.r{right:4%}
+      html[data-fest="navratri"] .sky-steps-fx{width:62px;height:80px;background-image:url(images/fest/dandiya-pair.webp);transform-origin:50% 90%;animation:skyClash 2s ease-in-out infinite;animation-play-state:paused}
+      html[data-fest="navratri"] .sky-steps-fx.r{animation-delay:-1s}
+      html[data-fest="diwali"] .sky-steps-fx{width:120px;height:120px;background-image:url(images/fest/burst.svg);animation:skyBurst 4.2s ease-out infinite;animation-play-state:paused}
+      html[data-fest="diwali"] .sky-steps-fx.r{animation-delay:-2.1s;top:64px}
+    }
+    @keyframes skyClash{0%,78%,100%{transform:rotate(0) scale(1)}86%{transform:rotate(-10deg) scale(1.06)}93%{transform:rotate(7deg) scale(1.03)}}
+    @keyframes skyBurst{0%{transform:scale(.2);opacity:0}5%{opacity:1}34%{transform:scale(1);opacity:0}100%{transform:scale(1);opacity:0}}
+    /* motion runs only while that section is on screen (html.fx-<name>, set in componentDidMount) and not paused */
+    html.fx-dest .sky-sec--dest .sky-sec-obj,html.fx-dest .sky-sec--dest .sky-eyebrow::after,html.fx-intl .sky-sec--intl .sky-eyebrow::after,
+    html.fx-styles .sky-sec--styles .sky-eyebrow::after,html.fx-steps .sky-sec--steps .sky-eyebrow::after,html.fx-steps .sky-sec--steps .sky-steps-fx,
+    html.fx-why .sky-sec--why .sky-eyebrow::after{animation-play-state:running}
+    html.sky-paused .sky-sec .sky-sec-obj,html.sky-paused .sky-sec .sky-eyebrow::after,html.sky-paused .sky-sec .sky-steps-fx{animation-play-state:paused !important}
+    @media (max-width:600px){
+      html[data-fest] .sky-h2{font-size:clamp(28px,8.4vw,40px) !important}
+      html[data-fest] .sky-sec-head{padding-right:44px}
+      html[data-fest] .sky-sec-obj{width:28px;height:60px}
+    }
+    @media (prefers-reduced-motion:reduce){.sky-sec-obj,.sky-eyebrow::after,.sky-steps-fx{animation:none !important}html[data-fest="diwali"] .sky-steps-fx{opacity:.8}}
 </style>
   <meta name="ext-resource-dependency" content="images/dest-rajasthan.jpg">
   <meta name="ext-resource-dependency" content="images/dest-himachal.avif">
@@ -407,10 +476,11 @@
 </section>
 
 <!-- ===== POPULAR DESTINATIONS ===== -->
-<section style="max-width: 1280px; margin: 0 auto; padding: 64px 24px 48px">
-  <div style="margin-bottom: 32px">
-    <span style="color: #0a5fd7; font-weight: 700; font-size: 12px; letter-spacing: .06em; text-transform: uppercase">{{ t_within_india }}</span>
-    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 42px; letter-spacing: -.02em; margin: 8px 0 0">{{ t_popular_destinations }}</h2>
+<section class="sky-sec sky-sec--dest" style="max-width: 1280px; margin: 0 auto; padding: 64px 24px 48px">
+  <div class="sky-sec-head" style="margin-bottom: 32px">
+    <i class="sky-sec-obj" aria-hidden="true"></i>
+    <span class="sky-eyebrow" style="color: #0a5fd7; font-weight: 700; font-size: 12px; letter-spacing: .06em; text-transform: uppercase">{{ t_within_india }}</span>
+    <h2 class="sky-h2" style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 42px; letter-spacing: -.02em; margin: 8px 0 0">{{ t_popular_destinations }}</h2>
     <!-- Explorer filter chips -->
     <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px">
       <sc-for list="{{ filters }}" as="f" hint-placeholder-count="6">
@@ -439,16 +509,16 @@
       </a>
     </sc-for>
   </div>
-  <p style="font-size: 11px; color: #8aa0b5; margin: 16px 0 0; line-height: 1.7">
+  <p class="sky-credit" style="font-size: 11px; color: #8aa0b5; margin: 16px 0 0; line-height: 1.7">
     North-East photo credits (via Wikimedia Commons): Nohkalikai Falls © Vikramjit Kakati · Kaziranga © Diganta Talukdar · Nuranang Falls © Sdasamdabad · Dzükou Valley © Dhrubazaanphotography · Loktak Lake © Sudiptorana — all CC&nbsp;BY-SA&nbsp;4.0; Vantawng Falls © Lpachuau — CC&nbsp;BY&nbsp;3.0.
   </p>
 </section>
 
 <!-- ===== INTERNATIONAL DESTINATIONS ===== -->
-<section style="max-width: 1280px; margin: 0 auto; padding: 48px 24px">
+<section class="sky-sec sky-sec--intl" style="max-width: 1280px; margin: 0 auto; padding: 48px 24px">
   <div style="margin-bottom: 32px">
-    <span style="color: #0a5fd7; font-weight: 700; font-size: 12px; letter-spacing: .06em; text-transform: uppercase">{{ t_beyond_india }}</span>
-    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 42px; letter-spacing: -.02em; margin: 8px 0 0">{{ t_international }}</h2>
+    <span class="sky-eyebrow" style="color: #0a5fd7; font-weight: 700; font-size: 12px; letter-spacing: .06em; text-transform: uppercase">{{ t_beyond_india }}</span>
+    <h2 class="sky-h2" style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 42px; letter-spacing: -.02em; margin: 8px 0 0">{{ t_international }}</h2>
   </div>
   
   <div class="sky-intl-grid">
@@ -467,18 +537,19 @@
     </sc-for>
   </div>
 </section>
+<div class="sky-sec-sep" aria-hidden="true"></div>
 
 <!-- ===== PACKAGE STYLES ===== -->
-<section style="background: rgba(255,255,255,.55); padding: 64px 24px">
+<section class="sky-sec sky-sec--styles" style="background: rgba(255,255,255,.55); padding: 64px 24px">
   <div style="max-width: 1280px; margin: 0 auto">
     <div style="margin-bottom: 32px">
-      <span style="color: #0a5fd7; font-weight: 700; font-size: 12px; letter-spacing: .06em; text-transform: uppercase">{{ t_travel_styles }}</span>
-      <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 42px; letter-spacing: -.02em; margin: 8px 0 0">{{ t_package_styles }}</h2>
+      <span class="sky-eyebrow" style="color: #0a5fd7; font-weight: 700; font-size: 12px; letter-spacing: .06em; text-transform: uppercase">{{ t_travel_styles }}</span>
+      <h2 class="sky-h2" style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 42px; letter-spacing: -.02em; margin: 8px 0 0">{{ t_package_styles }}</h2>
     </div>
     
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px">
       <sc-for list="{{ styles }}" as="s" hint-placeholder-count="11">
-        <a href="Customize.dc.html" style="display: flex; align-items: center; gap: 12px; padding: 16px; border: 1.5px solid #e5ecf5; border-radius: 12px; background: #fff; transition: all .2s" style-hover="border-color: #0a5fd7; background: #f0f7ff; transform: translateY(-2px)">
+        <a href="Customize.dc.html" class="sky-card" style="display: flex; align-items: center; gap: 12px; padding: 16px; border: 1.5px solid #e5ecf5; border-radius: 12px; background: #fff; transition: all .2s" style-hover="border-color: #0a5fd7; background: #f0f7ff; transform: translateY(-2px)">
           <span style="font-size: 24px">{{ s.icon }}</span>
           <span style="font-weight: 700; font-size: 14px; color: #1a2332">{{ s.name }}</span>
         </a>
@@ -488,19 +559,20 @@
 </section>
 
 <!-- ===== HOW IT WORKS ===== -->
-<section style="background: #1a2332; color: #fff; padding: 64px 24px">
+<section class="sky-sec sky-sec--steps" style="background: #1a2332; color: #fff; padding: 64px 24px">
+  <i class="sky-steps-fx l" aria-hidden="true"></i><i class="sky-steps-fx r" aria-hidden="true"></i>
   <div style="max-width: 1280px; margin: 0 auto">
     <div style="text-align: center; margin-bottom: 48px">
-      <span style="color: #5fc2f0; font-weight: 700; font-size: 12px; letter-spacing: .06em; text-transform: uppercase">{{ t_process }}</span>
-      <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 42px; letter-spacing: -.02em; margin: 8px 0 0">{{ t_how_works }}</h2>
+      <span class="sky-eyebrow" style="color: #5fc2f0; font-weight: 700; font-size: 12px; letter-spacing: .06em; text-transform: uppercase">{{ t_process }}</span>
+      <h2 class="sky-h2" style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 42px; letter-spacing: -.02em; margin: 8px 0 0">{{ t_how_works }}</h2>
     </div>
     
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px">
       <sc-for list="{{ steps }}" as="st" hint-placeholder-count="4">
         <div style="text-align: center">
-          <div style="width: 56px; height: 56px; border-radius: 14px; background: rgba(95,194,240,.15); display: flex; align-items: center; justify-content: center; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 24px; color: #5fc2f0; margin: 0 auto 16px">{{ st.num }}</div>
+          <div class="sky-num" style="width: 56px; height: 56px; border-radius: 14px; background: rgba(95,194,240,.15); display: flex; align-items: center; justify-content: center; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 24px; color: #5fc2f0; margin: 0 auto 16px">{{ st.num }}</div>
           <div style="font-weight: 700; font-size: 16px; margin-bottom: 8px">{{ st.title }}</div>
-          <div style="font-size: 14px; line-height: 1.5; color: rgba(255,255,255,.7)">{{ st.desc }}</div>
+          <div class="sky-step-d" style="font-size: 14px; line-height: 1.5; color: rgba(255,255,255,.7)">{{ st.desc }}</div>
         </div>
       </sc-for>
     </div>
@@ -508,15 +580,15 @@
 </section>
 
 <!-- ===== WHY CHOOSE US ===== -->
-<section style="max-width: 1280px; margin: 0 auto; padding: 64px 24px">
+<section class="sky-sec sky-sec--why" style="max-width: 1280px; margin: 0 auto; padding: 64px 24px">
   <div style="margin-bottom: 40px; text-align: center">
-    <span style="color: #0a5fd7; font-weight: 700; font-size: 12px; letter-spacing: .06em; text-transform: uppercase">{{ t_why_us }}</span>
-    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 42px; letter-spacing: -.02em; margin: 8px 0 0">{{ t_why_choose }}</h2>
+    <span class="sky-eyebrow" style="color: #0a5fd7; font-weight: 700; font-size: 12px; letter-spacing: .06em; text-transform: uppercase">{{ t_why_us }}</span>
+    <h2 class="sky-h2" style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 42px; letter-spacing: -.02em; margin: 8px 0 0">{{ t_why_choose }}</h2>
   </div>
   
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px">
     <sc-for list="{{ reasons }}" as="r" hint-placeholder-count="5">
-      <div style="padding: 24px; border: 1.5px solid #e5ecf5; border-radius: 14px; background: #fff; transition: all .2s" style-hover="border-color: #0a5fd7; box-shadow: 0 8px 20px rgba(10,95,215,.1); transform: translateY(-2px)">
+      <div class="sky-card" style="padding: 24px; border: 1.5px solid #e5ecf5; border-radius: 14px; background: #fff; transition: all .2s" style-hover="border-color: #0a5fd7; box-shadow: 0 8px 20px rgba(10,95,215,.1); transform: translateY(-2px)">
         <div style="font-size: 28px; margin-bottom: 12px">{{ r.icon }}</div>
         <div style="font-weight: 700; font-size: 16px; margin-bottom: 6px; color: #1a2332">{{ r.title }}</div>
         <div style="font-size: 14px; line-height: 1.5; color: #5c6f80">{{ r.desc }}</div>
@@ -526,9 +598,9 @@
 </section>
 
 <!-- ===== CTA: CUSTOMIZED PACKAGE ===== -->
-<section style="background: linear-gradient(135deg, #0a5fd7 0%, #0d7ae8 100%); color: #fff; padding: 64px 24px; text-align: center">
+<section class="sky-sec sky-sec--cta" style="background: linear-gradient(135deg, #0a5fd7 0%, #0d7ae8 100%); color: #fff; padding: 64px 24px; text-align: center">
   <div style="max-width: 640px; margin: 0 auto">
-    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 40px; letter-spacing: -.02em; margin: 0 0 16px">{{ t_cta_headline }}</h2>
+    <h2 class="sky-h2" style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 40px; letter-spacing: -.02em; margin: 0 0 16px">{{ t_cta_headline }}</h2>
     <p style="font-size: 16px; line-height: 1.6; color: rgba(255,255,255,.9); margin: 0 0 32px">{{ t_cta_subheading }}</p>
     <a href="Customize.dc.html" style="display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #0a5fd7; font-weight: 700; font-size: 15px; padding: 14px 28px; border-radius: 8px; transition: all .3s" style-hover="transform: translateY(-2px); box-shadow: 0 12px 30px rgba(0,0,0,.2)">
       {{ t_request_quote }}
@@ -542,7 +614,7 @@
   <div style="max-width: 1280px; margin: 0 auto; padding-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,.1)">
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 32px; margin-bottom: 32px">
       <div>
-        <div style="font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 16px; color: #5fc2f0">{{ t_explore }}</div>
+        <div class="sky-foot-h" style="font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 16px; color: #5fc2f0">{{ t_explore }}</div>
         <div style="display: flex; flex-direction: column; gap: 8px; font-size: 14px">
           <a href="Domestic.dc.html" style="color: rgba(255,255,255,.7); transition: color .2s" style-hover="color: #5fc2f0">{{ t_domestic }}</a>
           <a href="International.dc.html" style="color: rgba(255,255,255,.7); transition: color .2s" style-hover="color: #5fc2f0">{{ t_international }}</a>
@@ -550,7 +622,7 @@
         </div>
       </div>
       <div>
-        <div style="font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 16px; color: #5fc2f0">{{ t_services }}</div>
+        <div class="sky-foot-h" style="font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 16px; color: #5fc2f0">{{ t_services }}</div>
         <div style="display: flex; flex-direction: column; gap: 8px; font-size: 14px">
           <a href="Flights.dc.html" style="color: rgba(255,255,255,.7); transition: color .2s" style-hover="color: #5fc2f0">{{ t_flights }}</a>
           <a href="Trains.dc.html" style="color: rgba(255,255,255,.7); transition: color .2s" style-hover="color: #5fc2f0">{{ t_trains }}</a>
@@ -560,7 +632,7 @@
         </div>
       </div>
       <div>
-        <div style="font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 16px; color: #5fc2f0">{{ t_contact_us }}</div>
+        <div class="sky-foot-h" style="font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 16px; color: #5fc2f0">{{ t_contact_us }}</div>
         <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px">
           <div style="display: flex; align-items: center; gap: 8px; color: rgba(255,255,255,.8)">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
@@ -676,8 +748,32 @@ class Component extends DCLogic {
   componentDidMount() {
     // festive themes: a visitor who paused the animation keeps it paused (html.sky-paused stops fest-live.js and the CSS loops)
     document.documentElement.classList.toggle('sky-paused', !!this.state.livePaused);
+    // below the hero: the festival's heading font (only on festive days) and the nine-colour ribbon with tonight's colour wider
+    this._festLook = () => {
+      const S = window.SkyFest, id = S && S.id, root = document.documentElement;
+      const F = { navratri: 'family=Baloo+2:wght@700;800&family=Baloo+Bhai+2:wght@700;800', diwali: 'family=Eczar:wght@600;800&family=Rasa:wght@600;700' };
+      if (id && F[id] && !document.getElementById('sky-fest-font-' + id)) {
+        const l = document.createElement('link'); l.id = 'sky-fest-font-' + id; l.rel = 'stylesheet';
+        l.href = 'https://fonts.googleapis.com/css2?' + F[id] + '&display=swap'; document.head.appendChild(l);
+      }
+      let rib = '';
+      if (id === 'navratri' && S.NIGHTS) {
+        const sw = (S.line('en') || {}).swatch, cols = S.NIGHTS.map((n) => n.sw), w = cols.map((c) => (c === sw ? 3 : 1));
+        const tot = w.reduce((a, b) => a + b, 0); let at = 0;
+        rib = 'linear-gradient(90deg,' + cols.map((c, i) => { const a = (at / tot) * 100; at += w[i];
+          return (c === '#FFFFFF' ? '#D9DEE4' : c) + ' ' + a.toFixed(2) + '% ' + ((at / tot) * 100).toFixed(2) + '%'; }).join(',') + ')';
+      }
+      if (rib) root.style.setProperty('--sky-rib', rib); else root.style.removeProperty('--sky-rib');
+    };
+    this._festLook();
     // re-render at midnight in India (fest.js), and pause the hanging lamps while the hero is off screen
-    if (window.SkyFest && !this._festOff) this._festOff = window.SkyFest.onChange(() => this.setState({ festTick: Date.now(), festSel: null }));
+    if (window.SkyFest && !this._festOff) this._festOff = window.SkyFest.onChange(() => { this._festLook(); this.setState({ festTick: Date.now(), festSel: null }); });
+    // the below-hero objects move only while their section is on screen: html.fx-<section>
+    if ('IntersectionObserver' in window) {
+      if (this._secIO) this._secIO.disconnect();
+      this._secIO = new IntersectionObserver((es) => { es.forEach((e) => { const m = /sky-sec--(\w+)/.exec(e.target.className); if (m) document.documentElement.classList.toggle('fx-' + m[1], e.isIntersecting); }); });
+      document.querySelectorAll('.sky-sec').forEach((el) => this._secIO.observe(el));
+    }
     if ('IntersectionObserver' in window) {
       if (this._festIO) this._festIO.disconnect();
       this._festIO = new IntersectionObserver((es) => { document.documentElement.classList.toggle('sky-still', !es[0].isIntersecting); });
@@ -735,7 +831,8 @@ class Component extends DCLogic {
 
   componentWillUnmount() {
     if (this._festIO) this._festIO.disconnect();
-    document.documentElement.classList.remove('sky-still', 'sky-paused');
+    document.documentElement.classList.remove('sky-still', 'sky-paused', 'fx-dest', 'fx-intl', 'fx-styles', 'fx-steps', 'fx-why', 'fx-cta');
+    if (this._secIO) this._secIO.disconnect();
     if (this._festOff) { this._festOff(); this._festOff = null; }
     if (this._heroTimer) clearInterval(this._heroTimer);
     if (window.__skyHeroTimer) { clearInterval(window.__skyHeroTimer); window.__skyHeroTimer = null; }

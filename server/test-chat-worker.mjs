@@ -1060,7 +1060,7 @@ async function chatSeq(userText, answers) {
   check(`L5: ${withCond.length} minimum-4 prices quoted with their condition pass untouched`, noted.length === 0, noted.join(' | '));
 
   // L6: inclusions the page does not list get the Lakshadweep note (never the Bali one), and honest lines get none.
-  const LAKS_INCL = 'Flight tickets are not included, and every visitor needs an entry permit.';
+  const LAKS_INCL = 'Flight tickets are not included, and every visitor needs an entry permit (our team assists with it).';
   const claims = ['The Lakshadweep Escape includes return flights from Kochi.', 'Lakshadweep Diwali Special: lunch and dinner are included.',
     'The Lakshadweep package includes the entry permit.', 'लक्षद्वीप की सैर में फ़्लाइट शामिल है।', 'The Lakshadweep Escape comes with scuba diving and snorkelling.'];
   const noNote = [];
@@ -1153,7 +1153,7 @@ async function chatSeq(userText, answers) {
   check('L10: a Lakshadweep price with no word on flights gets the flights line', noFlights === 'The Lakshadweep Escape is from ₹54,000 per person (minimum 2 travellers).' + NOTE_LINE + '\n\n(Flight tickets are not included in the Lakshadweep Escape.)', noFlights);
 
   // L11: the entry permit - no promises (owner, 2026-10-05: "Mention it, no promise").
-  const PERMIT = 'needs an entry permit from the Lakshadweep Administration. Our team shares the current rules';
+  const PERMIT = 'needs an entry permit from the Lakshadweep Administration. Our team assists with it';
   const permitClaims = ['Our team will arrange your Lakshadweep entry permit within 3 days at no extra cost.',
     'For Lakshadweep, you apply for the permit on the Lakshadweep Administration website and it takes about 7 days.',
     'Indian citizens do not need a permit for Lakshadweep.', 'The Lakshadweep entry permit is free and quick.', 'लक्षद्वीप का परमिट 3 दिन में मिल जाता है।'];
@@ -1161,10 +1161,11 @@ async function chatSeq(userText, answers) {
   for (const t of permitClaims) { const r = (await chat('Permit?', t)).reply; if (!(r.startsWith(t) && (r.includes(PERMIT) || r.includes(LAKS_INCL)))) permitMissed.push(t + ' => ' + r.slice(0, 90)); }
   check(`L11: ${permitClaims.length} permit promises about Lakshadweep get the permit rule (or the inclusions note, which states it, when the permit is claimed as free or included)`, permitMissed.length === 0, permitMissed.join(' | '));
   const permitOk = ['Every visitor to Lakshadweep, Indian citizens included, needs an entry permit from the Lakshadweep Administration; our team shares the current rules.',
-    'Arunachal Pradesh needs an Inner Line Permit; our team can tell you the current process.'];
+    'Arunachal Pradesh needs an Inner Line Permit; our team can tell you the current process.',
+    'Our team will help you with the Lakshadweep entry permit paperwork.', 'Our team assists with the Lakshadweep entry permit; ask us for the current rules.'];
   const permitNoted = [];
   for (const t of permitOk) { const r = (await chat('Permit?', t)).reply; if (r !== t) permitNoted.push(t + ' => ' + r.slice(0, 90)); }
-  check(`L11: ${permitOk.length} honest permit lines (Lakshadweep's own, another state's) get no note`, permitNoted.length === 0, permitNoted.join(' | '));
+  check(`L11: ${permitOk.length} honest permit lines (Lakshadweep's own, another state's, our team assisting - owner 2026-10-06) get no note`, permitNoted.length === 0, permitNoted.join(' | '));
 
   // L12: amounts in words and Hinglish, percentage discounts, seats.
   const hinglish = ['The Lakshadweep Escape starts from 40 thousand rupees per person.', 'Lakshadweep sirf 40,000 rupaye mein.', 'लक्षद्वीप 40 हज़ार रुपये से।',
@@ -1240,8 +1241,7 @@ async function chatSeq(userText, answers) {
   const logNoted = [];
   for (const t of logistics) { const r = (await chat('How do I get there?', t)).reply; if (r !== t) logNoted.push(t + ' => ' + r.slice(0, 90)); }
   check(`L16: ${logistics.length} travel-logistics sentences about flights get no inclusion note`, logNoted.length === 0, logNoted.join(' | '));
-  const permits2 = ['For Lakshadweep we take care of the entry permit so you do not need to worry.', 'We will apply on your behalf for the Lakshadweep entry permit.',
-    'Our team will help you with the Lakshadweep entry permit paperwork.'];
+  const permits2 = ['For Lakshadweep we take care of the entry permit so you do not need to worry.', 'We will apply on your behalf for the Lakshadweep entry permit.'];
   const p2Missed = [];
   for (const t of permits2) { const r = (await chat('Permit?', t)).reply; if (!(r.startsWith(t) && r.includes(PERMIT))) p2Missed.push(t + ' => ' + r.slice(0, 90)); }
   check(`L16: ${permits2.length} more permit promises get the permit rule`, p2Missed.length === 0, p2Missed.join(' | '));

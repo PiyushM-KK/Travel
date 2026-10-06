@@ -17,7 +17,7 @@ CURRENT STATE - 2026-10-06 (newest; where it differs from anything below, this w
   Upstash/Vercel switch-over (social-automation/BLOCKED.md B-AIRTABLE-QUOTA). Ship from a branch cut from origin/main:
   `git worktree add <dir> -b <branch> origin/main`, commit there, `git push origin <branch>:main` (fast-forward only),
   then `git -C <checkout> rebase origin/main` (copies of commits already on main drop out).
-- WAITING FOR THE OWNER'S "publish" (built + reviewed 2026-10-06, NOT live): branch `chat-worker-anthropic-10-fix` =
+- PUBLISHED on the owner's "publish" 2026-10-06 (see PENDING - AGENT for the checks): branch `chat-worker-anthropic-10-fix` =
   origin/main + the Lakshadweep website (ea9845d, bbb173e) + the chat-worker history + anthropic-10 (6c128d8, 7f9ed54
   and any later review commits). ONE push of it ships both together (the site must not go live without the worker, or
   the chat contradicts the new page):
@@ -25,7 +25,7 @@ CURRENT STATE - 2026-10-06 (newest; where it differs from anything below, this w
     3N/4D, 2 nights Agatti + 1 night Bangaram, travel 5-20 Nov 2026, Rs 54,000 per person (minimum 2 travellers) or
     Rs 47,000 (minimum 4), flight tickets extra; stays Sand Bank Beach Resort and "Coral Pearl, Lakshadweep – IHCL
     SeleQtions" (the flyer said "IHCL Taj Resort"; IHCL's own press room and SeleQtions site name it SeleQtions, 50
-    glamping tents - owner to confirm); the entry-permit note ("mention it, no promise"); Formspree + WhatsApp enquiry;
+    glamping tents - owner to confirm); the entry-permit note (our team assists - owner 2026-10-06; never a promise of time, cost or approval); Formspree + WhatsApp enquiry;
     price and form hidden from 21 Nov 00:00 IST. Also: a second Diwali card on /offers; diwali-promo.js names both offers
     until 3 Nov, then Lakshadweep only, gone from 21 Nov (now on Domestic.dc.html too); a Lakshadweep destination page
     (Destination.dc.html?dest=lakshadweep: no price, Oct-mid May, 3-4 days, the permit), a home card, a "Customize my
@@ -49,14 +49,11 @@ CURRENT STATE - 2026-10-06 (newest; where it differs from anything below, this w
   switch-over (social-automation/HANDOVER.md).
 
 PENDING - OWNER
-1. Say "publish" for the branch above. Ideally answer first (the page and the chat follow the answers):
-   a. Start dates: may a 3N/4D trip START as late as 20 Nov (ending 23 Nov), or must it END by 20 Nov (the date picker
-      then stops at 17 Nov)?
-   b. Bangaram: keep IHCL's own name "Coral Pearl, Lakshadweep – IHCL SeleQtions" (the page says this now) or the flyer's
-      "IHCL Taj Resort"? Agatti: "Sand Bank Beach Resort" or "Sandbank Resort"? Room types?
-   c. Meals: the flyer says "Breakfast and other inclusions as per the package" - which meals on each island?
-   d. Prices for 1 traveller, for 3, for children; twin sharing; taxes.
-   e. Does the package arrange or pay for the Lakshadweep entry permit?
+1. DONE 2026-10-06: the owner said "publish" and answered: trips may START up to 20 Nov; the Bangaram stay is IHCL's
+   "Coral Pearl, Lakshadweep – IHCL SeleQtions"; meals = "breakfast and other inclusions as per the package"; every
+   price is per person (no separate price for 1 traveller, 3 or children was given - the chat says our team confirms);
+   the entry permit is "assisted" (page, destination page and chat say our team assists with it). Still open: the
+   Agatti resort's exact name ("Sand Bank Beach Resort" as on the flyer) and room types.
 2. GitHub secrets CLOUDFLARE_API_TOKEN (the account-wide token - owner's choice "Put it in GitHub anyway") and
    CLOUDFLARE_ACCOUNT_ID are set. Optional hardening from the reviews: a token scoped to Account > Workers Scripts:Edit,
    branch protection on main, and a hard monthly spend cap on the Anthropic key.

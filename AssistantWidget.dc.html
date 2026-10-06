@@ -30,8 +30,13 @@
   html[data-fest] .sk-fr{display:flex;align-items:center;gap:8px;flex-shrink:0;min-height:30px;padding:6px 16px 8px;font-size:12px;font-weight:700;line-height:1.3}
   .sk-fr span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
   html[data-fest="navratri"] .sk-fr-nav,html[data-fest="diwali"] .sk-fr-diw{display:block;width:16px;height:16px;flex:0 0 16px}
-  html[data-fest="navratri"] .sk-fr{color:#7A1230;background:linear-gradient(90deg,#C2185B 0 11.1%,#E53935 0 22.2%,#FF6A13 0 33.3%,#FFB627 0 44.4%,#2E7D32 0 55.5%,#00897B 0 66.6%,#0A5FD7 0 77.7%,#6A1B9A 0 88.8%,#ECEFF1 0) bottom/100% 3px no-repeat,#FFF0F4}
+  html[data-fest="navratri"] .sk-fr{color:#7A1230;background:linear-gradient(90deg,#F57C00 0 11.1%,#D9DEE4 0 22.2%,#D32F2F 0 33.3%,#1F3FA8 0 44.4%,#FBC02D 0 55.5%,#2E7D32 0 66.6%,#8E9196 0 77.7%,#6A1B9A 0 88.8%,#00897B 0) bottom/100% 3px no-repeat,#FFF0F4}
   html[data-fest="diwali"] .sk-fr{color:#6B3A00;background:#FFF4DC;border-bottom:1px solid #F5D9A0}
+  .sk-fr-n{display:inline-block;font-weight:800;font-variant-numeric:tabular-nums;padding:2px 5px;border-radius:5px;margin:0 3px;color:#fff}
+  .sk-fr-n:empty{display:none}
+  html[data-fest="navratri"] .sk-fr-n{background:#7A1230}
+  html[data-fest="diwali"] .sk-fr-n{background:#6B3A00}
+  .sk-fr-sw{display:block;flex:0 0 10px;width:10px;height:10px;border-radius:50%;border:1px solid rgba(0,0,0,.28)}
 </style>
 </helmet>
 
@@ -69,7 +74,7 @@
     </div>
 
     <!-- festive greeting ribbon (fest.js; screen-only, never sent to the AI) -->
-    <div class="sk-fr" lang="{{ festLang }}"><svg class="sk-fr-ic sk-fr-nav" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.6C14 4 14.2 5.6 12 7.2 9.8 5.6 10 4 12 1.6Z" fill="#FFB627"/><rect x="9.4" y="7.6" width="5.2" height="2.6" rx=".8" fill="#8A3A1C"/><path d="M12 9.6c3.9 0 6.9 2.8 6.9 6.5S15.9 22.5 12 22.5 5.1 19.8 5.1 16.1 8.1 9.6 12 9.6z" fill="#B5532A"/><circle cx="9.4" cy="15" r="1" fill="#FFD27A"/><circle cx="12" cy="13.7" r="1" fill="#FFD27A"/><circle cx="14.6" cy="15" r="1" fill="#FFD27A"/><circle cx="9.4" cy="18.1" r="1" fill="#FFD27A"/><circle cx="12" cy="19.4" r="1" fill="#FFD27A"/><circle cx="14.6" cy="18.1" r="1" fill="#FFD27A"/></svg><svg class="sk-fr-ic sk-fr-diw" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 2 C24 9 25 13 20 18 C15 13 16 9 20 2Z" fill="#FFC24A"/><path d="M4 21 C9 34 31 34 36 21 Z" fill="#9C3E12"/><ellipse cx="20" cy="21" rx="16" ry="3.2" fill="#D96A2B"/><path d="M34 21 L39 18 L36 23 Z" fill="#9C3E12"/></svg><span>{{ festMain }}</span></div>
+    <div class="sk-fr" lang="{{ festLang }}"><svg class="sk-fr-ic sk-fr-nav" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.6C14 4 14.2 5.6 12 7.2 9.8 5.6 10 4 12 1.6Z" fill="#FFB627"/><rect x="9.4" y="7.6" width="5.2" height="2.6" rx=".8" fill="#8A3A1C"/><path d="M12 9.6c3.9 0 6.9 2.8 6.9 6.5S15.9 22.5 12 22.5 5.1 19.8 5.1 16.1 8.1 9.6 12 9.6z" fill="#B5532A"/><circle cx="9.4" cy="15" r="1" fill="#FFD27A"/><circle cx="12" cy="13.7" r="1" fill="#FFD27A"/><circle cx="14.6" cy="15" r="1" fill="#FFD27A"/><circle cx="9.4" cy="18.1" r="1" fill="#FFD27A"/><circle cx="12" cy="19.4" r="1" fill="#FFD27A"/><circle cx="14.6" cy="18.1" r="1" fill="#FFD27A"/></svg><svg class="sk-fr-ic sk-fr-diw" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 2 C24 9 25 13 20 18 C15 13 16 9 20 2Z" fill="#FFC24A"/><path d="M4 21 C9 34 31 34 36 21 Z" fill="#9C3E12"/><ellipse cx="20" cy="21" rx="16" ry="3.2" fill="#D96A2B"/><path d="M34 21 L39 18 L36 23 Z" fill="#9C3E12"/></svg><span>{{ festPre }}<sc-if value="{{ festNOn }}" hint-placeholder-val="{{ false }}"><b class="sk-fr-n">{{ festN }}</b></sc-if>{{ festPost }}</span><sc-if value="{{ festSwOn }}" hint-placeholder-val="{{ false }}"><i class="sk-fr-sw" style="{{ festSwStyle }}" aria-hidden="true"></i></sc-if></div>
 
     <!-- messages -->
     <div ref="{{ scrollEl }}" style="flex:1;overflow-y:auto;padding:18px;background:#F6FAFD;display:flex;flex-direction:column;gap:12px">
@@ -206,7 +211,9 @@ class Component extends DCLogic {
     messages: [{ role: 'assistant', seed: true, text: '' }],
   };
 
-  setRoot = (el) => { if (el) { this.rootEl = el; this.applyLang(); } };
+  setRoot = (el) => { if (el) { this.rootEl = el; this.applyLang();
+    // festive themes: re-render when fest.js switches at midnight in India
+    if (window.SkyFest && !this._festSub) { this._festSub = true; window.SkyFest.onChange(() => this.setState({ festTick: Date.now() })); } } };
   setPanel = (el) => { this.panelEl = el; };
   setScroll = (el) => { this.scrollEl = el; };
   setInput = (el) => { this.inputEl = el; };
@@ -289,8 +296,14 @@ class Component extends DCLogic {
     // festive theme (fest.js): the greeting ribbon and the active language mark's colour
     const fest = window.SkyFest && window.SkyFest.id ? window.SkyFest : null;
     const act = fest && fest.id === 'navratri' ? '#7A1230' : fest && fest.id === 'diwali' ? '#7A3A00' : '#0A84D6';
+    const fl = fest ? fest.line(this.state.lang) : null;
     return {
-      festMain: fest ? fest.main(this.state.lang) : '',
+      festPre: fl ? fl.pre : '',
+      festN: fl ? fl.n : '',
+      festNOn: !!(fl && fl.n),
+      festPost: fl ? fl.post : '',
+      festSwOn: !!(fl && fl.swatch),
+      festSwStyle: fl && fl.swatch ? 'background:' + fl.swatch : '',
       festLang: this.state.lang,
       waHref: 'https://wa.me/918866050291?text=' + encodeURIComponent('Hi Skyline Travel Planner, I would like help planning a trip.'),
       root: this.setRoot,

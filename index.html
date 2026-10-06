@@ -90,19 +90,19 @@
     /* ===== Festive themes (fest.js sets <html data-fest>; images/fest/*.svg are drawn ornaments). Festive = the frame
        (strip, toran, hero tint); the brand blue keeps everything people tap. Navratri until 21 Oct 00:00 IST, Diwali until
        12 Nov 00:00 IST. Contrast: white on #7A1230 10.7:1, #FFC94D 7.0:1; #FFE7B8 on #1F120B 15.1:1, #FFB627 10.4:1. ===== */
-    .sky-fr,.sky-fest-tint,.sky-toran,.sky-orn,.sky-diyas,.sky-fr-ic{display:none}
+    .sky-fr,.sky-fest-tint,.sky-toran,.sky-fr-ic{display:none}
     html[data-fest] .sky-fr{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px 12px;min-height:36px;padding:7px 16px 10px;position:relative;font:600 13.5px/1.35 'Plus Jakarta Sans',sans-serif;text-align:center}
     html[data-fest] .sky-fr::after{content:'';position:absolute;left:0;right:0;bottom:0;height:3px}
     html[data-fest="navratri"] .sky-fr-ic.nav,html[data-fest="diwali"] .sky-fr-ic.diw{display:block;width:22px;height:22px;flex:0 0 22px}
     .sky-fr-sub::before{content:'·';margin-right:10px;opacity:.7}
     .sky-fr-go{font-weight:700;text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
     html[data-fest="navratri"] .sky-fr{background:#7A1230;color:#fff}
-    html[data-fest="navratri"] .sky-fr::after{background:linear-gradient(90deg,#C2185B 0 11.1%,#E53935 0 22.2%,#FF6A13 0 33.3%,#FFB627 0 44.4%,#2E7D32 0 55.5%,#00897B 0 66.6%,#0A5FD7 0 77.7%,#6A1B9A 0 88.8%,#ECEFF1 0)}
+    html[data-fest="navratri"] .sky-fr::after{background:linear-gradient(90deg,#F57C00 0 11.1%,#FFFFFF 0 22.2%,#D32F2F 0 33.3%,#1F3FA8 0 44.4%,#FBC02D 0 55.5%,#2E7D32 0 66.6%,#8E9196 0 77.7%,#6A1B9A 0 88.8%,#00897B 0)}
     html[data-fest="navratri"] .sky-fr-go{color:#FFC94D}
     html[data-fest="diwali"] .sky-fr{background:#1F120B;color:#FFE7B8}
     html[data-fest="diwali"] .sky-fr::after{background:linear-gradient(90deg,transparent,#FFA928 20%,#FFD27A 50%,#FFA928 80%,transparent)}
     html[data-fest="diwali"] .sky-fr-go{color:#FFB627}
-    .sky-fr-flame{transform-box:fill-box;transform-origin:50% 100%;animation:skyFlame 1.1s ease-in-out infinite alternate}
+    .sky-fr-flame{}
     @keyframes skyFlame{to{transform:scale(.9,1.12)}}
     html[data-fest] .sky-fest-tint{display:block;position:absolute;inset:0;z-index:1;pointer-events:none}
     html[data-fest="navratri"] .sky-fest-tint{background:radial-gradient(110% 60% at 50% 0%,rgba(122,18,48,.30),rgba(122,18,48,0) 65%)}
@@ -112,23 +112,90 @@
     html[data-fest="diwali"] .sky-toran{background-image:url(images/fest/toran-diwali.svg);height:64px}
     @keyframes skyDrop{from{transform:translateY(-16px);opacity:0}}
     html[data-fest] .sky-hero{padding-top:92px !important}
-    html[data-fest="diwali"] .sky-diyas{display:block;position:absolute;left:0;right:0;bottom:12px;height:30px;z-index:1;pointer-events:none;background:url(images/fest/diya-row.svg) center bottom/auto 100% repeat-x;animation:skyFade .9s ease-out .95s both}
     @keyframes skyFade{from{opacity:0}}
-    @media (min-width:1280px){
-      html[data-fest] .sky-orn{display:block;position:absolute;top:24px;width:320px;height:320px;z-index:1;pointer-events:none;opacity:.3;background:center/contain no-repeat}
-      .sky-orn-l{left:-110px}.sky-orn-r{right:-110px}
-      html[data-fest="navratri"] .sky-orn{background-image:url(images/fest/garba-ring.svg)}
-      html[data-fest="diwali"] .sky-orn{background-image:url(images/fest/rangoli.svg)}
-    }
     @media (max-width:600px){
       html[data-fest] .sky-fr{font-size:12.5px;padding:6px 12px 9px;gap:4px 10px}
       .sky-fr-sub{display:none}
       html[data-fest] .sky-toran{height:40px}
       html[data-fest="diwali"] .sky-toran{height:44px}
       html[data-fest] .sky-hero{padding-top:72px !important}
-      html[data-fest="diwali"] .sky-diyas{height:22px;bottom:10px}
     }
-    @media (prefers-reduced-motion:reduce){.sky-fr-flame,.sky-toran,.sky-diyas{animation:none !important}}
+    @media (prefers-reduced-motion:reduce){.sky-toran{animation:none !important}}
+    /* ===== Festive themes v2: the counter chip, the festival card, the hanging lamps/lanterns, the rangoli corners ===== */
+    .sky-fr-m{min-width:0}
+    .sky-fr-n{display:inline-block;font:800 13px/1 'Plus Jakarta Sans',sans-serif;font-variant-numeric:tabular-nums;padding:3px 6px;border-radius:6px;margin:0 4px;vertical-align:1px}
+    .sky-fr-n:empty{display:none}
+    html[data-fest="navratri"] .sky-fr-n{color:#FFC94D;background:#4A0B1D}
+    html[data-fest="diwali"] .sky-fr-n{color:#FFB627;background:#3A2414}
+    .sky-hangs,.sky-corner,.sky-fc{display:none}
+    html[data-fest] .sky-hangs{display:block;position:absolute;left:0;right:0;top:0;height:0;z-index:3;pointer-events:none;animation:skyDrop .7s cubic-bezier(.2,.7,.1,1) .25s both}
+    .sky-hangs>i{position:absolute;top:0;display:block;background:center top/contain no-repeat;transform-origin:50% 0;animation:skySway 7s ease-in-out infinite alternate}
+    .sky-hangs>.h1{left:3vw;top:14px}.sky-hangs>.h2{left:12vw;top:-12px;animation-delay:-2.3s}.sky-hangs>.h3{right:4vw;top:4px;animation-delay:-4.1s}
+    html[data-fest="navratri"] .sky-hangs>i{width:56px;height:120px;background-image:url(images/fest/garbo-lamp.svg)}
+    html[data-fest="diwali"] .sky-hangs>.h1,html[data-fest="diwali"] .sky-hangs>.h3{width:64px;height:130px;background-image:url(images/fest/kandil-star.svg)}
+    html[data-fest="diwali"] .sky-hangs>.h2{width:44px;height:120px;background-image:url(images/fest/kandil-hex.svg)}
+    @keyframes skySway{from{transform:rotate(-1.6deg)}to{transform:rotate(1.6deg)}}
+    html.sky-still .sky-hangs>i{animation-play-state:paused}
+    @media (max-width:1199px){.sky-hangs>.h2{display:none !important}}
+    @media (min-width:1200px){
+      html[data-fest="diwali"] .sky-corner{display:block;position:absolute;bottom:0;width:160px;height:160px;z-index:1;pointer-events:none;
+        background:url(images/fest/diya-trio.svg) 16px calc(100% - 12px)/96px 40px no-repeat,url(images/fest/rangoli-corner.svg) 0 100%/160px 160px no-repeat}
+      .sky-corner.l{left:0}.sky-corner.r{right:0;transform:scaleX(-1)}
+    }
+    /* the festival card: in the hero content, right after the search tiles (it never covers the headline or the tiles) */
+    html[data-fest] .sky-fc{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px 18px;align-items:center;max-width:1000px;margin:20px auto 0;padding:16px 18px 14px;border-radius:16px;border:1px solid rgba(255,214,140,.35);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:#fff;text-align:left;position:relative}
+    html[data-fest="navratri"] .sky-fc{background:rgba(58,8,24,.74)}
+    html[data-fest="diwali"] .sky-fc{background:rgba(31,18,11,.76)}
+    html[data-fest] .sky-fc::before{content:'';position:absolute;left:16px;right:16px;top:-4px;height:10px;pointer-events:none}
+    html[data-fest="navratri"] .sky-fc::before{background:radial-gradient(circle,#E9EEF5 0 2px,transparent 2.5px) 0 50%/14px 10px repeat-x}
+    html[data-fest="diwali"] .sky-fc::before{background:radial-gradient(circle,#FFD27A 0 2.5px,rgba(255,169,40,.35) 3.5px,transparent 5px) 0 0/22px 10px repeat-x,linear-gradient(#6B2F0F,#6B2F0F) 0 4px/100% 1px no-repeat}
+    .sky-fc-ic svg{display:none;width:36px;height:36px}
+    html[data-fest="navratri"] .sky-fc-ic .nav,html[data-fest="diwali"] .sky-fc-ic .diw{display:block}
+    .sky-fc-txt{display:flex;flex-direction:column;gap:3px;min-width:0}
+    .sky-fc-eye{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#FFD9A0}
+    .sky-fc-title{font-family:'Bricolage Grotesque',sans-serif;font-size:22px;font-weight:800;line-height:1.15}
+    .sky-fc-line{font-size:14px;line-height:1.4;color:rgba(255,255,255,.92)}
+    .sky-fc-chip{display:inline-flex;align-items:center;gap:7px;width:fit-content;margin-top:4px;padding:3px 10px 3px 4px;border-radius:999px;background:rgba(255,255,255,.12);font-size:12px;font-weight:600}
+    .sky-fc-chip i{display:block;width:16px;height:16px;border-radius:50%;border:1.5px solid rgba(255,255,255,.75)}
+    .sky-fc-note{font-size:12px;color:#FFD27A;margin-top:2px}
+    .sky-fc-track{display:flex;gap:6px;align-items:flex-end}
+    .sky-st{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;min-width:34px;min-height:44px;padding:4px 2px;border:0;border-radius:10px;background:none;color:#fff;cursor:pointer;font:600 11px/1 'Plus Jakarta Sans',sans-serif}
+    .sky-st:hover{background:rgba(255,255,255,.08)}
+    .sky-st:focus-visible{outline:2px solid #FFD27A;outline-offset:1px}
+    .sky-st i{display:block;width:20px;height:20px;border-radius:50%;border:1.5px solid rgba(255,255,255,.55)}
+    .sky-st.past{opacity:.45}
+    .sky-st.today i{width:28px;height:28px;box-shadow:0 0 0 2px #FFD27A,0 0 14px 4px rgba(255,210,122,.45)}
+    .sky-st.sel i{outline:2px solid #fff;outline-offset:2px}
+    .sky-st svg,.sky-st em{display:none}
+    html[data-fest="diwali"] .sky-st i{display:none}
+    html[data-fest="diwali"] .sky-st svg{display:block;width:28px;height:28px}
+    html[data-fest="diwali"] .sky-st.future svg .fl{display:none}
+    html[data-fest="diwali"] .sky-st.future svg{opacity:.7}
+    html[data-fest="diwali"] .sky-st.today svg{filter:drop-shadow(0 0 6px rgba(255,194,74,.9))}
+    html[data-fest="diwali"] .sky-st.sel{background:rgba(255,255,255,.14)}
+    html[data-fest="diwali"] .sky-st em{display:block;font-style:normal;font-size:10px;font-weight:600;opacity:.85;white-space:nowrap}
+    @media (max-width:600px){
+      html[data-fest] .sky-fc{grid-template-columns:auto minmax(0,1fr);gap:10px 12px;padding:14px 12px 10px;margin-top:16px}
+      .sky-fc-ic svg{width:30px;height:30px}
+      .sky-fc-title{font-size:19px}
+      .sky-fc-track{grid-column:1/-1;justify-content:space-between;gap:0}
+      html[data-fest="diwali"] .sky-st em{display:none}
+      html[data-fest] .sky-fr{flex-wrap:nowrap;white-space:nowrap}
+      html[data-fest] .sky-fr-m{overflow:hidden;text-overflow:ellipsis}
+      .sky-fr-go{flex-shrink:0}
+      html[data-fest="navratri"] .sky-hangs>i{width:30px;height:64px}
+      html[data-fest="diwali"] .sky-hangs>.h1,html[data-fest="diwali"] .sky-hangs>.h3{width:30px;height:61px}
+      .sky-hangs>.h1{left:8px;top:-6px}.sky-hangs>.h3{right:8px;top:-6px}
+    }
+    @media (max-width:360px){
+      html[data-fest] .sky-fr{font-size:12px;gap:4px 8px;padding-left:10px;padding-right:10px}
+      html[data-fest] .sky-fr-ic{width:18px !important;height:18px !important;flex-basis:18px !important}
+      /* the header was wider than a 320px phone in Hindi/Gujarati (the language button's label) - make it fit */
+      .sky-langwrap > button{padding:7px 8px !important;gap:4px !important}
+      .sky-langwrap .sky-caret{display:none}
+      .skh-row{gap:8px !important;padding-left:10px !important;padding-right:10px !important}
+    }
+    @media (prefers-reduced-motion:reduce){.sky-hangs,.sky-hangs>i{animation:none !important}}
 </style>
   <meta name="ext-resource-dependency" content="images/dest-rajasthan.jpg">
   <meta name="ext-resource-dependency" content="images/dest-himachal.avif">
@@ -238,7 +305,7 @@
 <!-- ===== FESTIVE GREETING STRIP (fest.js; hidden when no festival is on) ===== -->
 <div class="sky-fr" lang="{{ festLang }}">
   <svg class="sky-fr-ic nav" viewBox="0 0 24 24" aria-hidden="true"><path class="sky-fr-flame" d="M12 1.6C14 4 14.2 5.6 12 7.2 9.8 5.6 10 4 12 1.6Z" fill="#FFD27A"/><path fill="#fff" fill-rule="evenodd" d="M9.6 8h4.8v2.1c2.7.9 4.5 3.2 4.5 6.1 0 3.6-3 6.3-6.9 6.3s-6.9-2.7-6.9-6.3c0-2.9 1.8-5.2 4.5-6.1V8zM8.5 15a0.9 0.9 0 1 0 1.8 0a0.9 0.9 0 1 0 -1.8 0zM11.1 13.7a0.9 0.9 0 1 0 1.8 0a0.9 0.9 0 1 0 -1.8 0zM13.7 15a0.9 0.9 0 1 0 1.8 0a0.9 0.9 0 1 0 -1.8 0zM8.5 18.1a0.9 0.9 0 1 0 1.8 0a0.9 0.9 0 1 0 -1.8 0zM11.1 19.4a0.9 0.9 0 1 0 1.8 0a0.9 0.9 0 1 0 -1.8 0zM13.7 18.1a0.9 0.9 0 1 0 1.8 0a0.9 0.9 0 1 0 -1.8 0z"/></svg><svg class="sky-fr-ic diw" viewBox="0 0 40 40" aria-hidden="true"><path class="sky-fr-flame" d="M20 2 C24 9 25 13 20 18 C15 13 16 9 20 2Z" fill="#FFC24A"/><path d="M4 21 C9 34 31 34 36 21 Z" fill="#C9692E"/><ellipse cx="20" cy="21" rx="16" ry="3.2" fill="#FFB627"/><path d="M34 21 L39 18 L36 23 Z" fill="#C9692E"/></svg>
-  <span>{{ festMain }}</span><span class="sky-fr-sub">{{ festSub }}</span>
+  <span class="sky-fr-m">{{ festPre }}<sc-if value="{{ festNOn }}" hint-placeholder-val="{{ false }}"><b class="sky-fr-n">{{ festN }}</b></sc-if>{{ festPost }}</span><span class="sky-fr-sub">{{ festSub }}</span>
   <sc-if value="{{ festLink }}" hint-placeholder-val="{{ false }}"><a class="sky-fr-go" href="{{ festHref }}">{{ festGo }}</a></sc-if>
 </div>
 
@@ -250,7 +317,7 @@
     </sc-for>
   </div>
   <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, rgba(6,28,60,.32) 0%, rgba(6,28,60,.12) 40%, rgba(6,28,60,.55) 100%)"></div>
-  <div class="sky-fest-tint" aria-hidden="true"></div><div class="sky-toran" aria-hidden="true"></div><div class="sky-orn sky-orn-l" aria-hidden="true"></div><div class="sky-orn sky-orn-r" aria-hidden="true"></div><div class="sky-diyas" aria-hidden="true"></div>
+  <div class="sky-fest-tint" aria-hidden="true"></div><div class="sky-hangs" aria-hidden="true"><i class="h1"></i><i class="h2"></i><i class="h3"></i></div><div class="sky-toran" aria-hidden="true"></div><div class="sky-corner l" aria-hidden="true"></div><div class="sky-corner r" aria-hidden="true"></div>
   <div style="position: relative; z-index: 2; max-width: 1280px; margin: 0 auto">
     <div style="text-align: center; margin-bottom: 40px">
       <h1 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(30px, 4.6vw, 48px); line-height: 1.12; margin: 0 auto; max-width: 900px; text-wrap: balance; letter-spacing: -.02em; text-shadow: 0 2px 24px rgba(0,0,0,.35)">{{ t_hero_headline }}</h1>
@@ -289,6 +356,25 @@
         <span style="font-weight: 700; font-size: 15px">{{ t_packages }}</span>
       </a>
     </div>
+
+    <!-- FESTIVAL CARD (fest.js): the nine nights of Navratri, then the Diwali days; tap a stop to read about it -->
+    <sc-if value="{{ fcOn }}" hint-placeholder-val="{{ false }}">
+      <div class="sky-fc" lang="{{ festLang }}">
+        <span class="sky-fc-ic" aria-hidden="true"><svg class="nav" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.6C14 4 14.2 5.6 12 7.2 9.8 5.6 10 4 12 1.6Z" fill="#FFB627"/><rect x="9.4" y="7.6" width="5.2" height="2.6" rx=".8" fill="#8A3A1C"/><path d="M12 9.6c3.9 0 6.9 2.8 6.9 6.5S15.9 22.5 12 22.5 5.1 19.8 5.1 16.1 8.1 9.6 12 9.6z" fill="#B5532A"/><path d="M5.6 14.2 Q12 12.4 18.4 14.2 L18.6 15.3 Q12 13.5 5.4 15.3Z" fill="#FFB627"/><circle cx="9.4" cy="17" r="1" fill="#FFD27A"/><circle cx="12" cy="16.4" r="1" fill="#FFD27A"/><circle cx="14.6" cy="17" r="1" fill="#FFD27A"/><circle cx="9.4" cy="19.8" r="1" fill="#FFD27A"/><circle cx="12" cy="20.6" r="1" fill="#FFD27A"/><circle cx="14.6" cy="19.8" r="1" fill="#FFD27A"/></svg><svg class="diw" viewBox="0 0 40 40" aria-hidden="true"><path class="fl" d="M20 2 C24 9 25 13 20 18 C15 13 16 9 20 2Z" fill="#FFC24A"/><path d="M4 21 C9 34 31 34 36 21 Z" fill="#C9692E"/><ellipse cx="20" cy="21" rx="16" ry="3.2" fill="#FFB627"/><path d="M34 21 L39 18 L36 23 Z" fill="#C9692E"/></svg></span>
+        <div class="sky-fc-txt" aria-live="polite">
+          <span class="sky-fc-eye">{{ fcEye }}</span>
+          <b class="sky-fc-title">{{ fcTitle }}</b>
+          <span class="sky-fc-line">{{ fcLine }}</span>
+          <sc-if value="{{ fcChipOn }}" hint-placeholder-val="{{ false }}"><span class="sky-fc-chip"><i style="{{ fcSwatchStyle }}"></i>{{ fcChip }}</span></sc-if>
+          <sc-if value="{{ fcNoteOn }}" hint-placeholder-val="{{ false }}"><span class="sky-fc-note">{{ fcNote }}</span></sc-if>
+        </div>
+        <div class="sky-fc-track" role="group" aria-label="{{ fcTrack }}">
+          <sc-for list="{{ fcStops }}" as="st" hint-placeholder-count="9">
+            <button type="button" class="{{ st.cls }}" aria-pressed="{{ st.pressed }}" aria-label="{{ st.aria }}" onClick="{{ st.pick }}"><i style="{{ st.dot }}"></i><svg class="" viewBox="0 0 40 40" aria-hidden="true"><path class="fl" d="M20 2 C24 9 25 13 20 18 C15 13 16 9 20 2Z" fill="#FFC24A"/><path d="M4 21 C9 34 31 34 36 21 Z" fill="#C9692E"/><ellipse cx="20" cy="21" rx="16" ry="3.2" fill="#FFB627"/><path d="M34 21 L39 18 L36 23 Z" fill="#C9692E"/></svg><small>{{ st.label }}</small><em>{{ st.name }}</em></button>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
   </div>
 </section>
 
@@ -559,6 +645,12 @@ class Component extends DCLogic {
   };
 
   componentDidMount() {
+    // festive themes: re-render at midnight in India (fest.js), and pause the hanging lamps while the hero is off screen
+    if (window.SkyFest && !this._festSub) { this._festSub = true; window.SkyFest.onChange(() => this.setState({ festTick: Date.now() })); }
+    if ('IntersectionObserver' in window) {
+      this._festIO = new IntersectionObserver((es) => { document.documentElement.classList.toggle('sky-still', !es[0].isIntersecting); });
+      const hero = document.querySelector('.sky-hero'); if (hero) this._festIO.observe(hero);
+    }
     try {
       const c = localStorage.getItem('skyline_cookie_consent');
       if (c) this.setState({ cookieChoice: c });
@@ -610,6 +702,7 @@ class Component extends DCLogic {
   }
 
   componentWillUnmount() {
+    if (this._festIO) this._festIO.disconnect();
     if (this._heroTimer) clearInterval(this._heroTimer);
     if (window.__skyHeroTimer) { clearInterval(window.__skyHeroTimer); window.__skyHeroTimer = null; }
     if (this._cycTimer) clearInterval(this._cycTimer);
@@ -763,12 +856,29 @@ class Component extends DCLogic {
     const offersMenu = window.SkyOffers ? window.SkyOffers.menu(lang) : null;
     // The festive greeting strip (fest.js): greeting + date; a link only while a festival offer is live.
     const fest = window.SkyFest && window.SkyFest.id ? window.SkyFest : null;
+    const festLine = fest ? fest.line(lang) : null;
+    const festCard = fest ? fest.card(lang, this.state.festSel == null ? null : this.state.festSel) : null;
 
     return {
       year: new Date().getFullYear(),
       offersLive: !!(offersMenu && offersMenu.festival),
-      festMain: fest ? fest.main(lang) : '',
-      festSub: fest ? fest.sub(lang) : '',
+      festPre: festLine ? festLine.pre : '',
+      festN: festLine ? festLine.n : '',
+      festNOn: !!(festLine && festLine.n),
+      festPost: festLine ? festLine.post : '',
+      festSub: festLine ? festLine.sub : '',
+      fcOn: !!festCard,
+      fcEye: festCard ? festCard.eye : '',
+      fcTitle: festCard ? festCard.title : '',
+      fcLine: festCard ? festCard.line : '',
+      fcChipOn: !!(festCard && festCard.chip),
+      fcChip: festCard ? festCard.chip : '',
+      fcSwatchStyle: festCard && festCard.swatch ? 'background:' + festCard.swatch : '',
+      fcNoteOn: !!(festCard && festCard.note),
+      fcNote: festCard ? festCard.note : '',
+      fcTrack: festCard ? festCard.track : '',
+      fcStops: festCard ? festCard.stops.map((st, k) => ({ cls: 'sky-st ' + st.state + (st.sel ? ' sel' : ''), pressed: st.sel ? 'true' : 'false', aria: st.aria,
+        label: st.label, name: st.name || '', dot: st.swatch ? 'background:' + st.swatch : '', pick: () => this.setState({ festSel: k }) })) : [],
       festLang: lang,
       festLink: !!(fest && offersMenu && offersMenu.festival),
       festHref: offersMenu ? offersMenu.href : 'offers.html',

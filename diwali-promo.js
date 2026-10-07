@@ -33,6 +33,7 @@
     '.skd small{display:block;color:#E9D9C4;font-size:12.5px}' +
     '.skd .go{margin-left:auto;background:#FFA630;color:#1A0B00;font-weight:700;border-radius:999px;padding:7px 12px;white-space:nowrap;font-size:13px}' +
     '.skd .x{position:absolute;top:-8px;right:-8px;width:24px;height:24px;border-radius:50%;border:1px solid rgba(255,166,48,.5);background:#1A0F0A;color:#FFF3E2;font-size:14px;line-height:22px;text-align:center;cursor:pointer;padding:0}' +
+    'html.sky-paused .skd .fl{animation-play-state:paused}' +
     '@media (prefers-reduced-motion:reduce){.skd{transition:none}.skd .fl{animation:none}}';
   document.head.appendChild(css);
 

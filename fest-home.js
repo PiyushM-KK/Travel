@@ -92,6 +92,7 @@
         rings.push({ x: W / 2, y: y0 + free * 0.86, rx: Math.min(W * 0.36, 190), ry: h * 0.16, h: h, n: W < 360 ? 6 : 7, centre: 'dhol', a: 1 });
         var tag = rect(card.querySelector('.fh-tag')), lab = rect(card.querySelector('.fh-label')), lo = tag ? tag.x + tag.w + 26 : 90, hi2 = lab ? lab.x - 26 : W - 90;
         if (hi2 - lo >= 24) hang = { x: Math.max(lo, Math.min(W * 0.42, hi2)), h: Math.min(56, h * 0.5) };
+        else hang = { x: W / 2, h: Math.min(48, h * 0.45), below: top ? top.y + top.h + 4 : 60 };   // its cord runs behind the label
       }
       rings.sort(function (a, b) { return a.y - b.y; });
       P = { W: W, H: H, rings: rings, strings: [], hang: hang };
@@ -173,7 +174,7 @@
     }
     function hanging(ctx, t) {                                                        // the lamp hangs from the first string, swaying
       var g = P.hang, sp = spr.hang, st = P.strings[0]; if (!g || !sp || !st) return;
-      var u = (g.x - st.x0) / (st.x1 - st.x0), y = st.ya + st.sag * 4 * u * (1 - u) + 3, cord = 10;
+      var u = (g.x - st.x0) / (st.x1 - st.x0), y = st.ya + st.sag * 4 * u * (1 - u) + 3, cord = g.below ? Math.max(10, g.below - y) : 10;
       ctx.save(); ctx.translate(g.x, y); ctx.rotate(Math.sin(t / 1100) * 0.05);
       ctx.strokeStyle = 'rgba(255,226,168,.7)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, cord); ctx.stroke();
       ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.45 + 0.2 * Math.sin(t / 170); ctx.drawImage(spr.glow, -sp.w, cord + sp.h * 0.15 - sp.w * 0.6, sp.w * 2, sp.w * 2);
@@ -220,7 +221,7 @@
   function fireworks(cv, hero) {
     var stars = [], rockets = [], sparks = [], n = 0, PAL = ['#FFD27A', '#FF8A3D', '#FF5E5E', '#FFB4D0', '#E8B04B', '#9FE3FF'], WW = 0, HH = 0, rand = Math.random;
     function seeded(k) { return function () { k = (k * 16807) % 2147483647; return k / 2147483647; }; }
-    function layout(W, H) { WW = W; HH = H; stars = []; for (var i = 0; i < 140; i++) stars.push({ x: Math.random() * W, y: Math.random() * H * 0.75, r: Math.random() * 1.3 + 0.3, ph: Math.random() * 6.28 }); }
+    function layout(W, H) { WW = W; HH = H; stars = []; var sr = seeded(5); for (var i = 0; i < 140; i++) stars.push({ x: sr() * W, y: sr() * H * 0.75, r: sr() * 1.3 + 0.3, ph: sr() * 6.28 }); }
     function launch(tx, ty) { var x0 = Math.min(WW - 20, Math.max(20, tx + (Math.random() - 0.5) * 120)); rockets.push({ x: x0, y: HH, vx: (tx - x0) / 55, vy: (ty - HH) / 55, n: 55 }); }
     function explode(x, y) { var c = PAL[Math.floor(rand() * PAL.length)], c2 = PAL[Math.floor(rand() * PAL.length)], m = 90 + Math.floor(rand() * 40);
       if (sparks.length > 900) return;

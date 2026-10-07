@@ -133,7 +133,9 @@ html.sky-paused .fh-pause .ic-g{display:block}
 .fh-field{display:flex;flex-direction:column;gap:2px;padding:10px 14px;border-radius:14px;background:#fff;min-width:0}
 .fh-field span{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--pri-t)}
 .fh-field input,.fh-field select{border:0;outline:0;font:600 17px var(--body);background:transparent;color:var(--ink);padding:2px 0;width:100%;min-width:0}
-.fh-field:focus-within{box-shadow:0 0 0 2px var(--acc)}
+.fh-field:focus-within{box-shadow:0 0 0 2px var(--pri-t)}
+.fh .fh-fields :focus-visible{outline-color:var(--pri-t)}
+.fh .fh-field :focus-visible{outline:none}
 .fh-wa{display:flex;align-items:center;justify-content:center;gap:10px;padding:16px 20px;border-radius:14px;background:var(--pri);color:#fff !important;font-weight:800;font-size:16px;text-align:center;transition:background .2s}
 .fh-wa:hover{background:var(--pri-h)}
 /* ---- marquee ---- */
@@ -289,6 +291,7 @@ html.sky-paused .fh-pause .ic-g{display:block}
 .fh-foot-tag{line-height:1.6;opacity:.85}
 .fh-word{font-family:var(--disp);font-size:clamp(80px,19vw,280px);line-height:.9;text-align:center;color:transparent;-webkit-text-stroke:1.5px rgba(255,179,25,.35);letter-spacing:-.02em;padding:30px 0 0;user-select:none;pointer-events:none}
 .fh-legal{display:flex;justify-content:space-between;gap:12px 24px;flex-wrap:wrap;font-size:13px;opacity:.8;border-top:1px solid rgba(233,207,220,.14);padding-top:20px;padding-bottom:32px}
+@media (max-width:600px){.fh-legal{padding-bottom:190px}}
 .fh-legal a{text-decoration:underline;text-underline-offset:2px}
 /* ---- reveal ---- */
 .fh [data-reveal]{transition:opacity 1s cubic-bezier(.2,.7,.2,1),transform 1s cubic-bezier(.2,.7,.2,1),filter 1s cubic-bezier(.2,.7,.2,1)}
@@ -323,7 +326,7 @@ html.sky-paused .fh-pause .ic-g{display:block}
     </nav>
     <span class="fh-sp"></span>
     <div class="fh-cd"><i></i><span>{{ chipText }}</span></div>
-    <div class="{{ langWrapCls }}" onKeyDown="{{ langKey }}" onMouseLeave="{{ langLeave }}">
+    <div class="{{ langWrapCls }}" onKeyDown="{{ langKey }}" onMouseLeave="{{ langLeave }}" onMouseEnter="{{ langLeave }}">
       <button type="button" class="fh-langbtn" aria-expanded="{{ langAria }}" onClick="{{ langToggle }}">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.7 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.7-3.8-9S9.5 5.6 12 3z" stroke="currentColor" stroke-width="1.8"/></svg>
         {{ langLabel }}

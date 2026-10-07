@@ -81,7 +81,7 @@
     function layout(W, H, R) {
       var top = rect(card.querySelector('.fh-card-top')), body = rect(card.querySelector('.fh-card-body'));
       var y0 = top ? top.y + top.h + 14 : 64, y1 = body ? body.y - 14 : H * 0.55, free = Math.max(40, y1 - y0);
-      var rings = [];
+      var rings = [], hang = null;
       if (W >= 860) {                                                                  // wide: a big ring right, a smaller one behind it
         var hb = Math.min(free * 0.78, 168, W * 0.13), rx = Math.min(W * 0.19, 250);
         rings.push({ x: W * 0.72, y: y0 + free * 0.92, rx: rx, ry: hb * 0.17, h: hb, n: 8, centre: 'garbo', a: 1 });
@@ -89,10 +89,12 @@
         if (body && rings[1].x + rings[1].rx + 40 > body.x + body.w && rings[1].y + rings[1].ry > body.y - 8) rings.pop();
       } else {
         var h = Math.min(free * 0.72, 120, W * 0.3);
-        rings.push({ x: W / 2, y: y0 + free * 0.86, rx: Math.min(W * 0.36, 190), ry: h * 0.16, h: h, n: W < 360 ? 6 : 7, centre: 'garbo', a: 1 });
+        rings.push({ x: W / 2, y: y0 + free * 0.86, rx: Math.min(W * 0.36, 190), ry: h * 0.16, h: h, n: W < 360 ? 6 : 7, centre: 'dhol', a: 1 });
+        var tag = rect(card.querySelector('.fh-tag')), lab = rect(card.querySelector('.fh-label')), lo = tag ? tag.x + tag.w + 26 : 90, hi2 = lab ? lab.x - 26 : W - 90;
+        if (hi2 - lo >= 24) hang = { x: Math.max(lo, Math.min(W * 0.42, hi2)), h: Math.min(56, h * 0.5) };
       }
       rings.sort(function (a, b) { return a.y - b.y; });
-      P = { W: W, H: H, rings: rings, strings: [] };
+      P = { W: W, H: H, rings: rings, strings: [], hang: hang };
       // festoon strings: catenaries across the top third, bulbs every ~34px
       var ns = W >= 860 ? 3 : 2;
       for (var s = 0; s < ns; s++) { var ya = 6 + s * 16, sag = 26 + s * 14, x0 = -20 + s * W * 0.18, x1 = W + 20 - (ns - 1 - s) * W * 0.12, pts = [];
@@ -107,7 +109,7 @@
       g.fillStyle = 'rgba(255,179,25,.08)'; for (var dx = 11; dx < W; dx += 22) for (var dy = 11; dy < H; dy += 22) { g.beginPath(); g.arc(dx, dy, 1.1, 0, 6.283); g.fill(); }
       g.strokeStyle = 'rgba(40,10,24,.9)'; g.lineWidth = 1.4;
       P.strings.forEach(function (st) { g.beginPath(); st.pts.forEach(function (p, i) { if (i) g.lineTo(p.x, p.y); else g.moveTo(p.x, p.y); }); g.stroke(); });
-      spr = { glow: tint('#FFF1C9') };
+      spr = { glow: tint('#FFF1C9') }; if (hang) spr.hang = mk('garbo', hang.h, R);
       rings.forEach(function (rg) { var k2 = Math.round(rg.h);
         spr['f' + k2] = outline(mk('f', rg.h, R), R); spr['m' + k2] = outline(mk('m', rg.h, R), R);
         spr['dhol' + k2] = mk('dhol', rg.h * 0.62, R); spr['garbo' + k2] = mk('garbo', rg.h * 0.5, R, 0.44); });
@@ -169,9 +171,17 @@
         ctx.globalAlpha = 1;
       });
     }
+    function hanging(ctx, t) {                                                        // the lamp hangs from the first string, swaying
+      var g = P.hang, sp = spr.hang, st = P.strings[0]; if (!g || !sp || !st) return;
+      var u = (g.x - st.x0) / (st.x1 - st.x0), y = st.ya + st.sag * 4 * u * (1 - u) + 3, cord = 10;
+      ctx.save(); ctx.translate(g.x, y); ctx.rotate(Math.sin(t / 1100) * 0.05);
+      ctx.strokeStyle = 'rgba(255,226,168,.7)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, cord); ctx.stroke();
+      ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.45 + 0.2 * Math.sin(t / 170); ctx.drawImage(spr.glow, -sp.w, cord + sp.h * 0.15 - sp.w * 0.6, sp.w * 2, sp.w * 2);
+      ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; ctx.drawImage(sp.c, -sp.w / 2, cord, sp.w, sp.h); ctx.restore();
+    }
     function paint(ctx, t, W, H) {
       if (!P) return; ctx.clearRect(0, 0, W, H); if (bg) ctx.drawImage(bg, 0, 0, W, H);
-      drawBokeh(ctx, t, W, H); strings(ctx, t); P.rings.forEach(function (rg) { ring(ctx, rg, t); });
+      drawBokeh(ctx, t, W, H); strings(ctx, t); hanging(ctx, t); P.rings.forEach(function (rg) { ring(ctx, rg, t); });
     }
     var r = runner(cv, { fps: 30, layout: layout, draw: function (ctx, t, dt, W, H) { paint(ctx, t, W, H); }, still: function (ctx, W, H) { paint(ctx, 760, W, H); } });
     var words = new ResizeObserver(function () { r.relayout(); });
@@ -208,13 +218,14 @@
 
   // ---------- Diwali hero: stars, a firework every few seconds, and one wherever the sky is tapped ----------
   function fireworks(cv, hero) {
-    var stars = [], rockets = [], sparks = [], n = 0, PAL = ['#FFD27A', '#FF8A3D', '#FF5E5E', '#FFB4D0', '#E8B04B', '#9FE3FF'], WW = 0, HH = 0;
+    var stars = [], rockets = [], sparks = [], n = 0, PAL = ['#FFD27A', '#FF8A3D', '#FF5E5E', '#FFB4D0', '#E8B04B', '#9FE3FF'], WW = 0, HH = 0, rand = Math.random;
+    function seeded(k) { return function () { k = (k * 16807) % 2147483647; return k / 2147483647; }; }
     function layout(W, H) { WW = W; HH = H; stars = []; for (var i = 0; i < 140; i++) stars.push({ x: Math.random() * W, y: Math.random() * H * 0.75, r: Math.random() * 1.3 + 0.3, ph: Math.random() * 6.28 }); }
     function launch(tx, ty) { var x0 = Math.min(WW - 20, Math.max(20, tx + (Math.random() - 0.5) * 120)); rockets.push({ x: x0, y: HH, vx: (tx - x0) / 55, vy: (ty - HH) / 55, n: 55 }); }
-    function explode(x, y) { var c = PAL[Math.floor(Math.random() * PAL.length)], c2 = PAL[Math.floor(Math.random() * PAL.length)], m = 90 + Math.floor(Math.random() * 40);
+    function explode(x, y) { var c = PAL[Math.floor(rand() * PAL.length)], c2 = PAL[Math.floor(rand() * PAL.length)], m = 90 + Math.floor(rand() * 40);
       if (sparks.length > 900) return;
-      for (var i = 0; i < m; i++) { var a = i / m * 6.283 + Math.random() * 0.1, sp = 1.5 + Math.random() * 3.6;
-        sparks.push({ x: x, y: y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 1, dec: 0.009 + Math.random() * 0.012, c: Math.random() < 0.25 ? '#FFF6E6' : (i % 2 ? c : c2), s: 1.2 + Math.random() * 1.4 }); } }
+      for (var i = 0; i < m; i++) { var a = i / m * 6.283 + rand() * 0.1, sp = 1.5 + rand() * 3.6;
+        sparks.push({ x: x, y: y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 1, dec: 0.009 + rand() * 0.012, c: rand() < 0.25 ? '#FFF6E6' : (i % 2 ? c : c2), s: 1.2 + rand() * 1.4 }); } }
     function onDown(e) { if (e.target.closest && e.target.closest('a,button,input,select,label,textarea,[role=button]')) return;
       if (reduce || paused()) return; var r = cv.getBoundingClientRect(); if (e.clientY - r.top > r.height * 0.8) return; launch(e.clientX - r.left, e.clientY - r.top); }
     hero.addEventListener('pointerdown', onDown);
@@ -232,8 +243,8 @@
     function draw(ctx, t, dt, W, H) { n++;
       if (t >= next) { launch(W * (0.1 + Math.random() * 0.8), H * (0.1 + Math.random() * 0.38)); next = t + 1100 + Math.random() * 600; }
       sim(Math.min(3, dt / 16.7)); paint(ctx, t, W, H, 'rgba(0,0,0,0.24)'); }
-    function still(ctx, W, H) { rockets = []; sparks = []; explode(W * 0.72, H * 0.24); explode(W * 0.86, H * 0.4); for (var i = 0; i < 26; i++) sim(1);
-      paint(ctx, 0, W, H, '#000'); rockets = []; sparks = []; }
+    function still(ctx, W, H) { rockets = []; sparks = []; rand = seeded(11); try { explode(W * 0.72, H * 0.24); explode(W * 0.86, H * 0.4); } finally { rand = Math.random; }
+      for (var i = 0; i < 26; i++) sim(1); paint(ctx, 0, W, H, '#000'); rockets = []; sparks = []; }
     var r = runner(cv, { fps: 0, keepOnPause: true, layout: layout, draw: draw, still: still });
     if (!reduce) { launch(WW * 0.7, HH * 0.25); launch(WW * 0.85, HH * 0.4); }
     return { destroy: function () { hero.removeEventListener('pointerdown', onDown); r.destroy(); } };

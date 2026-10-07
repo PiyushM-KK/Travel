@@ -1097,6 +1097,7 @@ railBtns.forEach(function(b){ b.addEventListener('click',function(){ var r=story
 onScroll();
 
 /* ---------- the AI clips play only while on screen (and not at all when motion is reduced: the poster stays) ---------- */
+try{ if (matchMedia('(max-aspect-ratio: 4/5)').matches){ var wv=document.querySelector('.why-vid'); if (wv) wv.poster='images/diwali-lakshadweep/why-palms-m.jpg'; } }catch(e){}
 var clips=[].slice.call(document.querySelectorAll('.film video, .why-vid')), inView=new Map();
 function playClips(){ clips.forEach(function(v){ if(inView.get(v) && !document.hidden && prefs.motion){ if(v.preload==='none') v.preload='auto'; var pr=v.play(); if(pr&&pr.catch) pr.catch(function(){}); } else if(!v.paused) v.pause(); }); }
 if (!reduce && !(navigator.connection&&navigator.connection.saveData) && 'IntersectionObserver' in window){

@@ -44,7 +44,8 @@
     document.addEventListener('visibilitychange', kick);
     var onImg = function () { if (W) { opts.layout(W, H, R, ctx); if (!live()) still(); } }; waiting.push(onImg);
     size(); kick();
-    return { destroy: function () { dead = true; if (raf) cancelAnimationFrame(raf); io.disconnect(); ro.disconnect(); mo.disconnect();
+    return { relayout: function () { if (W && !dead) { opts.layout(W, H, R, ctx); drawn = false; if (!live()) still(); } },
+             destroy: function () { dead = true; if (raf) cancelAnimationFrame(raf); io.disconnect(); ro.disconnect(); mo.disconnect();
                document.removeEventListener('visibilitychange', kick); var i = waiting.indexOf(onImg); if (i >= 0) waiting.splice(i, 1); },
              kick: kick, clock: function () { return clock; } };
   }
@@ -172,7 +173,10 @@
       if (!P) return; ctx.clearRect(0, 0, W, H); if (bg) ctx.drawImage(bg, 0, 0, W, H);
       drawBokeh(ctx, t, W, H); strings(ctx, t); P.rings.forEach(function (rg) { ring(ctx, rg, t); });
     }
-    return runner(cv, { fps: 30, layout: layout, draw: function (ctx, t, dt, W, H) { paint(ctx, t, W, H); }, still: function (ctx, W, H) { paint(ctx, 760, W, H); } });
+    var r = runner(cv, { fps: 30, layout: layout, draw: function (ctx, t, dt, W, H) { paint(ctx, t, W, H); }, still: function (ctx, W, H) { paint(ctx, 760, W, H); } });
+    var words = new ResizeObserver(function () { r.relayout(); });
+    [card.querySelector('.fh-card-top'), card.querySelector('.fh-card-body')].forEach(function (el) { if (el) words.observe(el); });
+    return { destroy: function () { words.disconnect(); r.destroy(); } };
   }
 
   // ---------- Navratri hero: lights orbiting the arched photo in six garba-circle rings ----------

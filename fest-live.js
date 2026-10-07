@@ -333,7 +333,7 @@
       var want = clock % 2000; if (Math.abs(((as[i].currentTime || 0) % 2000) - want) > 60) as[i].currentTime = want; }
   }
   function relayout() { dirty = true; if (reduce || paused()) still(); }
-  var soonT = 0; function soon() { clearTimeout(soonT); soonT = setTimeout(function () { relayout(); start(); }, 150); }
+  var soonT = 0; function soon() { if (!document.querySelector('canvas.sky-live')) return; clearTimeout(soonT); soonT = setTimeout(function () { relayout(); start(); }, 150); }
   var lastKey = '';                                                                  // the below-hero fx-* toggles are not ours: ignore them
   function key() { return (html.getAttribute('data-fest') || '') + '|' + html.className.replace(/\bfx-\w+\b/g, '').replace(/\s+/g, ' ').trim(); }
   try { new MutationObserver(function () { var k = key(); if (k === lastKey) return; lastKey = k; dirty = true; start(); }).observe(html, { attributes: true, attributeFilter: ['class', 'data-fest'] }); } catch (e) {}

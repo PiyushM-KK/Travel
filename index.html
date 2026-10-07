@@ -759,7 +759,7 @@ class Component extends DCLogic {
     this._festLook = () => {
       const S = window.SkyFest, id = S && S.id, root = document.documentElement;
       const F = { navratri: 'family=Baloo+2:wght@700;800&family=Baloo+Bhai+2:wght@700;800', diwali: 'family=Eczar:wght@600;800&family=Rasa:wght@600;700' };
-      if (id && F[id] && !document.getElementById('sky-fest-font-' + id)) {
+      if (id && F[id] && !document.getElementById('sky-fest-font-' + id) && !this._festHomeOn()) {   // the festive homepage brings its own fonts
         const l = document.createElement('link'); l.id = 'sky-fest-font-' + id; l.rel = 'stylesheet';
         l.href = 'https://fonts.googleapis.com/css2?' + F[id] + '&display=swap'; document.head.appendChild(l);
       }
@@ -775,7 +775,30 @@ class Component extends DCLogic {
     this._festLook();
     // re-render at midnight in India (fest.js), and pause the hanging lamps while the hero is off screen
     if (window.SkyFest && !this._festOff) this._festOff = window.SkyFest.onChange(() => { this._festLook(); this.setState({ festTick: Date.now(), festSel: null }); });
-    // the below-hero objects move only while their section is on screen: html.fx-<section>
+    this._fhOn = this._festHomeOn();
+    this._watch();
+    try {
+      const c = localStorage.getItem('skyline_cookie_consent');
+      if (c) this.setState({ cookieChoice: c });
+    } catch (e) {}
+    // Preload hero images, then start the crossfade slideshow (not under the festive homepage, which has its own hero)
+    if (!this._fhOn) this._preload();
+    this._timers();
+  }
+
+  // the festive homepage (FestiveHome.dc.html) can give way to this page at the end of a festival without a reload
+  componentDidUpdate() {
+    const on = this._festHomeOn();
+    if (this._fhOn && !on) { let p = false; try { p = localStorage.getItem('skyline_fest_paused') === '1'; } catch (e) {}
+      document.documentElement.classList.toggle('sky-paused', p); if (p !== !!this.state.livePaused) this.setState({ livePaused: p });
+      this._watch(); this._preload(); }
+    this._fhOn = on;
+  }
+
+  _preload() { this.state.heroImages.forEach((src) => { const im = new Image(); im.src = src; }); }
+
+  // the below-hero objects move only while their section is on screen (html.fx-<section>); the hanging lamps pause off screen
+  _watch() {
     if ('IntersectionObserver' in window) {
       if (this._secIO) this._secIO.disconnect();
       this._secIO = new IntersectionObserver((es) => { es.forEach((e) => { const m = /sky-sec--(\w+)/.exec(e.target.className); if (m) document.documentElement.classList.toggle('fx-' + m[1], e.isIntersecting); }); });
@@ -786,12 +809,9 @@ class Component extends DCLogic {
       this._festIO = new IntersectionObserver((es) => { document.documentElement.classList.toggle('sky-still', !es[0].isIntersecting); });
       const hero = document.querySelector('.sky-hero'); if (hero) this._festIO.observe(hero);
     }
-    try {
-      const c = localStorage.getItem('skyline_cookie_consent');
-      if (c) this.setState({ cookieChoice: c });
-    } catch (e) {}
-    // Preload hero images, then start the crossfade slideshow (not under the festive homepage, which has its own hero)
-    if (!this._festHomeOn()) this.state.heroImages.forEach((src) => { const im = new Image(); im.src = src; });
+  }
+
+  _timers() {
     const N = this.state.heroImages.length;
     const PERIOD = 5000;
     this._hi = Math.floor(Date.now() / PERIOD) % N;

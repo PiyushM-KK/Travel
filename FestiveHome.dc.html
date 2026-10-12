@@ -96,6 +96,9 @@ html[data-fh="diwali"] body{background:#FFF6E6}
 .fh-h1{font-family:var(--disp);font-weight:400;font-size:clamp(48px,8.4vw,124px);line-height:.95;margin:0;letter-spacing:-.01em;overflow-wrap:anywhere}
 .fh-h1 span{display:block}
 .fh-shim{background:var(--shim);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent}
+/* English: at line-height .95 the g/j/p/q/y descenders fall below the line's box, where the gradient text cannot paint
+   ("the liqhts"); the padding extends the paint box and the equal negative margin keeps the layout unchanged */
+.fh[lang=en] .fh-shim{padding-bottom:.25em;margin-bottom:-.25em}
 .fh-lead{font-size:clamp(17px,1.5vw,20px);line-height:1.6;margin:0;max-width:540px;color:var(--lt);text-wrap:pretty}
 .fh-ctas{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
 .fh-btn{display:inline-flex;align-items:center;gap:10px;padding:17px 28px;border-radius:999px;font-weight:800;font-size:16px;transition:transform .25s,box-shadow .25s,background .2s;cursor:pointer}

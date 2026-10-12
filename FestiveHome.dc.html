@@ -31,6 +31,10 @@ html[data-fh="diwali"] body{background:#FFF6E6}
 .fh *{box-sizing:border-box}
 .fh a{color:inherit;text-decoration:none}
 .fh .fh-card,.fh .fh-icard{color:#fff}
+/* Devanagari and Gujarati: headings need taller lines than English (matras rise above the headline stroke and the
+   vowel signs drop below it - at .95-1.1 they ran into the line above) */
+.fh[lang=hi] .fh-h1,.fh[lang=gu] .fh-h1,.fh[lang=hi] .fh-h2,.fh[lang=gu] .fh-h2,.fh[lang=hi] .fh-card-title,.fh[lang=gu] .fh-card-title,.fh[lang=hi] .fh-row-name,.fh[lang=gu] .fh-row-name,.fh[lang=hi] .fh-pvl-name,.fh[lang=gu] .fh-pvl-name,.fh[lang=hi] .fh-icard-name,.fh[lang=gu] .fh-icard-name,.fh[lang=hi] .fh-step-t,.fh[lang=gu] .fh-step-t,.fh[lang=hi] .fh-why-t,.fh[lang=gu] .fh-why-t,.fh[lang=hi] .fh-style-name,.fh[lang=gu] .fh-style-name,.fh[lang=hi] .fh-days-title,.fh[lang=gu] .fh-days-title,.fh[lang=hi] .fh-chip-v,.fh[lang=gu] .fh-chip-v{line-height:1.32}
+.fh[lang=hi] .fh-shim,.fh[lang=gu] .fh-shim{padding:.06em 0}   /* the gradient text paints only inside its box */
 /* Devanagari and Gujarati: no letter-spacing (it breaks the headline stroke) */
 .fh[lang=hi] .fh-eyebrow-l,.fh[lang=gu] .fh-eyebrow-l,.fh[lang=hi] .fh-eye,.fh[lang=gu] .fh-eye,.fh[lang=hi] .fh-field span,.fh[lang=gu] .fh-field span,.fh[lang=hi] .fh-tag,.fh[lang=gu] .fh-tag,.fh[lang=hi] .fh-chip-k,.fh[lang=gu] .fh-chip-k,.fh[lang=hi] .fh-cta-eye,.fh[lang=gu] .fh-cta-eye,.fh[lang=hi] .fh-pvl-eye,.fh[lang=gu] .fh-pvl-eye,.fh[lang=hi] .fh-icard-meta,.fh[lang=gu] .fh-icard-meta,.fh[lang=hi] .fh-days-eye,.fh[lang=gu] .fh-days-eye,.fh[lang=hi] .fh-chip-u,.fh[lang=gu] .fh-chip-u{letter-spacing:0}
 .fh ::selection{background:var(--acc);color:var(--ink)}

@@ -167,18 +167,25 @@ function validatePost(post, facts, profile = {}) {
     const item = String((c && c.item) || "").trim();
     const price = String((c && c.price) || "").trim();
     const actual = facts.priceByItem.get(item.toLowerCase());
+    // A live dated offer may have several true prices (kb-adapter offerPrices).
+    const offerPrices = (facts.offerPrices && facts.offerPrices.get(item.toLowerCase())) || [];
     if (actual === undefined) {
       errors.push(`PRICE FOR UNKNOWN ITEM: "${item}" is not on the menu`);
-    } else if (actual !== price) {
-      errors.push(`WRONG PRICE: "${item}" is ${actual}, post says ${price}`);
+    } else if (actual !== price && !offerPrices.includes(price)) {
+      errors.push(`WRONG PRICE: "${item}" is ${offerPrices.length ? offerPrices.join(" or ") : actual}, post says ${price}`);
     }
   }
 
   // ---- 3. Any price in the caption text must be a real one ----
-  // Catches a model that quotes a price without declaring it.
+  // Catches a model that quotes a price without declaring it. A live offer's price
+  // counts only when the caption names that offer.
+  const captionLower = caption.toLowerCase();
+  const namedOfferPrices = new Set(
+    (facts.offers || []).filter((o) => captionLower.includes(o.name.toLowerCase())).flatMap((o) => o.prices)
+  );
   for (const m of caption.match(/[₹$€£]\s?\d[\d,]*(?:\.\d{2})?/g) || []) {
     const normalized = m.replace(/\s/g, "");
-    if (!facts.validPrices.has(normalized)) {
+    if (!facts.validPrices.has(normalized) && !namedOfferPrices.has(normalized)) {
       errors.push(`UNVERIFIED PRICE in caption: ${normalized} does not match any listed price`);
     }
   }

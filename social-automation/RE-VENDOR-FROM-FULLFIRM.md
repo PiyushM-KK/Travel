@@ -28,6 +28,13 @@ FullFirm's client data or the demo here.
   contents), and a Chromium **card renderer** for CORRECT Gujarati/Hindi (resvg garbles
   Indic scripts) — the India/GTA differentiator. Never AI-fake real places/prices.
 
+## Skyline-only engine changes (re-apply after any copy from FullFirm)
+- **2026-10-22, dated festive offers:** `engine/kb-adapter.js` (`buildFactBase(BUSINESS, { now })` merges
+  `BUSINESS.offers` into the validator's lookup sets only while each offer's `until` is in the future; offers never
+  enter `items`, so the package pickers cannot choose them) and `engine/validate-post.js` (a declared price may match
+  any of a live offer's prices). Proven by `tests/check_festive_offers.js`. A copy of `engine/` from FullFirm
+  overwrites both files: port the change to FullFirm's engine first, or re-apply it here and re-run that test.
+
 ## Source of truth
 FullFirm repo -> `SociaMedia_Auto/`: `AUTOMATION-PLAN.md` (§"v2 — Client-driven posting"),
 `AGENTS.md`, and `HANDOVER.md` (newest entry, 2026-08-02).

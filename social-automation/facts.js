@@ -121,6 +121,27 @@ const BUSINESS = {
       ],
     },
   },
+
+  // Dated festive offers, copied from their own live pages (diwali-bali.html,
+  // diwali-lakshadweep.html) on 2026-10-22. NOT in the catalogue on purpose: the
+  // package rotation and the content calendar never pick them. They only let the
+  // caption checker accept an owner-approved offer post, and only until `until`
+  // (the same moment offers-data.js hides the offer, Indian time) — after that the
+  // fact base drops them and a caption quoting their prices is refused.
+  offers: [
+    {
+      item: "Diwali in Bali", prices: ["₹1,15,000"], duration: "7N / 8D",
+      route: "Signature Package · departs 3 Nov 2026 · Singapore Airlines from Ahmedabad",
+      terms: "Starting price per person; the final price depends on room sharing, dates and availability, confirmed in writing before payment",
+      page: "diwali-bali.html", until: "2026-11-03T00:00:00+05:30",
+    },
+    {
+      item: "Lakshadweep Escape", prices: ["₹54,000", "₹47,000"], duration: "3N / 4D",
+      route: "Diwali Special 2026 · 2 nights Agatti + 1 night Bangaram · travel 5–20 Nov 2026",
+      terms: "₹54,000 per person for a minimum of 2 travellers, ₹47,000 per person for a minimum of 4; flight tickets extra; entry permit needed, our team assists",
+      page: "diwali-lakshadweep.html", until: "2026-11-21T00:00:00+05:30",
+    },
+  ],
 };
 
 /**

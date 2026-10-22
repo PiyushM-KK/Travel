@@ -127,7 +127,10 @@ async function runVideoPost(store, ctx = {}) {
   const prompt = buildVideoPrompt(scenes); // kept for the row/caption record: what the Reel is meant to show
   // TRUE MONTAGE: one generation PER destination, joined locally. Kling's duration is an enum (5|10), so
   // 3 places x 5s = a 15s Reel. `duration` is the WHOLE montage; perClip is what we ask the model for.
-  const perClip = ctx.perClip || 5;
+  // A single-destination Reel (the default since 77cdf41) gets Kling's full 10 s clip; only a montage
+  // splits into 5 s clips. Before 2026-10-22 the 5 s montage value applied to single Reels too, so every
+  // Reel came out 5 s long - half what higgsfield.js DEFAULT_DURATION and the original 10 s Reel assumed.
+  const perClip = ctx.perClip || (scenes.length === 1 ? 10 : 5);
   const duration = ctx.duration || perClip * scenes.length;
 
   const row = await store.create({

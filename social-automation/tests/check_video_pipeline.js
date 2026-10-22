@@ -163,6 +163,19 @@ const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "vpipe-"));
     ok(row.sceneMeta.slugs.length === 3 && row.sceneMeta.cuts.length === 2, "3 places -> 2 cut boundaries, taken from the join");
   }
 
+  // (a3) clip length: a single-destination Reel asks Kling for its full 10 s clip; a montage asks 5 s
+  // per place (Kling's duration is an enum, 5|10). The old 5 s-for-everything default made every
+  // single-destination Reel 5 s long.
+  {
+    const asked = [];
+    const gen = async (_prompt, o) => { asked.push(o && o.duration); return { url: "https://clip.test/raw.mp4" }; };
+    await runVideoPost(new InMemoryStore(), baseCtx({ generateVideo: gen, duration: undefined }));
+    ok(asked.length === 1 && asked[0] === 10, `one destination -> one 10 s clip requested (got ${JSON.stringify(asked)})`);
+    asked.length = 0;
+    await runVideoPost(new InMemoryStore(), baseCtx({ generateVideo: gen, count: 3, duration: undefined }));
+    ok(asked.length === 3 && asked.every((d) => d === 5), `3-place montage -> 5 s per clip (got ${JSON.stringify(asked)})`);
+  }
+
   // (b) live + creds -> publishes to IG + FB
   {
     const store = new InMemoryStore(); let published = null;

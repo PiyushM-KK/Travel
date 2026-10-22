@@ -5,11 +5,34 @@ Scope: **only the `social-automation/` folder.** The rest of the Skyline project
 structure + provenance. **NOTE: this session also changed the WEBSITE (language fix) and started the
 client CHATBOT (`../pricing-portal/`) — see the checkpoint below; those live OUTSIDE this folder.**
 
+**CHECKPOINT 2026-10-22 (fullfirm-3f) - THE QUEUE IS ON REDIS; posting works again; Diwali posts out:**
+- **Queue = Upstash Redis `skyline-queue`** (Pay As You Go, iad1; on the team's existing Upstash installation;
+  connected to `skyline-social` Production only, prefix KV). Selftest 11/11 on the real database; GitHub secrets
+  `UPSTASH_REDIS_REST_URL/TOKEN` set (video-post.yml); redeploy `skyline-social-6vfqcyacj`. Every job green since:
+  package-post 03:40 + 08:45 UTC, video Reel 05:42 UTC (all `"store":"redis"`). The Airtable history (pre-2026-09-18)
+  was NOT imported (Airtable still quota-blocked; optional, BLOCKED.md B-AIRTABLE-QUOTA). Rollback: `SOCIAL_STORE=airtable`.
+- **Dated festive offers** (`f6e028b`): `facts.js BUSINESS.offers` (Diwali in Bali ₹1,15,000 until 3 Nov 00:00 IST;
+  Lakshadweep Escape ₹54,000 / ₹47,000 until 21 Nov 00:00 IST). The caption checker accepts their prices only while
+  live and only in a caption that names the offer; the package rotation/calendars never pick them
+  (`tests/check_festive_offers.js`, 25 checks; Bug Hunter + App Security x2: ship). The `engine/` change is
+  Skyline-only: re-apply after any copy from FullFirm (RE-VENDOR-FROM-FULLFIRM.md).
+- **Diwali offer posters** (owner-approved, 2K 2160x2700, hosted on the site at `images/social/diwali-offers-2026*.jpg`,
+  linked from nothing): #1 POSTED 2026-10-22 10:34 UTC (IG 18166584871469370, FB 437743929683019_1622715272889156;
+  queue row_4, published by a manual Run of the cron-publish job). Scheduled in the queue as approved rows, one a day
+  at the 15:30 UTC publish run: row_5 23 Oct (Claude Design layout), row_6 24 Oct (diya on water), row_7 25 Oct
+  (terracotta diya), row_8 26 Oct (emerald diya). Art: gpt-image-2.5-sunburst via Higgsfield + one Canva image, text
+  set by code; the Claude Design canvas https://claude.ai/artifact/KobVgAWyaziFyxjiS8jdiX (private).
+- **Video Reel:** the 2026-10-22 run made a 5 s, ONE-scene, silent Ladakh Reel (row_2, pending_approval, approval code
+  4549 - the owner replies "approve 4549" on WhatsApp and the webhook posts it). Still open: B-MUSIC (no licensed track,
+  Reels are silent) and why this run made one scene instead of the 3-scene montage.
+- **Local main** was rebased onto origin/main (its 5 held commits were already upstream; backup branch
+  `backup/main-before-sync-2026-10-22`); the "never push local main plainly" rule in HANDOVER-PROMPT.md no longer applies.
+
 **WEBSITE + CHAT CHECKPOINT 2026-10-06 (outside this folder; fullfirm-d2):** PUBLISHED on the owner's "publish" (`4783783`):
 the Lakshadweep Diwali page + destination, the Bali regular rates in the chat, and chat worker anthropic-10, now deployed by
 GitHub Actions (`.github/workflows/chat-worker.yml`: test, deploy, health - first run green; secrets CLOUDFLARE_API_TOKEN +
 CLOUDFLARE_ACCOUNT_ID, in `sync-gh-secrets.sh` KEYS). No more pasting the worker. State and open items:
-`../HANDOVER-PROMPT.md`. This local main now holds only the Redis commits below and doc commits.
+`../HANDOVER-PROMPT.md`. (The Redis commits this note once held back are upstream since 2026-10-22.)
 
 **WEBSITE CHECKPOINT 2026-09-27 (outside this folder):** the Diwali in Bali page in EN / HI / GU, a new `/offers`
 page and a promo card in the visitor's language are LIVE (`89c2980`). Current state, the held-commits push rule

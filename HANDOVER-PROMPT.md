@@ -13,8 +13,9 @@ IRCTC, redBus, Booking.com) and captures enquiries via a form + WhatsApp.
 CURRENT STATE - 2026-10-06 (newest; where it differs from anything below, this wins)
 - Live site: https://skylinetravelplanner.com (custom domain on GitHub Pages). Pushing `main` deploys the site AND, since
   2026-10-06, the AI chat worker (see AI CHAT BACKEND).
-- NEVER push the owner's local `main` plainly: it holds the 3 social-queue Redis commits, held until the owner's
-  Upstash/Vercel switch-over (social-automation/BLOCKED.md B-AIRTABLE-QUOTA). Ship from a branch cut from origin/main:
+- 2026-10-22: the social queue is on Redis and the owner's local `main` equals origin/main again (the held Redis
+  commits are upstream; social-automation/HANDOVER.md checkpoint 2026-10-22). Pushing `main` still deploys the site,
+  skyline-social and (when its files change) the chat worker. When local main holds unpublished work, ship from a branch cut from origin/main:
   `git worktree add <dir> -b <branch> origin/main`, commit there, `git push origin <branch>:main` (fast-forward only),
   then `git -C <checkout> rebase origin/main` (copies of commits already on main drop out).
 - PUBLISHED on the owner's "publish" 2026-10-06 (see PENDING - AGENT for the checks): branch `chat-worker-anthropic-10-fix` =

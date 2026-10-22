@@ -13,7 +13,15 @@ branch `chat-worker-anthropic-10-fix` to main ships the page and the worker toge
 the worker. Owner questions first (start/end dates, the Bangaram resort's brand, meals, prices for 1/3/children, the
 permit): `../HANDOVER-PROMPT.md` PENDING - OWNER. Agent steps after the push: same file, PENDING - AGENT.
 
-## B-AIRTABLE-QUOTA - 2026-09-17 - the queue is LEAVING Airtable; one owner step left (export a CSV)
+## B-AIRTABLE-QUOTA - ✅ SWITCHED TO REDIS 2026-10-22 - only the optional history import is left
+**Done 2026-10-22 (fullfirm-3f, owner "switch to Redis" + "go Pay As You Go"):** Upstash for Redis database
+`skyline-queue` (Pay As You Go, iad1, eviction/auto-upgrade/prod-pack off) added to the team's existing Upstash
+installation and connected to `skyline-social` for Production only (prefix KV: `KV_REST_API_URL` / `KV_REST_API_TOKEN`
+and three more). `redis-selftest.js` 11/11 against the real database; GitHub secrets `UPSTASH_REDIS_REST_URL` /
+`UPSTASH_REDIS_REST_TOKEN` set for `video-post.yml`; `skyline-social` redeployed (`skyline-social-6vfqcyacj`).
+First run after the switch: package-post 2026-10-22 03:40 UTC (run 39718095404) SUCCESS, `"store":"redis"`.
+Still optional: importing the Airtable history (blocked by the same quota; CSV export below). Rollback:
+`SOCIAL_STORE=airtable` on skyline-social. The original notes follow.
 
 **What happened.** Airtable answered every call with `429 PUBLIC_API_BILLING_LIMIT_EXCEEDED` - the
 workspace's MONTHLY API allowance. Nothing has read or written the queue since: no drafts, no

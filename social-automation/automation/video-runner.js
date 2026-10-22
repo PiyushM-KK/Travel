@@ -183,6 +183,10 @@ async function runVideoPost(store, ctx = {}) {
       if (!hasRealCuts(cuts, scenes.length, montageDuration) && scenes.length > 1) {
         try { console.log(JSON.stringify({ evt: "video_cuts_unverified", asked: scenes.length, kept: 1, place: scenes[0].label })); } catch { /* ignore */ }
         scenes = [scenes[0]];
+        // ...and use ONLY the first place's own clip: the joined file also holds the other places'
+        // footage, which must never run under this one label (Bug Hunter 2026-10-22).
+        rawFile = files[0];
+        montageDuration = (await probeDuration(files[0])) || perClip;
         cuts = resolveCuts([], scenes.length, montageDuration);
       }
       if (assessVideo) {
@@ -229,6 +233,9 @@ async function runVideoPost(store, ctx = {}) {
       // Music is muxed HERE: no video model enabled on this account produces audio, so every clip
       // arrives silent and a silent Reel performs badly. Missing track -> silent, never a failure.
       musicPath: ctx.musicPath || path.join(__dirname, "..", "assets", "music", "reel-bed.mp3"),
+      // The clips are silent, so the bed is the ONLY sound: play the (pre-mastered, -14 LUFS) track at
+      // full level. brandVideo's own 0.35 default was set for a bed under other audio.
+      musicVolume: ctx.musicVolume != null ? ctx.musicVolume : 1,
       duration: montageDuration });
     const hosted = await hostVideo(fs.readFileSync(brandedFile), `video-reel-${smid}`, ctx.hostOpts || {});
     videoUrl = hosted.url;

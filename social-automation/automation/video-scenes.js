@@ -21,7 +21,13 @@ const SCENES = [
   { slug: "himachal", label: "Himachal", shot: "a sweeping aerial over pine-and-deodar Himalayan ridgelines above the Kangra valley, morning mist drifting, the Dhauladhar snow range rising behind" },
   { slug: "ladakh-pangong", label: "Ladakh", shot: "a wide cinematic aerial over the turquoise-and-cobalt Pangong lake ringed by stark barren high-altitude mountains under a deep blue sky" },
   { slug: "kumaon", label: "Kumaon", shot: "a serene aerial over the Kumaon hills at first light, terraced slopes and mist-filled valleys with distant snow peaks on the horizon" },
+  // PIN-ONLY (owner request 2026-10-22, a Kasol + Dharamshala Reel): used only when a run pins them
+  // (SOCIAL_VIDEO_PLACE / the workflow's `place` input), never by the automatic rotation below.
+  { slug: "kasol", label: "Kasol", pinOnly: true, shot: "a slow cinematic aerial along the Parvati valley near Kasol, a clear turquoise river rushing over smooth boulders between tall pine forests, snow-dusted Himalayan peaks beyond, soft morning light" },
+  { slug: "dharamshala", label: "Dharamshala", pinOnly: true, shot: "a slow cinematic aerial over the green Kangra valley slopes around Dharamshala, terraced tea gardens and deodar forests with colourful prayer flags in the breeze, the snow-capped Dhauladhar range rising behind" },
 ];
+// The automatic rotation: every scene except the pin-only ones.
+const ROTATION = SCENES.filter((s) => !s.pinOnly);
 
 const BY_SLUG = new Map(SCENES.map((s) => [s.slug, s]));
 
@@ -31,11 +37,13 @@ const BY_SLUG = new Map(SCENES.map((s) => [s.slug, s]));
  * @param opts.now Date (defaults real now), opts.count (default 3), opts.recent slugs to avoid.
  */
 function pickScenes({ now, count = 3, recent = [] } = {}) {
-  const n = Math.max(1, Math.min(count, SCENES.length));
-  const avoid = new Set((recent || []).slice(0, Math.max(0, SCENES.length - n)).map(String));
+  const n = Math.max(1, Math.min(count, ROTATION.length));
+  // only rotation slugs count as "recent": a pinned Kasol run must not crowd out real rotation history
+  const inRotation = new Set(ROTATION.map((s) => s.slug));
+  const avoid = new Set((recent || []).map(String).filter((s) => inRotation.has(s)).slice(0, Math.max(0, ROTATION.length - n)));
   const dayIndex = Math.floor((now ? now.getTime() : Date.now()) / 86400000);
   // Rotate the full list by the day, then take the first `n` that aren't in the avoid set; top up if short.
-  const rotated = SCENES.map((_, i) => SCENES[(dayIndex + i) % SCENES.length]);
+  const rotated = ROTATION.map((_, i) => ROTATION[(dayIndex + i) % ROTATION.length]);
   const picked = [];
   for (const s of rotated) { if (picked.length >= n) break; if (!avoid.has(s.slug) && !picked.includes(s)) picked.push(s); }
   for (const s of rotated) { if (picked.length >= n) break; if (!picked.includes(s)) picked.push(s); }
@@ -65,4 +73,17 @@ function buildVideoPrompt(scenes) {
   );
 }
 
-module.exports = { SCENES, BY_SLUG, pickScenes, buildVideoPrompt };
+/**
+ * Resolve a pinned place list ("Kasol, Dharamshala" or "kasol,dharamshala") to scenes, in order. All or
+ * nothing: one unknown name returns [] so a typo can never drop a place and leave the others' labels over
+ * the wrong footage. At most `max` places (a 5 s clip each); duplicates are refused the same way.
+ */
+function resolvePinned(text, { max = 3 } = {}) {
+  const wants = String(text || "").split(",").map((w) => w.trim().toLowerCase()).filter(Boolean);
+  if (!wants.length || wants.length > max) return [];
+  const hits = wants.map((w) => SCENES.find((x) => x.label.toLowerCase() === w || x.slug.toLowerCase() === w));
+  if (hits.some((h) => !h) || new Set(hits).size !== hits.length) return [];
+  return hits;
+}
+
+module.exports = { SCENES, BY_SLUG, pickScenes, buildVideoPrompt, resolvePinned };

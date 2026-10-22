@@ -32,7 +32,7 @@ on:
         required: false
         default: ""
       place:
-        description: "Destination label for the on-screen title when using clip_url (e.g. Ladakh). Leave blank to use the normal rotation."
+        description: "Pin the destination(s): one place (e.g. Ladakh), or a comma list for a montage of up to 3 (e.g. kasol,dharamshala - one 5 s clip each). With clip_url only a single place. Leave blank for the normal rotation."
         required: false
         default: ""
       live:

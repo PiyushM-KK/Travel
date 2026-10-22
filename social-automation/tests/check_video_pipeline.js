@@ -176,6 +176,50 @@ const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "vpipe-"));
     ok(asked.length === 3 && asked.every((d) => d === 5), `3-place montage -> 5 s per clip (got ${JSON.stringify(asked)})`);
   }
 
+  // (a4) pinned places (owner 2026-10-22: a Kasol + Dharamshala Reel). Pin-only scenes never enter the
+  // automatic rotation; a pinned list resolves all-or-nothing; a 2-place pin is a 2 x 5 s montage; and the
+  // music bed is sent at full level because the clips are silent.
+  {
+    const { resolvePinned } = require("../automation/video-scenes");
+    let sawPinOnly = false;
+    for (let d = 0; d < 400; d++) for (const c of [1, 3]) {
+      if (pickScenes({ now: new Date(Date.UTC(2026, 0, 1) + d * 86400000), count: c }).some((s) => s.pinOnly)) sawPinOnly = true;
+    }
+    ok(!sawPinOnly, "400 days of automatic rotation never pick a pin-only scene (Kasol, Dharamshala)");
+    const pinned = resolvePinned("Kasol, Dharamshala");
+    ok(pinned.map((s) => s.slug).join() === "kasol,dharamshala", "\"Kasol, Dharamshala\" pins both, in order");
+    ok(resolvePinned("kasol,dharamsala").length === 0, "one misspelt place -> nothing pinned (no label over the wrong footage)");
+    ok(resolvePinned("kasol,kasol").length === 0 && resolvePinned("goa,kerala,agra,kashmir").length === 0, "duplicates and more than 3 places are refused");
+    ok(resolvePinned("Himachal").length === 1, "a single place still pins as before");
+
+    const asked = []; let brandOpts = null;
+    const store = new InMemoryStore();
+    const out = await runVideoPost(store, baseCtx({
+      scenes: pinned, duration: undefined,
+      generateVideo: async (_p, o) => { asked.push(o && o.duration); return { url: "https://clip.test/raw.mp4" }; },
+      // a real 2-clip join: one boundary at 5 s, 10 s long
+      concatClips: async (files, outPath) => { fs.writeFileSync(outPath, Buffer.from("joined")); return { outPath, cuts: [5], duration: 10 }; },
+      brand: async (o) => { brandOpts = o; fs.writeFileSync(o.outPath, Buffer.from("branded")); return o.outPath; },
+    }));
+    const row = await store.get(out.id);
+    ok(asked.length === 2 && asked.every((d) => d === 5), `Kasol + Dharamshala -> two 5 s clips (got ${JSON.stringify(asked)})`);
+    ok(row.sceneMeta.slugs.join() === "kasol,dharamshala" && row.sceneMeta.cuts.length === 1, "the montage records both places and one real cut between them");
+    ok(brandOpts && brandOpts.musicVolume === 1, `the music bed is mixed at full level (got ${brandOpts && brandOpts.musicVolume})`);
+
+    // Probe failure: the join cannot report its cut, so the Reel narrows to ONE label - and must then use
+    // that place's own clip, never the joined file with the other place's footage under the wrong name.
+    let qaFile = null;
+    const store2 = new InMemoryStore();
+    const out2 = await runVideoPost(store2, baseCtx({
+      scenes: pinned, duration: undefined,
+      concatClips: async (files, outPath) => { fs.writeFileSync(outPath, Buffer.from("joined")); return { outPath, cuts: [], duration: 10 }; },
+      assessVideo: async (f) => { qaFile = f; return { pass: true, score: 8 }; },
+    }));
+    const row2 = await store2.get(out2.id);
+    ok(row2.sceneMeta.slugs.join() === "kasol", "unverified cuts -> narrowed to the first place only");
+    ok(qaFile && /vclip-.*-0\.mp4$/.test(qaFile), `...and the first place's OWN clip is used, not the joined file (got ${qaFile && path.basename(qaFile)})`);
+  }
+
   // (b) live + creds -> publishes to IG + FB
   {
     const store = new InMemoryStore(); let published = null;

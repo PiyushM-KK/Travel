@@ -381,11 +381,20 @@ async function runJob(opts = {}) {
       // pipeline still does the branding, QA, hosting, approval and publishing exactly as before.
       // Pin the destination when a pre-generated clip is supplied: the on-screen name must describe
       // THAT footage. Unknown place -> no override, and the job falls back to the normal rotation.
+      // A comma list ("kasol,dharamshala") pins a montage: one 5 s clip per place, each labelled over its
+      // own footage. A pre-generated clip is ONE shot of one place, so it cannot carry two labels.
       ...(process.env.SOCIAL_VIDEO_PLACE
-        ? (() => { const { SCENES } = require("./video-scenes");
-            const want = String(process.env.SOCIAL_VIDEO_PLACE).trim().toLowerCase();
-            const hit = SCENES.find((x) => x.label.toLowerCase() === want || x.slug.toLowerCase() === want);
-            return hit ? { scenes: [hit] } : {}; })()
+        ? (() => { const { resolvePinned } = require("./video-scenes");
+            const hits = resolvePinned(process.env.SOCIAL_VIDEO_PLACE);
+            if (hits.length > 1 && process.env.SOCIAL_VIDEO_CLIP_URL) {
+              throw new Error("a pre-generated clip shows one place - pin a single place with clip_url");
+            }
+            // A place list that does not resolve must not fall back to the rotation when it would stamp a
+            // random name over a supplied clip, or quietly turn a requested montage into a random Reel.
+            if (!hits.length && (process.env.SOCIAL_VIDEO_CLIP_URL || String(process.env.SOCIAL_VIDEO_PLACE).includes(","))) {
+              throw new Error("place did not resolve to known scenes - check the spelling (nothing was generated)");
+            }
+            return hits.length ? { scenes: hits } : {}; })()
         : {}),
       generateVideo: opts.generateVideo
         || (process.env.SOCIAL_VIDEO_CLIP_URL ? async () => ({ url: String(process.env.SOCIAL_VIDEO_CLIP_URL) }) : null)

@@ -226,7 +226,8 @@ async function brandVideoOverlay(opts = {}) {
     const outAt = total > 3 ? Math.round((total - 1.5) * 1000) / 1000 : 0;
     const aIdx = overlays.length + 1; // after the video and every overlay input
     filter += `;[${aIdx}:a]volume=${vol},afade=t=in:st=0:d=1` + (outAt ? `,afade=t=out:st=${outAt}:d=1.5` : "") +
-      ",aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo[aout]";
+      // limiter: the bed is the only sound and plays at full level, so a hot track must not clip
+      ",alimiter=limit=0.89,aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo[aout]";
   }
 
   const args = ["-y", "-hide_banner", "-loglevel", "error", "-i", inputPath];
@@ -267,7 +268,8 @@ async function brandVideo(opts = {}) {
     const outAt = total > 3 ? Math.round((total - 1.5) * 1000) / 1000 : 0;
     filter += `;[2:a]volume=${vol},afade=t=in:st=0:d=1` +
       (outAt ? `,afade=t=out:st=${outAt}:d=1.5` : "") +
-      ",aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo[aout]";
+      // limiter: the bed is the only sound and plays at full level, so a hot track must not clip
+      ",alimiter=limit=0.89,aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo[aout]";
   }
   const filterFile = opts.filterFile || path.join(os.tmpdir(), `vbrand-${scenes.map((s) => s.label).join("-")}-${cuts.join("_")}.txt`);
   fs.writeFileSync(filterFile, filter, "utf8");

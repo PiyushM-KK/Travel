@@ -5,7 +5,7 @@ Scope: **only the `social-automation/` folder.** The rest of the Skyline project
 structure + provenance. **NOTE: this session also changed the WEBSITE (language fix) and started the
 client CHATBOT (`../pricing-portal/`) — see the checkpoint below; those live OUTSIDE this folder.**
 
-**CHECKPOINT 2026-10-26 (fullfirm-71) - GUIDED WHATSAPP INTAKE built on branch `wa-guided-intake` (NOT deployed):**
+**CHECKPOINT 2026-10-26 (fullfirm-71) - GUIDED WHATSAPP INTAKE LIVE (owner "publish": main `7e677ca`, Vercel `skyline-social-cih9ly0p4`; webhook guards 403 checked; reel-requests workflow active, idle run green):**
 - Owner asked: "make that workflow adaptive and dynamic by requesting information what user want to do"; "always show
   a menu first"; options: post my photo, offer card from a poster, my own video as a Reel, AI Reel, a post or Reel from
   text or a photo, and the price (+10%, as is, +Rs, +%). Built: `automation/wa-guide.js` (menus + questions, Redis
@@ -16,9 +16,8 @@ client CHATBOT (`../pricing-portal/`) — see the checkpoint below; those live O
   photo Reel whose run died AFTER building can be built twice (free, both held); a Reel row stranded by a hard kill is
   not swept; 'Post from my note' drafts a text post exactly as the old note intake did (check the first live one).
   `npm test` 29 suites green (check_wa_guide 83 checks, no network).
-- TO GO LIVE (owner's "publish"): merge the branch into `main` and push (deploys skyline-social + enables the new
-  workflow). Then a live check on WhatsApp: send a photo -> the menu appears. Off switch: `SOCIAL_WHATSAPP_GUIDE=off`.
-  The local docs commit `1a69863` rides along (it is under the branch).
+- OPEN: the first live WhatsApp test by the owner (send a photo -> the menu appears; try one offer card and one note).
+  Off switch: Vercel env `SOCIAL_WHATSAPP_GUIDE=off`. The docs commit `1a69863` went out with it.
 
 **CHECKPOINT 2026-10-26 (fullfirm-66) - posting healthy; a music-bed Reel waits for approval; docs fixed:**
 - **Posting works.** Instagram shows the Diwali offer posters and package cards (Meghalaya Wonders, Gangtok & Darjeeling,

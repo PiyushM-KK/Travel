@@ -68,14 +68,50 @@ function matchPackage(text) {
  * vendor price, fall back to Skyline's OWN catalogue price (already Skyline's price, no markup).
  * Returns { line, amount } or { line:"", amount:null }.
  */
-function repricedLine(vendorPrices, pkg) {
+// THE OWNER'S MARKUP (owner 2026-10-26, from the guided WhatsApp intake): +10% stays the default for a
+// vendor's poster, but the owner may choose "as is", a percentage or a rupee amount. Bounded so a typo can
+// never post a silly price: 0-100 % or Rs 1-2,00,000 on top.
+const MAX_MARKUP_PCT = 100, MAX_MARKUP_INR = 200000;
+const DEFAULT_MARKUP = Object.freeze({ kind: "pct", value: 10 });
+const NO_MARKUP = Object.freeze({ kind: "none", value: 0 });
+
+/** The owner's typed markup -> { kind: "pct"|"inr"|"none", value }, or null when it cannot be read.
+ *  "+10%", "10 %", "+Rs 2000", "₹2,000", "+2000", "2000 rupees", "as is", "0". */
+function parseMarkup(text) {
+  const t = String(text || "").trim().toLowerCase().replace(/\s+/g, " ");
+  if (!t || t.length > 40) return null;
+  if (/^(as[ -]?is|same|no markup|none|0|\+?0 ?%)$/.test(t)) return { ...NO_MARKUP };
+  const pct = t.match(/^\+? ?(\d{1,3}(?:\.\d{1,2})?) ?(?:%|percent|pc)$/);
+  if (pct) { const v = Number(pct[1]); return v > 0 && v <= MAX_MARKUP_PCT ? { kind: "pct", value: v } : null; }
+  const inr = t.match(/^\+? ?(?:rs\.?|inr|\u20b9)? ?(\d{1,3}(?:,\d{2,3})*|\d{1,7}) ?(?:rs\.?|inr|rupees?|\u20b9)?$/);
+  if (inr) { const v = Number(inr[1].replace(/,/g, "")); return v > 0 && v <= MAX_MARKUP_INR ? { kind: "inr", value: v } : null; }
+  return null;
+}
+
+/** "+10%", "+Rs 2,000", "as is" - for the owner's messages. */
+function markupLabel(m) {
+  if (!m || m.kind === "none") return "as is";
+  return m.kind === "pct" ? `+${m.value}%` : `+Rs ${Number(m.value).toLocaleString("en-IN")}`;
+}
+
+function applyMarkup(base, m) {
+  if (!base) return null;
+  if (!m || m.kind === "none") return base;
+  return m.kind === "pct" ? base * (1 + m.value / 100) : base + m.value;
+}
+
+/**
+ * The card's price line. A VENDOR price gets the owner's markup (default +10%); without a vendor price the
+ * catalogue price is used as-is unless the owner chose a markup for it (the guided intake's package card).
+ */
+function repricedLine(vendorPrices, pkg, markup) {
   let amount = null;
-  if (Array.isArray(vendorPrices) && vendorPrices.length) amount = Math.min(...vendorPrices) * 1.10;
-  else if (pkg) amount = priceNum(pkg);
+  if (Array.isArray(vendorPrices) && vendorPrices.length) amount = applyMarkup(Math.min(...vendorPrices), markup || DEFAULT_MARKUP);
+  else if (pkg) amount = applyMarkup(priceNum(pkg), markup || NO_MARKUP);
   if (!amount) return { line: "", amount: null, main: "", suffix: "", short: "" };
   const rounded = Math.round(amount / 100) * 100; // clean round to nearest 100
   const n = "Rs " + rounded.toLocaleString("en-IN");
   return { line: "From " + n + " / person", amount: rounded, main: n, suffix: "/ person", short: "From " + n };
 }
 
-module.exports = { allPackages, categoryForItem, matchPackage, photoSlug, priceNum, repricedLine };
+module.exports = { allPackages, categoryForItem, matchPackage, photoSlug, priceNum, repricedLine, parseMarkup, markupLabel, applyMarkup, DEFAULT_MARKUP, NO_MARKUP };

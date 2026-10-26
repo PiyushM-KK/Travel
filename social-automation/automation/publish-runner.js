@@ -119,7 +119,7 @@ async function dueRows(store, { now, maxAttempts, staleMs }) {
     // A Reel that got stranded (e.g. the approval webhook timed out mid-poll) must be re-approved or
     // published through publishVideo(), never picked up here. Logged so a stranded row stays visible
     // rather than silently sitting forever.
-    if (r.source !== "video-post") return true;
+    if (r.source !== "video-post" && r.source !== "wa-video") return true; // wa-video = the owner's own video (guided intake)
     try { console.log(JSON.stringify({ evt: "publish_skip_video_row", id: r.id, status: r.status })); } catch { /* ignore */ }
     return false;
   });

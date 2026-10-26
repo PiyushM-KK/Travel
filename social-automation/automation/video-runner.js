@@ -45,7 +45,8 @@ function buildCaption(scenes, ctx = {}) {
     `Skyline Travel Planner builds custom India itineraries and plans the whole trip with you on WhatsApp — ` +
     `hotels, sightseeing, and 24/7 support, tailored to your dates and pace.\n\n` +
     `📲 WhatsApp us to plan: ${phone}\n🌐 skylinetravelplanner.com\n\n` +
-    `Your Journey, Our Passion.\n(Visuals are AI-generated · illustrative)\n\n` +
+    // ctx.visualNote: a Reel of the owner's own photo is not AI footage (the guided WhatsApp intake)
+    `Your Journey, Our Passion.\n${ctx.visualNote || "(Visuals are AI-generated · illustrative)"}\n\n` +
     `#IndiaTravel #TravelReels #IncredibleIndia #CustomTrips ${tags} #SkylineTravelPlanner`
   );
 }
@@ -273,4 +274,4 @@ Reply "approve ${code}" to post it to Instagram + Facebook, or "reject ${code}" 
   return { status: "pending_approval", id: row.id, videoUrl, scenes: sceneMeta.labels };
 }
 
-module.exports = { runVideoPost, buildCaption, recentSceneSlugs, dateKey };
+module.exports = { runVideoPost, buildCaption, recentSceneSlugs, dateKey, hostVideo: defaultHostVideo };

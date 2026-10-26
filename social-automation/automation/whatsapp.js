@@ -69,6 +69,31 @@ async function sendImage(to, link, caption, opts = {}) {
   );
 }
 
+/** Up to 3 tap buttons ("reply buttons") under a message: [{ id, title }], a title at most 20 characters. */
+async function sendButtons(to, body, buttons, opts = {}) {
+  return waSend({
+    messaging_product: "whatsapp", to, type: "interactive",
+    interactive: {
+      type: "button", body: { text: String(body || "").slice(0, 1024) },
+      action: { buttons: (buttons || []).slice(0, 3).map((b) => ({ type: "reply", reply: { id: String(b.id).slice(0, 256), title: String(b.title).slice(0, 20) } })) },
+    },
+  }, opts);
+}
+
+/** A list of up to 10 choices behind one button: [{ id, title, description }] (title 24, description 72 characters). */
+async function sendList(to, body, button, rows, opts = {}) {
+  return waSend({
+    messaging_product: "whatsapp", to, type: "interactive",
+    interactive: {
+      type: "list", body: { text: String(body || "").slice(0, 1024) },
+      action: {
+        button: String(button || "Choose").slice(0, 20),
+        sections: [{ title: "Choose one", rows: (rows || []).slice(0, 10).map((r) => ({ id: String(r.id).slice(0, 200), title: String(r.title).slice(0, 24), ...(r.description ? { description: String(r.description).slice(0, 72) } : {}) })) }],
+      },
+    },
+  }, opts);
+}
+
 /**
  * Parse an owner's WhatsApp reply into { id, decision }. Understands:
  *   approve <id> | yes <id> | ok <id>
@@ -159,14 +184,22 @@ function extractIncomingMessage(body) {
     const value = body && body.entry && body.entry[0] && body.entry[0].changes && body.entry[0].changes[0] && body.entry[0].changes[0].value;
     const m = value && value.messages && value.messages[0];
     if (!m) return null;
+    const tapped = m.interactive && (m.interactive.button_reply || m.interactive.list_reply);
     const text =
       (m.text && m.text.body) ||
       (m.image && m.image.caption) ||
+      (m.video && m.video.caption) ||
+      (m.document && m.document.caption) ||
       (m.button && m.button.text) ||
-      (m.interactive && m.interactive.button_reply && m.interactive.button_reply.title) ||
+      (tapped && tapped.title) ||
       "";
     const image = m.image ? { id: m.image.id, mime: m.image.mime_type, caption: m.image.caption || "" } : null;
-    return { from: m.from, text, image, type: m.type, id: m.id };
+    // The guided intake (wa-guide.js) reads videos, image documents and the id of a tapped button/list row.
+    const video = m.video ? { id: m.video.id, mime: m.video.mime_type || "", caption: m.video.caption || "" } : null;
+    const document = m.document ? { id: m.document.id, mime: m.document.mime_type || "", caption: m.document.caption || "" } : null;
+    const audio = !!(m.audio || m.voice);
+    const choice = tapped ? { id: String(tapped.id || ""), title: String(tapped.title || "") } : null;
+    return { from: m.from, text, image, video, document, audio, choice, type: m.type, id: m.id };
   } catch {
     return null;
   }
@@ -190,7 +223,25 @@ async function handleInbound(body, ctx = {}) {
   if (!ctx.authorizedNumber) return { ignored: "no authorized number configured" };
   if (!sameNumber(msg.from, ctx.authorizedNumber)) return { ignored: "unauthorized sender" };
 
+  // DEDUP (B-18): Meta re-delivers a webhook it thinks failed. With the guided menus a re-delivered tap would
+  // answer a question twice, so ctx.seen(wamid) is true only the FIRST time a message id arrives.
+  if (ctx.seen && msg.id) {
+    let first = true;
+    try { first = await ctx.seen(msg.id); } catch { first = true; } // a store hiccup must not drop the owner's message
+    if (!first) return { ignored: "duplicate delivery" };
+  }
+
+  // GUIDED INTAKE (owner 2026-10-26): a tap on one of the guide's buttons or list rows.
+  if (ctx.guide && msg.choice && /^g:/.test(msg.choice.id)) return ctx.guide.onChoice(msg);
+
   const parsed = parseDecision(msg.text);
+  // A bare "yes" / "ok" / "no" while the guide waits for an answer belongs to the guide - never to an unrelated
+  // pending post. Only a decision WITH a code ("approve 4821") always means a post.
+  if (parsed && !parsed.id && ctx.guide && ctx.guide.awaitingAnswer) {
+    let waiting = false;
+    try { waiting = await ctx.guide.awaitingAnswer(msg.from); } catch { waiting = false; }
+    if (waiting) return ctx.guide.onMessage(msg, "");
+  }
   if (parsed) {
     const result = await ctx.applyDecision(parsed.id, parsed.decision);
     let note = result.ok
@@ -215,6 +266,12 @@ async function handleInbound(body, ctx = {}) {
     const fallback = 'That looked like an approval, but I couldn\'t read it. Reply exactly like "B 9880" or "approve 9880" (or just "approve").';
     if (ctx.reply) await ctx.reply(msg.from, help || fallback);
     return { action: "approval-help" };
+  }
+
+  // GUIDED INTAKE: everything that is not a command opens the guide's menu (or answers its open question).
+  if (ctx.guide) {
+    const link = ctx.extractImageUrl ? ctx.extractImageUrl(String(msg.text || "")) : "";
+    return ctx.guide.onMessage(msg, link && linkHostAllowed(link) ? link : "");
   }
 
   // Not a command → treat it as INTAKE (draft a post from what they sent).
@@ -272,4 +329,4 @@ function sameNumber(a, b) {
   return !!da && !!db && da.slice(-10) === db.slice(-10);
 }
 
-module.exports = { waSend, sendText, sendImage, parseDecision, shortCode, looksLikeApprovalAttempt, looksLikeRef, extractIncomingMessage, handleInbound, verifySignature, sameNumber };
+module.exports = { waSend, sendText, sendImage, sendButtons, sendList, linkHostAllowed, parseDecision, shortCode, looksLikeApprovalAttempt, looksLikeRef, extractIncomingMessage, handleInbound, verifySignature, sameNumber };

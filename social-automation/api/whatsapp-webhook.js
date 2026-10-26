@@ -13,7 +13,14 @@
  * rejected). Nothing here posts to a social account.
  */
 
-const { handleInbound, verifySignature, sendText, sendImage } = require("../automation/whatsapp");
+const { handleInbound, verifySignature, sendText, sendImage, sendButtons, sendList } = require("../automation/whatsapp");
+
+// The accounts a post goes to (the owner's choice on the guided intake; both by default): an id left empty
+// makes publishVideo skip that platform. Image posts read row.platforms in publish-runner.
+function credsFor(creds, platforms) {
+  const p = Array.isArray(platforms) && platforms.length ? platforms : ["instagram", "facebook"];
+  return { ...(creds || {}), ...(p.includes("instagram") ? {} : { igUserId: "" }), ...(p.includes("facebook") ? {} : { pageId: "" }) };
+}
 const { applyDecision } = require("../automation/approve-runner");
 const { intakeDirect } = require("../automation/intake-runner");
 const { extractImageUrl } = require("../automation/gmail-reader");
@@ -90,7 +97,7 @@ module.exports = async (req, res) => {
   try {
     const client = loadClient(process.env.SOCIAL_CLIENT || "skyline");
     const { store } = makeStore();
-    const out = await handleInbound(body, {
+    const ctx = {
       authorizedNumber: process.env.WHATSAPP_TO,
       // Resolve a friendly reference to the real row id, THEN apply the decision:
       //   • no id ("approve"/"yes")  -> the single post awaiting approval
@@ -139,7 +146,7 @@ module.exports = async (req, res) => {
             // the image path would either fail or post the video as a still. Reels need the Meta Reels
             // flow (container -> poll status_code -> media_publish), which is publishVideo().
             const row = await store.get(realId);
-            if (row && row.source === "video-post") {
+            if (row && (row.source === "video-post" || row.source === "wa-video")) {
               const { publishVideo } = require("../automation/video-publish");
               // CLAIM FIRST. Meta redelivers webhooks, and publishing a Reel is irreversible; without an
               // atomic approved -> publishing move, two deliveries of the same "approve" can race into
@@ -152,7 +159,7 @@ module.exports = async (req, res) => {
               const res = await publishVideo({
                 videoUrl: row.imageUrl,
                 caption: row.caption || "",
-                creds: client.creds, // resolved per-client (SKYLINE_* then META_*), not bare process.env
+                creds: credsFor(client.creds, row.platforms), // per-client creds, only the accounts chosen for this post
                 maxPolls: 8,
                 pollMs: 5000,
               });
@@ -163,7 +170,7 @@ module.exports = async (req, res) => {
                 lastError: ok ? "" : `IG:${res.instagramError || ""} FB:${res.facebookError || ""}`,
               });
               result.published = ok
-                ? "🎬 Reel posted to Instagram + Facebook ✅"
+                ? `🎬 Reel posted to ${[res.instagram && "Instagram", res.facebook && "Facebook"].filter(Boolean).join(" + ")} ✅`
                 : `⚠️ Approved, but the Reel didn't post (IG:${res.instagramError || "-"} FB:${res.facebookError || "-"}).`;
               return result;
             }
@@ -197,7 +204,11 @@ module.exports = async (req, res) => {
       // DRAFT-ON-INTAKE: with an API key, Claude writes + fact-checks the post right
       // away and we send it straight back to approve. Without a key, returns null and
       // the caller falls back to a "queued" ack (the scheduled generate drafts later).
-      draftAndDigest: async (row) => {
+      // opts.mode: "auto" = the old one-shot intake (a priced poster becomes a +10% card); the guided intake
+      // passes "photo" (never a card), "offer" (a card from the poster) or "card" (a card for the package the
+      // note names, priced from the catalogue), with the owner's markup (opts.markup).
+      draftAndDigest: async (row, opts = {}) => {
+        const mode = opts.mode || "auto";
         if (!process.env.ANTHROPIC_API_KEY) return null;
         if (row.status !== "planned") return null; // a dedup hit / already drafted
         const { generateOne } = require("../automation/generate-runner");
@@ -209,7 +220,7 @@ module.exports = async (req, res) => {
         // (the foreign-brand guard below would hold it, and AI garbles poster text). A plain photo
         // with no price returns matched:false and falls straight through to the normal draft below.
         // Only the authorized sender reaches here (handleInbound rejects others upstream).
-        if (process.env.SOCIAL_WHATSAPP_RESELLER !== "off" && (row.imageSource || row.imageUrl)) {
+        if (mode === "offer" || mode === "card" || (mode === "auto" && process.env.SOCIAL_WHATSAPP_RESELLER !== "off" && (row.imageSource || row.imageUrl))) {
           // 1) Build the Skyline card BEFORE touching the row, so any failure here leaves the row
           //    pristine and we fall cleanly through to the normal draft. Card B defaults to FREE instant
           //    decor because this webhook is SYNCHRONOUS: a paid gpt-image-1 + scene call (several
@@ -222,11 +233,12 @@ module.exports = async (req, res) => {
             const { resolveImageSourceBytes } = require("../automation/image-source");
             const { buildResellerCards } = require("../automation/reseller");
             const src = row.imageSource || { kind: "url", url: row.imageUrl };
-            const { buffer } = await resolveImageSourceBytes(src, {});
+            // a package card from a note has no image: its price comes from Skyline's own catalogue
+            const buffer = (row.imageSource || row.imageUrl) ? (await resolveImageSourceBytes(src, {})).buffer : null;
             const wantImage = process.env.SOCIAL_WHATSAPP_RESELLER_IMAGE === "on";
             r = await buildResellerCards(
               wantImage ? { store } : { imageGen: null },
-              { imageBytes: buffer, offerText: row.hint || "", smid: row.id }
+              { imageBytes: buffer, offerText: row.hint || "", smid: row.id, markup: opts.markup, useCatalogPrice: mode === "card" }
             );
           } catch (e) { r = null; } // pre-mutation failure → row untouched → fall through to normal draft
 
@@ -244,7 +256,8 @@ module.exports = async (req, res) => {
                 lastError: "no vendor price for the mandatory +10%",
               });
             } catch (e) { /* non-fatal */ }
-            return `🧳 That poster matches *${r.pkg.item}* (${r.pkg.route}), but I couldn't read a per-person price on it — and the +10% markup needs the vendor's original price.\n\nSend a poster that clearly shows the per-person price and I'll post it at +10%.`;
+            if (mode === "card") return `🧳 *${r.pkg.item}* has no price on the website, so I can't price a card for it. Send its poster as a photo and choose Offer card instead.`;
+            return `🧳 That poster matches *${r.pkg.item}* (${r.pkg.route}), but I couldn't read a per-person price on it — and the card's price is worked out from the vendor's original price.\n\nSend a poster that clearly shows the per-person price and I'll make the card${mode === "offer" ? "" : " at +10%"}.`;
           }
 
           // 2) Matched → we now OWN this row's outcome; never fall through to a second draft.
@@ -268,11 +281,13 @@ module.exports = async (req, res) => {
                 const { shortCode } = require("../automation/whatsapp");
                 const { istStamp } = require("../automation/calendar-cards");
                 const code = shortCode(fresh.id);
-                const priceNote = `${r.rp.line}${(r.prices && r.prices.length) ? ` (vendor ${Math.min(...r.prices).toLocaleString("en-IN")} +10%)` : " (Skyline rate)"}`;
+                const { markupLabel, DEFAULT_MARKUP, NO_MARKUP } = require("../automation/packages");
+                const mk = markupLabel(opts.markup || (r.prices && r.prices.length ? DEFAULT_MARKUP : NO_MARKUP));
+                const priceNote = `${r.rp.line}${(r.prices && r.prices.length) ? ` (vendor ${Math.min(...r.prices).toLocaleString("en-IN")}, ${mk})` : ` (website price, ${mk})`}`;
                 // Intake provenance (same as the other channels carry): where this came from + when, so
                 // the owner sees the source before approving. rowCreatedAt = when the poster arrived.
                 const intakeAt = istStamp(rrow.createdAt || undefined);
-                const details = `🧳 Skyline reseller card ready (+10% margin)\n   Package: ${r.pkg.item} — ${r.pkg.route}\n   Price on card: ${priceNote}\n   Source: WhatsApp — client-forwarded vendor poster\n   Received: ${intakeAt}`;
+                const details = `🧳 Skyline ${mode === "card" ? "package" : "reseller"} card ready (${mk})\n   Package: ${r.pkg.item} — ${r.pkg.route}\n   Price on card: ${priceNote}\n   Source: WhatsApp — ${mode === "card" ? "your note (website package)" : "client-forwarded vendor poster"}\n   Received: ${intakeAt}`;
                 const instr = r.cardUrlB
                   ? `\n\nReply:\n🅰️ A ${code} → real-photo card\n🅱️ B ${code} → ${r.bStyle} card\n➕ both ${code}\n❌ reject ${code}`
                   : `\n\n✅ approve ${code} → posts to Instagram + Facebook   |   ❌ reject ${code}`;
@@ -302,7 +317,14 @@ module.exports = async (req, res) => {
               return `Sorry — I built a Skyline card but hit a snag finalizing it (${redact(String((e && e.message) || e))}). Please resend the poster.`;
             }
           }
-          // r null or not matched → fall through to the normal draft below.
+          // r null or not matched → fall through to the normal draft below - unless the owner CHOSE a card:
+          // then say so plainly instead of quietly posting the poster as a photo.
+          if (mode === "offer" || mode === "card") {
+            try { await store.update(row.id, { status: "held", lastError: "guided card: " + ((r && r.reason) || "card not built") }); } catch (e) { /* non-fatal */ }
+            return mode === "card"
+              ? "🔎 I couldn't match that note to a Skyline package on the website, so no card was made. Name the package or destination and choose Package card again."
+              : `🔎 I couldn't turn that poster into a Skyline card${r && r.reason === "no_match" ? " - it doesn't match a package Skyline sells" : ""}. Send it again and choose Post this photo if you'd like it posted as it is.`;
+          }
         }
         // v2 image-enhance (B-22): if an AI enhancer is configured (AI_ENHANCER_*), enhance a
         // text-free PHOTO before approval. The runner text-gates it (posters skip, never
@@ -349,7 +371,23 @@ module.exports = async (req, res) => {
       extractImageUrl,
       // No hosting at intake — the photo is recorded as a source ref (media id) and only
       // hosted at publish time (for an approved post). Publish-time-only hosting.
-    });
+    };
+    // GUIDED INTAKE (owner 2026-10-26, automation/wa-guide.js): a menu for every photo, video or note, then only
+    // the questions that choice needs. It keeps its conversation in Redis, so it runs where the queue is Redis;
+    // SOCIAL_WHATSAPP_GUIDE=off restores the old one-shot intake. ctx.seen drops Meta's re-deliveries (B-18).
+    if (typeof store.cmd === "function" && typeof store.k === "function") {
+      ctx.seen = async (wamid) => (await store.cmd(["SET", store.k("wa:seen:" + String(wamid).slice(0, 120)), "1", "NX", "EX", "172800"])) === "OK";
+      if (process.env.SOCIAL_WHATSAPP_GUIDE !== "off") {
+        const { createGuide } = require("../automation/wa-guide");
+        const { guideActions } = require("../automation/wa-guide-actions");
+        ctx.guide = createGuide({
+          kv: store, k: (x) => store.k(x),
+          send: { text: (to, b) => sendText(to, b), buttons: (to, b, bt) => sendButtons(to, b, bt), list: (to, b, btn, rows) => sendList(to, b, btn, rows) },
+          actions: guideActions({ store, client, draftAndDigest: ctx.draftAndDigest, reviewDeadlineMs }),
+        });
+      }
+    }
+    const out = await handleInbound(body, ctx);
     // Always 200 to WhatsApp (a non-200 makes Meta retry the delivery repeatedly).
     res.status(200).json({ ok: true, ...out });
   } catch (e) {

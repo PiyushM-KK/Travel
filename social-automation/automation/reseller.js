@@ -13,7 +13,7 @@
  */
 const path = require("path");
 const { describeOffer, extractPrices } = require("../engine/generate");
-const { matchPackage, repricedLine } = require("./packages");
+const { matchPackage, repricedLine, priceNum } = require("./packages");
 const { makeCard, pickPhoto } = require("../engine/card");
 const { BUSINESS } = require("../facts");
 
@@ -73,12 +73,15 @@ async function buildResellerCards(ctx = {}, opts = {}) {
   const match = _matchPackage(offer);
   if (!match) return { matched: false, reason: "no_match", offer };
   const pkg = match.pkg;
-  // 3. A +10% markup is MANDATORY, so we MUST have the vendor's original price. If the destination is
-  //    one Skyline sells but no price was read (or typed), return no_price + the matched package so the
-  //    caller can ask the owner for it — we NEVER post a reseller card without the +10%.
-  if (!(prices && prices.length)) return { matched: false, reason: "no_price", pkg, offer };
+  // 3. A vendor poster needs the vendor's original price (the markup is applied to it). If the destination
+  //    is one Skyline sells but no price was read, return no_price + the matched package so the caller can
+  //    ask the owner for a priced poster. opts.useCatalogPrice (the guided intake's "card from my text",
+  //    owner 2026-10-26) prices the card from SKYLINE'S OWN catalogue instead - never from typed text.
+  if (!(prices && prices.length) && !opts.useCatalogPrice) return { matched: false, reason: "no_price", pkg, offer };
+  if (!(prices && prices.length) && !priceNum(pkg)) return { matched: false, reason: "no_price", pkg, offer };
 
-  const rp = repricedLine(prices, pkg); // vendor min +10%
+  // The owner's markup (guided intake: +10% / as is / +% / +Rs); a vendor price defaults to +10%.
+  const rp = repricedLine(prices && prices.length ? prices : [], pkg, opts.markup);
 
   // 3. Build Skyline cards: A = real destination photo; B = AI scene (if a generator is wired) else decor.
   const baseCard = {

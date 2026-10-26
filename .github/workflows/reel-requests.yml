@@ -1,0 +1,67 @@
+name: Reel requests (WhatsApp)
+
+# Reels the owner asks for on WhatsApp (the guided intake: "Reel from this photo" / "AI Reel"). The webhook
+# only QUEUES them in Redis (a Vercel function cannot run ffmpeg or wait for a generation); this job builds
+# the oldest one with the same pipeline as the daily Reel and holds it for the owner's approval - it never
+# posts (no Meta keys here). Each run first asks Redis whether anything is waiting, so an idle run takes
+# seconds and installs nothing. automation/reel-requests.js has the queue; automation/run.js the job.
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch: {}
+
+# Its OWN group: sharing skyline-video-post would let a queued request replace (cancel) the daily Reel run.
+concurrency:
+  group: skyline-reel-requests
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  reel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: social-automation
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Anything waiting?
+        id: peek
+        env:
+          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
+          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
+        run: node automation/reel-requests.js --peek | tail -n 1 >> "$GITHUB_OUTPUT"
+
+      - name: Install ffmpeg
+        if: steps.peek.outputs.waiting == '1'
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Install deps
+        if: steps.peek.outputs.waiting == '1'
+        run: npm install --no-audit --no-fund
+
+      - name: Build the oldest request (held for approval)
+        if: steps.peek.outputs.waiting == '1'
+        env:
+          SOCIAL_CLIENT: skyline
+          HF_CREDENTIALS: ${{ secrets.HF_CREDENTIALS }}
+          HF_API_KEY_ID: ${{ secrets.HF_API_KEY_ID }}
+          HF_API_KEY_SECRET: ${{ secrets.HF_API_KEY_SECRET }}
+          HIGGSFIELD_T2V_ENDPOINT: ${{ vars.HIGGSFIELD_T2V_ENDPOINT }}
+          HIGGSFIELD_T2V_MODEL: ${{ vars.HIGGSFIELD_T2V_MODEL }}
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
+          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
+          WHATSAPP_PHONE_NUMBER_ID: ${{ secrets.WHATSAPP_PHONE_NUMBER_ID }}
+          WHATSAPP_TOKEN: ${{ secrets.WHATSAPP_TOKEN }}
+          WHATSAPP_TO: ${{ secrets.WHATSAPP_TO }}
+        run: node automation/run.js reel-request

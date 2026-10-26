@@ -33,7 +33,7 @@ const { redact } = require("../engine/publish");
 const { mockChannel } = require("./approval-channel");
 const { loadClient } = require("./clients");
 
-const JOBS = ["intake", "generate", "approve", "publish", "report", "pr", "prep", "email", "calendar-cards", "package-post", "video-post"];
+const JOBS = ["intake", "generate", "approve", "publish", "report", "pr", "prep", "email", "calendar-cards", "package-post", "video-post", "reel-request"];
 
 /**
  * Which store the queue lives in. REDIS FIRST, because Airtable meters API calls per month and on
@@ -372,7 +372,8 @@ async function runJob(opts = {}) {
     } catch (e) { /* best-effort */ }
     let assessVideo = null;
     try { const vq = require("./video-qa"); assessVideo = (f, o) => vq.assessVideoFile(f, o); } catch { /* video-qa optional */ }
-    const live = opts.live === true || process.env.SOCIAL_VIDEO_LIVE === "true";
+    // a Reel the owner asked for on WhatsApp (job reel-request) always waits for the owner's approve
+    const live = !opts.forceHold && (opts.live === true || process.env.SOCIAL_VIDEO_LIVE === "true");
     const out = await runVideoPost(store, {
       client: client.id, now,
       // PRE-GENERATED CLIP: the models with native audio + native 9:16 (Veo 3.1, Kling 3.0) live on
@@ -383,7 +384,7 @@ async function runJob(opts = {}) {
       // THAT footage. Unknown place -> no override, and the job falls back to the normal rotation.
       // A comma list ("kasol,dharamshala") pins a montage: one 5 s clip per place, each labelled over its
       // own footage. A pre-generated clip is ONE shot of one place, so it cannot carry two labels.
-      ...(process.env.SOCIAL_VIDEO_PLACE
+      ...(opts.scenes ? { scenes: opts.scenes } : process.env.SOCIAL_VIDEO_PLACE
         ? (() => { const { resolvePinned } = require("./video-scenes");
             const hits = resolvePinned(process.env.SOCIAL_VIDEO_PLACE);
             if (hits.length > 1 && process.env.SOCIAL_VIDEO_CLIP_URL) {
@@ -399,7 +400,10 @@ async function runJob(opts = {}) {
       generateVideo: opts.generateVideo
         || (process.env.SOCIAL_VIDEO_CLIP_URL ? async () => ({ url: String(process.env.SOCIAL_VIDEO_CLIP_URL) }) : null)
         || resolveHiggsfieldText(),
-      assessVideo,
+      // the owner's own photo (reel-request) is not AI footage: the AI-video QA does not apply to it
+      assessVideo: opts.skipQa ? null : assessVideo,
+      ...(opts.download ? { download: opts.download } : {}),
+      ...(opts.visualNote ? { visualNote: opts.visualNote } : {}),
       logoPath: path.join(__dirname, "..", "assets", "Skyline_Logo.jpg"),
       fontDir: path.join(__dirname, "..", "assets", "fonts"),
       cwd: path.join(__dirname, ".."),
@@ -412,7 +416,7 @@ async function runJob(opts = {}) {
       // occupies the day and blocks any re-test until the next scheduled run (3 days later). Setting
       // SOCIAL_VIDEO_RETRY gives this run its own key. Opt-in only, and it does NOT bypass the posting
       // gate - `live` still requires SOCIAL_VIDEO_LIVE, so a retry can only ever produce a held draft.
-      ...(process.env.SOCIAL_VIDEO_RETRY
+      ...(opts.smid ? { smid: opts.smid } : process.env.SOCIAL_VIDEO_RETRY
         ? { smid: `video-${new Date(now).toISOString().slice(0, 10)}-retry-${String(process.env.SOCIAL_VIDEO_RETRY).slice(0, 20)}` }
         : {}),
       ...(opts.videoGenOpts ? { videoGenOpts: opts.videoGenOpts } : {}),
@@ -421,6 +425,49 @@ async function runJob(opts = {}) {
     });
     await store.heartbeat("video-post", { runner, status: out.status, id: out.id || "" });
     return { ok: true, ...base, videoPost: out };
+  }
+
+  // -------------------------------------------------------------- REEL REQUEST
+  // A Reel the owner asked for on WhatsApp (the guided intake): taken from the Redis queue and built by the
+  // video-post job above, held for approval. Run every 10 minutes by .github/workflows/reel-requests.yml.
+  if (job === "reel-request") {
+    if (typeof store.cmd !== "function" || typeof store.k !== "function") return { ok: false, ...base, error: "reel requests need the Redis queue" };
+    const RR = require("./reel-requests");
+    const k = (x) => store.k(x);
+    const notify = async (text) => { try { if (process.env.WHATSAPP_TO) await sendText(process.env.WHATSAPP_TO, text); } catch { /* best-effort */ } };
+    const { req, busyRaw, dropped } = await RR.takeReel(store, { k, now });
+    for (const d of dropped) await notify(`⚠️ The Reel of ${d.label} you asked for couldn't be made after ${d.tries} tries - nothing was posted. Ask again on WhatsApp if you still want it.`);
+    if (!req) return { ok: true, ...base, reelRequest: { status: "none", dropped: dropped.length } };
+    let out = null, error = "";
+    try {
+      const { resolvePinned } = require("./video-scenes");
+      const known = req.known !== false ? resolvePinned(String(req.place || ""), { max: 1 })[0] : null;
+      if (req.kind === "ai" && !known) throw new Error("an AI Reel needs a place it can film");
+      const label = String(req.label || "").slice(0, 28);
+      const scene = known || { slug: String(req.place || "place").replace(/[^a-z0-9-]/g, "").slice(0, 40) || "place", label, route: "", shot: `the owner's own photo of ${label}` };
+      const sub = { job: "video-post", clientId: client.id, runner: "reel-request", now, forceHold: true, scenes: [scene], smid: RR.requestSmid(req) };
+      if (req.kind === "photo") {
+        const os = require("os"), fs = require("fs");
+        const { makePhotoClip, downloadPhoto } = require("./photo-clip");
+        const photo = await downloadPhoto(req.photoUrl, os.tmpdir());
+        const clip = makePhotoClip(photo, path.join(os.tmpdir(), `wa-clip-${Date.now()}.mp4`));
+        Object.assign(sub, {
+          generateVideo: async () => ({ url: "file://" + clip }),
+          download: async (u, dest) => { fs.copyFileSync(clip, dest); return dest; },
+          skipQa: true, visualNote: "(Photo: Skyline Travel Planner)",
+        });
+      }
+      out = await runJob(sub);
+      if (!out || !out.ok) throw new Error((out && out.error) || "the video job did not run");
+    } catch (e) {
+      error = redact(String((e && e.message) || e));
+      await notify(`⚠️ I couldn't make the Reel of ${req.label} - ${error}. Nothing was posted.`);
+    } finally {
+      await RR.finishReel(store, busyRaw, { k });
+      if (req.photoUrl) { try { await require("./image-host").deleteHosted(req.photoUrl); } catch { /* best-effort */ } }
+    }
+    const vp = out && out.videoPost;
+    return { ok: !error, ...base, reelRequest: { kind: req.kind, place: req.label, status: vp ? vp.status : "failed", ...(error ? { error } : {}) } };
   }
 
   // -------------------------------------------------------------- REPORT

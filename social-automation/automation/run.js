@@ -436,7 +436,10 @@ async function runJob(opts = {}) {
     const k = (x) => store.k(x);
     const notify = async (text) => { try { if (process.env.WHATSAPP_TO) await sendText(process.env.WHATSAPP_TO, text); } catch { /* best-effort */ } };
     const { req, busyRaw, dropped } = await RR.takeReel(store, { k, now });
-    for (const d of dropped) await notify(`⚠️ The Reel of ${d.label} you asked for couldn't be made after ${d.tries} tries - nothing was posted. Ask again on WhatsApp if you still want it.`);
+    for (const d of dropped) {
+      await notify(`⚠️ The Reel of ${d.label} you asked for couldn't be finished - nothing was posted. Ask again on WhatsApp if you still want it.`);
+      if (d.photoUrl) { try { await require("./image-host").deleteHosted(d.photoUrl); } catch { /* best-effort */ } }
+    }
     if (!req) return { ok: true, ...base, reelRequest: { status: "none", dropped: dropped.length } };
     let out = null, error = "";
     try {
@@ -445,7 +448,8 @@ async function runJob(opts = {}) {
       if (req.kind === "ai" && !known) throw new Error("an AI Reel needs a place it can film");
       const label = String(req.label || "").slice(0, 28);
       const scene = known || { slug: String(req.place || "place").replace(/[^a-z0-9-]/g, "").slice(0, 40) || "place", label, route: "", shot: `the owner's own photo of ${label}` };
-      const sub = { job: "video-post", clientId: client.id, runner: "reel-request", now, forceHold: true, scenes: [scene], smid: RR.requestSmid(req) };
+      // its own Reel key per TRY: a retry after a dead run must not find the dead run's row and "skip" (Bug Hunter)
+      const sub = { job: "video-post", clientId: client.id, runner: "reel-request", now, forceHold: true, scenes: [scene], smid: `${RR.requestSmid(req)}-${req.tries}` };
       if (req.kind === "photo") {
         const os = require("os"), fs = require("fs");
         const { makePhotoClip, downloadPhoto } = require("./photo-clip");
@@ -459,6 +463,8 @@ async function runJob(opts = {}) {
       }
       out = await runJob(sub);
       if (!out || !out.ok) throw new Error((out && out.error) || "the video job did not run");
+      // "skipped" = nothing was made (e.g. no video generator configured): the owner must hear it
+      if (out.videoPost && out.videoPost.status === "skipped") throw new Error(out.videoPost.reason || "the video job skipped it");
     } catch (e) {
       error = redact(String((e && e.message) || e));
       await notify(`⚠️ I couldn't make the Reel of ${req.label} - ${error}. Nothing was posted.`);

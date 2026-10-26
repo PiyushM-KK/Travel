@@ -234,7 +234,10 @@ async function handleInbound(body, ctx = {}) {
   // GUIDED INTAKE (owner 2026-10-26): a tap on one of the guide's buttons or list rows.
   if (ctx.guide && msg.choice && /^g:/.test(msg.choice.id)) return ctx.guide.onChoice(msg);
 
-  const parsed = parseDecision(msg.text);
+  // With the guide on, a photo/video/document is ALWAYS material for its menu: a caption such as "ok" or
+  // "approve 4821" is never read as a decision (QA 2026-10-26: a photo captioned "ok" approved another post).
+  const hasMedia = !!((msg.image && msg.image.id) || (msg.video && msg.video.id) || (msg.document && msg.document.id));
+  const parsed = ctx.guide && hasMedia ? null : parseDecision(msg.text);
   // A bare "yes" / "ok" / "no" while the guide waits for an answer belongs to the guide - never to an unrelated
   // pending post. Only a decision WITH a code ("approve 4821") always means a post.
   if (parsed && !parsed.id && ctx.guide && ctx.guide.awaitingAnswer) {

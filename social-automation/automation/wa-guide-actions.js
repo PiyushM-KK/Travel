@@ -11,7 +11,7 @@
  *   reel   - a Reel made on GitHub Actions (from the owner's photo, or an AI Reel): queued in Redis
  */
 
-const { enqueueReel, MAX_AI_PER_DAY, MAX_WAITING } = require("./reel-requests");
+const { enqueueReel, aiReelsLeft, MAX_AI_PER_DAY, MAX_WAITING } = require("./reel-requests");
 
 const MAX_VIDEO_BYTES = 16 * 1048576; // WhatsApp's own limit for a video
 
@@ -32,7 +32,7 @@ function guideActions(o) {
 
   async function draft(job, mode) {
     const m = job.material;
-    const subject = (mode === "card" && job.pkg ? job.pkg.item : m.text || "WhatsApp photo").slice(0, 60);
+    const subject = (mode === "card" && job.pkg ? job.pkg.item : m.text || (m.kind === "text" ? "WhatsApp note" : "WhatsApp photo")).slice(0, 60);
     const row = await intakeDirect(store, {
       client: client.id, hint: m.text || "", subject, source: "whatsapp", sourceMessageId: m.wamid,
       imageSource: mode === "card" ? null : sourceOf(m), platforms: job.platforms,
@@ -54,6 +54,13 @@ function guideActions(o) {
       source: "wa-video", sourceMessageId: m.wamid, platforms: job.platforms,
     });
     if (row.status !== "planned") return "That video is already in the queue.";
+    // the webhook has 60 s: a large video can use most of it before the caption. Stop cleanly instead of being
+    // killed half-way (which would leave a stranded row and no answer).
+    if (o.reviewDeadlineMs && Date.now() > o.reviewDeadlineMs - 15000) {
+      try { await store.update(row.id, { status: "held", lastError: "video took too long to receive" }); } catch { /* best-effort */ }
+      try { await deleteHosted(hosted.url); } catch { /* best-effort */ }
+      return "🎬 That video took too long to receive, so I stopped before writing the caption. Please send a shorter clip (under a minute) and choose Post as a Reel again.";
+    }
     // The caption is written WITHOUT the video attached (the drafter reads images, not video); the video URL
     // is added afterwards, and the row waits for the owner's own approve - a Reel is never auto-approved and
     // never reaches the image publisher (publish-runner skips "wa-video" rows).
@@ -88,6 +95,8 @@ function guideActions(o) {
   }
 
   return {
+    note: (job) => draft(job, "photo"), // no image on a note: the drafter writes a text post (Facebook)
+    aiAllowed: async () => (await aiReelsLeft(store, { k, now: now() })) > 0,
     photo: (job) => draft(job, "photo"),
     offer: (job) => draft(job, "offer"),
     card: (job) => draft(job, "card"),

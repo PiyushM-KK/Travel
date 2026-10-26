@@ -94,6 +94,7 @@ module.exports = async (req, res) => {
   let body;
   try { body = JSON.parse(raw || "{}"); } catch { res.status(200).json({ ok: true, ignored: "unparseable" }); return; }
 
+  let undoSeen = null; // set once this delivery is marked seen; undone if handling throws, so Meta's retry is not dropped
   try {
     const client = loadClient(process.env.SOCIAL_CLIENT || "skyline");
     const { store } = makeStore();
@@ -136,6 +137,10 @@ module.exports = async (req, res) => {
         }
         if (!realId) return { ok: false, error: isReason ? "No recently rejected post to add a reason to." : "Nothing is waiting for approval right now." };
         const result = await applyDecision(store, realId, decision, { facts: client.facts, profile: client.profile });
+        // The owner's own video (guided intake) sits on a public Blob URL: a rejected one is removed at once.
+        if (result && result.ok && String(result.status) === "rejected") {
+          try { const rr = await store.get(realId); if (rr && rr.source === "wa-video" && rr.imageUrl) await require("../automation/image-host").deleteHosted(rr.imageUrl); } catch { /* best-effort */ }
+        }
         // PUBLISH-ON-APPROVAL: the moment the owner approves, post to Instagram + Facebook right
         // away (don't wait for the scheduled publish cron — the owner asked for immediate posting).
         // Publishing is idempotent + claim-guarded, so this is safe; the crons stay as a backstop.
@@ -290,7 +295,7 @@ module.exports = async (req, res) => {
                 const details = `🧳 Skyline ${mode === "card" ? "package" : "reseller"} card ready (${mk})\n   Package: ${r.pkg.item} — ${r.pkg.route}\n   Price on card: ${priceNote}\n   Source: WhatsApp — ${mode === "card" ? "your note (website package)" : "client-forwarded vendor poster"}\n   Received: ${intakeAt}`;
                 const instr = r.cardUrlB
                   ? `\n\nReply:\n🅰️ A ${code} → real-photo card\n🅱️ B ${code} → ${r.bStyle} card\n➕ both ${code}\n❌ reject ${code}`
-                  : `\n\n✅ approve ${code} → posts to Instagram + Facebook   |   ❌ reject ${code}`;
+                  : `\n\n✅ approve ${code} → posts to ${(rrow.platforms && rrow.platforms.length ? rrow.platforms : ["instagram", "facebook"]).map((p) => (p === "instagram" ? "Instagram" : "Facebook")).join(" + ")}   |   ❌ reject ${code}`;
                 try {
                   if (r.cardUrlA) await sendImage(process.env.WHATSAPP_TO, r.cardUrlA, (details + "\n\n🅰️ REAL PHOTO").slice(0, 1024));
                   if (r.cardUrlB) await sendImage(process.env.WHATSAPP_TO, r.cardUrlB, `🅱️ ${r.bStyle.toUpperCase()} — ${r.pkg.item} ${r.pkg.route || ""}`.trim().slice(0, 1024));
@@ -376,7 +381,12 @@ module.exports = async (req, res) => {
     // the questions that choice needs. It keeps its conversation in Redis, so it runs where the queue is Redis;
     // SOCIAL_WHATSAPP_GUIDE=off restores the old one-shot intake. ctx.seen drops Meta's re-deliveries (B-18).
     if (typeof store.cmd === "function" && typeof store.k === "function") {
-      ctx.seen = async (wamid) => (await store.cmd(["SET", store.k("wa:seen:" + String(wamid).slice(0, 120)), "1", "NX", "EX", "172800"])) === "OK";
+      ctx.seen = async (wamid) => {
+        const key = store.k("wa:seen:" + String(wamid).slice(0, 120));
+        const first = (await store.cmd(["SET", key, "1", "NX", "EX", "172800"])) === "OK";
+        if (first) undoSeen = () => store.cmd(["DEL", key]);
+        return first;
+      };
       if (process.env.SOCIAL_WHATSAPP_GUIDE !== "off") {
         const { createGuide } = require("../automation/wa-guide");
         const { guideActions } = require("../automation/wa-guide-actions");
@@ -392,6 +402,7 @@ module.exports = async (req, res) => {
     res.status(200).json({ ok: true, ...out });
   } catch (e) {
     const { redact } = require("../engine/publish");
+    if (undoSeen) { try { await undoSeen(); } catch { /* best-effort */ } }
     // Don't let a transient store/network error vanish silently: best-effort ping
     // the owner so they know to resend. We still return 200 — Meta retries on
     // non-200 and there is no message-id dedup yet (BLOCKED B-18), so returning 5xx

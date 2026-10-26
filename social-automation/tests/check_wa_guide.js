@@ -38,6 +38,7 @@ function memRedis() {
         case "LLEN": return L(r[0]).length;
         case "LRANGE": return L(r[0]).slice();
         case "LREM": { const l = L(r[0]); const i = l.indexOf(r[2]); if (i < 0) return 0; l.splice(i, 1); return 1; }
+        case "LSET": { const l = L(r[0]); const i = Number(r[1]); if (i < 0 || i >= l.length) throw new Error("ERR index out of range"); l[i] = r[2]; return "OK"; }
         case "LMOVE": { const s = L(r[0]); if (!s.length) return null; const v = s.pop(); L(r[1]).unshift(v); return v; }
         default: throw new Error("memRedis: no " + c);
       }
@@ -58,11 +59,12 @@ function harness() {
   const redis = memRedis(), sent = [], ran = [], decisions = [];
   const send = {
     text: async (to, b) => { sent.push({ t: "text", b }); },
-    buttons: async (to, b, bt) => { sent.push({ t: "buttons", b, ids: bt.map((x) => x.id), titles: bt.map((x) => x.title) }); },
-    list: async (to, b, btn, rows) => { sent.push({ t: "list", b, ids: rows.map((x) => x.id), titles: rows.map((x) => x.title) }); },
+    buttons: async (to, b, bt) => { sent.push({ t: "buttons", b, raw: bt.map((x) => x.id), ids: bt.map((x) => x.id.split("~")[0]), titles: bt.map((x) => x.title) }); },
+    list: async (to, b, btn, rows) => { sent.push({ t: "list", b, raw: rows.map((x) => x.id), ids: rows.map((x) => x.id.split("~")[0]), titles: rows.map((x) => x.title) }); },
   };
   const act = (name) => async (job) => { ran.push({ name, job }); return `DONE ${name}`; };
-  const guide = createGuide({ kv: redis, k: (x) => "social:" + x, send, actions: { photo: act("photo"), offer: act("offer"), card: act("card"), video: act("video"), reel: act("reel") } });
+  const flags = { aiAllowed: true };
+  const guide = createGuide({ kv: redis, k: (x) => "social:" + x, send, actions: { photo: act("photo"), note: act("note"), offer: act("offer"), card: act("card"), video: act("video"), reel: act("reel"), aiAllowed: async () => flags.aiAllowed } });
   const ctx = {
     authorizedNumber: OWNER, guide,
     seen: async (id) => (await redis.cmd(["SET", "social:wa:seen:" + id, "1", "NX", "EX", "172800"])) === "OK",
@@ -72,7 +74,7 @@ function harness() {
   };
   const go = (body) => handleInbound(body, ctx);
   const last = () => sent[sent.length - 1];
-  return { redis, sent, ran, decisions, ctx, go, last, guide };
+  return { redis, sent, ran, decisions, ctx, go, last, guide, flags };
 }
 
 (async () => {
@@ -132,16 +134,18 @@ function harness() {
   {
     const h = harness();
     await h.go(note("make a reel for Goa please"));
-    ok(h.last().t === "buttons" && h.last().ids.join() === "g:a:card,g:a:reel_ai,g:cancel", "a note opens its own menu: package card / AI Reel / cancel");
-    await h.go(tap("g:a:reel_ai"));
+    ok(h.last().t === "list" && h.last().ids.join() === "g:a:note,g:a:card,g:a:reel_ai,g:cancel", "a note opens its own menu: post from my note / package card / AI Reel / cancel");
+    await h.go(pick("g:a:reel_ai"));
     ok(h.last().t === "buttons" && /AI Reel of Goa costs about 11 Higgsfield credits/.test(h.last().b) && h.last().ids.join() === "g:ai:yes,g:cancel", "the destination is read from the note and the paid cost is shown before anything starts");
     await h.go(note("yes"));
-    ok(h.decisions.length === 0 && h.ran[0] && h.ran[0].name === "reel" && h.ran[0].job.place.slug === "goa", "a bare 'yes' answers the guide's question - it never approves an unrelated waiting post");
+    ok(h.decisions.length === 0 && !h.ran.length && /tap Yes, make it/.test(h.last().b), "a typed 'yes' at the cost question neither approves another post nor starts the PAID Reel (it needs the tap)");
+    await h.go(tap("g:ai:yes"));
+    ok(h.ran[0] && h.ran[0].name === "reel" && h.ran[0].job.place.slug === "goa", "...the tap starts it");
   }
   {
     const h = harness();
     await h.go(note("an AI reel please"));
-    await h.go(tap("g:a:reel_ai"));
+    await h.go(pick("g:a:reel_ai"));
     ok(/I can film: Agra/.test(h.last().b), "without a place in the note the guide lists the places it can film");
     await h.go(note("Mars"));
     ok(/Reply with one of them/.test(h.last().b) && !h.ran.length, "a place it cannot film is refused (asked again)");
@@ -154,14 +158,14 @@ function harness() {
   {
     const h = harness();
     await h.go(note("Royal Rajasthan tour for Diwali"));
-    await h.go(tap("g:a:card"));
+    await h.go(pick("g:a:card"));
     ok(h.last().t === "buttons" && /website price/.test(h.last().b) && /Rajasthan/i.test(h.last().b), "a package card names the matched package and its website price before asking the markup");
     await h.go(tap("g:mk:0"));
     await h.go(tap("g:pf:fb"));
     ok(h.ran[0] && h.ran[0].name === "card" && h.ran[0].job.markup.kind === "none" && h.ran[0].job.pkg && h.ran[0].job.platforms.join() === "facebook", "as is + Facebook only reach the card action with the package");
     const h2 = harness();
     await h2.go(note("hello there"));
-    await h2.go(tap("g:a:card"));
+    await h2.go(pick("g:a:card"));
     ok(/couldn't find a Skyline package/.test(h2.last().b) && !h2.ran.length, "a note that names no package gets a plain answer, no card");
   }
 
@@ -207,6 +211,36 @@ function harness() {
     ok(h.sent.some((s) => /Starting over/.test(s.b || "")) && h.last().ids.includes("g:a:video"), "new material while a menu is open starts over with it");
   }
 
+  // ---------------------------------------------------------------- review regressions (Bug Hunter, QA, App Security 2026-10-26)
+  {
+    const h = harness();
+    await h.go(photo("ok"));
+    ok(h.decisions.length === 0 && h.last().t === "list", "a photo captioned 'ok' opens the menu - its caption never approves another post");
+    await h.go(note("yes"));
+    ok(h.decisions.length === 0 && /Tap one of the options/.test(h.sent[h.sent.length - 2].b) && h.last().t === "list", "a bare 'yes' while the FIRST menu is open goes to the guide, not to a waiting post");
+    const oldMenu = h.last().raw;
+    await h.go(photo());
+    await h.go(pick(oldMenu[1]));
+    ok(/earlier menu/.test(h.last().b) && !h.ran.length, "a tap on an older photo's menu never acts on the newer photo (menu token)");
+    await h.go(pick(h.sent.filter((s) => s.t === "list").pop().raw[2])); // the NEW photo's menu: Reel from this photo
+    for (const w of ["yes", "approve"]) await h.go(note(w));
+    ok(!h.ran.length && /destination's name/.test(h.last().b), "'yes' / 'approve' are never taken as a Reel's place name");
+    const h2 = harness();
+    h2.flags.aiAllowed = false;
+    await h2.go(note("Goa reel"));
+    await h2.go(pick("g:a:reel_ai"));
+    ok(/used up/.test(h2.last().b) && !h2.sent.some((s) => /costs about/.test(s.b || "")), "when today's AI Reels are used up the guide says so BEFORE showing a cost");
+    const h3 = harness();
+    await h3.go(note("Happy Diwali from Skyline - our office is open till 8"));
+    await h3.go(pick("g:a:note"));
+    ok(h3.ran[0] && h3.ran[0].name === "note" && h3.ran[0].job.platforms.join() === "facebook" && h3.sent.some((s) => /Instagram needs a photo/.test(s.b || "")), "Post from my note: a text post, Facebook only (Instagram needs an image), no accounts question");
+    const h4 = harness();
+    await h4.go(note("Goa package"));
+    await h4.go(note("Kerala backwaters"));
+    await h4.go(pick("g:a:card"));
+    ok(/Kerala/i.test(h4.last().b) && !/Goa/.test(h4.last().b), "a second note replaces the first (no glued text matching the wrong package)");
+  }
+
   // ---------------------------------------------------------------- helpers
   ok(filmablePlace("Goa") && filmablePlace("a reel of kerala please").slug === "kerala" && !filmablePlace("goa and kerala") && !filmablePlace("Mars"), "a filmable place is found only when exactly one is named");
   ok(cleanLabel("<b>Lonavala</b>!") === "b Lonavala b" && cleanLabel("1234") === "" && cleanLabel("x".repeat(60)).length === 28, "the owner's label keeps letters/digits/punctuation only, needs a letter, max 28");
@@ -216,7 +250,10 @@ function harness() {
   {
     const cases = [["+10%", "pct", 10], ["as is", "none", 0], ["+2000", "inr", 2000], ["₹2,000", "inr", 2000], ["Rs 1500", "inr", 1500], ["12.5 %", "pct", 12.5]];
     ok(cases.every(([t, k, v]) => { const m = parseMarkup(t); return m && m.kind === k && m.value === v; }), "markups read: +10%, as is, +2000, ₹2,000, Rs 1500, 12.5 %");
-    ok(["150%", "+300000", "abc", "-10%", ""].every((t) => parseMarkup(t) === null), "out-of-range or unreadable markups are refused (0-100 % or up to Rs 2,00,000)");
+    ok(["150%", "+300000", "abc", "-10%", "", "10", "+10"].every((t) => parseMarkup(t) === null), "out-of-range, unreadable or ambiguous markups are refused (a bare 10 could mean % or Rs - asked again)");
+    const own = [["add 10%", "pct", 10], ["10% extra", "pct", 10], ["plus 1500", "inr", 1500], ["1500/-", "inr", 1500], ["as it is", "none", 0], ["Rs 50", "inr", 50]];
+    ok(own.every(([t, k, v]) => { const m = parseMarkup(t); return m && m.kind === k && m.value === v; }), "the owner's own wording is read: add 10%, 10% extra, plus 1500, 1500/-, as it is, Rs 50");
+    ok(repricedLine([18450], null, parseMarkup("as is")).amount === 18450 && repricedLine([12449], null, parseMarkup("as is")).amount === 12449 && repricedLine([18450], null, parseMarkup("+1500")).amount === 19950 && repricedLine([18450], null, parseMarkup("+7.5%")).amount === 19900 && repricedLine([18450], null).amount === 20300, "as is and a rupee amount are exact; a percentage rounds UP to Rs 100 (never below cost)");
     ok(repricedLine([20000], null).amount === 22000 && repricedLine([20000], null, parseMarkup("as is")).amount === 20000 && repricedLine([20000], null, parseMarkup("+2000")).amount === 22000 && repricedLine([20000], null, parseMarkup("+12%")).amount === 22400, "a vendor price: +10% by default, or the owner's markup");
     ok(repricedLine([], { price: "Rs 30,000" }).amount === 30000 && repricedLine([], { price: "Rs 30,000" }, parseMarkup("+5%")).amount === 31500, "a catalogue price stays as is unless the owner adds a markup");
     ok(markupLabel(parseMarkup("+2000")) === "+Rs 2,000" && markupLabel(null) === "as is", "markups are labelled for the owner");
@@ -238,13 +275,16 @@ function harness() {
     const a = await RR.takeReel(r, { k, now: t0 });
     ok(a.req && a.req.wamid === "w1" && a.req.tries === 1, "the oldest request is taken first");
     await RR.finishReel(r, a.busyRaw, { k });
-    const b = await RR.takeReel(r, { k, now: t0 }); // w2 - its run "dies" (never finished)
+    const b = await RR.takeReel(r, { k, now: t0 }); // w2 (a PAID AI Reel) - its run "dies" (never finished)
+    ok(JSON.parse(r.lists.get("social:wa:reel_requests:busy")[0]).takenAt === t0.toISOString(), "a taken request is rewritten in place in the busy list (LSET), never out of every list");
     const later = new Date(t0.getTime() + RR.STALE_MS + 60000);
     const c = await RR.takeReel(r, { k, now: later });
-    ok(b.req.wamid === "w2" && c.req.wamid === "w2" && c.req.tries === 2, "a request stranded by a dead run is retried once");
-    const d = await RR.takeReel(r, { k, now: new Date(later.getTime() + RR.STALE_MS + 60000) });
-    ok(d.dropped.length === 1 && d.dropped[0].wamid === "w2" && d.req && d.req.wamid === "w4", "...then dropped (the owner is told) and the next one is taken");
-    await RR.finishReel(r, d.busyRaw, { k });
+    ok(b.req.wamid === "w2" && c.dropped.length === 1 && c.dropped[0].wamid === "w2" && c.req && c.req.wamid === "w4", "a stranded PAID AI Reel is dropped (owner told), never retried - its generation may already be spent");
+    const e = await RR.takeReel(r, { k, now: new Date(later.getTime() + RR.STALE_MS + 60000) }); // w4 (photo) died too
+    ok(e.req && e.req.wamid === "w4" && e.req.tries === 2, "a stranded free photo Reel is retried once");
+    const f = await RR.takeReel(r, { k, now: new Date(later.getTime() + 2 * RR.STALE_MS + 120000) });
+    ok(f.dropped.length === 1 && f.dropped[0].wamid === "w4" && !f.req, "...then dropped");
+    ok((await RR.aiReelsLeft(r, { k, now: t0 })) === 0 && (await RR.aiReelsLeft(r, { k, now: new Date("2026-10-27T10:00:00Z") })) === 2, "the AI Reels left today are counted per day");
     ok(!(await RR.peekReels(r, { k, now: later })) && r.lists.get("social:wa:reel_requests:busy").length === 0, "an empty queue peeks as nothing to do");
     const q = memRedis();
     for (let i = 0; i < RR.MAX_WAITING; i++) await RR.enqueueReel(q, { kind: "photo", wamid: "p" + i }, { k, now: t0 });
@@ -279,6 +319,10 @@ function harness() {
     const v = await acts.video(job({ action: "video", material: { kind: "video", mediaId: "V1", text: "Kashmir", wamid: "wv2" } }));
     const vr = await store.findBySourceMessageId("wv2");
     ok(vr && vr.source === "wa-video" && vr.status === "pending_approval" && /\.mp4$/.test(vr.imageUrl) && /Reel is ready to check/.test(v), "the owner's video: hosted, captioned, and HELD for approval even when the drafter auto-approved");
+    const slow = guideActions({ store, client, k: store.k, reviewDeadlineMs: Date.now() - 1, fetchMedia: async () => ({ buffer: Buffer.from("x"), contentType: "video/mp4" }), hostVideo: async (b, key) => ({ url: `https://s.public.blob.vercel-storage.com/${key}.mp4` }), deleteHosted: async (u) => { deleted.push(u); }, generateOne: async () => { throw new Error("must not draft"); } });
+    const sv = await slow.video(job({ action: "video", material: { kind: "video", mediaId: "V2", text: "", wamid: "wv3" } }));
+    const sr = await store.findBySourceMessageId("wv3");
+    ok(/too long/.test(sv) && sr.status === "held" && deleted.some((u) => /wv3/.test(u)), "a video that used up the webhook's time is stopped cleanly: row held, video removed, owner told");
     const rp = await acts.reel(job({ action: "reel_photo", place: { slug: "lonavala", label: "Lonavala", known: false } }));
     const queued = JSON.parse(redis.lists.get("social:wa:reel_requests")[0]);
     ok(/queued/.test(rp) && queued.kind === "photo" && /public\.blob\.vercel-storage\.com/.test(queued.photoUrl) && hosted.length === 1, "a photo Reel: the photo is hosted on our Blob store and the request queued");

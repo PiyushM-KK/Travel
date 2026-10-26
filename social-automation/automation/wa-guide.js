@@ -35,6 +35,7 @@ const ACTIONS = {
   offer: { id: "g:a:offer", title: "Offer card (poster)", description: "A Skyline card from this poster at your price" },
   reel_photo: { id: "g:a:reel_photo", title: "Reel from this photo", description: "A 10 s moving Reel with music + our branding" },
   video: { id: "g:a:video", title: "Post as a Reel", description: "Your video as an Instagram/Facebook Reel" },
+  note: { id: "g:a:note", title: "Post from my note", description: "A Facebook post written from your note" },
   card: { id: "g:a:card", title: "Package card", description: "A Skyline card for the package your note names" },
   reel_ai: { id: "g:a:reel_ai", title: "AI Reel", description: "A 10 s AI video of a destination (paid)" },
 };
@@ -42,10 +43,17 @@ const CANCEL = { id: "g:cancel", title: "Cancel", description: "Do nothing with 
 const MENU = {
   photo: { body: "📸 Got your photo. What would you like to make?", actions: ["photo", "offer", "reel_photo"] },
   video: { body: "🎬 Got your video. What would you like to do?", actions: ["video"] },
-  text: { body: "✍️ Got your note. What would you like to make?", actions: ["card", "reel_ai"] },
+  text: { body: "✍️ Got your note. What would you like to make?", actions: ["note", "card", "reel_ai"] },
 };
 const REELS = new Set(["reel_photo", "reel_ai"]);
 const AI_REEL_COST = "about 11 Higgsfield credits (≈ US$0.70)";
+// A bare approval word typed while a menu is open is never an answer (Bug Hunter + QA 2026-10-26): it must not
+// become a Reel's on-screen place name, and the guide - not an unrelated waiting post - receives it.
+const BARE_WORD = /^(yes|y|no|n|ok|okay|approve|reject|hold|edit|a|b|both|done|sure)$/i;
+// Every menu carries the conversation's token ("g:mk:10~k3x9"): a tap on an OLDER menu (an earlier photo's)
+// never acts on the newer conversation.
+const tag = (st, id) => (st && st.n ? `${id}~${st.n}` : id);
+const newToken = () => Math.random().toString(36).slice(2, 6);
 
 /** What the owner sent, as the guide sees it. `link` = an image URL inside a note (the old intake took it). */
 function materialOf(msg, link) {
@@ -113,10 +121,10 @@ function createGuide(deps) {
 
   async function showMenu(to, st) {
     const m = MENU[st.material.kind];
-    const options = m.actions.map((a) => ACTIONS[a]);
+    const options = [...m.actions.map((a) => ACTIONS[a]), CANCEL].map((o) => ({ ...o, id: tag(st, o.id) }));
     // up to 3 options fit as tap buttons (one tap); four need a list (WhatsApp's limit)
-    if (options.length + 1 <= 3) await send.buttons(to, m.body, [...options, CANCEL].map(({ id, title }) => ({ id, title })));
-    else await send.list(to, m.body, "Choose", [...options, CANCEL]);
+    if (options.length <= 3) await send.buttons(to, m.body, options.map(({ id, title }) => ({ id, title })));
+    else await send.list(to, m.body, "Choose", options);
   }
 
   /** Ask for whatever the chosen action still needs; run it once nothing is missing. */
@@ -136,7 +144,7 @@ function createGuide(deps) {
       await save(to, st);
       const base = a === "card" && st.pkg ? `the website price${st.pkg.price ? ` (From Rs ${Number(st.pkg.price).toLocaleString("en-IN")} / person)` : ""} for ${st.pkg.item}` : "the per-person price on the poster";
       await send.buttons(to, `💰 What price should the card show? It is worked out from ${base}.`, [
-        { id: "g:mk:10", title: "+10% (usual)" }, { id: "g:mk:0", title: "As is" }, { id: "g:mk:other", title: "Other amount" }]);
+        { id: tag(st, "g:mk:10"), title: "+10% (usual)" }, { id: tag(st, "g:mk:0"), title: "As is" }, { id: tag(st, "g:mk:other"), title: "Other amount" }]);
       return { action: "guide", step: "markup" };
     }
     if (REELS.has(a) && !st.place) {
@@ -149,17 +157,24 @@ function createGuide(deps) {
       return { action: "guide", step: "place" };
     }
     if (a === "reel_ai" && !st.confirmed) {
+      // the daily limit is checked BEFORE the cost is shown (QA: the 3rd request showed the price, then refused)
+      if (actions.aiAllowed && !(await actions.aiAllowed())) {
+        await clear(to);
+        await say(to, "🎬 Today's AI Reels are used up (2 a day), so I haven't started one and nothing was charged. Ask again tomorrow - or send a photo and choose Reel from this photo (no cost).");
+        return { action: "guide", step: "ai_cap" };
+      }
       st.step = "confirm";
       await save(to, st);
       await send.buttons(to, `🎬 An AI Reel of ${st.place.label} costs ${AI_REEL_COST}. It comes back here for your approval before anything posts.`, [
-        { id: "g:ai:yes", title: "Yes, make it" }, { id: CANCEL.id, title: CANCEL.title }]);
+        { id: tag(st, "g:ai:yes"), title: "Yes, make it" }, { id: tag(st, CANCEL.id), title: CANCEL.title }]);
       return { action: "guide", step: "confirm" };
     }
+    if (a === "note") st.platforms = ["facebook"]; // a text-only post: Instagram needs an image
     if (!REELS.has(a) && !st.platforms) {
       st.step = "platforms";
       await save(to, st);
       await send.buttons(to, "📲 Where should it go?", [
-        { id: "g:pf:both", title: "Instagram + Facebook" }, { id: "g:pf:ig", title: "Instagram only" }, { id: "g:pf:fb", title: "Facebook only" }]);
+        { id: tag(st, "g:pf:both"), title: "Instagram + Facebook" }, { id: tag(st, "g:pf:ig"), title: "Instagram only" }, { id: tag(st, "g:pf:fb"), title: "Facebook only" }]);
       return { action: "guide", step: "platforms" };
     }
     return run(to, st);
@@ -169,7 +184,7 @@ function createGuide(deps) {
     await clear(to); // before the work: a redelivered tap finds no conversation and cannot run it twice
     const job = { from: to, action: st.action, material: st.material, markup: st.markup || null, platforms: st.platforms || ["instagram", "facebook"], place: st.place || null, pkg: st.pkg || null };
     const fn = REELS.has(st.action) ? actions.reel : actions[st.action];
-    if (!REELS.has(st.action)) await say(to, `✍️ On it - ${platformLabel(job.platforms)}${st.markup ? `, price ${markupLabel(st.markup)}` : ""}. Back in about 30 seconds for your approval.`);
+    if (!REELS.has(st.action)) await say(to, `✍️ On it - ${platformLabel(job.platforms)}${st.action === "note" ? " (a text post: Instagram needs a photo)" : ""}${st.markup ? `, price ${markupLabel(st.markup)}` : ""}. Back in about 30 seconds for your approval.`);
     let out;
     try { out = await fn(job); }
     catch (e) { out = "Sorry - something went wrong making that. Please send it again in a moment."; }
@@ -180,7 +195,7 @@ function createGuide(deps) {
   async function start(to, mat, prefix) {
     if (mat.kind === "audio") { await say(to, "🎙 I can't listen to voice notes yet - please type what you'd like, or send a photo or a video."); return { action: "guide", step: "audio" }; }
     if (mat.kind === "document") { await say(to, "📄 I can read photos and videos, not documents - send the poster as a photo (or a screenshot of it)."); return { action: "guide", step: "document" }; }
-    const st = { v: 1, step: "action", material: mat, tries: 0, at: now().toISOString() };
+    const st = { v: 1, n: newToken(), step: "action", material: mat, tries: 0, at: now().toISOString() };
     await save(to, st);
     if (prefix) await say(to, prefix);
     await showMenu(to, st);
@@ -189,11 +204,13 @@ function createGuide(deps) {
 
   /** A tap on one of the guide's buttons or list rows (msg.choice.id starts "g:"). */
   async function onChoice(msg) {
-    const to = msg.from, id = String(msg.choice.id);
-    if (id === CANCEL.id) { await clear(to); await say(to, "👍 Cancelled - nothing was made."); return { action: "guide", step: "cancelled" }; }
+    const to = msg.from;
+    const [id, token] = String(msg.choice.id).split("~");
     const st = await load(to);
-    if (!st) { await say(to, "⌛ That menu has expired. Send the photo, video or note again and I'll ask once more."); return { action: "guide", step: "expired" }; }
     const stale = async () => { await say(to, "That button is from an earlier menu - please use the latest one (or type cancel)."); return { action: "guide", step: "stale" }; };
+    if (st && token && token !== st.n) return stale(); // a tap on an older conversation's menu
+    if (id === CANCEL.id) { if (st) await clear(to); await say(to, "👍 Cancelled - nothing was made."); return { action: "guide", step: "cancelled" }; }
+    if (!st) { await say(to, "⌛ That menu has expired. Send the photo, video or note again and I'll ask once more."); return { action: "guide", step: "expired" }; }
     if (id.startsWith("g:a:")) {
       const a = id.slice(4);
       if (st.step !== "action" || !MENU[st.material.kind].actions.includes(a)) return stale();
@@ -262,19 +279,25 @@ function createGuide(deps) {
           if (!p) return giveUp(`I can make AI Reels of: ${SCENES.map((s) => s.label).join(", ")}. Reply with one of them.`);
           st.place = { slug: p.slug, label: p.label, known: true };
         } else {
-          const known = filmablePlace(text), label = cleanLabel(text);
+          const known = filmablePlace(text), label = BARE_WORD.test(text) ? "" : cleanLabel(text);
           if (!known && !label) return giveUp("Reply with the destination's name, for example Goa.");
           st.place = known ? { slug: known.slug, label: known.label, known: true } : { slug: label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "place", label, known: false };
         }
         return next(to, st);
       }
       if (st.step === "confirm") {
-        if (/^(yes|y|ok|go|make it|haan|ha)$/i.test(text)) { st.confirmed = true; return next(to, st); }
-        return giveUp("Tap Yes, make it - or type cancel.");
+        // a PAID start needs the tap: a typed "yes" may have been meant for a waiting post (Bug Hunter)
+        return giveUp("To start the paid Reel, tap Yes, make it (or type cancel). To approve a waiting post, reply approve and its code.");
       }
       if (st.step === "action") {
-        // A note while the menu is open is about the same photo/video: keep it with the material and ask again.
-        st.material.text = (st.material.text ? st.material.text + "\n" : "") + text;
+        if (BARE_WORD.test(text)) {
+          await say(to, "Tap one of the options below (or type cancel). To approve a waiting post, reply approve and its code.");
+          await showMenu(to, st);
+          return { action: "guide", step: "action", bare: true };
+        }
+        // A note while a photo/video menu is open is about that photo/video: keep it with it. A second NOTE
+        // replaces the first (Bug Hunter: two notes glued together matched the wrong package).
+        st.material.text = st.material.kind === "text" ? text : (st.material.text ? st.material.text + "\n" : "") + text;
         st.material.text = st.material.text.slice(0, MAX_NOTE);
         await save(to, st);
         await say(to, "📝 Added your note. Now pick an option 👇");
@@ -289,7 +312,7 @@ function createGuide(deps) {
   /** True while the guide waits for a typed or tapped answer (the inbound router asks before a bare "yes"). */
   async function awaitingAnswer(from) {
     const st = await load(from);
-    return !!st && st.step !== "action";
+    return !!st; // the first menu too: a bare "yes" while it is open must never approve another post (QA)
   }
 
   return { onChoice, onMessage, awaitingAnswer, load };

@@ -54,18 +54,25 @@ async function takeReel(kv, { k = (x) => x, now = new Date() } = {}) {
     const r = parse(raw);
     if (r && now - Date.parse(r.takenAt || r.at || 0) <= STALE_MS) continue;
     await kv.cmd(["LREM", k(BUSY), "1", raw]);
-    if (r && (r.tries || 0) < MAX_TRIES) await kv.cmd(["RPUSH", k(QUEUE), JSON.stringify({ ...r, takenAt: null })]);
+    // a PAID AI Reel is never retried: its run may already have spent the generation (Bug Hunter)
+    if (r && r.kind !== "ai" && (r.tries || 0) < MAX_TRIES) await kv.cmd(["RPUSH", k(QUEUE), JSON.stringify({ ...r, takenAt: null })]);
     else if (r) dropped.push(r);
   }
   const raw = await kv.cmd(["LMOVE", k(QUEUE), k(BUSY), "RIGHT", "LEFT"]);
   if (!raw) return { req: null, dropped };
   const r = parse(raw);
-  await kv.cmd(["LREM", k(BUSY), "1", raw]);
-  if (!r) return { req: null, dropped };
+  if (!r) { await kv.cmd(["LREM", k(BUSY), "1", raw]); return { req: null, dropped }; }
   const req = { ...r, tries: (r.tries || 0) + 1, takenAt: now.toISOString() };
   const busyRaw = JSON.stringify(req);
-  await kv.cmd(["LPUSH", k(BUSY), busyRaw]);
+  // rewritten IN PLACE (LMOVE put it at index 0; one consumer at a time): never a moment where it is in no list
+  await kv.cmd(["LSET", k(BUSY), "0", busyRaw]);
   return { req, busyRaw, dropped };
+}
+
+/** Paid AI Reels still allowed today (the guide checks this before showing the cost). */
+async function aiReelsLeft(kv, { k = (x) => x, now = new Date() } = {}) {
+  const used = Number(await kv.cmd(["GET", k(`wa:reel_ai:${now.toISOString().slice(0, 10)}`)])) || 0;
+  return Math.max(0, MAX_AI_PER_DAY - used);
 }
 
 /** The request is finished (built, held or refused): it leaves the busy list. */
@@ -91,4 +98,4 @@ if (require.main === module && process.argv.includes("--peek")) {
   })().catch((e) => { console.error("peek failed:", String((e && e.message) || e).slice(0, 200)); console.log("waiting=0"); });
 }
 
-module.exports = { enqueueReel, peekReels, takeReel, finishReel, requestSmid, QUEUE, BUSY, STALE_MS, MAX_TRIES, MAX_AI_PER_DAY, MAX_WAITING };
+module.exports = { enqueueReel, peekReels, takeReel, finishReel, aiReelsLeft, requestSmid, QUEUE, BUSY, STALE_MS, MAX_TRIES, MAX_AI_PER_DAY, MAX_WAITING };

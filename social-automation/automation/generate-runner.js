@@ -508,7 +508,9 @@ async function runGenerate(store, opts = {}) {
   const deadlineMs = resolveGenerateDeadlineMs(opts, startMs);
   const rowReserveMs = resolveRowReserveMs(opts);
 
-  const planned = await store.listByStatus("planned");
+  // Reels are drafted by their own paths (video-runner; the guided intake's own-video action), never here as
+  // an image/text post - a stranded "planned" Reel row drafted here could later be approved without its video.
+  const planned = ((await store.listByStatus("planned")) || []).filter((r) => r.source !== "wa-video" && r.source !== "video-post");
   // FIFO fairness (guards tail starvation under a tight per-run budget): draft the OLDEST rows first,
   // so the SAME tail rows are never deferred forever — every row advances toward the front and drains
   // in a bounded number of passes. createdAt is immutable; a stampless row sorts oldest (drafted first).

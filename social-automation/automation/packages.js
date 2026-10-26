@@ -78,13 +78,20 @@ const NO_MARKUP = Object.freeze({ kind: "none", value: 0 });
 /** The owner's typed markup -> { kind: "pct"|"inr"|"none", value }, or null when it cannot be read.
  *  "+10%", "10 %", "+Rs 2000", "₹2,000", "+2000", "2000 rupees", "as is", "0". */
 function parseMarkup(text) {
-  const t = String(text || "").trim().toLowerCase().replace(/\s+/g, " ");
+  // the owner's own wording too (QA 2026-10-26): "add 10%", "10% extra", "plus 1500", "1500/-", "as it is"
+  const t = String(text || "").trim().toLowerCase().replace(/\s+/g, " ")
+    .replace(/^(?:add|plus|extra)\s+/, "").replace(/\s*(?:\/-|extra|more|only|per person|pp)$/, "").trim();
   if (!t || t.length > 40) return null;
-  if (/^(as[ -]?is|same|no markup|none|0|\+?0 ?%)$/.test(t)) return { ...NO_MARKUP };
+  if (/^(as[ -]?(?:it )?is|same|no markup|none|0|\+?0 ?%)$/.test(t)) return { ...NO_MARKUP };
   const pct = t.match(/^\+? ?(\d{1,3}(?:\.\d{1,2})?) ?(?:%|percent|pc)$/);
   if (pct) { const v = Number(pct[1]); return v > 0 && v <= MAX_MARKUP_PCT ? { kind: "pct", value: v } : null; }
-  const inr = t.match(/^\+? ?(?:rs\.?|inr|\u20b9)? ?(\d{1,3}(?:,\d{2,3})*|\d{1,7}) ?(?:rs\.?|inr|rupees?|\u20b9)?$/);
-  if (inr) { const v = Number(inr[1].replace(/,/g, "")); return v > 0 && v <= MAX_MARKUP_INR ? { kind: "inr", value: v } : null; }
+  const inr = t.match(/^\+? ?(rs\.?|inr|\u20b9)? ?(\d{1,3}(?:,\d{2,3})*|\d{1,7}) ?(rs\.?|inr|rupees?|\u20b9)?$/);
+  if (inr) {
+    const v = Number(inr[2].replace(/,/g, ""));
+    // a bare small number ("10", "+10") is ambiguous - 10% or Rs 10? - so it is asked again, never guessed
+    if (!inr[1] && !inr[3] && v < 100) return null;
+    return v > 0 && v <= MAX_MARKUP_INR ? { kind: "inr", value: v } : null;
+  }
   return null;
 }
 
@@ -109,7 +116,10 @@ function repricedLine(vendorPrices, pkg, markup) {
   if (Array.isArray(vendorPrices) && vendorPrices.length) amount = applyMarkup(Math.min(...vendorPrices), markup || DEFAULT_MARKUP);
   else if (pkg) amount = applyMarkup(priceNum(pkg), markup || NO_MARKUP);
   if (!amount) return { line: "", amount: null, main: "", suffix: "", short: "" };
-  const rounded = Math.round(amount / 100) * 100; // clean round to nearest 100
+  // A percentage rounds UP to the next Rs 100 (never below the vendor's price + the markup); "as is" and a rupee
+  // amount the owner typed are shown exactly (Bug Hunter 2026-10-26: nearest-100 showed Rs 12,449 as 12,400).
+  const m = (Array.isArray(vendorPrices) && vendorPrices.length) ? (markup || DEFAULT_MARKUP) : (markup || NO_MARKUP);
+  const rounded = m.kind === "pct" ? Math.ceil(Math.round(amount) / 100) * 100 : Math.round(amount);
   const n = "Rs " + rounded.toLocaleString("en-IN");
   return { line: "From " + n + " / person", amount: rounded, main: n, suffix: "/ person", short: "From " + n };
 }

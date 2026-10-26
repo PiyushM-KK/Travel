@@ -5,6 +5,24 @@ Scope: **only the `social-automation/` folder.** The rest of the Skyline project
 structure + provenance. **NOTE: this session also changed the WEBSITE (language fix) and started the
 client CHATBOT (`../pricing-portal/`) — see the checkpoint below; those live OUTSIDE this folder.**
 
+**CHECKPOINT 2026-10-26 (fullfirm-66) - posting healthy; a music-bed Reel waits for approval; docs fixed:**
+- **Posting works.** Instagram shows the Diwali offer posters and package cards (Meghalaya Wonders, Gangtok & Darjeeling,
+  Sikkim Honeymoon) going out. The GitHub `package-post` runs log `skipped:["package-<slug>-<date>-s<n>"]` because
+  Skyline's OWN Vercel cron (vercel.json, same endpoint) runs first and the GitHub run hits the smid dedup - expected,
+  not a failure. Real skips on 26 Oct (both slots): "no stock photo and the AI scene didn't pass the quality check" for
+  the generic package (by design: deferred to the next rotation).
+- **Reel row_31** (Rajasthan, workflow_dispatch by PiyushM-KK 13:18 UTC, likely a supplied clip_url): pending_approval,
+  WhatsApp notice sent; it HAS the music bed (AAC) and is 8 s. B-MUSIC marked resolved in BLOCKED.md.
+- **NOT done (owner asked; paid):** a NEW generated Reel with the music bed - ~11.2 Higgsfield API credits (~US$0.70);
+  today needs `-f retry=<tag>` (the daily guard holds the video-<date> slot): `gh workflow run video-post.yml --repo
+  PiyushM-KK/Travel --ref main -f retry=music-<date>` (held for approval; never `live`). Waiting for the owner's go.
+- **Queue access for agents:** the local `.env` UPSTASH_* point to an EMPTY database (not the live `skyline-queue`, which
+  Vercel injects as KV_*); the local OPS_KEY is rejected (403) by `/api/ops-status`. Read the queue via the owner's /ops
+  dashboard (owner enters the key) or have the owner refresh the local env. The auto-mode check refused using CRON_SECRET
+  for a read - do not work around it.
+- Untracked owner files left alone: `New_Design/`, `VSCODE-PROMPT-diwali-bali.md`, `images/Lkshadeep/`.
+- This commit is LOCAL (docs only); pushing `main` redeploys Vercel + Pages - push on the owner's word.
+
 **CHECKPOINT 2026-10-22 (fullfirm-3f) - THE QUEUE IS ON REDIS; posting works again; Diwali posts out:**
 - **Queue = Upstash Redis `skyline-queue`** (Pay As You Go, iad1; on the team's existing Upstash installation;
   connected to `skyline-social` Production only, prefix KV). Selftest 11/11 on the real database; GitHub secrets

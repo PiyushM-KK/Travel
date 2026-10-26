@@ -148,7 +148,12 @@ one unknown; Kaelmoor Producer is the test case.
 **NOTE this changes B-MUSIC:** connector clips carry their own audio, so a licensed music track is only
 needed if we ever fall back to the Action's own (silent) API generation.
 
-## B-MUSIC - Reels have NO audio; a licensed track is needed (owner)
+## B-MUSIC - ✅ RESOLVED 2026-10-22 (`688320c`) - Reels now carry a licensed music bed
+`assets/music/reel-bed.mp3` = a 30 s excerpt of 'Hindi Travel' by HappinessInMusic (Pixabay Content License, not Content
+ID registered), mastered -14 LUFS / -1 dBTP; source + licence in `assets/music/CREDITS.md`. Verified 2026-10-26: the Reel
+of that day (row_31, Rajasthan) has an AAC audio track (1080x1920, 8 s). The history below is kept for reference.
+
+### (history) Reels had NO audio; a licensed track was needed
 **Every Reel is silent, and no code change can fix it** - the clips themselves carry no audio. Verified
 against the API, not assumed: of the models enabled on this account, kling v2.5-turbo / v2.1 master and
 minimax hailuo-2.3 have **no audio field at all**, and wan-25-preview has `audio_url` (you SUPPLY audio,

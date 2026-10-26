@@ -94,7 +94,6 @@ module.exports = async (req, res) => {
   let body;
   try { body = JSON.parse(raw || "{}"); } catch { res.status(200).json({ ok: true, ignored: "unparseable" }); return; }
 
-  let undoSeen = null; // set once this delivery is marked seen; undone if handling throws, so Meta's retry is not dropped
   try {
     const client = loadClient(process.env.SOCIAL_CLIENT || "skyline");
     const { store } = makeStore();
@@ -381,12 +380,9 @@ module.exports = async (req, res) => {
     // the questions that choice needs. It keeps its conversation in Redis, so it runs where the queue is Redis;
     // SOCIAL_WHATSAPP_GUIDE=off restores the old one-shot intake. ctx.seen drops Meta's re-deliveries (B-18).
     if (typeof store.cmd === "function" && typeof store.k === "function") {
-      ctx.seen = async (wamid) => {
-        const key = store.k("wa:seen:" + String(wamid).slice(0, 120));
-        const first = (await store.cmd(["SET", key, "1", "NX", "EX", "172800"])) === "OK";
-        if (first) undoSeen = () => store.cmd(["DEL", key]);
-        return first;
-      };
+      // (no undo on error: this handler always answers 200, so Meta never re-delivers after one - the owner
+      // gets the "please resend" ping below, and a resend has a new message id)
+      ctx.seen = async (wamid) => (await store.cmd(["SET", store.k("wa:seen:" + String(wamid).slice(0, 120)), "1", "NX", "EX", "172800"])) === "OK";
       if (process.env.SOCIAL_WHATSAPP_GUIDE !== "off") {
         const { createGuide } = require("../automation/wa-guide");
         const { guideActions } = require("../automation/wa-guide-actions");
@@ -402,7 +398,6 @@ module.exports = async (req, res) => {
     res.status(200).json({ ok: true, ...out });
   } catch (e) {
     const { redact } = require("../engine/publish");
-    if (undoSeen) { try { await undoSeen(); } catch { /* best-effort */ } }
     // Don't let a transient store/network error vanish silently: best-effort ping
     // the owner so they know to resend. We still return 200 — Meta retries on
     // non-200 and there is no message-id dedup yet (BLOCKED B-18), so returning 5xx

@@ -214,6 +214,9 @@ function harness() {
   // ---------------------------------------------------------------- review regressions (Bug Hunter, QA, App Security 2026-10-26)
   {
     const h = harness();
+    await h.go(wa({ type: "video", video: { id: "VCAP", mime_type: "video/mp4", caption: "approve 4821" } }));
+    ok(h.decisions.length === 0 && h.last().t === "buttons" && h.last().ids.includes("g:a:video"), "a video captioned 'approve 4821' opens the menu (no decision, no approval-help text)");
+    await h.go(note("cancel"));
     await h.go(photo("ok"));
     ok(h.decisions.length === 0 && h.last().t === "list", "a photo captioned 'ok' opens the menu - its caption never approves another post");
     await h.go(note("yes"));
@@ -304,7 +307,7 @@ function harness() {
       fetchMedia: async (id) => (id === "MOV" ? { buffer: Buffer.from("x"), contentType: "video/quicktime" } : { buffer: Buffer.from("mp4"), contentType: "video/mp4" }),
       resolveBytes: async () => ({ buffer: Buffer.from([0xff, 0xd8]), contentType: "image/jpeg" }),
       hostImage: async ({ keyHint }) => { hosted.push(keyHint); return { url: `https://s.public.blob.vercel-storage.com/${keyHint}.jpg` }; },
-      hostVideo: async (buf, key) => ({ url: `https://s.public.blob.vercel-storage.com/${key}.mp4` }),
+      hostVideo: (buf, key) => new Promise((r) => setTimeout(() => r({ url: `https://s.public.blob.vercel-storage.com/${key}.mp4` }), 30)), // a real upload takes time
       deleteHosted: async (u) => { deleted.push(u); },
       generateOne: async (st, row) => { await st.update(row.id, { status: "approved", caption: "A caption" }); return { outcome: "approved" }; },
       digest: (row) => `POST ${row.status}`,
@@ -321,8 +324,10 @@ function harness() {
     ok(vr && vr.source === "wa-video" && vr.status === "pending_approval" && /\.mp4$/.test(vr.imageUrl) && /Reel is ready to check/.test(v), "the owner's video: hosted, captioned, and HELD for approval even when the drafter auto-approved");
     const slow = guideActions({ store, client, k: store.k, reviewDeadlineMs: Date.now() - 1, fetchMedia: async () => ({ buffer: Buffer.from("x"), contentType: "video/mp4" }), hostVideo: async (b, key) => ({ url: `https://s.public.blob.vercel-storage.com/${key}.mp4` }), deleteHosted: async (u) => { deleted.push(u); }, generateOne: async () => { throw new Error("must not draft"); } });
     const sv = await slow.video(job({ action: "video", material: { kind: "video", mediaId: "V2", text: "", wamid: "wv3" } }));
-    const sr = await store.findBySourceMessageId("wv3");
-    ok(/too long/.test(sv) && sr.status === "held" && deleted.some((u) => /wv3/.test(u)), "a video that used up the webhook's time is stopped cleanly: row held, video removed, owner told");
+    ok(/too long/.test(sv) && !(await store.findBySourceMessageId("wv3")), "a video that used up the webhook's time stops BEFORE the upload: no row, nothing hosted, owner told");
+    const hung = guideActions({ store, client, k: store.k, reviewDeadlineMs: Date.now() + 25500, fetchMedia: async () => ({ buffer: Buffer.from("x"), contentType: "video/mp4" }), hostVideo: () => new Promise(() => {}), deleteHosted: async () => {}, generateOne: async () => { throw new Error("must not draft"); } });
+    const hv = await hung.video(job({ action: "video", material: { kind: "video", mediaId: "V3", text: "", wamid: "wv4" } }));
+    ok(/too long/.test(hv) && !(await store.findBySourceMessageId("wv4")), "an upload that hangs is cut off at the deadline: no row, owner told");
     const rp = await acts.reel(job({ action: "reel_photo", place: { slug: "lonavala", label: "Lonavala", known: false } }));
     const queued = JSON.parse(redis.lists.get("social:wa:reel_requests")[0]);
     ok(/queued/.test(rp) && queued.kind === "photo" && /public\.blob\.vercel-storage\.com/.test(queued.photoUrl) && hosted.length === 1, "a photo Reel: the photo is hosted on our Blob store and the request queued");

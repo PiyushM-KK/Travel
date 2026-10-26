@@ -263,7 +263,7 @@ async function handleInbound(body, ctx = {}) {
   // GUARD: a text-only reply that LOOKS like a mistyped approval (a command word + a number) must
   // NOT be turned into a new post — that's exactly how "B- 9880" became a broken junk post. Ask for
   // the exact format instead (and, if the webhook supplied it, list the codes actually waiting).
-  if (looksLikeApprovalAttempt(msg.text) && !(msg.image && msg.image.id)) {
+  if (looksLikeApprovalAttempt(msg.text) && !(msg.image && msg.image.id) && !(ctx.guide && hasMedia)) {
     let help = "";
     if (ctx.approvalHelp) { try { help = await ctx.approvalHelp(); } catch { help = ""; } }
     const fallback = 'That looked like an approval, but I couldn\'t read it. Reply exactly like "B 9880" or "approve 9880" (or just "approve").';

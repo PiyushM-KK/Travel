@@ -48,19 +48,26 @@ function guideActions(o) {
     if (!/^video\/mp4$/i.test(String(contentType || ""))) {
       return "🎬 Instagram needs an MP4 video and this one isn't. Send it again from your phone's gallery (WhatsApp usually converts it).";
     }
-    const hosted = await hostVideo(buffer, `wa-video-${m.wamid}`);
+    // The webhook has 60 s. Time is checked BEFORE the upload and the upload is bounded, so a slow video stops
+    // cleanly with no row at all (round 2: a held row whose video was deleted could still be approved).
+    const left = () => (o.reviewDeadlineMs ? o.reviewDeadlineMs - Date.now() : Infinity);
+    const tooLong = "🎬 That video took too long to receive, so I stopped before writing the caption. Please send a shorter clip (under a minute) and choose Post as a Reel again.";
+    if (left() < 25000) return tooLong;
+    let timer;
+    const upload = hostVideo(buffer, `wa-video-${m.wamid}`);
+    const hosted = !o.reviewDeadlineMs ? await upload : await Promise.race([
+      upload,
+      new Promise((resolve) => { timer = setTimeout(() => resolve(null), Math.max(0, left() - 15000)); }),
+    ]).finally(() => clearTimeout(timer));
+    if (!hosted || left() < 15000) {
+      if (hosted) { try { await deleteHosted(hosted.url); } catch { /* best-effort */ } }
+      return tooLong;
+    }
     const row = await intakeDirect(store, {
       client: client.id, hint: m.text || "A short video from a trip Skyline Travel Planner plans", subject: (m.text || "Video Reel").slice(0, 60),
       source: "wa-video", sourceMessageId: m.wamid, platforms: job.platforms,
     });
     if (row.status !== "planned") return "That video is already in the queue.";
-    // the webhook has 60 s: a large video can use most of it before the caption. Stop cleanly instead of being
-    // killed half-way (which would leave a stranded row and no answer).
-    if (o.reviewDeadlineMs && Date.now() > o.reviewDeadlineMs - 15000) {
-      try { await store.update(row.id, { status: "held", lastError: "video took too long to receive" }); } catch { /* best-effort */ }
-      try { await deleteHosted(hosted.url); } catch { /* best-effort */ }
-      return "🎬 That video took too long to receive, so I stopped before writing the caption. Please send a shorter clip (under a minute) and choose Post as a Reel again.";
-    }
     // The caption is written WITHOUT the video attached (the drafter reads images, not video); the video URL
     // is added afterwards, and the row waits for the owner's own approve - a Reel is never auto-approved and
     // never reaches the image publisher (publish-runner skips "wa-video" rows).

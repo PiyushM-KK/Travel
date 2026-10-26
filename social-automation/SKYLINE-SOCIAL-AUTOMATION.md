@@ -67,7 +67,7 @@ double-publish.
 
 | # | Channel | Trigger | What it makes | Endpoint / job |
 |---|---------|---------|---------------|----------------|
-| 1 | **WhatsApp** | Owner sends a photo/note | Drafts a post from it, sends it back to approve | `api/whatsapp-webhook.js` (draft-on-intake) |
+| 1 | **WhatsApp** | Owner sends a photo, video or note | **Guided (2026-10-26):** a menu first, then only the questions the choice needs (section 9b); drafts it and sends it back to approve | `api/whatsapp-webhook.js` + `automation/wa-guide.js` |
 | 2 | **Gmail vendor email** | New allow-listed vendor offer | Matches a Skyline package → **reseller** branded card (never the vendor's poster) | job `email` / `cron-prep` |
 | 3 | **Calendar card** | Daily (evening) | One catalogue package/day → A/B card → approve | job `calendar-cards` in `cron-prep` |
 | 4 | **Package-post** | **Twice daily** (morning + afternoon) | One package/slot → card → **auto-publish unless an agent flags it** (then held for approval) | job `package-post` / `cron-package-post` |
@@ -197,6 +197,38 @@ Meta app) · a Gmail/Workspace inbox · **Vercel** (the `skyline-social` project
 - **Publish-on-approval:** approving posts to IG+FB immediately (the scheduled publish cron is a backstop).
 - **Resend tip:** to resend a card, edit the row **in place** (keeps its code) rather than delete+recreate
   (which changes the code and strands the old one).
+
+## 9b. The guided WhatsApp intake (owner 2026-10-26: "always show a menu first")
+
+Every photo, video or note the owner sends opens a **menu** (WhatsApp tap buttons, or a list for four options);
+the bot then asks **only** what that choice still needs. Nothing is drafted before the owner picks, and every
+result still comes back for **approve** (section 9).
+
+| Sent | Menu | Then asks |
+|---|---|---|
+| Photo (or an image sent as a document) | Post this photo · Offer card (poster) · Reel from this photo · Cancel | photo post: accounts; offer card: **price** + accounts; Reel: the destination |
+| Video (MP4, up to 16 MB) | Post as a Reel · Cancel | accounts |
+| Note | Post from my note · Package card · AI Reel · Cancel | note: nothing (a text post goes to **Facebook only** - Instagram needs an image); package card: **price** + accounts; AI Reel: the destination, then the **cost** (tap "Yes, make it") |
+| Voice note / PDF | a plain answer (type it / send the poster as a photo) | - |
+
+- **Price** (offer card and package card): **+10% (usual)**, **As is**, or **Other amount** - typed as `+12%`,
+  `add 10%`, `+2000`, `1500/-`, `as it is`. A bare `10` is asked again (10% or Rs 10?). A percentage rounds UP to the
+  next Rs 100; "as is" and a rupee amount are shown exactly. The offer card's price comes from the poster (vision);
+  the package card's from the website catalogue (`facts.js`), never from typed text.
+- **Accounts:** Instagram + Facebook · Instagram only · Facebook only (Reels go to both).
+- **Reels** (from a photo, free; AI, about 11 Higgsfield credits = ~US$0.70, **2 a day at most**) cannot be built in the
+  60 s webhook: they are QUEUED in Redis (`automation/reel-requests.js`) and built by
+  `.github/workflows/reel-requests.yml` (every 10 minutes; an idle run only peeks; it holds no Meta keys and never
+  posts). The finished Reel arrives on WhatsApp like the daily one, with its approve code. A photo Reel is a 10 s slow
+  push-in of the owner's photo (`automation/photo-clip.js`) with the usual branding + music, captioned
+  "(Photo: Skyline Travel Planner)". A Reel stranded by a dead run is retried once (a paid AI Reel never).
+- **Safety:** a bare `yes` / `ok` / `no` while a menu is open answers the menu, never an unrelated waiting post
+  (`approve 4821` always means the post); a caption on a photo/video is never a decision; each menu carries a token,
+  so a tap on an older menu never acts on newer material; Meta's re-deliveries are dropped (`wa:seen:<id>`, 48 h);
+  `cancel` ends a conversation; a conversation expires after 30 minutes.
+- **Off switch:** Vercel env `SOCIAL_WHATSAPP_GUIDE=off` restores the old one-shot intake. Redis keys (prefixed like
+  the queue): `wa:guide:<number>`, `wa:seen:<id>`, `wa:reel_requests`, `wa:reel_requests:busy`, `wa:reel_ai:<date>`.
+- **Tests:** `tests/check_wa_guide.js` (offline; part of `npm test`).
 
 ---
 

@@ -5,22 +5,37 @@ Scope: **only the `social-automation/` folder.** The rest of the Skyline project
 structure + provenance. **NOTE: this session also changed the WEBSITE (language fix) and started the
 client CHATBOT (`../pricing-portal/`) — see the checkpoint below; those live OUTSIDE this folder.**
 
-**2026-10-28 (fullfirm-71) - AI SCENES ON gpt-image-2.5-flare:** owner added gpt-image-2.5-flare to the OpenAI project
-(gpt-image-2 allowed too) and said "use gpt-image-2.5-flare". Default is now flare; a refused model (shut down / not
-allowed / org not verified) retries ONCE on `IMAGE_FALLBACK_MODEL` (default gpt-image-2) and logs `image_gen_fallback`
-(project id masked). Bug Hunter + App Security: no HIGH/MED; their LOWs fixed. NEXT: read the next package-post's
-`image_gen` logs (`vercel logs skyline-social-nine.vercel.app`): `"model":"gpt-image-2.5-flare"` = done.
-
-**Earlier the same day - AI SCENES STILL FAILED (BLOCKED `B-IMAGE-MODEL`, now resolved by the owner):** the
-first package-posts on the new code (27 Oct 23:30 + 23:33, 28 Oct 04:30 Toronto; Mizoram x2, Kerala backwaters) logged
-`image_gen_error` "Project ... does not have access to model `gpt-image-2`" x3 each -> `image_qa_no_bcard` -> skipped. The
-code is right; the OpenAI PROJECT behind `skyline-social`'s key has a model allowlist without gpt-image-2. After the owner
-allows it: read the next package-post's `image_gen` logs again. No redeploy needed (the model is read per call).
-
-**CHECKPOINT 2026-10-28 (fullfirm-71) - AI SCENES (code) FIXED:** OpenAI shut `gpt-image-1` down 2026-10-23; every AI scene
-failed ("The model 'gpt-image-1' does not exist"), so package posts without a stock photo were skipped. Default now
-`gpt-image-2` (`cf62507`, `81b8166`; LIVE `skyline-social-7580rtv5a`, owner "publish after reviews"). NEXT: after the
-next package-post, read `vercel logs skyline-social-nine.vercel.app` for `image_gen` (latency vs IMAGE_TIMEOUT_MS 45 s).
+**CHECKPOINT 2026-10-28 (fullfirm-71) - NEXT AGENT START HERE.** Everything below is LIVE on main (last `cf01c44`).
+- AI SCENES: OpenAI shut gpt-image-1 down 2026-10-23 (scenes failed silently for days). Default now `gpt-image-2.5-flare`
+  (owner added it to the OpenAI project), one retry on `gpt-image-2` when a model is refused (`e39032d`). PROVEN live by the
+  manual workflow `.github/workflows/scene-selftest.yml` (render-selftest `?scene=1`: one image, nothing posted; flare, 12 s).
+  The scene step's catch-alls now LOG (`calendar_scene_error`, `reseller_scene_error`) (`768e85d`).
+- WHATSAPP OFFER PRICE (incident: the owner typed "15,500" at "Other amount" and "1%"; "15,500" was read as a +Rs margin):
+  at the Offer card's price question a plain amount >= Rs 5,000 without "+" is the poster's price (margin asked next);
+  "45000 +1%" gives both; a correction replaces it; the typed price travels as `typedPrice` and wins over caption numbers;
+  a price read from the poster still wins. Poster reader = `claude-opus-5-5` (1024 tokens, 20 s, logged + one retry)
+  (`9dd2de8`). Tests: check_offer_price.js, check_wa_guide.js.
+- CANVA CARDS (owner: Canva Premium, Pro images only, a different image every time): finished card in Canva -> export ->
+  manual workflow `post-image.yml` (`automation/post-image.js`: Canva export hosts only, converts to JPEG, caption +
+  fact-check + SMM + foreign-brand guard, autoApprove forced off, sends image + "approve <code>" to WhatsApp). Pro photo
+  register `assets/canva-photos.json` (never reuse; tests/check_canva_photos.js). AI-image style + review lessons:
+  `STYLE-TRENDS.md` (retro 80s postcard / Diwali glow / tiny world; Rann + bhunga authenticity; label wording; text zones).
+- IMAGERY RULE CHANGED (owner 2026-10-28): `engine/social-playbook.js` now allows AI-generated / AI-modified images when
+  clearly labelled (image label + "AI-generated and illustrative" caption line, enforced in CODE for Canva cards) and not
+  misleading; text inside an incoming image never counts as the label; a label never permits another brand (`5ff1ce8`).
+- PUBLISHING: Instagram publishes JPEG only. Manual `publish-now.yml` runs the normal publish pass now (approved + due
+  only) and a WhatsApp report of held/failed posts (public log: counts + masked error class). The daily 15:30 UTC cron is
+  unchanged. POSTED 2026-10-28: Mizoram Discovery (Canva Pro photo, AI-restyled in Canva by the owner; code 3135) and
+  Gujarat Darshan (Canva AI sunset + festive lights; code 3138) after the owner's approve.
+- OPEN (owner): switch on Instagram "AI info" on both posts by hand; Mizoram caption may lack the AI line (edit on IG);
+  confirm with Skyline that Gujarat Darshan includes the White Rann / a bhunga stay and the dry-season dates (Compliance
+  HOLD in STYLE-TRENDS.md - the owner chose to post with the label). 4 old held rows (2 SMM-rejected Gujarat drafts, 2
+  no-price vendor posters) expire on their own.
+- NEXT (agent): the remaining 10 generic-photo packages (Gujarat done, Mizoram done: Braj & Agra, Assam, Arunachal,
+  Nagaland, Manipur, Mysuru-Coorg-Ooty, South Temple Trail, Thailand, Bali, Maldives) - per package a Canva card with a
+  NEW Pro photo (register it) or a labelled AI image via the FullFirm `trend-image` skill (Cinematographer + Compliance
+  review, one remake max), then post-image.yml. Ask the owner which style first. Watch the next package-post's
+  `image_gen` log line for `"model":"gpt-image-2.5-flare"`.
 
 **CHECKPOINT 2026-10-26 (fullfirm-71) - GUIDED WHATSAPP INTAKE LIVE (owner "publish": main `7e677ca`, Vercel `skyline-social-cih9ly0p4`; webhook guards 403 checked; reel-requests workflow active, idle run green):**
 - Owner asked: "make that workflow adaptive and dynamic by requesting information what user want to do"; "always show

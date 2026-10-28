@@ -232,6 +232,20 @@ result still comes back for **approve** (section 9).
 
 ---
 
+## 9c. Canva cards, AI images and manual runs (2026-10-28)
+
+| What | How | Where |
+|---|---|---|
+| A finished card made in Canva | export PNG -> run the manual workflow **post-image** (image_url, note, platforms, ai_image) -> hosted as JPEG, captioned + fact-checked + SMM-reviewed -> WhatsApp "approve <code>" | `.github/workflows/post-image.yml`, `automation/post-image.js` |
+| Canva photos | Canva **Pro** photos only, a different one per card, logged | `assets/canva-photos.json` (test refuses a repeat) |
+| AI images | allowed when clearly labelled ("Illustrative image - AI-generated" on the image + "AI-generated and illustrative" in the caption) and not misleading | `engine/social-playbook.js`; style + lessons `STYLE-TRENDS.md` |
+| Publish now | runs the normal publish pass (approved + due only), then a WhatsApp report of anything held/failed | `.github/workflows/publish-now.yml`, `automation/publish-report.js` |
+| Prove the AI image step | one real scene through the live client, nothing posted (~1 US cent) | `.github/workflows/scene-selftest.yml` (render-selftest `?scene=1`) |
+| Image model | `gpt-image-2.5-flare`, one retry on `gpt-image-2` if refused (env `IMAGE_MODEL`, `IMAGE_FALLBACK_MODEL`) | `automation/image-gen.js` |
+| Poster price reader | `claude-opus-5-5` (`SOCIAL_PRICE_MODEL`), errors logged as `price_read_error` | `engine/generate.js extractPrices` |
+
+Instagram publishes JPEG only: every image path converts before hosting.
+
 ## 10. The safety model (nothing posts by accident)
 
 1. **The live gate** — publishing needs ALL of: `SOCIAL_LIVE=true` **and** the client marked `live` **and**

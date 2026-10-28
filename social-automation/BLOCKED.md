@@ -6,7 +6,7 @@ the real values live in the local `.env` (gitignored) and the Vercel project env
 
 ---
 
-## B-IMAGE-MODEL - OPEN 2026-10-28 - AI scenes fail: the OpenAI project has no access to gpt-image-2
+## B-IMAGE-MODEL - ✅ DONE BY THE OWNER 2026-10-28 (added gpt-image-2.5-flare; gpt-image-2 allowed) - code now uses flare, falls back to gpt-image-2
 
 What happens: every package-post without a stock photo is skipped. Vercel logs (`vercel logs skyline-social-nine.vercel.app`)
 show `image_gen_error` "Project `proj_...` does not have access to model `gpt-image-2`" (27-28 Oct). OpenAI shut

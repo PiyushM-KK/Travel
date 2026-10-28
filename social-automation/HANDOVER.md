@@ -5,7 +5,13 @@ Scope: **only the `social-automation/` folder.** The rest of the Skyline project
 structure + provenance. **NOTE: this session also changed the WEBSITE (language fix) and started the
 client CHATBOT (`../pricing-portal/`) — see the checkpoint below; those live OUTSIDE this folder.**
 
-**2026-10-28 (fullfirm-71, after the checkpoint) - AI SCENES STILL FAIL, OWNER ACTION (BLOCKED `B-IMAGE-MODEL`):** the
+**2026-10-28 (fullfirm-71) - AI SCENES ON gpt-image-2.5-flare:** owner added gpt-image-2.5-flare to the OpenAI project
+(gpt-image-2 allowed too) and said "use gpt-image-2.5-flare". Default is now flare; a refused model (shut down / not
+allowed / org not verified) retries ONCE on `IMAGE_FALLBACK_MODEL` (default gpt-image-2) and logs `image_gen_fallback`
+(project id masked). Bug Hunter + App Security: no HIGH/MED; their LOWs fixed. NEXT: read the next package-post's
+`image_gen` logs (`vercel logs skyline-social-nine.vercel.app`): `"model":"gpt-image-2.5-flare"` = done.
+
+**Earlier the same day - AI SCENES STILL FAILED (BLOCKED `B-IMAGE-MODEL`, now resolved by the owner):** the
 first package-posts on the new code (27 Oct 23:30 + 23:33, 28 Oct 04:30 Toronto; Mizoram x2, Kerala backwaters) logged
 `image_gen_error` "Project ... does not have access to model `gpt-image-2`" x3 each -> `image_qa_no_bcard` -> skipped. The
 code is right; the OpenAI PROJECT behind `skyline-social`'s key has a model allowlist without gpt-image-2. After the owner

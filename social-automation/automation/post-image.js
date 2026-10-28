@@ -67,7 +67,8 @@ async function postImage(o = {}) {
   if (res.outcome === "approved" || fresh.status === "approved") { // never publish without the owner: demote
     fresh = await store.update(row.id, { status: "pending_approval" });
   } else if (res.outcome !== "pending") {
-    return { ok: false, outcome: res.outcome, reason: fresh.lastError || res.reason || "", id: row.id };
+    // the reviewer's one-line notes (cleaned, capped model text; no secrets) say WHY a draft was held
+    return { ok: false, outcome: res.outcome, reason: [fresh.lastError || res.reason || "", res.reviewNotes || fresh.reviewNotes || ""].filter(Boolean).join(" - "), id: row.id };
   }
 
   const { digestItem, renderDigestText } = require("./approval-channel");

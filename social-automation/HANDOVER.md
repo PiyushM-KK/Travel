@@ -5,6 +5,11 @@ Scope: **only the `social-automation/` folder.** The rest of the Skyline project
 structure + provenance. **NOTE: this session also changed the WEBSITE (language fix) and started the
 client CHATBOT (`../pricing-portal/`) — see the checkpoint below; those live OUTSIDE this folder.**
 
+**CHECKPOINT 2026-10-28 (fullfirm-71) - AI SCENES FIXED:** OpenAI shut `gpt-image-1` down 2026-10-23; every AI scene
+failed ("The model 'gpt-image-1' does not exist"), so package posts without a stock photo were skipped. Default now
+`gpt-image-2` (`cf62507`, `81b8166`; LIVE `skyline-social-7580rtv5a`, owner "publish after reviews"). NEXT: after the
+next package-post, read `vercel logs skyline-social-nine.vercel.app` for `image_gen` (latency vs IMAGE_TIMEOUT_MS 45 s).
+
 **CHECKPOINT 2026-10-26 (fullfirm-71) - GUIDED WHATSAPP INTAKE LIVE (owner "publish": main `7e677ca`, Vercel `skyline-social-cih9ly0p4`; webhook guards 403 checked; reel-requests workflow active, idle run green):**
 - Owner asked: "make that workflow adaptive and dynamic by requesting information what user want to do"; "always show
   a menu first"; options: post my photo, offer card from a poster, my own video as a Reel, AI Reel, a post or Reel from

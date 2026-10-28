@@ -73,7 +73,7 @@ double-publish.
 | 4 | **Package-post** | **Twice daily** (morning + afternoon) | One package/slot → card → **auto-publish unless an agent flags it** (then held for approval) | job `package-post` / `cron-package-post` |
 
 Every card is a **two-candidate A/B card**: **A = a real destination photo** (from `assets/destinations`),
-**B = a fresh gpt-image-1 AI scene** (or a code-drawn decorative gradient if no image key). The owner
+**B = a fresh gpt-image-2 AI scene** (gpt-image-1 until OpenAI shut it down on 2026-10-23) (or a code-drawn decorative gradient if no image key). The owner
 picks A / B / both on WhatsApp; the package-post auto path defaults to A when it posts unattended.
 
 ---
@@ -86,7 +86,7 @@ picks A / B / both on WhatsApp; the package-post auto path defaults to A when it
 | **`facts.js`** (in-repo) | Skyline's **catalogue** — 22 packages / 89 destinations, prices, WhatsApp, the referral-only list, the price disclaimer. **This is the grounding source** — captions can only use what's here | required at runtime; no creds |
 | **WhatsApp Cloud API** (Meta Graph) | Intake (owner photos/notes) **and** the approval channel | `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_APP_SECRET`, `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_TO` |
 | **Gmail** (Workspace inbox) | Vendor offer emails (channel 2) | `GMAIL_USER` + `GMAIL_APP_PASSWORD`, or OAuth service-account; `GMAIL_ALLOWED_SENDERS` gates senders |
-| **OpenAI `gpt-image-1`** | The AI **scene** for card B | `OPENAI_API_KEY` (`automation/image-gen.js`) |
+| **OpenAI `gpt-image-2`** | The AI **scene** for card B | `OPENAI_API_KEY` (`automation/image-gen.js`) |
 | **Meta Graph API** (IG + FB) | **Publishing** to Instagram + the Facebook Page, token health, metrics | `META_PAGE_TOKEN`, `META_PAGE_ID`, `META_IG_USER_ID`, `META_APP_SECRET`, `META_APP_ID` |
 | **Vercel Blob** | Public **image hosting** (Instagram needs a public https URL); publish-time-only, deleted after Meta ingests | `BLOB_READ_WRITE_TOKEN` (`automation/image-host.js`) |
 | **Wikimedia Commons** | The seed real photos in `assets/destinations` (card A), CC-attributed | one-time asset seeding; no runtime creds |

@@ -124,4 +124,55 @@ function repricedLine(vendorPrices, pkg, markup) {
   return { line: "From " + n + " / person", amount: rounded, main: n, suffix: "/ person", short: "From " + n };
 }
 
-module.exports = { allPackages, categoryForItem, matchPackage, photoSlug, priceNum, repricedLine, parseMarkup, markupLabel, applyMarkup, DEFAULT_MARKUP, NO_MARKUP };
+/**
+ * Per-person prices the owner TYPED in the photo's caption ("Rs 45,000 per person", "45000/-", "45k", "1.25 lakh").
+ * Used ONLY by the guided Offer card, and only when the poster's own price could not be read (owner 2026-10-28: the
+ * user had typed the price and chosen +1%, and was told no price could be read). A number counts only with a price
+ * marker - Rs / INR / the rupee sign, "/-", per person / pp / pax / per head, k or lakh - or digit grouping
+ * (45,000 / 1,25,000), so phone numbers, years and "6N/7D" are never prices. Range Rs 1,000 - 10,00,000.
+ */
+function pricesFromText(text) {
+  const t = String(text || "").toLowerCase().replace(/\u20b9/g, " rs ").replace(/\b(rs|inr)\.?(?=\d)/g, "$1 ");
+  const re = /(rs\.?|inr)?\s*(?<![\w.,])(\d{1,3}(?:,\d{2,3})+|\d+(?:\.\d+)?)(?![\d.]|,\d|[a-jm-z])\s*(k|lakhs?|lacs?)?\s*(\/-|per\s*person|pp\b|pax\b|per\s*head)?/g;
+  const out = [];
+  const perPerson = [];
+  const bare = [];
+  let m;
+  while ((m = re.exec(t))) {
+    const [, pre, num, unit, post] = m;
+    // "Rs 5,000 deposit", "45,000 off": not the trip's per-person price (Bug Hunter 2026-10-28)
+    if (/^\s*(deposit|advance|token|booking amount|off\b|discount|saving|save\b)/.test(t.slice(re.lastIndex))) continue;
+    const grouped = num.includes(",");
+    if (!pre && !post && !unit && !grouped) { bare.push(num); continue; }
+    let v = Number(num.replace(/,/g, ""));
+    if (unit === "k") v *= 1000;
+    else if (unit) v *= 100000;
+    v = Math.round(v);
+    if (Number.isFinite(v) && v >= 1000 && v <= 1000000) { out.push(v); if (post) perPerson.push(v); }
+  }
+  if (perPerson.length) return perPerson; // "Rs 5,000 deposit, Rs 45,000 per person" -> the per-person one
+  // "Goa 3N 18999": a bare 4-6 digit number counts only when it is the ONLY plain number of that size and not a year
+  if (!out.length) {
+    const big = bare.filter((n) => /^\d{4,6}$/.test(n) && !(Number(n) >= 1900 && Number(n) <= 2100));
+    if (big.length === 1 && Number(big[0]) >= 1000) out.push(Number(big[0]));
+  }
+  return out;
+}
+
+/**
+ * "45000 +1%", "Rs 45,000 per person 10%", "52000 as is": the poster's price AND the margin in one reply, at the guided
+ * Offer card's price question (the incident of 2026-10-28). Returns { price, markup } only when both are clear: one
+ * margin token (a percentage or "as is") and exactly one price in the rest; anything else is null (asked again).
+ */
+function priceAndMarkup(text) {
+  const t = String(text || "").trim();
+  const tok = t.match(/(?:^|\s)(\+?\s?\d{1,3}(?:\.\d{1,2})?\s?(?:%|percent)|as\s*(?:it\s*)?is)(?=\s|$|[.,!])/i);
+  if (!tok) return null;
+  const markup = parseMarkup(tok[1]);
+  if (!markup) return null;
+  const prices = pricesFromText(t.replace(tok[1], " "));
+  if (prices.length !== 1) return null;
+  return { price: prices[0], markup };
+}
+
+module.exports = { allPackages, categoryForItem, matchPackage, photoSlug, priceNum, repricedLine, parseMarkup, markupLabel, applyMarkup, pricesFromText, priceAndMarkup, DEFAULT_MARKUP, NO_MARKUP };

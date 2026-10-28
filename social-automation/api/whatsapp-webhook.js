@@ -242,7 +242,9 @@ module.exports = async (req, res) => {
             const wantImage = process.env.SOCIAL_WHATSAPP_RESELLER_IMAGE === "on";
             r = await buildResellerCards(
               wantImage ? { store } : { imageGen: null },
-              { imageBytes: buffer, offerText: row.hint || "", smid: row.id, markup: opts.markup, useCatalogPrice: mode === "card" }
+              { imageBytes: buffer, offerText: row.hint || "", smid: row.id, markup: opts.markup, useCatalogPrice: mode === "card",
+                typedPrices: mode !== "offer" ? undefined
+                  : (Number(opts.typedPrice) > 0 ? [Number(opts.typedPrice)] : require("../automation/packages").pricesFromText(row.hint || "")) }
             );
           } catch (e) { r = null; } // pre-mutation failure → row untouched → fall through to normal draft
 
@@ -261,7 +263,8 @@ module.exports = async (req, res) => {
               });
             } catch (e) { /* non-fatal */ }
             if (mode === "card") return `🧳 *${r.pkg.item}* has no price on the website, so I can't price a card for it. Send its poster as a photo and choose Offer card instead.`;
-            return `🧳 That poster matches *${r.pkg.item}* (${r.pkg.route}), but I couldn't read a per-person price on it — and the card's price is worked out from the vendor's original price.\n\nSend a poster that clearly shows the per-person price and I'll make the card${mode === "offer" ? "" : " at +10%"}.`;
+            if (mode === "offer") return `🧳 That poster matches *${r.pkg.item}* (${r.pkg.route}), but I couldn't read a per-person price on it, and I didn't find one in your message.\n\nSend the poster again with the price in the caption (for example: Rs 45,000 per person) and choose Offer card - I'll add your margin to it.`;
+            return `🧳 That poster matches *${r.pkg.item}* (${r.pkg.route}), but I couldn't read a per-person price on it — and the card's price is worked out from the vendor's original price.\n\nSend a poster that clearly shows the per-person price and I'll make the card at +10%.`;
           }
 
           // 2) Matched → we now OWN this row's outcome; never fall through to a second draft.
@@ -287,7 +290,7 @@ module.exports = async (req, res) => {
                 const code = shortCode(fresh.id);
                 const { markupLabel, DEFAULT_MARKUP, NO_MARKUP } = require("../automation/packages");
                 const mk = markupLabel(opts.markup || (r.prices && r.prices.length ? DEFAULT_MARKUP : NO_MARKUP));
-                const priceNote = `${r.rp.line}${(r.prices && r.prices.length) ? ` (vendor ${Math.min(...r.prices).toLocaleString("en-IN")}, ${mk})` : ` (website price, ${mk})`}`;
+                const priceNote = `${r.rp.line}${(r.prices && r.prices.length) ? ` (${r.priceSource === "typed" ? "your price" : "vendor"} ${Math.min(...r.prices).toLocaleString("en-IN")}, ${mk})` : ` (website price, ${mk})`}`;
                 // Intake provenance (same as the other channels carry): where this came from + when, so
                 // the owner sees the source before approving. rowCreatedAt = when the poster arrived.
                 const intakeAt = istStamp(rrow.createdAt || undefined);

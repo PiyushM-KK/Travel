@@ -38,7 +38,7 @@ function guideActions(o) {
       imageSource: mode === "card" ? null : sourceOf(m), platforms: job.platforms,
     });
     if (row.status !== "planned") return "That one is already in the queue (it arrived before) - reply approve to see what's waiting.";
-    const out = await draftAndDigest(row, { mode, markup: job.markup || undefined });
+    const out = await draftAndDigest(row, { mode, markup: job.markup || undefined, typedPrice: job.typedPrice || undefined });
     return out || `Queued (id ${row.id}) - it will come back to you for approval.`;
   }
 

@@ -108,6 +108,65 @@ function harness() {
     ok(!(await h.redis.cmd(["GET", "social:wa:guide:" + OWNER])), "the conversation is cleared once the work starts");
   }
 
+  // ---------------------------------------------------------------- the 2026-10-28 incident: price + margin typed together
+  {
+    const h = harness();
+    await h.go(photo("Kerala backwaters 4N/5D"));
+    await h.go(pick("g:a:offer"));
+    ok(/type it with your margin, e\.g\. 45000 \+10%/.test(h.last().b), "the Offer card price question says the price can be typed with the margin");
+    await h.go(tap("g:mk:other"));
+    await h.go(note("45000 1%"));
+    ok(h.last().t === "buttons" && h.last().ids.join() === "g:pf:both,g:pf:ig,g:pf:fb", "'45000 1%' is understood (no 'Reply like +10%' loop): next the accounts");
+    await h.go(tap("g:pf:both"));
+    const r = h.ran[0];
+    ok(r && r.job.markup.kind === "pct" && r.job.markup.value === 1, "the margin is +1%");
+    ok(r && r.job.typedPrice === 45000 && r.job.material.text === "Kerala backwaters 4N/5D", "the typed price travels as its own value (the caption is left as sent)");
+  }
+  {
+    const h = harness();
+    await h.go(note("Kerala backwaters package for Diwali"));
+    await h.go(pick("g:a:card"));
+    await h.go(tap("g:mk:other"));
+    await h.go(note("45000 1%"));
+    ok(!h.ran.length && /Reply like/.test(h.last().b || "") && !/45000 \+1%/.test(h.last().b || ""), "a package card (website price) never takes a typed price");
+  }
+
+  {
+    // exactly what the user did: Offer card -> Other amount -> "15,500" (the poster's price) -> "1%"
+    const h = harness();
+    await h.go(photo());
+    await h.go(pick("g:a:offer"));
+    await h.go(tap("g:mk:other"));
+    await h.go(note("15,500"));
+    ok(/Rs 15,500 per person\. Now your margin/.test(h.last().b || "") && !h.ran.length, "'15,500' is taken as the poster's price (never a +Rs 15,500 margin) and the margin is asked next");
+    await h.go(note("1%"));
+    await h.go(tap("g:pf:both"));
+    const r = h.ran[0];
+    ok(r && r.job.markup.kind === "pct" && r.job.markup.value === 1 && r.job.typedPrice === 15500, "then +1% on Rs 15,500: the offer runs with both");
+  }
+  {
+    // a corrected price replaces the first one (Bug Hunter round 2: the lower, older one used to win)
+    const h = harness();
+    await h.go(photo("Rs 20,000 per person"));
+    await h.go(pick("g:a:offer"));
+    await h.go(tap("g:mk:other"));
+    await h.go(note("15,500"));
+    await h.go(note("16,500"));
+    await h.go(note("1%"));
+    await h.go(tap("g:pf:both"));
+    ok(h.ran[0] && h.ran[0].job.typedPrice === 16500, "a second figure corrects the first: Rs 16,500 is used");
+  }
+  {
+    const h = harness();
+    await h.go(photo());
+    await h.go(pick("g:a:offer"));
+    await h.go(tap("g:mk:other"));
+    await h.go(note("+2000"));
+    ok(h.last().t === "buttons" && h.last().ids.join() === "g:pf:both,g:pf:ig,g:pf:fb", "'+2000' is still a rupee margin");
+    await h.go(tap("g:pf:ig"));
+    ok(h.ran[0] && h.ran[0].job.markup.kind === "inr" && h.ran[0].job.markup.value === 2000 && !h.ran[0].job.typedPrice, "...and is not mistaken for a price");
+  }
+
   // ---------------------------------------------------------------- photo -> post as is; a note while the menu is open
   {
     const h = harness();

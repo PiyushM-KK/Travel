@@ -21,7 +21,7 @@
  * owner's "approve". Typing "cancel" ends a conversation at any step.
  */
 
-const { parseMarkup, markupLabel, matchPackage, priceNum, DEFAULT_MARKUP, NO_MARKUP } = require("./packages");
+const { parseMarkup, priceAndMarkup, pricesFromText, markupLabel, matchPackage, priceNum, DEFAULT_MARKUP, NO_MARKUP } = require("./packages");
 const { SCENES, resolvePinned } = require("./video-scenes");
 
 const TTL_S = 30 * 60;
@@ -143,7 +143,8 @@ function createGuide(deps) {
       st.step = "markup";
       await save(to, st);
       const base = a === "card" && st.pkg ? `the website price${st.pkg.price ? ` (From Rs ${Number(st.pkg.price).toLocaleString("en-IN")} / person)` : ""} for ${st.pkg.item}` : "the per-person price on the poster";
-      await send.buttons(to, `💰 What price should the card show? It is worked out from ${base}.`, [
+      const typeIt = a === "offer" ? "\n\nIf the price isn't clear on the poster, type it with your margin, e.g. 45000 +10%." : "";
+      await send.buttons(to, `💰 What price should the card show? It is worked out from ${base}.${typeIt}`, [
         { id: tag(st, "g:mk:10"), title: "+10% (usual)" }, { id: tag(st, "g:mk:0"), title: "As is" }, { id: tag(st, "g:mk:other"), title: "Other amount" }]);
       return { action: "guide", step: "markup" };
     }
@@ -182,7 +183,7 @@ function createGuide(deps) {
 
   async function run(to, st) {
     await clear(to); // before the work: a redelivered tap finds no conversation and cannot run it twice
-    const job = { from: to, action: st.action, material: st.material, markup: st.markup || null, platforms: st.platforms || ["instagram", "facebook"], place: st.place || null, pkg: st.pkg || null };
+    const job = { from: to, action: st.action, material: st.material, markup: st.markup || null, platforms: st.platforms || ["instagram", "facebook"], place: st.place || null, pkg: st.pkg || null, typedPrice: st.typedPrice || null };
     const fn = REELS.has(st.action) ? actions.reel : actions[st.action];
     if (!REELS.has(st.action)) await say(to, `✍️ On it - ${platformLabel(job.platforms)}${st.action === "note" ? " (a text post: Instagram needs a photo)" : ""}${st.markup ? `, price ${markupLabel(st.markup)}` : ""}. Back in about 30 seconds for your approval.`);
     let out;
@@ -262,8 +263,31 @@ function createGuide(deps) {
         return { action: "guide", step: st.step, retry: st.tries };
       };
       if (st.step === "markup" || st.step === "markup_text") {
-        const m = parseMarkup(text);
-        if (!m) return giveUp("Reply like +10%, +12%, +2000 (rupees per person) or as is.");
+        let m = parseMarkup(text);
+        // "15,500" at an Offer card's price question is the POSTER'S price, not a +Rs 15,500 margin (the 2026-10-28
+        // incident): a plain amount of Rs 5,000+ without a "+" is taken as the price, then the margin is asked for.
+        if (st.action === "offer" && !/^\s*\+/.test(text)) {
+          const asPrice = m && m.kind === "inr" && m.value >= 5000 ? [m.value] : (!m && !priceAndMarkup(text) ? pricesFromText(text) : []);
+          if (asPrice.length === 1) {
+            st.typedPrice = asPrice[0]; // a second figure here is a correction: it replaces the first
+            st.step = "markup_text";
+            st.tries = 0;
+            await save(to, st);
+            await say(to, `👍 Rs ${asPrice[0].toLocaleString("en-IN")} per person. Now your margin: reply +10%, +1%, +2000 (rupees) or as is.`);
+            return { action: "guide", step: "markup_text", price: asPrice[0] };
+          }
+        }
+        if (!m && st.action === "offer") {
+          // "45000 +1%": the poster's price and the margin together - the price rides with the photo's caption
+          const both = priceAndMarkup(text);
+          if (both) {
+            m = both.markup;
+            st.typedPrice = both.price;
+          }
+        }
+        if (!m) return giveUp(st.action === "offer"
+          ? "Reply like +10%, +12%, +2000 (rupees per person) or as is - or the poster's price with your margin, e.g. 45000 +1%."
+          : "Reply like +10%, +12%, +2000 (rupees per person) or as is.");
         st.markup = m;
         return next(to, st);
       }

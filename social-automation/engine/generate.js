@@ -586,34 +586,50 @@ async function describeOffer(image, opts = {}) {
  * reseller card: we mark these up +10% to get Skyline's price). Returns an array of INR
  * numbers (empty on none/error). Filters out phone numbers, years, etc. by magnitude.
  */
+// The poster-price reader (owner 2026-10-28: "change the model if you want" after a priced poster came back
+// "couldn't read a price"). Opus 5.5 reads small or stylised print best; overridable by SOCIAL_PRICE_MODEL.
+const PRICE_MODEL = process.env.SOCIAL_PRICE_MODEL || "claude-opus-5-5";
+
 async function extractPrices(image, opts = {}) {
   const source = await imageBlockSource(image);
-  if (!source) return [];
+  if (!source) { console.log(JSON.stringify({ evt: "price_read_skipped", why: "image not readable" })); return []; }
   const client = opts.client || newClient();
-  try {
-    const msg = await client.messages.create(textRequest({
-      // Strong vision model — Haiku 4.5 blanked poster prices, and a +10% markup is MANDATORY so reading
-      // the original price reliably matters. Default to CAPTION_MODEL (Sonnet); overridable.
-      model: opts.model || CAPTION_MODEL,
-      max_tokens: 60,
-      messages: [{
-        role: "user",
-        content: [
-          { type: "image", source },
-          { type: "text", text:
-            "List EVERY per-person package PRICE shown in this image as plain numbers in INR, " +
-            "comma-separated (e.g. 10750,12400,14700). Ignore phone numbers, years, pincodes, and " +
-            "any non-price number. If there are no prices, reply exactly NONE." },
-        ],
-      }],
-    }));
-    const block = (msg.content || []).find((b) => b.type === "text");
-    const t = block ? String(block.text || "") : "";
-    if (/\bNONE\b/i.test(t)) return [];
-    return (t.match(/\d[\d,]{2,}/g) || [])
-      .map((s) => Number(s.replace(/,/g, "")))
-      .filter((n) => Number.isFinite(n) && n >= 1000 && n <= 1000000);
-  } catch (e) { return []; }
+  const ask = () => client.messages.create(textRequest({
+    // Strong vision model — Haiku 4.5 blanked poster prices, and the markup is applied to this price, so reading
+    // it reliably matters.
+    model: opts.model || PRICE_MODEL,
+    max_tokens: 1024, // short answer; the room is for a model that thinks first (an empty answer once looked like 'no price')
+    messages: [{
+      role: "user",
+      content: [
+        { type: "image", source },
+        { type: "text", text:
+          "List EVERY per-person package PRICE shown in this image as plain whole numbers in INR, " +
+          "comma-separated (e.g. 10750,12400,14700). Write 45K as 45000 and 1.25 Lakh as 125000. Ignore phone " +
+          "numbers, years, pincodes, nights/days and any non-price number. If there are no prices, reply exactly NONE." },
+      ],
+    }],
+  }), { timeout: 20000, maxRetries: 0 }); // the webhook has 60 s in all: never two slow reads (Bug Hunter 2026-10-28)
+  const started = Date.now();
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    if (attempt === 2 && Date.now() - started > 10000) break; // retry only after a QUICK failure
+    try {
+      const msg = await ask();
+      const block = (msg.content || []).find((b) => b.type === "text");
+      const t = block ? String(block.text || "") : "";
+      if (!t.trim()) throw new Error(`no text in the answer (stop_reason ${msg.stop_reason || "?"})`);
+      if (/\bNONE\b/i.test(t)) { console.log(JSON.stringify({ evt: "price_read", prices: [] })); return []; }
+      const prices = (t.match(/\d[\d,]{2,}/g) || [])
+        .map((s) => Number(s.replace(/,/g, "")))
+        .filter((n) => Number.isFinite(n) && n >= 1000 && n <= 1000000);
+      console.log(JSON.stringify({ evt: "price_read", prices }));
+      return prices;
+    } catch (e) {
+      // never a silent "no price": an error here once looked exactly like a poster without a price
+      console.log(JSON.stringify({ evt: "price_read_error", attempt, error: redact(String((e && e.message) || e)).slice(0, 200) }));
+    }
+  }
+  return [];
 }
 
 /**

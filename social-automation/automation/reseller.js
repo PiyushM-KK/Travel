@@ -68,6 +68,10 @@ async function buildResellerCards(ctx = {}, opts = {}) {
     } catch (e) { /* keep caption-derived offer text for matching */ }
   }
   const offer = [opts.offerText || "", visionOffer].filter(Boolean).join(" ").trim();
+  // The guided Offer card only (the owner chose the margin there): a price the owner typed is used when the
+  // poster's own price could not be read. Every other path still reads the price from the poster alone.
+  let priceSource = prices.length ? "poster" : "";
+  if (!prices.length && Array.isArray(opts.typedPrices) && opts.typedPrices.length) { prices = opts.typedPrices.slice(); priceSource = "typed"; }
 
   // 2. Match to a Skyline package. No match ⇒ Skyline doesn't sell it → don't invent a destination.
   const match = _matchPackage(offer);
@@ -133,7 +137,7 @@ async function buildResellerCards(ctx = {}, opts = {}) {
     `Do NOT invent specific attractions, activities, sights, hotels, meals or day-by-day itinerary. ` +
     `Keep it about the FEELING/mood + the invitation to plan a custom trip. Do NOT state any price ` +
     `(it's already on the card) and do not name any other company.`;
-  return { matched: true, pkg, rp, prices, offer, cardUrlA, cardUrlB, bStyle, options, hint, sceneMeta };
+  return { matched: true, pkg, rp, prices, priceSource, offer, cardUrlA, cardUrlB, bStyle, options, hint, sceneMeta };
 }
 
 module.exports = { buildResellerCards, toJpeg };

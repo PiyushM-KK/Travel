@@ -52,6 +52,12 @@ lights on Kutchi bhunga huts - https://www.canva.com/M/MAHZUMWyeRs (media id MAH
   vary by date and season." / "Route: Dwarka, Somnath, Statue of Unity, Kutch." / "From Rs 22,400 per person, 6N/7D -
   a starting price; dates, hotels and inclusions are adjustable."
 
+### Sunset take (2026-10-28, media MAHZUC36ynQ; owner: "remove the light leak, add a golden sun") - the CHOSEN image
+- Cinematographer: USE WITH FIXES (layout only, no regeneration) - better than the remake: leak gone, natural cracks,
+  plain huts. Left: the far salt mirrors the sun like sea (dry crust does not); faint lippan. Next time: "a matte dry
+  salt crust that does not reflect". Sun at x932 y629 - keep text off y600-660. Text zones as in the remake.
+- Compliance: OK WITH CHANGES - no deity or religious symbol (geometric relief only). The route + season HOLD stands.
+
 ## Rules that do not change
 
 - Every AI image is labelled "Illustrative - AI-generated" on the card and noted in the caption.

@@ -39,6 +39,19 @@ lights on Kutchi bhunga huts - https://www.canva.com/M/MAHZUMWyeRs (media id MAH
   season." Turn on Meta's "AI info" label by hand when posting. Price conditions (sharing basis, taxes) in the caption.
 - Season: the white Rann is usually dry about Nov-Feb - confirm the package dates include it before using a Rann scene.
 
+### Remake (2026-10-28, media MAHZUPdtvy0): Cinematographer "use with fixes", Compliance "OK with changes"
+- Fixed: huts beside (not on) the salt, cracked crust (not snow), warm bulbs, separate huts, leak at the far edge only.
+- Left: one smeared wall panel on the nearest hut, mirrors larger than real lippan, near-camera hexagons read as paving,
+  the far salt reads as sea. The price scrim (bottom right) hides most of it. Next time ask for "tiny mirrors" and
+  "irregular natural crust cracks".
+- Text zones (1080x1350): name + logo x160-1040 y48-300 (white, soft shadow); price x600-1050 y960-1180 and WhatsApp
+  y1195-1265 on a 45% scrim; AI label right-aligned y1290-1334 (never bottom-left: diya + light leak).
+- Compliance HOLD until Skyline confirms: the Gujarat Darshan route in facts.js is "Dwarka - Somnath - Statue of Unity -
+  Kutch" and does not name the White Rann / Dhordo or a bhunga stay; and the departure dates vs the dry-Rann season.
+  Caption lines: "Image is AI-generated and illustrative, not an actual photo. Actual sights, stays and decorations
+  vary by date and season." / "Route: Dwarka, Somnath, Statue of Unity, Kutch." / "From Rs 22,400 per person, 6N/7D -
+  a starting price; dates, hotels and inclusions are adjustable."
+
 ## Rules that do not change
 
 - Every AI image is labelled "Illustrative - AI-generated" on the card and noted in the caption.

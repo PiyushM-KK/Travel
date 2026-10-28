@@ -15,6 +15,10 @@ on:
         description: "instagram,facebook | instagram | facebook"
         required: false
         default: "instagram,facebook"
+      ai_image:
+        description: "true if the card's picture is AI-generated or AI-modified (the caption then always carries the AI line)"
+        required: false
+        default: "true"
 permissions:
   contents: read
 concurrency:
@@ -40,6 +44,7 @@ jobs:
           POST_IMAGE_URL: ${{ inputs.image_url }}
           POST_NOTE: ${{ inputs.note }}
           POST_PLATFORMS: ${{ inputs.platforms }}
+          POST_AI_IMAGE: ${{ inputs.ai_image }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
           UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}

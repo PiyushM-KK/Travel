@@ -43,6 +43,7 @@ function ok(cond, label) { console.log(`  ${cond ? "ok" : "FAIL"} - ${label}`); 
   ok(out.ok && out.outcome === "pending" && row.status === "pending_approval", "the card becomes a post waiting for approve (not approved, not published)");
   ok(row.source === "canva" && row.imageSource && row.imageSource.url === "https://blob.example/canva-card.png" && row.platforms.join() === "instagram,facebook", "hosted on Blob, recorded as a Canva card, both accounts");
   ok(sent[0] && sent[0][0] === "image" && sent[1] && sent[1][0] === "text", "the owner gets the image and the caption + how to approve on WhatsApp");
+  ok(/AI-generated and illustrative/.test(row.caption), "an AI card's caption always carries the AI line (added in code if the draft lacks it)");
   // auto-approve can never skip the owner: an "approved" draft is demoted to waiting-for-approve
   const sent2 = [];
   const out2 = await postImage({

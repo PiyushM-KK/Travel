@@ -15,6 +15,7 @@
 
 const ALLOWED_HOSTS = new Set(["export-download.canva.com", "document-export.canva.com"]); // Canva EXPORTS only
 const MAX_BYTES = 15 * 1024 * 1024;
+const AI_CAPTION_LINE = "Image is AI-generated and illustrative, not an actual photo. Actual sights, stays and decorations vary by date and season.";
 
 function checkUrl(raw) {
   let u;
@@ -40,6 +41,8 @@ async function postImage(o = {}) {
   const url = checkUrl(o.url || env.POST_IMAGE_URL);
   const note = String(o.note || env.POST_NOTE || "").trim().slice(0, 500);
   if (!note) throw new Error("POST_NOTE is required (what the post is about - the caption is written from it and the facts)");
+  // AI image unless told otherwise: the caption line below is then enforced in CODE (AI Security 2026-10-28)
+  const aiImage = String(o.aiImage != null ? o.aiImage : (env.POST_AI_IMAGE || "true")).toLowerCase() !== "false";
   const platforms = String(o.platforms || env.POST_PLATFORMS || "instagram,facebook").split(",").map((s) => s.trim()).filter((p) => p === "instagram" || p === "facebook");
 
   const { makeStore } = require("./run");
@@ -71,6 +74,9 @@ async function postImage(o = {}) {
     return { ok: false, outcome: res.outcome, reason: [fresh.lastError || res.reason || "", res.reviewNotes || fresh.reviewNotes || ""].filter(Boolean).join(" - "), id: row.id };
   }
 
+  if (aiImage && !/AI-generated/i.test(String(fresh.caption || ""))) {
+    fresh = await store.update(fresh.id, { caption: String(fresh.caption || "").trimEnd() + "\n\n" + AI_CAPTION_LINE });
+  }
   const { digestItem, renderDigestText } = require("./approval-channel");
   const wa = o.wa || require("./whatsapp");
   await wa.sendImage(env.WHATSAPP_TO, fresh.imageUrl || hosted.url, "🖼️ Canva card ready - caption + how to approve below 👇");
@@ -80,7 +86,7 @@ async function postImage(o = {}) {
   return { ok: true, outcome: "pending", id: row.id, code: wa.shortCode ? wa.shortCode(row.id) : undefined };
 }
 
-module.exports = { postImage, checkUrl, download, ALLOWED_HOSTS };
+module.exports = { postImage, checkUrl, download, ALLOWED_HOSTS, AI_CAPTION_LINE };
 
 if (require.main === module) {
   postImage().then((r) => {

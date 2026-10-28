@@ -4,7 +4,12 @@
 # The log is public: it prints counts of outcomes only (no ids, captions or links).
 name: publish-now
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      report_only:
+        description: "true = skip publishing, only send the WhatsApp report of held/failed posts"
+        required: false
+        default: "false"
 permissions:
   contents: read
 concurrency:
@@ -12,6 +17,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   publish:
+    if: ${{ inputs.report_only != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
@@ -23,3 +29,27 @@ jobs:
           echo "HTTP $code"
           jq -c '{ok, dryRun, outcomes: ([.. | objects | select(has("outcome")) | .outcome] | group_by(.) | map({(.[0]): length}) | add)}' out.json
           test "$code" = "200"
+  report:
+    needs: publish
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: social-automation
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '20'
+      - name: Install deps
+        run: npm install --no-audit --no-fund
+      - name: Tell the owner on WhatsApp why any post did not go out (counts only here)
+        env:
+          SOCIAL_CLIENT: skyline
+          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
+          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
+          WHATSAPP_PHONE_NUMBER_ID: ${{ secrets.WHATSAPP_PHONE_NUMBER_ID }}
+          WHATSAPP_TOKEN: ${{ secrets.WHATSAPP_TOKEN }}
+          WHATSAPP_TO: ${{ secrets.WHATSAPP_TO }}
+        run: node automation/publish-report.js 3

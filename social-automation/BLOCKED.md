@@ -6,6 +6,22 @@ the real values live in the local `.env` (gitignored) and the Vercel project env
 
 ---
 
+## B-IMAGE-MODEL - OPEN 2026-10-28 - AI scenes fail: the OpenAI project has no access to gpt-image-2
+
+What happens: every package-post without a stock photo is skipped. Vercel logs (`vercel logs skyline-social-nine.vercel.app`)
+show `image_gen_error` "Project `proj_...` does not have access to model `gpt-image-2`" (27-28 Oct). OpenAI shut
+`gpt-image-1` down 2026-10-23, so the old model cannot come back. This is the project's ALLOWED-MODELS list, not the
+organization verification error (that one says "must be verified").
+
+Owner steps (from OpenAI community answers; OpenAI's help page refused our fetch, so the exact menu is NOT CONFIRMED):
+1. Open https://platform.openai.com/settings/organization/projects and pick the project whose key `skyline-social` uses.
+2. In that project's Limits page, under Model usage, add `gpt-image-2` to the allowed models (keep the ones already
+   allowed; an empty "select models" list blocks everything). Save.
+3. If gpt-image-2 is not offered, or the call then says "must be verified": verify the organization at
+   https://platform.openai.com/settings/organization/general (access can take about 15 minutes after it passes).
+4. Tell the agent: it reads the next package-post's `image_gen` logs (no redeploy; `IMAGE_MODEL` env can pin another
+   allowed image model if the owner prefers one).
+
 ## B-LAKSHADWEEP-PUBLISH - ✅ DONE 2026-10-06 (`4783783`, owner's "publish") - the Lakshadweep page + chat anthropic-10 are LIVE
 
 Website + chat, not social automation, listed here so it is not missed (time-limited: travel 5-20 Nov 2026). One push of

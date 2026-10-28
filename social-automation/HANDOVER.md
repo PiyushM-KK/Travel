@@ -5,7 +5,13 @@ Scope: **only the `social-automation/` folder.** The rest of the Skyline project
 structure + provenance. **NOTE: this session also changed the WEBSITE (language fix) and started the
 client CHATBOT (`../pricing-portal/`) — see the checkpoint below; those live OUTSIDE this folder.**
 
-**CHECKPOINT 2026-10-28 (fullfirm-71) - AI SCENES FIXED:** OpenAI shut `gpt-image-1` down 2026-10-23; every AI scene
+**2026-10-28 (fullfirm-71, after the checkpoint) - AI SCENES STILL FAIL, OWNER ACTION (BLOCKED `B-IMAGE-MODEL`):** the
+first package-posts on the new code (27 Oct 23:30 + 23:33, 28 Oct 04:30 Toronto; Mizoram x2, Kerala backwaters) logged
+`image_gen_error` "Project ... does not have access to model `gpt-image-2`" x3 each -> `image_qa_no_bcard` -> skipped. The
+code is right; the OpenAI PROJECT behind `skyline-social`'s key has a model allowlist without gpt-image-2. After the owner
+allows it: read the next package-post's `image_gen` logs again. No redeploy needed (the model is read per call).
+
+**CHECKPOINT 2026-10-28 (fullfirm-71) - AI SCENES (code) FIXED:** OpenAI shut `gpt-image-1` down 2026-10-23; every AI scene
 failed ("The model 'gpt-image-1' does not exist"), so package posts without a stock photo were skipped. Default now
 `gpt-image-2` (`cf62507`, `81b8166`; LIVE `skyline-social-7580rtv5a`, owner "publish after reviews"). NEXT: after the
 next package-post, read `vercel logs skyline-social-nine.vercel.app` for `image_gen` (latency vs IMAGE_TIMEOUT_MS 45 s).

@@ -30,12 +30,13 @@ function ok(cond, label) { console.log(`  ${cond ? "ok" : "FAIL"} - ${label}`); 
     findBySourceMessageId: async () => null, listByStatus: async () => [],
   };
   const png = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47]), Buffer.alloc(100)]);
-  const sent = [];
+  const sent = []; const hostedType = [];
   const out = await postImage({
     env: { POST_IMAGE_URL: "https://export-download.canva.com/a/0001.png", POST_NOTE: "Mizoram Discovery package", WHATSAPP_TO: "15550001234", SOCIAL_CLIENT: "skyline" },
     store,
     fetch: async () => ({ ok: true, headers: { get: () => "image/png" }, arrayBuffer: async () => png }),
-    hostImageBytes: async () => ({ url: "https://blob.example/canva-card.png" }),
+    hostImageBytes: async (x) => { hostedType.push(x.contentType); return { url: "https://blob.example/canva-card.png" }; },
+    toJpeg: async () => Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0, 0]),
     generateOne: async (s, row) => { await s.update(row.id, { status: "pending_approval", caption: "Mizoram awaits." }); return { outcome: "pending" }; },
     wa: { sendImage: async (to, u) => sent.push(["image", u]), sendText: async (to, t) => sent.push(["text", t]), shortCode: () => "AB12" },
   });
@@ -43,6 +44,7 @@ function ok(cond, label) { console.log(`  ${cond ? "ok" : "FAIL"} - ${label}`); 
   ok(out.ok && out.outcome === "pending" && row.status === "pending_approval", "the card becomes a post waiting for approve (not approved, not published)");
   ok(row.source === "canva" && row.imageSource && row.imageSource.url === "https://blob.example/canva-card.png" && row.platforms.join() === "instagram,facebook", "hosted on Blob, recorded as a Canva card, both accounts");
   ok(sent[0] && sent[0][0] === "image" && sent[1] && sent[1][0] === "text", "the owner gets the image and the caption + how to approve on WhatsApp");
+  ok(hostedType[0] === "image/jpeg", "the card is hosted as JPEG (Instagram publishes JPEG only)");
   ok(/AI-generated and illustrative/.test(row.caption), "an AI card's caption always carries the AI line (added in code if the draft lacks it)");
   // auto-approve can never skip the owner: an "approved" draft is demoted to waiting-for-approve
   const sent2 = [];
@@ -51,6 +53,7 @@ function ok(cond, label) { console.log(`  ${cond ? "ok" : "FAIL"} - ${label}`); 
     store,
     fetch: async () => ({ ok: true, headers: { get: () => "image/png" }, arrayBuffer: async () => png }),
     hostImageBytes: async () => ({ url: "https://blob.example/b.png" }),
+    toJpeg: async () => Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0, 0]),
     generateOne: async (s, row, opts) => { sent2.push(opts.profile.autoApprove); await s.update(row.id, { status: "approved", caption: "x" }); return { outcome: "approved" }; },
     wa: { sendImage: async () => {}, sendText: async () => {}, shortCode: () => "CD34" },
   });
@@ -64,6 +67,7 @@ function ok(cond, label) { console.log(`  ${cond ? "ok" : "FAIL"} - ${label}`); 
       store,
       fetch: async () => ({ ok: true, headers: { get: () => "image/png" }, arrayBuffer: async () => png }),
       hostImageBytes: async () => ({ url: "https://blob.example/c.png" }),
+    toJpeg: async () => Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0, 0]),
       generateOne: async (s, row) => { await s.update(row.id, { status: "pending_approval", caption: "x" }); return { outcome: "pending" }; },
       wa: { sendImage: async () => { throw new Error("outside the 24 h window"); }, sendText: async () => {} },
     });

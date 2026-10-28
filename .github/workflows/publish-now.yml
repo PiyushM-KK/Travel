@@ -10,14 +10,40 @@ on:
         description: "true = skip publishing, only send the WhatsApp report of held/failed posts"
         required: false
         default: "false"
+      requeue_canva_jpeg:
+        description: "true = first re-encode approved Canva cards refused as PNG to JPEG and put them back to approved"
+        required: false
+        default: "false"
 permissions:
   contents: read
 concurrency:
   group: publish-now
   cancel-in-progress: false
 jobs:
+  requeue:
+    if: ${{ inputs.requeue_canva_jpeg == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: social-automation
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '20'
+      - name: Install deps
+        run: npm install --no-audit --no-fund
+      - name: Re-encode refused PNG Canva cards to JPEG (approved rows only)
+        env:
+          SOCIAL_CLIENT: skyline
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
+          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
+        run: node automation/requeue-canva-jpeg.js
   publish:
-    if: ${{ inputs.report_only != 'true' }}
+    needs: requeue
+    if: ${{ always() && inputs.report_only != 'true' && needs.requeue.result != 'failure' }}
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:

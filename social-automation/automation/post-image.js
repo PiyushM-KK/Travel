@@ -52,8 +52,11 @@ async function postImage(o = {}) {
   const client = loadClient(env.SOCIAL_CLIENT || "skyline");
 
   const img = await download(url, o.fetch);
+  // Instagram's API publishes JPEG only (engine/publish.js): a PNG card was approved and then refused (2026-10-28)
+  const jpg = img.contentType === "image/jpeg" ? img.buffer : await (o.toJpeg || require("./reseller").toJpeg)(img.buffer);
+  if (!(jpg[0] === 0xff && jpg[1] === 0xd8)) throw new Error("could not convert the card to JPEG (Instagram needs JPEG)");
   const host = o.hostImageBytes || require("./image-host").hostImageBytes;
-  const hosted = await host({ buffer: img.buffer, contentType: img.contentType, keyHint: "canva-card" });
+  const hosted = await host({ buffer: jpg, contentType: "image/jpeg", keyHint: "canva-card" });
 
   const row = await intakeDirect(store, {
     client: client.id, hint: note, subject: note.slice(0, 60), source: "canva",

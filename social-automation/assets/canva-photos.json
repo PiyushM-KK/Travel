@@ -1,0 +1,14 @@
+{
+  "_rule": "Owner 2026-10-28: Canva PRO photos only (Photos search, Price filter = Pro, the crown badge), used only inside a finished Skyline design; a DIFFERENT photo for every card - never reuse a mediaId. Add a row per card BEFORE it is posted; tests/check_canva_photos.js refuses a repeat.",
+  "photos": [
+    {
+      "mediaId": "MAEEasdqTag",
+      "destination": "Mizoram",
+      "package": "Mizoram Discovery",
+      "search": "Mizoram Aizawl",
+      "pro": true,
+      "design": "DAHZT3_-tVg",
+      "added": "2026-10-28"
+    }
+  ]
+}

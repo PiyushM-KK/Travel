@@ -1,0 +1,50 @@
+# A ready-made Skyline card (designed in Canva with a Canva Pro photo) into the NORMAL approval flow
+# (owner 2026-10-28). Manual only. The card is hosted, captioned + fact-checked, and sent to the owner's WhatsApp
+# with "approve <code>"; it posts ONLY after that approve, like every other post. Nothing is published here.
+name: post-image
+on:
+  workflow_dispatch:
+    inputs:
+      image_url:
+        description: "Canva export URL of the finished card (https://export-download.canva.com/...)"
+        required: true
+      note:
+        description: "What the post is about (the caption is written from this + Skyline's facts)"
+        required: true
+      platforms:
+        description: "instagram,facebook | instagram | facebook"
+        required: false
+        default: "instagram,facebook"
+permissions:
+  contents: read
+concurrency:
+  group: post-image
+  cancel-in-progress: false
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: social-automation
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 (pinned like chat-worker.yml)
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '20'
+      - name: Install deps
+        run: npm install --no-audit --no-fund
+      - name: Host, caption, send for approval (never publishes)
+        env:
+          SOCIAL_CLIENT: skyline
+          POST_IMAGE_URL: ${{ inputs.image_url }}
+          POST_NOTE: ${{ inputs.note }}
+          POST_PLATFORMS: ${{ inputs.platforms }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
+          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
+          WHATSAPP_PHONE_NUMBER_ID: ${{ secrets.WHATSAPP_PHONE_NUMBER_ID }}
+          WHATSAPP_TOKEN: ${{ secrets.WHATSAPP_TOKEN }}
+          WHATSAPP_TO: ${{ secrets.WHATSAPP_TO }}
+        run: node automation/post-image.js

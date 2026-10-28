@@ -27,6 +27,18 @@ sensitivity), political images, other brands' characters.
 Sample (2026-10-28, Canva AI, Gujarat Darshan): Rann of Kutch white desert at dusk, diyas along the salt flat, string
 lights on Kutchi bhunga huts - https://www.canva.com/M/MAHZUMWyeRs (media id MAHZUMWyeRs).
 
+### Review of the first sample (2026-10-28): Cinematographer "use with fixes", Compliance "OK with changes"
+- Authenticity: Kutchi bhungas are WHITEWASHED mud with lippan relief (raised white/earth lines, tiny round mirrors) -
+  not coloured tiles; no LED strips (warm incandescent bulbs); the white Rann is a HARD FLAT CRACKED HEXAGONAL salt
+  crust, not snow; bhungas stand in villages at the EDGE of the Rann (Hodka, Dhordo), not on the salt; each hut clearly
+  separate; smooth untouched salt (no blob "footprints"). Put these words in every Rann prompt.
+- Card layout: name + logo in the sky (top), price + WhatsApp on the salt (lower right) over a 40-50% dark scrim; keep
+  text off the light leak; never sharpen or add contrast to an AI sky (compression blocks show).
+- Label on the card (bottom corner, >= 24 px at 1080 wide, high contrast): "Illustrative image - AI-generated, not an
+  actual photo". Caption: "Image is AI-generated and illustrative. Actual sights, stays and decorations vary by date and
+  season." Turn on Meta's "AI info" label by hand when posting. Price conditions (sharing basis, taxes) in the caption.
+- Season: the white Rann is usually dry about Nov-Feb - confirm the package dates include it before using a Rann scene.
+
 ## Rules that do not change
 
 - Every AI image is labelled "Illustrative - AI-generated" on the card and noted in the caption.

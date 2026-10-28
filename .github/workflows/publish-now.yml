@@ -1,0 +1,25 @@
+# Run Skyline's normal publish pass NOW instead of waiting for the daily 15:30 UTC cron (owner 2026-10-28).
+# It is the same endpoint the cron calls (api/cron-publish.js): it posts ONLY rows the owner already approved and
+# that are due, with every publish guard unchanged. Manual only. The daily cron keeps running as before.
+# The log is public: it prints counts of outcomes only (no ids, captions or links).
+name: publish-now
+on:
+  workflow_dispatch: {}
+permissions:
+  contents: read
+concurrency:
+  group: publish-now
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Publish approved, due posts now
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          code=$(curl -sS -m 70 -o out.json -w "%{http_code}" -H "Authorization: Bearer ${CRON_SECRET}" "https://skyline-social-nine.vercel.app/api/cron-publish")
+          echo "HTTP $code"
+          jq -c '{ok, dryRun, outcomes: ([.. | objects | select(has("outcome")) | .outcome] | group_by(.) | map({(.[0]): length}) | add)}' out.json
+          test "$code" = "200"

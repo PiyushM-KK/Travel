@@ -125,6 +125,7 @@ async function buildResellerCards(ctx = {}, opts = {}) {
     }
     if (bufB) cardUrlB = await hostCard(bufB, `card-b-${smid}`);
   } catch (e) {
+    try { console.warn(JSON.stringify({ evt: "reseller_scene_error", error: require("../engine/publish").redact(String((e && e.message) || e)).slice(0, 300) })); } catch { /* ignore */ }
     // B is best-effort; on any error offer the real photo (A) alone rather than a blank card.
     cardUrlB = ""; bStyle = ""; sceneMeta = null;
   }

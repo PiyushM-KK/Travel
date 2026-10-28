@@ -15,6 +15,9 @@
  *
  * GET /api/render-selftest        → JSON diagnostics (runtime, bytes, ms, renderer, host status)
  * GET /api/render-selftest?img=1  → the actual card image, so it can be eyeballed in a browser
+ * GET /api/render-selftest?scene=1 → ONE real AI scene through the production image client (the model + its fallback,
+ *     ~1 US cent at low quality), rendered on a card in memory; reports model, ms, bytes. Nothing is hosted or posted.
+ *     Run by the manual GitHub workflow scene-selftest.yml (2026-10-28: prove the image model live without a post).
  *
  * STATUS: 200 = render + host both OK. 503 = renders but hosting is unconfigured (owner must set
  * BLOB_READ_WRITE_TOKEN). 500 = a real fault (render failed, or hosting is configured but errors).
@@ -64,6 +67,35 @@ module.exports = async (req, res) => {
 
   const opts = sampleOpts();
   const wantImg = /(?:[?&])img=1/.test(req.url || "");
+
+  if (/(?:[?&])scene=1/.test(req.url || "")) {
+    // the answer is printed in a PUBLIC GitHub Actions log: no project / organization ids (App Security 2026-10-28)
+    const scrub = (e) => String((e && e.message) || e).replace(/\b(proj|org)[_-][A-Za-z0-9]+/g, "$1_...").slice(0, 400);
+    const out = { runner: "vercel", scene: {}, card: {} };
+    const imageGen = require("../automation/image-gen").resolveImageGen();
+    if (!imageGen) { out.scene = { ok: false, error: "OPENAI_API_KEY (or IMAGE_API_KEY) not set on this project" }; res.status(503).json(out); return; }
+    const { promptForSlug } = require("../automation/scene-prompts");
+    const slug = photoSlug(opts.headline + " " + opts.subtitle);
+    let t = Date.now();
+    let img = null;
+    try {
+      img = await imageGen(promptForSlug(slug));
+      out.scene = { ok: true, model: img.model, ms: Date.now() - t, bytes: img.buffer.length, contentType: img.contentType };
+    } catch (e) {
+      out.scene = { ok: false, ms: Date.now() - t, error: scrub(e) };
+    }
+    if (img) {
+      t = Date.now();
+      try {
+        const card = await makeCard({ ...opts, photoPath: null, photoBytes: img.buffer, credit: "AI-generated scene · illustrative" });
+        out.card = { ok: true, bytes: card.length, ms: Date.now() - t };
+      } catch (e) {
+        out.card = { ok: false, error: scrub(e) };
+      }
+    }
+    res.status(out.scene.ok && out.card.ok ? 200 : 500).json(out);
+    return;
+  }
 
   if (wantImg) {
     try {

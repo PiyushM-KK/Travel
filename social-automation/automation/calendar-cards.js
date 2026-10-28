@@ -210,6 +210,8 @@ async function buildAndDraftCard(store, ctx, { pkg, smid, source }) {
     }
   } catch (e) {
     // Best-effort: a scene error just means no AI card. A photographed package still has its real photo A.
+    // LOGGED (2026-10-28: a 9:30 prep planned a scene and then nothing at all was recorded).
+    try { console.warn(JSON.stringify({ evt: "calendar_scene_error", id: smid, error: require("../engine/publish").redact(String((e && e.message) || e)).slice(0, 300) })); } catch { /* ignore */ }
     cardUrlB = ""; bStyle = ""; sceneMeta = null;
   }
 

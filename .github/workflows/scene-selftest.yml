@@ -1,0 +1,25 @@
+# Prove Skyline's AI scene step works LIVE without making a post (2026-10-28): one real image through the
+# production image client (gpt-image-2.5-flare, falls back to gpt-image-2), rendered on a card in memory, nothing
+# hosted or posted. Manual only. Cost: one low-quality image (~1 US cent).
+name: scene-selftest
+on:
+  workflow_dispatch: {}
+permissions:
+  contents: read
+concurrency:
+  group: scene-selftest
+  cancel-in-progress: false
+jobs:
+  scene:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Make one AI scene on the live deployment
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          code=$(curl -sS -m 130 -o out.json -w "%{http_code}" -H "Authorization: Bearer ${CRON_SECRET}" "https://skyline-social-nine.vercel.app/api/render-selftest?scene=1")
+          echo "HTTP $code"
+          # only the fields we need, ids masked again (this log is public)
+          jq -c '{scene: (.scene | {ok, model, ms, bytes, error}), card: (.card | {ok, ms, error})}' out.json | sed -E 's/(proj|org)[_-][A-Za-z0-9]+/\1_.../g'
+          test "$code" = "200"

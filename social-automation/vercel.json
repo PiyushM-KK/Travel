@@ -32,7 +32,7 @@
       "maxDuration": 60
     },
     "api/render-selftest.js": {
-      "maxDuration": 30
+      "maxDuration": 120
     }
   }
 }

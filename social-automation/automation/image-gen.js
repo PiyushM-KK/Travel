@@ -99,7 +99,7 @@ async function generateWithModel(prompt, model, opts) {
   try { console.log(JSON.stringify({ evt: "image_gen", model, size, quality, bytes: buffer.length, usage })); } catch { /* ignore */ }
   // labelled by its real bytes (a newer model may not default to PNG; review 2026-10-27)
   const contentType = buffer[0] === 0x89 ? "image/png" : buffer[0] === 0xff ? "image/jpeg" : buffer[0] === 0x52 ? "image/webp" : "image/gif";
-  return { buffer, contentType, usage };
+  return { buffer, contentType, usage, model };
 }
 
 /** Return a generator fn if an image API key is configured, else null (→ gradient-decor fallback). */
